@@ -22,12 +22,14 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            align-items: center;
         }
-        .header, .footer {
+        .header {
             padding: 20px;
             font-size: 20px;
             font-family: 'Montserrat', sans-serif;
             font-weight: normal;
+            align-self: flex-start;
         }
         .content {
             flex-grow: 1;
@@ -40,6 +42,14 @@
             line-height: 1.3;
             font-family: 'Poppins', sans-serif;
             font-weight: normal;
+        }
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: normal;
+            position: absolute;
+            bottom: 20px;
         }
     </style>
 </head>
