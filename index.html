@@ -43,6 +43,7 @@
             line-height: 1.3;
             font-family: 'Poppins', sans-serif;
             font-weight: normal;
+            white-space: nowrap;
         }
         .footer {
             text-align: center;
@@ -54,24 +55,32 @@
             left: 50%;
             transform: translateX(-50%);
         }
-        .typing-container span {
+        .typing-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .typing-text {
             display: inline-block;
             overflow: hidden;
-            white-space: nowrap;
             border-right: 3px solid white;
+            white-space: nowrap;
+        }
+        .line1 {
+            width: 0;
+            animation: typing 2s steps(30, end) forwards;
+        }
+        .line2 {
+            width: 0;
+            visibility: hidden;
+            animation: typing 2s steps(30, end) 2s forwards;
         }
         @keyframes typing {
             from { width: 0; }
             to { width: 100%; }
         }
-        @keyframes blink {
-            50% { border-color: transparent; }
-        }
-        .line1 {
-            animation: typing 2s steps(30, end) forwards, blink 0.5s step-end infinite alternate;
-        }
-        .line2 {
-            animation: typing 2s steps(30, end) 2s forwards, blink 0.5s step-end infinite alternate;
+        .line1.finished, .line2.finished {
+            border-right: none;
         }
     </style>
 </head>
@@ -79,10 +88,19 @@
     <div class="header">PromontoryAI</div>
     <div class="content">
         <div class="typing-container">
-            <span class="line1">We do the hard AI,</span><br>
-            <span class="line2">so life is easy for you.</span>
+            <span class="typing-text line1" id="line1">We do the hard AI,</span>
+            <span class="typing-text line2" id="line2">so life is easy for you.</span>
         </div>
     </div>
     <div class="footer">ask@promontoryai.com</div>
+    <script>
+        setTimeout(() => {
+            document.getElementById("line1").classList.add("finished");
+            document.getElementById("line2").style.visibility = "visible";
+        }, 2000);
+        setTimeout(() => {
+            document.getElementById("line2").classList.add("finished");
+        }, 4000);
+    </script>
 </body>
 </html>
