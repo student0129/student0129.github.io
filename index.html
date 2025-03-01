@@ -128,7 +128,7 @@
         }
         .line2 {
             visibility: hidden;
-            animation: typing 2s steps(26, end) 2s forwards, blink-cursor 0.5s step-end infinite;
+            animation: typing 2.6s steps(26, end) 2.5s forwards, blink-cursor 0.5s step-end infinite;
         }
         @keyframes typing {
             from { width: 0; }
@@ -181,10 +181,10 @@
         setTimeout(() => {
             document.getElementById("line1").classList.add("finished");
             document.getElementById("line2").style.visibility = "visible";
-        }, 2000);
+        }, 2500);
         setTimeout(() => {
             document.getElementById("line2").classList.add("finished");
-        }, 4000);
+        }, 5100);
     </script>
 
     <div style="display:none;">
