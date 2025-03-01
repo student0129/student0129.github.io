@@ -63,16 +63,11 @@
             border-right: 3px solid white;
             white-space: nowrap;
             font-weight: 200;
-            animation: blink-cursor 0.7s step-end infinite;
-        }
-        .line1 {
-            width: 0;
-            animation: typing 2s steps(30, end) forwards;
+            animation: typing 2s steps(30, end) forwards, blink-cursor 0.7s step-end infinite;
         }
         .line2 {
-            width: 0;
             visibility: hidden;
-            animation: typing 2s steps(30, end) 2s forwards;
+            animation: typing 2s steps(30, end) 2s forwards, blink-cursor 0.7s step-end infinite;
         }
         @keyframes typing {
             from { width: 0; }
@@ -81,7 +76,7 @@
         @keyframes blink-cursor {
             50% { border-color: transparent; }
         }
-        .line1.finished, .line2.finished {
+        .typing-text.finished {
             border-right: none;
         }
         @media (max-width: 768px) {
