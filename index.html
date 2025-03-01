@@ -125,7 +125,8 @@
             white-space: nowrap;
         }
         .typing-text.finished {
-            border-right: 7px solid yellow; /* Keeps width but hides cursor */
+            animation: none;
+            border-right: 7px solid yellow !important; /* Keeps width but hides cursor */
         }
         .line1 {
             animation: typing 3s steps(20, end) forwards, blink-cursor 0.7s step-end infinite;
