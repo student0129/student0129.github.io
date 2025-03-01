@@ -125,10 +125,15 @@
             white-space: nowrap;
             font-weight: 200;
             animation: typing 2s steps(20, end) forwards, blink-cursor 0.5s step-end infinite;
+            min-width: fit-content; /* Ensures no shrinking */
+        }
+        .typing-text.finished {
+            border-right: 3px solid transparent; /* Keeps width but hides cursor */
         }
         .line2 {
             visibility: hidden;
             animation: typing 2.6s steps(26, end) 2.5s forwards, blink-cursor 0.5s step-end infinite;
+            min-width: fit-content; /* Ensures no shrinking */
         }
         @keyframes typing {
             from { width: 0; }
