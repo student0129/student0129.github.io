@@ -172,19 +172,29 @@
     <div class="content">
         <div class="typing-container">
             <span class="typing-text line1" id="line1">We do the hard AI,</span>
-            <span class="typing-text line2" id="line2">so life is easy for you.</span>
+            <span class="typing-text line2" id="line2" style="display: none;">so life is easy for you.</span>
         </div>
     </div>
     <div class="footer">ask@promontoryai.com</div>
 
+    <script>
+        setTimeout(() => {
+            document.getElementById("line1").classList.add("finished");
+            let line2 = document.getElementById("line2");
+            line2.style.display = "inline-block"; // Make the second line visible
+            line2.style.width = "0"; // Ensure it starts from zero width
+            line2.style.animation = "typing 2s steps(30, end) forwards"; // Trigger animation
+        }, 2000);
+    </script>
+
     <div style="display:none;">
-    Artificial Intelligence, Machine Learning, Large Language Models, Generative AI, Deep Learning, Natural Language Processing, Neural Networks, AI Model Training, Explainable AI, Federated Learning, AI Governance, AI Ethics, AI-Driven Decision Science, Predictive Analytics, AI in Risk Management, Cognitive Computing, AI-Powered Automation, AI in Cybersecurity, AI for Government, AI in Financial Services, AI in Healthcare, AI in Supply Chain Management.
+        Artificial Intelligence, Machine Learning, Large Language Models, Generative AI, Deep Learning, Natural Language Processing, Neural Networks, AI Model Training, Explainable AI, Federated Learning, AI Governance, AI Ethics, AI-Driven Decision Science, Predictive Analytics, AI in Risk Management, Cognitive Computing, AI-Powered Automation, AI in Cybersecurity, AI for Government, AI in Financial Services, AI in Healthcare, AI in Supply Chain Management.
+        
+        Data Science, Big Data Analytics, Real-Time Analytics, Data Engineering, Data Governance, Data Strategy, Data-Driven Insights, Algorithmic Decision-Making, Cloud Data Platforms, Scalable AI Systems, Business Intelligence, Data Visualization, Unstructured Data Analysis, Data Mining, Data Warehousing, Data Security, Data Compliance, Customer Analytics, Market Basket Analysis.
     
-    Data Science, Big Data Analytics, Real-Time Analytics, Data Engineering, Data Governance, Data Strategy, Data-Driven Insights, Algorithmic Decision-Making, Cloud Data Platforms, Scalable AI Systems, Business Intelligence, Data Visualization, Unstructured Data Analysis, Data Mining, Data Warehousing, Data Security, Data Compliance, Customer Analytics, Market Basket Analysis.
-
-    Digital Transformation, AI Strategy Consulting, Emerging Technologies, Innovation Labs, Strategic Foresight, Scenario Planning, Disruptive Technologies, Government Modernization, Digital Public Services, Smart Government Solutions, Enterprise AI Adoption, AI in Public Sector, Human-Centered AI, Design Thinking, Service Design, Agile Innovation, Prototyping with AI, Creative AI Solutions, Future-Proof AI Strategies, AI-Driven Business Models.
-
-    Risk Analytics, AI in Risk Management, Risk Modeling with AI, Predictive Risk Analysis, AI-Powered Risk Assessment, Data-Driven Risk Forecasting, Risk-Based Decision-Making, Compliance AI Solutions, Financial Risk Analytics, AI in Cyber Risk Management, AI-Powered Fraud Detection, Credit Risk Modeling, Market Risk Analysis, Operational Risk Management, AI in Regulatory Compliance, Risk Mitigation Strategies, AI in Insurance Analytics, Stress Testing with AI, AI in Portfolio Risk Management, Scenario Analysis with AI.
+        Digital Transformation, AI Strategy Consulting, Emerging Technologies, Innovation Labs, Strategic Foresight, Scenario Planning, Disruptive Technologies, Government Modernization, Digital Public Services, Smart Government Solutions, Enterprise AI Adoption, AI in Public Sector, Human-Centered AI, Design Thinking, Service Design, Agile Innovation, Prototyping with AI, Creative AI Solutions, Future-Proof AI Strategies, AI-Driven Business Models.
+    
+        Risk Analytics, AI in Risk Management, Risk Modeling with AI, Predictive Risk Analysis, AI-Powered Risk Assessment, Data-Driven Risk Forecasting, Risk-Based Decision-Making, Compliance AI Solutions, Financial Risk Analytics, AI in Cyber Risk Management, AI-Powered Fraud Detection, Credit Risk Modeling, Market Risk Analysis, Operational Risk Management, AI in Regulatory Compliance, Risk Mitigation Strategies, AI in Insurance Analytics, Stress Testing with AI, AI in Portfolio Risk Management, Scenario Analysis with AI.
     </div>
     
     <div style="display:none;">
