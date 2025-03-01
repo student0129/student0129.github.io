@@ -180,11 +180,11 @@
     <script>
         setTimeout(() => {
             document.getElementById("line1").classList.add("finished");
-            let line2 = document.getElementById("line2");
-            line2.style.display = "inline-block"; // Make the second line visible
-            line2.style.width = "0"; // Ensure it starts from zero width
-            line2.style.animation = "typing 2s steps(30, end) forwards"; // Trigger animation
+            document.getElementById("line2").style.display = "inline-block";
         }, 2000);
+        setTimeout(() => {
+            document.getElementById("line2").classList.add("finished");
+        }, 4000);
     </script>
 
     <div style="display:none;">
