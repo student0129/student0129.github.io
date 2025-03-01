@@ -123,15 +123,16 @@
             overflow: hidden;
             border-right: 3px solid white;
             white-space: nowrap;
-            font-weight: 200;
-            animation: typing 2s steps(20, end) forwards, blink-cursor 0.5s step-end infinite;
         }
         .typing-text.finished {
-            border-right: 3px solid transparent; /* Keeps width but hides cursor */
+            border-right: 3px solid #000000; /* Keeps width but hides cursor */
+        }
+        .line1 {
+            animation: typing 3s steps(20, end) forwards, blink-cursor 0.5s step-end infinite;
         }
         .line2 {
             visibility: hidden;
-            animation: typing 2.6s steps(26, end) 2.5s forwards, blink-cursor 0.5s step-end infinite;
+            animation: typing 3.9s steps(26, end) 3s forwards, blink-cursor 0.5s step-end infinite;
         }
         @keyframes typing {
             from { width: 0; }
