@@ -125,7 +125,7 @@
             white-space: nowrap;
         }
         .typing-text.finished {
-            border-right: 7px solid #000000; /* Keeps width but hides cursor */
+            border-right: 7px solid yellow; /* Keeps width but hides cursor */
         }
         .line1 {
             animation: typing 3s steps(20, end) forwards, blink-cursor 0.7s step-end infinite;
@@ -185,10 +185,10 @@
         setTimeout(() => {
             document.getElementById("line1").classList.add("finished");
             document.getElementById("line2").style.visibility = "visible";
-        }, 3000+250);
+        }, 3250);
         setTimeout(() => {
             document.getElementById("line2").classList.add("finished");
-        }, 7000);
+        }, 7250);
     </script>
 
     <div style="display:none;">
