@@ -172,7 +172,7 @@
     <div class="content">
         <div class="typing-container">
             <span class="typing-text line1" id="line1">We do the hard AI,</span>
-            <span class="typing-text line2" id="line2" style="display: none;">so life is easy for you.</span>
+            <span class="typing-text line2" id="line2" style="visibility: hidden;">so life is easy for you.</span>
         </div>
     </div>
     <div class="footer">ask@promontoryai.com</div>
@@ -180,7 +180,7 @@
     <script>
         setTimeout(() => {
             document.getElementById("line1").classList.add("finished");
-            document.getElementById("line2").style.display = "inline-block";
+            document.getElementById("line2").style.visibility = "visible";
         }, 2000);
         setTimeout(() => {
             document.getElementById("line2").classList.add("finished");
