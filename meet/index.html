@@ -6,11 +6,11 @@
     <script type="text/javascript">
       window.onload = () => {
         const api = new JitsiMeetExternalAPI("8x8.vc", {
-          roomName: "vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/SampleAppAmbitiousGrowthsVentureRarely",
+          roomName: "vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/Taher'sMeetingRoom",
           parentNode: document.querySelector('#jaas-container'),
-                        // Make sure to include a JWT if you intend to record,
-                        // make outbound calls or use any other premium features!
-                        // jwt: "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMvMTQyNWJlLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NDc2ODM2MjMsImV4cCI6MTc0NzY5MDgyMywibmJmIjoxNzQ3NjgzNjE4LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOmZhbHNlLCJvdXRib3VuZC1jYWxsIjpmYWxzZSwic2lwLW91dGJvdW5kLWNhbGwiOmZhbHNlLCJ0cmFuc2NyaXB0aW9uIjpmYWxzZSwicmVjb3JkaW5nIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJUZXN0IFVzZXIiLCJpZCI6ImF1dGgwfDY4MmI4MWQ3MTE2MTU0NmIzY2QwMjI1ZiIsImF2YXRhciI6IiIsImVtYWlsIjoidGVzdC51c2VyQGNvbXBhbnkuY29tIn19LCJyb29tIjoiKiJ9.SzqMIh1OAYFolCb--NiNKa7qUNhJNIqgycvUieosoV1dkt1tFvQMRw-iOqpjrH5EUeka4WYxPrBPvE9EuWpFH-qgfPMbjebaZOMgcC2La7x21GHRh1xFw8eIGWJyj-9z8d7kArB9D41GW5I5vN0s2RNHqYl834yY31LWPzHEdEhvy5yd7W1dtnM0ueq34YcoMzn6B2SWTH8u5fGo7dfazIhA9EcaPGOLQjKC6Hps_t9b3pU5_q_tM97bFJiPt38bDo1UgM7nUubD_Iv4JnXSqkrtbqYx0XeNA8LaKNIodSPlxYtVW4YLk5J1jGupz6Xy0_MYbEu2EXVhyvBO2SAbLA"
+              // Make sure to include a JWT if you intend to record,
+              // make outbound calls or use any other premium features!
+              jwt: "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMvMTQyNWJlLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NDc2ODU5NjYsImV4cCI6MTc0NzY5MzE2NiwibmJmIjoxNzQ3Njg1OTYxLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlfSwidXNlciI6eyJoaWRkZW4tZnJvbS1yZWNvcmRlciI6ZmFsc2UsIm1vZGVyYXRvciI6dHJ1ZSwibmFtZSI6InRhaGVyIiwiaWQiOiJhdXRoMHw2ODJiOTFiODllOTAwZjljZTkzM2ZjMzUiLCJhdmF0YXIiOiIiLCJlbWFpbCI6InRhaGVyQHByb21vbnRvcnlhaS5jb20ifX0sInJvb20iOiIqIn0.EwKWNLlhfo-bLkuOqF7D1q2CZFPkeWegVQHyDy3JSDFtLdonYV0U__QK86qh5Hjc7IkXgtueP7u77U1SbKY36LqpgEpLvc2YH6zZGFuzyDSMqB8BTAHK7F8n77i8ohyDpn3eRgWsAeXzjHZts2L9drgtmSY08cduwN2v343LeM9YS3k5cbnx0EjJ_usGaYAlnkXlX9UuWQoNbEla_Is4DNJ3Z8OxoJDiIrXBUGfN28QuOUdY6A9geaqNLQEOZhRyHqr51ksXLGquqI-7Fhqg-q2uVUuB09Cg74Y6OBY-LOaXiWj9GZvexZwNZi0hD1pKS4QWabHij9fvsFMQfdeXqA"
         });
       }
     </script>
