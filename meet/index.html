@@ -1,19 +1,45 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src='https://8x8.vc/vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/external_api.js' async></script>
-    <style>html, body, #jaas-container { height: 100%; }</style>
-    <script type="text/javascript">
-      window.onload = () => {
-        const api = new JitsiMeetExternalAPI("8x8.vc", {
-          roomName: "vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/Taher'sMeetingRoom",
-          parentNode: document.querySelector('#jaas-container'),
-          // Make sure to include a JWT if you intend to record,
-          // make outbound calls or use any other premium features!
-          jwt: "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NDc2ODg1MDEsImV4cCI6MTc0NzY5NTcwMSwibmJmIjoxNzQ3Njg4NDk2LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlfSwidXNlciI6eyJoaWRkZW4tZnJvbS1yZWNvcmRlciI6ZmFsc2UsIm1vZGVyYXRvciI6dHJ1ZSwibmFtZSI6InRhaGVyIiwiaWQiOiJhdXRoMHw2ODJiOTFiODllOTAwZjljZTkzM2ZjMzUiLCJhdmF0YXIiOiIiLCJlbWFpbCI6InRhaGVyQHByb21vbnRvcnlhaS5jb20ifX0sInJvb20iOiIqIn0.ELms6npIwMOclgOxaDSuIL0RUodKOy1utgn6zmGoIv76X46_3zOhs5APM_TYMMg8f2kUiPHqLKkUchr-QZ3di09ap-iybfOKNPz-t53B8H0beuWO3x-3uxVqjcnvg1aEbSAzW4hC_cYXLsO0rryp41slz4NtLyAHf_ZaBUUVu8wLvCEoak3gYUl_4KxSeMDvHhCaIO4DiSr5dIi-_gmTm54R7_ICblxJP0jv3UDxl2V1Oq_99D0Nu6M-yEmP5qWF_XkDpjzLhiBSxJmYcJq9TufDktQkbk3Cr-aN6QF8mbFL_zRp27n879DDfFfDEroy9O8JlYS_CceRBAppcg_MJQ"
+<head>
+  <title>Jitsi Meeting</title>
+</head>
+<body>
+  <h2>Enter Your Name</h2>
+  <input id="name" placeholder="Your name" />
+  <br><br>
+  <button onclick="startMeeting()">Join Meeting</button>
+
+  <div id="jitsi-container" style="height: 700px; width: 100%; margin-top: 20px;"></div>
+
+  <script src="https://8x8.vc/external_api.js"></script>
+  <script>
+    async function startMeeting() {
+      const name = document.getElementById('name').value;
+      const isModerator = name.toLowerCase().includes('admin');
+
+      const res = await fetch('https://jaas-token-server.onrender.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, isModerator })
+      });
+
+      const data = await res.json();
+
+      const domain = '8x8.vc';
+      const options = {
+        roomName: 'MyCustomMeetingRoom001', // Customize your room name
+        parentNode: document.getElementById('jitsi-container'),
+        jwt: data.token
+      };
+
+      const api = new JitsiMeetExternalAPI(domain, options);
+
+      if (isModerator) {
+        api.addEventListener('videoConferenceJoined', () => {
+          api.executeCommand('toggleLobby', true);
         });
       }
-    </script>
-  </head>
-  <body><div id="jaas-container" /></body>
+    }
+  </script>
+</body>
 </html>
