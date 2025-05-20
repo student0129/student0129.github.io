@@ -399,19 +399,6 @@
             api.executeCommand('toggleLobby', true);
             console.log('Lobby explicitly enabled on join');
           }
-          // Check our role
-          setTimeout(() => {
-            const participants = api.getParticipantsInfo();
-            const localParticipant = participants.find(p => p.isLocal);
-            
-            if (localParticipant && localParticipant.role === 'moderator') {
-              console.log('Joined as moderator');
-              showNotification('You can approve waiting participants', 5000);
-            } else {
-              console.log('Joined as participant, waiting for approval');
-              showNotification('Waiting for a moderator to admit you...', 5000);
-            }
-          }, 1000);
         });
         
         // Updated videoConferenceLeft event handler
