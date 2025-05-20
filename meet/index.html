@@ -324,23 +324,8 @@
           api.executeCommand('toggleLobby', true);
           console.log('Lobby explicitly enabled on join');
           
-          // Then check our role
-          setTimeout(() => {
-            const participants = api.getParticipantsInfo();
-            const localParticipant = participants.find(p => p.isLocal);
-            
-            if (localParticipant && localParticipant.role === 'moderator') {
-              // We're a moderator, set subject
-              api.executeCommand('subject', 'Summit Room');
-              
-              console.log('Joined as moderator');
-              showNotification('You can approve waiting participants', 5000);
-            } else {
-              // We're not a moderator
-              console.log('Joined as participant, waiting for approval');
-              showNotification('Waiting for a moderator to admit you...', 5000);
-            }
-          }, 1000);
+          console.log('Joined as participant, waiting for approval');
+          showNotification('Waiting for a moderator to admit you...', 5000);
           
           // Listen for lobby participants (useful for moderators)
           api.addEventListener('knockingParticipant', (event) => {
