@@ -220,9 +220,6 @@
 
   <div class="main-container">
     <div id="jaas-container"></div>
-    <div id="loading" class="loading hidden">
-      <div class="spinner"></div>
-    </div>
   </div>
 
   <div id="modal-overlay" class="modal-overlay">
@@ -244,7 +241,6 @@
     const nameInput = document.getElementById('name');
     const joinButton = document.getElementById('joinButton');
     const jaasContainer = document.getElementById('jaas-container');
-    const loadingIndicator = document.getElementById('loading');
     const notification = document.getElementById('notification');
     
     // Initialize event listeners
@@ -277,9 +273,11 @@
         return;
       }
       
-      // Show loading indicator
+      // Hide modal
       modalOverlay.style.opacity = '0';
-      loadingIndicator.classList.remove('hidden');
+      setTimeout(() => {
+        modalOverlay.classList.add('hidden');
+      }, 300);
       
       // Check if user is moderator
       const isModerator = name.toLowerCase().includes('taher');
@@ -302,9 +300,7 @@
           roomName: 'vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/PromontoryAIMeeting',
           parentNode: jaasContainer,
           userInfo: {
-            displayName: name,
-            email: '',
-            moderator: isModerator
+            displayName: name
           },
           configOverwrite: {
             prejoinPageEnabled: false,
@@ -328,8 +324,7 @@
         // Initialize the JaaS API
         const api = new JitsiMeetExternalAPI(domain, options);
         
-        // Hide loading and show Jitsi container
-        loadingIndicator.classList.add('hidden');
+        // Show Jitsi container
         jaasContainer.classList.add('active');
 
         // Setup moderator features
@@ -356,7 +351,6 @@
         showNotification('Failed to join meeting. Please try again.');
         
         // Show modal again on error
-        loadingIndicator.classList.add('hidden');
         modalOverlay.style.opacity = '1';
         modalOverlay.classList.remove('hidden');
       }
