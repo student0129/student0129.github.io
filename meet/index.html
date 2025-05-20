@@ -1,4 +1,4 @@
-<p class="meeting-info">Include "taher" in your name to join as a moderator</p><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -150,35 +150,6 @@
       display: none;
     }
     
-    .loading {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-    }
-    
-    .spinner {
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      border-left: 4px solid var(--primary-color);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .meeting-info {
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #666;
-      font-style: italic;
-    }
-    
     .notification {
       position: fixed;
       top: 1rem;
@@ -243,6 +214,11 @@
     const jaasContainer = document.getElementById('jaas-container');
     const notification = document.getElementById('notification');
     
+    // Room configuration
+    const ROOM_NAME = "PromontoryAI";
+    const API_DOMAIN = "8x8.vc";
+    const MAGIC_COOKIE = "vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073";
+    
     // Initialize event listeners
     document.addEventListener('DOMContentLoaded', () => {
       nameInput.focus();
@@ -264,8 +240,8 @@
       }, duration);
     }
 
-    // Start the meeting
-    function startMeeting() {
+    // Initialize JaaS meeting
+    async function startMeeting() {
       const name = nameInput.value.trim();
       
       if (!name) {
@@ -279,35 +255,34 @@
         modalOverlay.classList.add('hidden');
       }, 300);
       
-      // Check if user is moderator
-      const isModerator = name.toLowerCase().includes('taher');
-      
-      if (isModerator) {
-        showNotification('Joining meeting as moderator');
-      } else {
-        showNotification('Joining meeting');
-      }
+      // Show joining notification
+      showNotification('Joining meeting');
 
       try {
-        // Hide modal completely
-        setTimeout(() => {
-          modalOverlay.classList.add('hidden');
-        }, 300);
-
-        // Initialize JaaS with the magic cookie URL
-        const domain = '8x8.vc';
+        // Get JWT token from the Render service
+        const response = await fetch('https://jaas-token-server.onrender.com/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            room: ROOM_NAME,
+            email: ""
+          })
+        });
         
-        // Add JWT for moderator if name includes 'taher'
-        let jwt = null;
-        if (isModerator) {
-          // This is where you would include your actual JWT for moderators
-          // The following is a placeholder - you'll need to replace it with an actual JWT from your JaaS account
-          jwt = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMvMTQyNWJlLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NDc3MDQwMDEsImV4cCI6MTc0NzcxMTIwMSwibmJmIjoxNzQ3NzAzOTk2LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOmZhbHNlLCJvdXRib3VuZC1jYWxsIjpmYWxzZSwic2lwLW91dGJvdW5kLWNhbGwiOmZhbHNlLCJ0cmFuc2NyaXB0aW9uIjpmYWxzZSwicmVjb3JkaW5nIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJUZXN0IFVzZXIiLCJpZCI6ImF1dGgwfDY4MmI5MWI4OWU5MDBmOWNlOTMzZmMzNSIsImF2YXRhciI6IiIsImVtYWlsIjoidGVzdC51c2VyQGNvbXBhbnkuY29tIn19LCJyb29tIjoiKiJ9.fGDC0zKaM12if1fRojzPZnWk9dzOzjuh9RYbfMicI8KEA_iA74qgeb0e9_3Bzyznkn4iUDKT63C3oYOKCDwCj7RmRAnV0xSPiLmR0eS_qx-vRsJhVgtbD3j5vKG23o8wT_sX0TjA9IGztSyd-RX1VgSn8RHiI1u7R7iIQrJILjt7gLtmbfqEqy2kDERvkQjsodb65GuLO7YA8olIzaUhg5FeWvP78EcFEiZhIFP3vNp9JxUwHzZEYoSMynbb1nLPuL0YRhbMRY-t_Y04aCzbs1CQBQAvTVq4sp9j-woz4oLwPBjyRc12ftxeqHFQWGeEFWh5xJAKzPnyFK_PQSKLug";
+        if (!response.ok) {
+          throw new Error('Failed to get token');
         }
-
+        
+        const data = await response.json();
+        
+        // Configure meeting options
         const options = {
-          roomName: 'vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/PromontoryAIMeeting',
+          roomName: `${MAGIC_COOKIE}/${ROOM_NAME}`,
           parentNode: jaasContainer,
+          jwt: data.token,
           userInfo: {
             displayName: name
           },
@@ -326,29 +301,24 @@
               'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
               'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
               'security'
-            ]
+            ],
+            SHOW_JITSI_WATERMARK: true,
+            SHOW_WATERMARK_FOR_GUESTS: true,
+            DEFAULT_BACKGROUND: '#000000'
           }
         };
 
-        // Add jwt if moderator
-        if (jwt) {
-          options.jwt = jwt;
-        }
-
         // Initialize the JaaS API
-        const api = new JitsiMeetExternalAPI(domain, options);
+        const api = new JitsiMeetExternalAPI(API_DOMAIN, options);
         
         // Show Jitsi container
         jaasContainer.classList.add('active');
 
-        // Setup moderator features
-        if (isModerator) {
-          api.addEventListener('videoConferenceJoined', () => {
-            // Only enable lobby if the user is a moderator
-            api.executeCommand('toggleLobby', true);
-            showNotification('Moderator controls enabled', 5000);
-          });
-        }
+        // For users who might be moderators, listen for conference join
+        api.addEventListener('videoConferenceJoined', () => {
+          // Set meeting subject
+          api.executeCommand('subject', 'Promontory AI Meeting');
+        });
 
         // Handle participant left event
         api.addEventListener('videoConferenceLeft', () => {
