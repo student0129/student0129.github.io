@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Promontory AI - Meeting Space</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400&display=swap">
+  <script src='https://8x8.vc/vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/external_api.js' async></script>
   <style>
     :root {
       --primary-color: #000000;
@@ -47,11 +48,6 @@
       letter-spacing: 0.5px;
     }
     
-    .logo {
-      margin-right: 1rem;
-      font-size: 1.8rem;
-    }
-    
     .main-container {
       flex: 1;
       display: flex;
@@ -60,7 +56,7 @@
       padding: 2rem;
     }
     
-    #jitsi-container {
+    #jaas-container {
       width: 100%;
       height: calc(100vh - 120px);
       border-radius: 8px;
@@ -70,7 +66,7 @@
       transition: opacity 0.5s ease;
     }
     
-    #jitsi-container.active {
+    #jaas-container.active {
       opacity: 1;
     }
     
@@ -211,6 +207,10 @@
         padding: 1.5rem;
       }
     }
+    
+    html, body, #jaas-container {
+      height: 100%;
+    }
   </style>
 </head>
 <body>
@@ -219,7 +219,7 @@
   </header>
 
   <div class="main-container">
-    <div id="jitsi-container"></div>
+    <div id="jaas-container"></div>
     <div id="loading" class="loading hidden">
       <div class="spinner"></div>
     </div>
@@ -238,13 +238,12 @@
 
   <div id="notification" class="notification"></div>
 
-  <script src="https://meet.promontoryai.com/external_api.js"></script>
   <script>
     // DOM Elements
     const modalOverlay = document.getElementById('modal-overlay');
     const nameInput = document.getElementById('name');
     const joinButton = document.getElementById('joinButton');
-    const jitsiContainer = document.getElementById('jitsi-container');
+    const jaasContainer = document.getElementById('jaas-container');
     const loadingIndicator = document.getElementById('loading');
     const notification = document.getElementById('notification');
     
@@ -270,7 +269,7 @@
     }
 
     // Start the meeting
-    async function startMeeting() {
+    function startMeeting() {
       const name = nameInput.value.trim();
       
       if (!name) {
@@ -291,73 +290,47 @@
         showNotification('Joining meeting');
       }
 
-      // Skip token fetching since we're using your custom deployment
-      
-      // Hide modal completely
-      setTimeout(() => {
-        modalOverlay.classList.add('hidden');
-      }, 300);
+      try {
+        // Hide modal completely
+        setTimeout(() => {
+          modalOverlay.classList.add('hidden');
+        }, 300);
 
-      // Initialize Jitsi Meet with your custom domain
-      const domain = 'meet.promontoryai.com';
-      const options = {
-        roomName: 'MyCustomMeetingRoom001',
-        parentNode: jitsiContainer,
-        userInfo: {
-          displayName: name
-        },
-        configOverwrite: {
-          prejoinPageEnabled: false,
-          disableDeepLinking: true,
-          startWithAudioMuted: false,
-          startWithVideoMuted: false,
-          enableWelcomePage: false,
-          // Preserve any custom branding settings from your Jitsi instance
-          disableThirdPartyRequests: false,
-          analytics: {
-            disabled: false,
-          },
-        },
-        interfaceConfigOverwrite: {
-          SHOW_JITSI_WATERMARK: true, // Show any custom watermark you've configured
-          SHOW_WATERMARK_FOR_GUESTS: true,
-          DEFAULT_BACKGROUND: '#000000',
-          TOOLBAR_BUTTONS: [
-            'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-            'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
-            'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
-            'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
-            'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
-            'security'
-          ],
-        }
+        // Initialize JaaS with the magic cookie URL
+        const domain = '8x8.vc';
+        const options = {
+          roomName: 'vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/PromontoryAIMeeting',
+          parentNode: jaasContainer,
           userInfo: {
-            displayName: name
+            displayName: name,
+            email: '',
+            moderator: isModerator
           },
           configOverwrite: {
             prejoinPageEnabled: false,
-            toolbarButtons: [
+            disableDeepLinking: true,
+            startWithAudioMuted: false,
+            startWithVideoMuted: false,
+            enableWelcomePage: false
+          },
+          interfaceConfigOverwrite: {
+            TOOLBAR_BUTTONS: [
               'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
               'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
               'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
               'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
               'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
               'security'
-            ],
-          },
-          interfaceConfigOverwrite: {
-            SHOW_JITSI_WATERMARK: false,
-            SHOW_WATERMARK_FOR_GUESTS: false,
-            DEFAULT_BACKGROUND: '#000000',
+            ]
           }
         };
 
-        // Initialize the Jitsi API
+        // Initialize the JaaS API
         const api = new JitsiMeetExternalAPI(domain, options);
         
         // Hide loading and show Jitsi container
         loadingIndicator.classList.add('hidden');
-        jitsiContainer.classList.add('active');
+        jaasContainer.classList.add('active');
 
         // Setup moderator features
         if (isModerator) {
@@ -371,7 +344,7 @@
         // Handle participant left event
         api.addEventListener('videoConferenceLeft', () => {
           showNotification('You left the meeting');
-          jitsiContainer.classList.remove('active');
+          jaasContainer.classList.remove('active');
           modalOverlay.classList.remove('hidden');
           modalOverlay.style.opacity = '1';
           nameInput.value = '';
