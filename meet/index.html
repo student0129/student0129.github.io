@@ -257,6 +257,11 @@
       
       // Show joining notification
       showNotification('Joining meeting');
+      
+      // Add a generic waiting message for all users
+      setTimeout(() => {
+        showNotification('Connecting to meeting room...', 5000);
+      }, 3000);
 
       try {
         // Get JWT token from the Render service
@@ -317,6 +322,20 @@
         api.addEventListener('videoConferenceJoined', () => {
           // Set meeting subject
           api.executeCommand('subject', 'Summit Room');
+
+        // Listen for participant role changes
+        api.addEventListener('participantRoleChanged', (event) => {
+          if (event.role === 'moderator') {
+            showNotification('You are now a moderator', 5000);
+          }
+        });
+        
+        // Listen for lobby participants
+        api.addEventListener('knockingParticipant', (event) => {
+          if (event.participant && event.participant.name) {
+            showNotification(`${event.participant.name} is waiting to join`, 10000);
+            }
+          });
         });
 
         // Handle participant left event
