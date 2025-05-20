@@ -320,22 +320,25 @@
         jaasContainer.classList.add('active');
 
         api.addEventListener('videoConferenceJoined', () => {
-          // Check our role when we join
+          // First, always enable lobby explicitly regardless of role
+          api.executeCommand('toggleLobby', true);
+          console.log('Lobby explicitly enabled on join');
+          
+          // Then check our role
           setTimeout(() => {
             const participants = api.getParticipantsInfo();
             const localParticipant = participants.find(p => p.isLocal);
             
             if (localParticipant && localParticipant.role === 'moderator') {
-              // We're a moderator, set subject and disable lobby
+              // We're a moderator, set subject
               api.executeCommand('subject', 'Summit Room');
-              api.executeCommand('toggleLobby', false);
-              console.log('Joined as moderator, lobby disabled');
-              showNotification('All participants can now join', 3000);
+              
+              console.log('Joined as moderator');
+              showNotification('You can approve waiting participants', 5000);
             } else {
-              // We're not a moderator, make sure lobby is enabled
-              api.executeCommand('toggleLobby', true);
-              console.log('Joined as participant, lobby enabled');
-              showNotification('Waiting for a moderator...', 5000);
+              // We're not a moderator
+              console.log('Joined as participant, waiting for approval');
+              showNotification('Waiting for a moderator to admit you...', 5000);
             }
           }, 1000);
           
