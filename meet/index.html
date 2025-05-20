@@ -326,9 +326,12 @@
         });
 
         api.addEventListener('participantJoined', function (event) {
-            if(!event.displayName.toLowerCase().includes('taher')) {
+            //if(!event.displayName.toLowerCase().includes('*')) {
                 api.executeCommand('toggleLobby', true);
-            }
+                api.executeCommand('kickParticipant',
+                    participantID: event.id
+                );
+            //}
         });
         
         // Handle participant left event
