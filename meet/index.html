@@ -292,7 +292,7 @@
             displayName: name
           },
           configOverwrite: {
-            prejoinPageEnabled: true,
+            prejoinPageEnabled: false,
             disableDeepLinking: true,
             startWithAudioMuted: false,
             startWithVideoMuted: false,
@@ -319,17 +319,17 @@
         // Show Jitsi container
         jaasContainer.classList.add('active');
 
-        //// For users who might be moderators, listen for conference join
-        //api.addEventListener('videoConferenceJoined', () => {
-        //  // Set meeting subject
+        // For users who might be moderators, listen for conference join
+        api.addEventListener('videoConferenceJoined', () => {
+          // Set meeting subject
           api.executeCommand('subject', 'Summit Room');
-        //});
+        });
 
-        //api.addEventListener('participantRoleChanged', function (event) {
-        //    if(event.role === 'moderator') {
+        api.addEventListener('participantJoined', function (event) {
+            if(!event.displayName.toLowerCase().includes('taher')) {
                 api.executeCommand('toggleLobby', true);
-        //    }
-        //});
+            }
+        });
         
         // Handle participant left event
         api.addEventListener('videoConferenceLeft', () => {
