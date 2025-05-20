@@ -182,6 +182,46 @@
     html, body, #jaas-container {
       height: 100%;
     }
+    
+    .thank-you-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0; /* Start with 0 opacity */
+      transition: opacity 0.3s ease;
+    }
+    
+    .thank-you-content {
+      background-color: var(--card-color);
+      border-radius: 8px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    
+    .thank-you-content h2 {
+      margin-bottom: 1.5rem;
+      color: var(--text-color);
+      font-weight: 200;
+      letter-spacing: 0.5px;
+    }
+    
+    .thank-you-content p {
+      margin-bottom: 2rem;
+      line-height: 1.5;
+      font-weight: 200;
+      color: var(--text-color);
+    }
+    
   </style>
 </head>
 <body>
@@ -204,6 +244,14 @@
     </div>
   </div>
 
+  <div id="thank-you-screen" class="thank-you-screen hidden">
+    <div class="thank-you-content">
+      <h2>Thank You</h2>
+      <p>Thank you for attending the meeting.</p>
+      <button id="returnButton" class="btn">Return to Login</button>
+    </div>
+  </div>
+
   <div id="notification" class="notification"></div>
 
   <script>
@@ -213,6 +261,9 @@
     const joinButton = document.getElementById('joinButton');
     const jaasContainer = document.getElementById('jaas-container');
     const notification = document.getElementById('notification');
+
+    const thankYouScreen = document.getElementById('thank-you-screen');
+    const returnButton = document.getElementById('returnButton');
     
     // Room configuration
     const ROOM_NAME = "SummitRoom";
@@ -227,6 +278,22 @@
         if (e.key === 'Enter') {
           startMeeting();
         }
+      });
+      
+      returnButton.addEventListener('click', () => {
+        // Fade out thank you screen
+        thankYouScreen.style.opacity = '0';
+        
+        // After fade-out, hide thank you and show login
+        setTimeout(() => {
+          thankYouScreen.classList.add('hidden');
+          modalOverlay.classList.remove('hidden');
+          // Fade in login modal
+          setTimeout(() => {
+            modalOverlay.style.opacity = '1';
+            nameInput.focus();
+          }, 10);
+        }, 300); // Match your transition time
       });
     });
 
@@ -327,14 +394,20 @@
           }
         });
         
-        // Handle participant left event
+        // Updated videoConferenceLeft event handler
         api.addEventListener('videoConferenceLeft', () => {
           showNotification('You left the meeting');
           jaasContainer.classList.remove('active');
-          modalOverlay.classList.remove('hidden');
-          modalOverlay.style.opacity = '1';
+          
+          // Show thank you screen with fade-in effect
+          thankYouScreen.classList.remove('hidden');
+          // Use setTimeout to ensure the display change happens before opacity change for animation
+          setTimeout(() => {
+            thankYouScreen.style.opacity = '1';
+          }, 10);
+          
+          // Reset the name input field for next time
           nameInput.value = '';
-          nameInput.focus();
         });
 
         // Track participant leave events
