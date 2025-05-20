@@ -296,7 +296,9 @@
             disableDeepLinking: true,
             startWithAudioMuted: false,
             startWithVideoMuted: false,
-            enableWelcomePage: false
+            enableWelcomePage: false,
+            enableLobby: true, // Start with lobby enabled
+            requireDisplayName: true
           },
           interfaceConfigOverwrite: {
             TOOLBAR_BUTTONS: [
@@ -324,9 +326,12 @@
           api.executeCommand('subject', 'Summit Room');
 
         // Listen for participant role changes
-        api.addEventListener('participantRoleChanged', (event) => {
-          if (event.role === 'moderator') {
-            showNotification('You are now a moderator', 5000);
+        api.addEventListener('participantRoleChanged', function (event) {
+          if(event.role === 'moderator') {
+            // DISABLE lobby when someone becomes a moderator
+            api.executeCommand('toggleLobby', false);
+            console.log('Lobby mode disabled by moderator');
+            showNotification('All participants can now join', 3000);
           }
         });
         
