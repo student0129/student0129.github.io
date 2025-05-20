@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<p class="meeting-info">Include "taher" in your name to join as a moderator</p><!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -296,9 +296,17 @@
 
         // Initialize JaaS with the magic cookie URL
         const domain = '8x8.vc';
+        
+        // Add JWT for moderator if name includes 'taher'
+        let jwt = null;
+        if (isModerator) {
+          // This is where you would include your actual JWT for moderators
+          // The following is a placeholder - you'll need to replace it with an actual JWT from your JaaS account
+          jwt = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMvMTQyNWJlLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NDc3MDQwMDEsImV4cCI6MTc0NzcxMTIwMSwibmJmIjoxNzQ3NzAzOTk2LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNTg5OGU1YTY5ODU5NGZlMjk2NjUxMGY2ZTNkNjUwNzMiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOmZhbHNlLCJvdXRib3VuZC1jYWxsIjpmYWxzZSwic2lwLW91dGJvdW5kLWNhbGwiOmZhbHNlLCJ0cmFuc2NyaXB0aW9uIjpmYWxzZSwicmVjb3JkaW5nIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJUZXN0IFVzZXIiLCJpZCI6ImF1dGgwfDY4MmI5MWI4OWU5MDBmOWNlOTMzZmMzNSIsImF2YXRhciI6IiIsImVtYWlsIjoidGVzdC51c2VyQGNvbXBhbnkuY29tIn19LCJyb29tIjoiKiJ9.fGDC0zKaM12if1fRojzPZnWk9dzOzjuh9RYbfMicI8KEA_iA74qgeb0e9_3Bzyznkn4iUDKT63C3oYOKCDwCj7RmRAnV0xSPiLmR0eS_qx-vRsJhVgtbD3j5vKG23o8wT_sX0TjA9IGztSyd-RX1VgSn8RHiI1u7R7iIQrJILjt7gLtmbfqEqy2kDERvkQjsodb65GuLO7YA8olIzaUhg5FeWvP78EcFEiZhIFP3vNp9JxUwHzZEYoSMynbb1nLPuL0YRhbMRY-t_Y04aCzbs1CQBQAvTVq4sp9j-woz4oLwPBjyRc12ftxeqHFQWGeEFWh5xJAKzPnyFK_PQSKLug";
+        }
+
         const options = {
-          // roomName: 'vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/PromontoryAIMeeting',
-          roomName: 'TheSummitRoom',
+          roomName: 'vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/PromontoryAIMeeting',
           parentNode: jaasContainer,
           userInfo: {
             displayName: name
@@ -321,6 +329,11 @@
             ]
           }
         };
+
+        // Add jwt if moderator
+        if (jwt) {
+          options.jwt = jwt;
+        }
 
         // Initialize the JaaS API
         const api = new JitsiMeetExternalAPI(domain, options);
