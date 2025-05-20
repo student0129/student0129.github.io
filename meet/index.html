@@ -258,6 +258,13 @@
       // Show joining notification
       showNotification('Joining meeting');
 
+      // Add a specific message for non-moderators about possible waiting
+      if (!name.toLowerCase().includes('taher')) {
+        setTimeout(() => {
+          showNotification('You may need to wait for a moderator to admit you', 8000);
+        }, 3000);
+      }
+
       try {
         // Get JWT token from the Render service
         const response = await fetch('https://jaas-token-server.onrender.com/token', {
@@ -289,9 +296,11 @@
           configOverwrite: {
             prejoinPageEnabled: false,
             disableDeepLinking: true,
-            startWithAudioMuted: true,
-            startWithVideoMuted: true,
-            enableWelcomePage: false
+            startWithAudioMuted: !isModerator,
+            startWithVideoMuted: !isModerator,
+            enableWelcomePage: false,
+            enableLobby: true,
+            requireDisplayName: true
           },
           interfaceConfigOverwrite: {
             TOOLBAR_BUTTONS: [
@@ -314,10 +323,25 @@
         // Show Jitsi container
         jaasContainer.classList.add('active');
 
-        // For users who might be moderators, listen for conference join
         api.addEventListener('videoConferenceJoined', () => {
           // Set meeting subject
           api.executeCommand('subject', 'Summit Room');
+          
+          // Listen for participants waiting in the lobby
+          api.addEventListener('participantRoleChanged', (event) => {
+            if (event.role === 'moderator') {
+              // When someone becomes a moderator, inform them about the lobby
+              showNotification('You can now admit guests from the lobby', 5000);
+            }
+          });
+          
+          // Listen for lobby participants
+          api.addEventListener('knockingParticipant', (event) => {
+            // Show notification when someone is waiting in the lobby
+            if (event.participant && event.participant.name) {
+              showNotification(`${event.participant.name} is waiting to join`, 10000);
+            }
+          });
         });
 
         // Handle participant left event
