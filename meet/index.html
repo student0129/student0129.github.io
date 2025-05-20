@@ -191,11 +191,24 @@
       bottom: 0;
       background-color: var(--bg-color);
       display: flex;
+      flex-direction: column;
+      z-index: 999; /* Make sure this is lower than modal-overlay but higher than jaas-container */
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none; /* Important: only enable pointer events when visible */
+    }
+
+    .thank-you-screen.visible {
+      opacity: 1;
+      pointer-events: auto; /* Re-enable pointer events when visible */
+    }
+
+    .thank-you-container {
+      flex: 1;
+      display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
-      opacity: 0; /* Start with 0 opacity */
-      transition: opacity 0.3s ease;
+      padding: 2rem;
     }
     
     .thank-you-content {
@@ -245,10 +258,15 @@
   </div>
 
   <div id="thank-you-screen" class="thank-you-screen hidden">
-    <div class="thank-you-content">
-      <h2>Thank You</h2>
-      <p>Thank you for attending the meeting.</p>
-      <button id="returnButton" class="btn">Return to Login</button>
+    <header class="header">
+      <h1>Promontory AI</h1>
+    </header>
+    <div class="thank-you-container">
+      <div class="thank-you-content">
+        <h2>Thank You</h2>
+        <p>Thank you for attending the meeting.</p>
+        <button id="newMeetingButton" class="btn">Join Another Meeting</button>
+      </div>
     </div>
   </div>
 
@@ -263,7 +281,7 @@
     const notification = document.getElementById('notification');
 
     const thankYouScreen = document.getElementById('thank-you-screen');
-    const returnButton = document.getElementById('returnButton');
+    const newMeetingButton = document.getElementById('newMeetingButton');
     
     // Room configuration
     const ROOM_NAME = "SummitRoom";
@@ -279,21 +297,9 @@
           startMeeting();
         }
       });
-      
-      returnButton.addEventListener('click', () => {
-        // Fade out thank you screen
-        thankYouScreen.style.opacity = '0';
-        
-        // After fade-out, hide thank you and show login
-        setTimeout(() => {
-          thankYouScreen.classList.add('hidden');
-          modalOverlay.classList.remove('hidden');
-          // Fade in login modal
-          setTimeout(() => {
-            modalOverlay.style.opacity = '1';
-            nameInput.focus();
-          }, 10);
-        }, 300); // Match your transition time
+
+      newMeetingButton.addEventListener('click', () => {
+        window.location.reload();
       });
     });
 
@@ -391,19 +397,35 @@
           api.executeCommand('toggleTileView');
           if (event.visitor === false) {
             api.executeCommand('toggleLobby', true);
+            console.log('Lobby explicitly enabled on join');
           }
+          // Check our role
+          setTimeout(() => {
+            const participants = api.getParticipantsInfo();
+            const localParticipant = participants.find(p => p.isLocal);
+            
+            if (localParticipant && localParticipant.role === 'moderator') {
+              console.log('Joined as moderator');
+              showNotification('You can approve waiting participants', 5000);
+            } else {
+              console.log('Joined as participant, waiting for approval');
+              showNotification('Waiting for a moderator to admit you...', 5000);
+            }
+          }, 1000);
         });
         
         // Updated videoConferenceLeft event handler
         api.addEventListener('videoConferenceLeft', () => {
           showNotification('You left the meeting');
-          jaasContainer.classList.remove('active');
           
-          // Show thank you screen with fade-in effect
+          // Properly hide the meeting container
+          jaasContainer.classList.remove('active');
+          jaasContainer.style.display = 'none'; // Ensure it's completely hidden
+          
+          // Show thank you screen
           thankYouScreen.classList.remove('hidden');
-          // Use setTimeout to ensure the display change happens before opacity change for animation
           setTimeout(() => {
-            thankYouScreen.style.opacity = '1';
+            thankYouScreen.classList.add('visible');
           }, 10);
           
           // Reset the name input field for next time
