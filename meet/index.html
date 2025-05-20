@@ -318,17 +318,12 @@
         
         // Show Jitsi container
         jaasContainer.classList.add('active');
-
+        
         // For users who might be moderators, listen for conference join
-        api.addEventListener('videoConferenceJoined', function (event) => {
-          // Set meeting subject
-          api.executeCommand('subject', 'Summit Room');
-          
-          if(!event.displayName.toLowerCase().includes('taher')) {
+        api.addEventListener('videoConferenceJoined', (event) => {
+          api.executeCommand('toggleTileView');
+          if (event.visitor === false) {
             api.executeCommand('toggleLobby', true);
-            api.executeCommand('kickParticipant', 
-                               participantID: event.id
-                              );
           }
         });
         
