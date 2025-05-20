@@ -296,9 +296,7 @@
             disableDeepLinking: true,
             startWithAudioMuted: false,
             startWithVideoMuted: false,
-            enableWelcomePage: false,
-            enableLobby: true, // Start with lobby enabled
-            requireDisplayName: true
+            enableWelcomePage: false
           },
           interfaceConfigOverwrite: {
             TOOLBAR_BUTTONS: [
@@ -322,27 +320,33 @@
         jaasContainer.classList.add('active');
 
         api.addEventListener('videoConferenceJoined', () => {
-          // Set meeting subject
-          api.executeCommand('subject', 'Summit Room');
-
-        // Listen for participant role changes
-        api.addEventListener('participantRoleChanged', function (event) {
-          if(event.role === 'moderator') {
-            // DISABLE lobby when someone becomes a moderator
-            api.executeCommand('toggleLobby', false);
-            console.log('Lobby mode disabled by moderator');
-            showNotification('All participants can now join', 3000);
-          }
-        });
-        
-        // Listen for lobby participants
-        api.addEventListener('knockingParticipant', (event) => {
-          if (event.participant && event.participant.name) {
-            showNotification(`${event.participant.name} is waiting to join`, 10000);
+          // Check our role when we join
+          setTimeout(() => {
+            const participants = api.getParticipantsInfo();
+            const localParticipant = participants.find(p => p.isLocal);
+            
+            if (localParticipant && localParticipant.role === 'moderator') {
+              // We're a moderator, set subject and disable lobby
+              api.executeCommand('subject', 'Summit Room');
+              api.executeCommand('toggleLobby', false);
+              console.log('Joined as moderator, lobby disabled');
+              showNotification('All participants can now join', 3000);
+            } else {
+              // We're not a moderator, make sure lobby is enabled
+              api.executeCommand('toggleLobby', true);
+              console.log('Joined as participant, lobby enabled');
+              showNotification('Waiting for a moderator...', 5000);
+            }
+          }, 1000);
+          
+          // Listen for lobby participants (useful for moderators)
+          api.addEventListener('knockingParticipant', (event) => {
+            if (event.participant && event.participant.name) {
+              showNotification(`${event.participant.name} is waiting to join`, 10000);
             }
           });
         });
-
+        
         // Handle participant left event
         api.addEventListener('videoConferenceLeft', () => {
           showNotification('You left the meeting');
