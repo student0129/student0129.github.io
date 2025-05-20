@@ -215,7 +215,7 @@
     const notification = document.getElementById('notification');
     
     // Room configuration
-    const ROOM_NAME = "PromontoryAI";
+    const ROOM_NAME = "SummitRoom";
     const API_DOMAIN = "8x8.vc";
     const MAGIC_COOKIE = "vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073";
     
@@ -289,8 +289,8 @@
           configOverwrite: {
             prejoinPageEnabled: false,
             disableDeepLinking: true,
-            startWithAudioMuted: false,
-            startWithVideoMuted: false,
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
             enableWelcomePage: false
           },
           interfaceConfigOverwrite: {
@@ -302,8 +302,8 @@
               'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
               'security'
             ],
-            SHOW_JITSI_WATERMARK: true,
-            SHOW_WATERMARK_FOR_GUESTS: true,
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
             DEFAULT_BACKGROUND: '#000000'
           }
         };
@@ -317,7 +317,7 @@
         // For users who might be moderators, listen for conference join
         api.addEventListener('videoConferenceJoined', () => {
           // Set meeting subject
-          api.executeCommand('subject', 'Promontory AI Meeting');
+          api.executeCommand('subject', 'Summit Room');
         });
 
         // Handle participant left event
