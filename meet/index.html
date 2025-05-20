@@ -336,6 +336,23 @@
           nameInput.value = '';
           nameInput.focus();
         });
+
+        // Track participant leave events
+        api.addEventListener('participantLeft', async (event) => {
+          // Optional: Wait briefly to allow internal state to settle
+          await new Promise(resolve => setTimeout(resolve, 500));
+        
+          // Get the updated participant list
+          const participants = await api.getParticipantsInfo();
+        
+          // Check if any moderators are left
+          const someoneIsModerator = participants.some(p => p.role === 'moderator');
+        
+          if (!someoneIsModerator) {
+            // No moderators left — disconnect everyone
+            api.executeCommand('hangup');
+          }
+        });
         
       } catch (error) {
         console.error('Error starting meeting:', error);
