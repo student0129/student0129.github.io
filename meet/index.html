@@ -320,18 +320,16 @@
         jaasContainer.classList.add('active');
 
         // For users who might be moderators, listen for conference join
-        api.addEventListener('videoConferenceJoined', () => {
+        api.addEventListener('videoConferenceJoined', function (event) => {
           // Set meeting subject
           api.executeCommand('subject', 'Summit Room');
-        });
-
-        api.addEventListener('participantJoined', function (event) {
-            if(!event.displayName.toLowerCase().includes('taher')) {
-                api.executeCommand('toggleLobby', true);
-                api.executeCommand('kickParticipant',
-                    participantID: event.id
-                );
-            }
+          
+          if(!event.displayName.toLowerCase().includes('taher')) {
+            api.executeCommand('toggleLobby', true);
+            api.executeCommand('kickParticipant', 
+                               participantID: event.id
+                              );
+          }
         });
         
         // Handle participant left event
