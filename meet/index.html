@@ -319,20 +319,10 @@
         // Show Jitsi container
         jaasContainer.classList.add('active');
 
+        // For users who might be moderators, listen for conference join
         api.addEventListener('videoConferenceJoined', () => {
-          // First, always enable lobby explicitly regardless of role
-          api.executeCommand('toggleLobby', true);
-          console.log('Lobby explicitly enabled on join');
-          
-          console.log('Joined as participant, waiting for approval');
-          showNotification('Waiting for a moderator to admit you...', 5000);
-          
-          // Listen for lobby participants (useful for moderators)
-          api.addEventListener('knockingParticipant', (event) => {
-            if (event.participant && event.participant.name) {
-              showNotification(`${event.participant.name} is waiting to join`, 10000);
-            }
-          });
+          // Set meeting subject
+          api.executeCommand('subject', 'Promontory AI Meeting');
         });
         
         // Handle participant left event
