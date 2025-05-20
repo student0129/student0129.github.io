@@ -292,7 +292,7 @@
             displayName: name
           },
           configOverwrite: {
-            prejoinPageEnabled: false,
+            prejoinPageEnabled: true,
             disableDeepLinking: true,
             startWithAudioMuted: false,
             startWithVideoMuted: false,
@@ -319,11 +319,17 @@
         // Show Jitsi container
         jaasContainer.classList.add('active');
 
-        // For users who might be moderators, listen for conference join
-        api.addEventListener('videoConferenceJoined', () => {
-          // Set meeting subject
-          api.executeCommand('subject', 'Promontory AI Meeting');
-        });
+        //// For users who might be moderators, listen for conference join
+        //api.addEventListener('videoConferenceJoined', () => {
+        //  // Set meeting subject
+          api.executeCommand('subject', 'Summit Room');
+        //});
+
+        //api.addEventListener('participantRoleChanged', function (event) {
+        //    if(event.role === 'moderator') {
+                api.executeCommand('toggleLobby', true);
+        //    }
+        //});
         
         // Handle participant left event
         api.addEventListener('videoConferenceLeft', () => {
