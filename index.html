@@ -177,6 +177,7 @@
         .line2 {
             visibility: hidden;
             animation: typing 3.9s steps(26, end) 3s forwards, blink-cursor 0.7s step-end infinite;
+            width: 0;
         }
         @keyframes typing {
             from { width: 0; }
@@ -226,7 +227,7 @@
     <div class="content">
         <div class="typing-container">
             <span class="typing-text line1" id="line1">We do the hard AI,  </span>
-            <span class="typing-text line2" id="line2" style="visibility: hidden;">so life is easy for you.  </span>
+            <span class="typing-text line2" id="line2" style="display: none;">so life is easy for you.  </span>
         </div>
     </div>
     <div class="footer">ask@promontoryai.com</div>
@@ -234,7 +235,7 @@
     <script>
         setTimeout(() => {
             document.getElementById("line1").classList.add("finished");
-            document.getElementById("line2").style.visibility = "visible";
+            document.getElementById("line2").style.display = "inline-block";
         }, 3250);
         setTimeout(() => {
             document.getElementById("line2").classList.add("finished");
