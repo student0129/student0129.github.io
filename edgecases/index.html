@@ -26,27 +26,6 @@
             font-weight: 200;
             overflow-x: hidden;
         }
-
-        /* Background Video */
-        .video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            z-index: -1;
-        }
-        
-        .video-background {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-            opacity: 0.3;
-        }
         
         /* Header */
         .header {
@@ -392,21 +371,14 @@
     </style>
 </head>
 <body>
-    <!-- Background Video -->
-    <div class="video-container">
-        <video autoplay muted loop playsinline class="video-background">
-            <source src="background-video.mp4" type="video/mp4">
-        </video>
-    </div>
-
     <div class="header">Promontory AI</div>
     
     <div class="main-content">
         <h1 class="event-title">Edge Cases</h1>
         <p class="tagline">A soirée for those working seriously and semi-seriously on artificial intelligence</p>
         
-        <div class="subtitle" style="font-size: 1.4vw; font-weight: 200; margin-bottom: 2.5rem; opacity: 0.8; max-width: 80%; line-height: 1.4;">
-            For those who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. They gather here to talk about failures, foresight, and unfinished thoughts over drinks.
+        <div class="subtitle" style="font-size: 2vw; font-weight: 200; margin-bottom: 2.5rem; opacity: 0.8; max-width: 80%; line-height: 1.4;">
+            We are the ones who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. We gather here to talk about failures, foresight, and unfinished thoughts—over drinks.
         </div>
         
         <div class="event-details">
