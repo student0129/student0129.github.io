@@ -473,7 +473,7 @@
             <div id="rsvpForm">
                 <h2 style="margin-bottom: 1.5rem; font-weight: 200; font-size: 1.4rem;">Reserve Your Spot</h2>
                 
-                <form onsubmit="submitRSVP(event)">
+                <form onsubmit="submitRSVPWithValidation(event)">
                     <div class="form-group">
                         <label for="name">Full Name *</label>
                         <input type="text" id="name" name="name" required placeholder="Your full name">
@@ -620,16 +620,24 @@
             submitBtn.textContent = 'Submitting...';
             submitBtn.disabled = true;
             
-            // Send to backend
-            fetch('https://email-server-1ub1.onrender.com', {
+            // Send to backend - FIXED: Added /rsvp endpoint
+            fetch('https://email-server-1ub1.onrender.com/rsvp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                // Check if response is ok
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(result => {
+                console.log('Server response:', result); // For debugging
+                
                 if (result.success) {
                     // Show success message
                     document.getElementById('rsvpForm').style.display = 'none';
@@ -640,7 +648,104 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Failed to submit RSVP. Please try again or contact edgecases@promontoryai.com');
+                
+                // More specific error messages
+                let errorMessage = 'Failed to submit RSVP. Please try again or contact edgecases@promontoryai.com';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage = 'Server error. Please try again in a few minutes.';
+                } else if (error.message.includes('Missing required fields')) {
+                    errorMessage = 'Please fill in all required fields.';
+                }
+                
+                alert(errorMessage);
+                
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+        
+        // Optional: Add form validation before submission
+        function validateForm(formData) {
+            const required = ['name', 'email', 'role'];
+            const missing = required.filter(field => !formData[field] || formData[field].trim() === '');
+            
+            if (missing.length > 0) {
+                alert(`Please fill in the following required fields: ${missing.join(', ')}`);
+                return false;
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                alert('Please enter a valid email address.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Enhanced version with validation
+        function submitRSVPWithValidation(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            
+            // Validate form data
+            if (!validateForm(data)) {
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = event.target.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+            
+            // Send to backend
+            fetch('https://email-server-1ub1.onrender.com/rsvp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Server response:', result);
+                
+                if (result.success) {
+                    // Show success message
+                    document.getElementById('rsvpForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'Something went wrong');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                let errorMessage = 'Failed to submit RSVP. Please try again or contact edgecases@promontoryai.com';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                } else if (error.message.includes('HTTP error! status: 500')) {
+                    errorMessage = 'Server error. Our team has been notified. Please try again in a few minutes.';
+                } else if (error.message.includes('HTTP error! status: 400')) {
+                    errorMessage = 'Please check your form data and try again.';
+                }
+                
+                alert(errorMessage);
                 
                 // Reset button
                 submitBtn.textContent = originalText;
