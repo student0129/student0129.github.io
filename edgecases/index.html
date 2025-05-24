@@ -492,16 +492,16 @@
                     <div class="form-group">
                         <label for="role">Your Role *</label>
                         <div class="custom-select">
-                            <div class="select-display" onclick="toggleSelect()">
+                            <div class="select-display" onclick="toggleSelect()" tabindex="0">
                                 <span class="select-text placeholder">Select your primary role</span>
                                 <span class="select-arrow">⌄</span>
                             </div>
                             <div class="select-options">
-                                <div class="select-option" data-value="The Architect">The Architect - I design and build AI systems</div>
-                                <div class="select-option" data-value="The Operator">The Operator - I apply and operate AI in real-world systems</div>
-                                <div class="select-option" data-value="The Anomaly">The Anomaly - I test, probe, and challenge AI systems</div>
-                                <div class="select-option" data-value="The Oracle">The Oracle - I shape the rules AI must follow</div>
-                                <div class="select-option" data-value="The Interpreter">The Interpreter - I translate AI for people and society</div>
+                                <div class="select-option" data-value="The Architect" tabindex="0">The Architect - I design and build AI systems</div>
+                                <div class="select-option" data-value="The Operator" tabindex="0">The Operator - I apply and operate AI in real-world systems</div>
+                                <div class="select-option" data-value="The Anomaly" tabindex="0">The Anomaly - I test, probe, and challenge AI systems</div>
+                                <div class="select-option" data-value="The Oracle" tabindex="0">The Oracle - I shape the rules AI must follow</div>
+                                <div class="select-option" data-value="The Interpreter" tabindex="0">The Interpreter - I translate AI for people and society</div>
                             </div>
                         </div>
                         <input type="hidden" id="role" name="role" required>
@@ -546,7 +546,12 @@
             selectDisplay.classList.remove('active');
             selectText.textContent = 'Select your primary role';
             selectText.className = 'select-text placeholder';
-            document.querySelector('.select-options').style.display = 'none';
+            document.querySelector('.select-display').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSelect();
+                }
+            });
             selectedRole = '';
             document.getElementById('role').value = '';
         }
@@ -583,7 +588,14 @@
                 selectOptions.style.display = 'none';
                 
                 // Update selected state
-                document.querySelectorAll('.select-option').forEach(opt => opt.classList.remove('selected'));
+                document.querySelectorAll('.select-option').forEach(option => {
+                    option.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            this.click();
+                        }
+                    });
+                });
                 this.classList.add('selected');
             });
         });
