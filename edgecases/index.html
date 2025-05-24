@@ -1,1 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge Cases Soirée</title>
+    
+    <meta name="description" content="Join Promontory AI for Edge Cases—a discreet gathering where those breaking AI, challenging its limits, and shaping its future come together for off-record conversations, thoughtful networking, and drinks.">
+    <meta name="keywords" content="AI event, AI networking, artificial intelligence, edge cases, Promontory AI, AI discussions, AI community, AI innovation, AI happy hour, Washington DC, DC tech events, AI networking DC">
+    
+    <link rel="icon" type="image/png" href="favicon_p.png">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            background: #000000;
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 200;
+            overflow-x: hidden;
+        }
 
+        /* Background Video */
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .video-background {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0.3;
+        }
+        
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+            font-size: 2vw;
+            font-weight: 200;
+        }
+        
+        /* Main Content */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .event-title {
+            font-size: 8vw;
+            font-weight: 200;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #888888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tagline {
+            font-size: 2.5vw;
+            font-weight: 200;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 80%;
+        }
+        
+        .event-details {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .detail-label {
+            font-weight: 400;
+            opacity: 0.8;
+        }
+        
+        .detail-value {
+            font-weight: 200;
+            text-align: right;
+        }
+        
+        .rsvp-button {
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.3rem;
+            font-weight: 400;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .rsvp-button:hover {
+            background: linear-gradient(135deg, #555555, #888888);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Activities Section */
+        .activities-section {
+            position: relative;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 4rem 2rem;
+            margin: 2rem 0;
+        }
+        
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .activity-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .activity-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
+        
+        .activity-title {
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+        
+        .activity-description {
+            font-size: 1rem;
+            font-weight: 200;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        
+        .section-title {
+            font-size: 3rem;
+            font-weight: 200;
+            text-align: center;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+        
+        /* Drinks Section */
+        .drinks-section {
+            position: relative;
+            z-index: 1;
+            padding: 4rem 2rem;
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        
+        .drinks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .drink-item {
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .drink-name {
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+        
+        .drink-description {
+            font-size: 0.9rem;
+            font-weight: 200;
+            opacity: 0.7;
+        }
+        
+        /* Footer */
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            font-size: 1rem;
+            font-weight: 200;
+            opacity: 0.6;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-content {
+            background: rgba(20, 20, 20, 0.95);
+            margin: 5% auto;
+            padding: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            backdrop-filter: blur(20px);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+        }
+        
+        .close:hover {
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 1rem;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 400;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'IBM Plex Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #555555, #888888);
+        }
+        
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .success-message h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #4CAF50;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                font-size: 5vw;
+            }
+            
+            .event-title {
+                font-size: 12vw;
+            }
+            
+            .tagline {
+                font-size: 4vw;
+            }
+            
+            .event-details {
+                padding: 2rem;
+            }
+            
+            .detail-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .modal-content {
+                padding: 2rem;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Video -->
+    <div class="video-container">
+        <video autoplay muted loop playsinline class="video-background">
+            <source src="background-video.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="header">Promontory AI</div>
+    
+    <div class="main-content">
+        <h1 class="event-title">Edge Cases</h1>
+        <p class="tagline">A soirée for those working seriously and semi-seriously on artificial intelligence</p>
+        
+        <div class="subtitle" style="font-size: 1.8vw; font-weight: 200; margin-bottom: 3rem; opacity: 0.8; max-width: 80%; line-height: 1.4;">
+            For those who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. They gather here to talk about failures, foresight, and unfinished thoughts over drinks.
+        </div>
+        
+        <div class="event-details">
+            <div class="detail-item">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">[DATE TBD]</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">6:00 PM - 9:00 PM</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Location:</span>
+                <span class="detail-value">[VENUE TBD]</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Audience:</span>
+                <span class="detail-value">AI Builders, Policy Thinkers, Experimenters</span>
+            </div>
+        </div>
+        
+        <button class="rsvp-button" onclick="openModal()">RSVP Now</button>
+    </div>
+    
+
+    
+
+    
+    <div class="footer">
+        ask@promontoryai.com
+    </div>
+
+    <!-- RSVP Modal -->
+    <div id="rsvpModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            
+            <div id="rsvpForm">
+                <h2 style="margin-bottom: 2rem; font-weight: 400;">Reserve Your Spot</h2>
+                
+                <form onsubmit="submitRSVP(event)">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="Your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company">Company/Organization</label>
+                        <input type="text" id="company" name="company" placeholder="Where you work or study">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role">Your Role *</label>
+                        <select id="role" name="role" required onchange="updateSelectDisplay(this)">
+                            <option value="">Select your primary role</option>
+                            <option value="The Architect" data-description="The Architect - I design and build AI systems">The Architect - I design and build AI systems</option>
+                            <option value="The Operator" data-description="The Operator - I apply and operate AI in real-world systems">The Operator - I apply and operate AI in real-world systems</option>
+                            <option value="The Anomaly" data-description="The Anomaly - I test, probe, and challenge AI systems">The Anomaly - I test, probe, and challenge AI systems</option>
+                            <option value="The Oracle" data-description="The Oracle - I shape the rules AI must follow">The Oracle - I shape the rules AI must follow</option>
+                            <option value="The Interpreter" data-description="The Interpreter - I translate AI for people and society">The Interpreter - I translate AI for people and society</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edge">What's your edge? (Optional)</label>
+                        <input type="text" id="edge" name="edge" placeholder="One sentence about what makes you an edge case">
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">Submit RSVP</button>
+                </form>
+            </div>
+            
+            <div id="successMessage" class="success-message">
+                <h3>🎉 You're In!</h3>
+                <p style="margin-bottom: 1rem;">Thanks for RSVPing to Edge Cases. We're looking forward to seeing you there!</p>
+                <p style="font-size: 0.9rem; opacity: 0.8;">Check your email for confirmation details and calendar invite.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('rsvpModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('rsvpModal').style.display = 'none';
+            // Reset form when closing
+            document.getElementById('rsvpForm').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('rsvpModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        function updateSelectDisplay(selectElement) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            if (selectedOption.value) {
+                // Update the option text to show only the title
+                selectedOption.textContent = selectedOption.value;
+            }
+        }
+        
+        function submitRSVP(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            
+            // Create email content
+            const emailSubject = `Edge Cases Soirée RSVP - ${data.name}`;
+            const emailBody = `
+New RSVP for Edge Cases Soirée:
+
+Name: ${data.name}
+Email: ${data.email}
+Company: ${data.company || 'Not provided'}
+Role: ${data.role}
+Edge: ${data.edge || 'Not provided'}
+
+Event: Edge Cases Soirée - A soirée for those working seriously and semi-seriously on artificial intelligence
+Date: [DATE TBD]
+Time: 6:00 PM - 9:00 PM
+Location: [VENUE TBD]
+
+Submitted at: ${new Date().toLocaleString()}
+            `;
+            
+            // Create mailto link
+            const mailtoLink = `mailto:ask@promontoryai.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            
+            // Create calendar event data
+            const eventTitle = "Edge Cases - AI Soirée";
+            const eventDescription = "A soirée for those working seriously and semi-seriously on artificial intelligence. For those who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. Conversations about failures, foresight, and unfinished thoughts—over drinks.";
+            const eventLocation = "[VENUE TBD]";
+            // Note: You'll need to update these dates when finalized
+            const startDate = "20250625T180000Z"; // Example: June 25, 2025, 6:00 PM UTC
+            const endDate = "20250625T210000Z";   // Example: June 25, 2025, 9:00 PM UTC
+            
+            const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}`;
+            
+            // Send confirmation email to user
+            const confirmationSubject = `Welcome to Edge Cases Soirée - Your AI Gathering Awaits`;
+            const confirmationBody = `
+Hi ${data.name},
+
+Welcome to Edge Cases Soirée! We're excited you'll be joining us for our soirée dedicated to those working seriously and semi-seriously on artificial intelligence.
+
+You're confirmed as: ${data.role}
+
+Event Details:
+📅 Date: [DATE TBD]
+⏰ Time: 6:00 PM - 9:00 PM  
+📍 Location: [VENUE TBD]
+
+This gathering is for those who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. Come ready for off-record conversations about failures, foresight, and unfinished thoughts—over drinks.
+
+Add to your calendar: ${calendarLink}
+
+Looking forward to exploring the edge cases with you!
+
+Best,
+The Promontory AI Team
+ask@promontoryai.com
+            `;
+            
+            const userMailto = `mailto:${data.email}?subject=${encodeURIComponent(confirmationSubject)}&body=${encodeURIComponent(confirmationBody)}`;
+            
+            // Open both email links (you might want to stagger these)
+            window.open(mailtoLink, '_blank');
+            setTimeout(() => {
+                window.open(userMailto, '_blank');
+            }, 1000);
+            
+            // Show success message
+            document.getElementById('rsvpForm').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Auto-close modal after 3 seconds
+            setTimeout(() => {
+                closeModal();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
