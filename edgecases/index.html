@@ -26,6 +26,7 @@
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 200;
             overflow-x: hidden;
+            max-width: 100vw;
         }
         
         /* Header */
@@ -93,7 +94,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
-            font-size: 1.2rem;
+            font-size: 1.4vw;
         }
         
         .detail-label {
@@ -151,7 +152,6 @@
             backdrop-filter: blur(10px);
             overflow-y: auto;
             padding: 20px;
-            display: flex;
             align-items: center;
             justify-content: center;
         }
@@ -168,6 +168,8 @@
             backdrop-filter: blur(20px);
             max-height: none;
             overflow: visible;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 200;
         }
         
         .close {
@@ -268,7 +270,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 10px;
             margin-top: 4px;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
             display: none;
             z-index: 1001;
@@ -276,11 +278,13 @@
         }
         
         .select-option {
-            padding: 0.8rem;
+            padding: 1rem 0.8rem;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            line-height: 1.3;
+            word-wrap: break-word;
         }
         
         .select-option:last-child {
@@ -384,6 +388,7 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.5rem;
+                font-size: 1rem;
             }
             
             .modal-content {
@@ -396,6 +401,21 @@
                 align-items: flex-start;
                 padding-top: 10vh;
             }
+            
+            .select-options {
+                max-height: 180px;
+                position: fixed;
+                left: 20px;
+                right: 20px;
+                width: auto;
+                max-width: calc(100vw - 40px);
+            }
+            
+            .select-option {
+                padding: 1.2rem 1rem;
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
         }
     </style>
 </head>
@@ -407,7 +427,7 @@
         <p class="tagline">A soirée for those working seriously and semi-seriously on artificial intelligence</p>
         
         <div class="subtitle">
-            We are the ones who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. We gather here to talk about failures, foresight, and unfinished thoughts—over cocktails thoughtfully crafted to spark conversation.
+            We are the ones who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. We gather here to talk about failures, foresight, and unfinished thoughts—over drinks.
         </div>
         
         <div class="event-details">
