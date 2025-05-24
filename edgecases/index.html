@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edge Cases Soirée</title>
     
-    <meta name="description" content="Join Promontory AI for Edge Cases—a discreet gathering where those breaking AI, challenging its limits, and shaping its future come together for off-record conversations, thoughtful networking, and drinks.">
-    <meta name="keywords" content="AI event, AI networking, artificial intelligence, edge cases, Promontory AI, AI discussions, AI community, AI innovation, AI happy hour, Washington DC, DC tech events, AI networking DC">
+    <meta name="description" content="Join Promontory AI for Edge Cases—a happy hour for the brilliant, the boundary-pushers, and the curious minds shaping AI and its impact on the world.">
+    <meta name="keywords" content="AI event, networking, happy hour, artificial intelligence, edge cases, Promontory AI">
     
     <link rel="icon" type="image/png" href="favicon_p.png">
     
@@ -81,9 +81,9 @@
         }
         
         .tagline {
-            font-size: 2.5vw;
+            font-size: 2vw;
             font-weight: 200;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             opacity: 0.9;
             max-width: 80%;
         }
@@ -121,8 +121,8 @@
             background: linear-gradient(135deg, #333333, #666666);
             color: white;
             border: none;
-            padding: 1rem 3rem;
-            font-size: 1.3rem;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
             font-weight: 400;
             border-radius: 50px;
             cursor: pointer;
@@ -245,20 +245,23 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(10px);
+            overflow-y: auto;
         }
         
         .modal-content {
-            background: rgba(20, 20, 20, 0.95);
-            margin: 5% auto;
-            padding: 3rem;
+            background: rgba(10, 10, 10, 0.98);
+            margin: 2% auto;
+            padding: 2.5rem;
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
             width: 90%;
-            max-width: 500px;
+            max-width: 450px;
             position: relative;
             backdrop-filter: blur(20px);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .close {
@@ -277,26 +280,27 @@
         }
         
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             font-weight: 400;
             opacity: 0.9;
+            font-size: 0.9rem;
         }
         
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 1rem;
+            padding: 0.8rem;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 10px;
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
         .form-group input::placeholder {
@@ -307,8 +311,8 @@
             background: linear-gradient(135deg, #333333, #666666);
             color: white;
             border: none;
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
             font-weight: 400;
             border-radius: 10px;
             cursor: pointer;
@@ -328,9 +332,32 @@
         }
         
         .success-message h3 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             margin-bottom: 1rem;
-            color: #4CAF50;
+            color: #ffffff;
+            font-weight: 400;
+        }
+        
+        .success-message p {
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+        
+        .return-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .return-link:hover {
+            background: linear-gradient(135deg, #555555, #888888);
+            transform: translateY(-1px);
         }
         
         /* Responsive Design */
@@ -378,14 +405,14 @@
         <h1 class="event-title">Edge Cases</h1>
         <p class="tagline">A soirée for those working seriously and semi-seriously on artificial intelligence</p>
         
-        <div class="subtitle" style="font-size: 1.8vw; font-weight: 200; margin-bottom: 3rem; opacity: 0.8; max-width: 80%; line-height: 1.4;">
+        <div class="subtitle" style="font-size: 1.4vw; font-weight: 200; margin-bottom: 2.5rem; opacity: 0.8; max-width: 80%; line-height: 1.4;">
             For those who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. They gather here to talk about failures, foresight, and unfinished thoughts over drinks.
         </div>
         
         <div class="event-details">
             <div class="detail-item">
                 <span class="detail-label">Date:</span>
-                <span class="detail-value">[DATE TBD]</span>
+                <span class="detail-value">Wednesday, June 25th, 2025</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Time:</span>
@@ -397,7 +424,7 @@
             </div>
             <div class="detail-item">
                 <span class="detail-label">Audience:</span>
-                <span class="detail-value">AI Builders, Policy Thinkers, Experimenters</span>
+                <span class="detail-value">The Architect, The Operator, The Anomaly, The Oracle, The Interpreter</span>
             </div>
         </div>
         
@@ -418,7 +445,7 @@
             <span class="close" onclick="closeModal()">&times;</span>
             
             <div id="rsvpForm">
-                <h2 style="margin-bottom: 2rem; font-weight: 400;">Reserve Your Spot</h2>
+                <h2 style="margin-bottom: 1.5rem; font-weight: 400; font-size: 1.4rem;">Reserve Your Spot</h2>
                 
                 <form onsubmit="submitRSVP(event)">
                     <div class="form-group">
@@ -458,9 +485,10 @@
             </div>
             
             <div id="successMessage" class="success-message">
-                <h3>🎉 You're In!</h3>
-                <p style="margin-bottom: 1rem;">Thanks for RSVPing to Edge Cases. We're looking forward to seeing you there!</p>
-                <p style="font-size: 0.9rem; opacity: 0.8;">Check your email for confirmation details and calendar invite.</p>
+                <h3>Welcome to Edge Cases Soirée</h3>
+                <p>Thank you for your RSVP. We're looking forward to seeing you there.</p>
+                <p style="font-size: 0.9rem; opacity: 0.7;">Check your email for confirmation details and calendar invite.</p>
+                <a href="https://promontoryai.com" class="return-link">Visit Promontory AI</a>
             </div>
         </div>
     </div>
@@ -500,79 +528,40 @@
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData);
             
-            // Create email content
-            const emailSubject = `Edge Cases Soirée RSVP - ${data.name}`;
-            const emailBody = `
-New RSVP for Edge Cases Soirée:
-
-Name: ${data.name}
-Email: ${data.email}
-Company: ${data.company || 'Not provided'}
-Role: ${data.role}
-Edge: ${data.edge || 'Not provided'}
-
-Event: Edge Cases Soirée - A soirée for those working seriously and semi-seriously on artificial intelligence
-Date: [DATE TBD]
-Time: 6:00 PM - 9:00 PM
-Location: [VENUE TBD]
-
-Submitted at: ${new Date().toLocaleString()}
-            `;
+            // Show loading state
+            const submitBtn = event.target.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
             
-            // Create mailto link
-            const mailtoLink = `mailto:ask@promontoryai.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-            
-            // Create calendar event data
-            const eventTitle = "Edge Cases - AI Soirée";
-            const eventDescription = "A soirée for those working seriously and semi-seriously on artificial intelligence. For those who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. Conversations about failures, foresight, and unfinished thoughts—over drinks.";
-            const eventLocation = "[VENUE TBD]";
-            // Note: You'll need to update these dates when finalized
-            const startDate = "20250625T180000Z"; // Example: June 25, 2025, 6:00 PM UTC
-            const endDate = "20250625T210000Z";   // Example: June 25, 2025, 9:00 PM UTC
-            
-            const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}`;
-            
-            // Send confirmation email to user
-            const confirmationSubject = `Welcome to Edge Cases Soirée - Your AI Gathering Awaits`;
-            const confirmationBody = `
-Hi ${data.name},
-
-Welcome to Edge Cases Soirée! We're excited you'll be joining us for our soirée dedicated to those working seriously and semi-seriously on artificial intelligence.
-
-You're confirmed as: ${data.role}
-
-Event Details:
-📅 Date: [DATE TBD]
-⏰ Time: 6:00 PM - 9:00 PM  
-📍 Location: [VENUE TBD]
-
-This gathering is for those who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. Come ready for off-record conversations about failures, foresight, and unfinished thoughts—over drinks.
-
-Add to your calendar: ${calendarLink}
-
-Looking forward to exploring the edge cases with you!
-
-Best,
-The Promontory AI Team
-ask@promontoryai.com
-            `;
-            
-            const userMailto = `mailto:${data.email}?subject=${encodeURIComponent(confirmationSubject)}&body=${encodeURIComponent(confirmationBody)}`;
-            
-            // Open both email links (you might want to stagger these)
-            window.open(mailtoLink, '_blank');
-            setTimeout(() => {
-                window.open(userMailto, '_blank');
-            }, 1000);
-            
-            // Show success message
-            document.getElementById('rsvpForm').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'block';
-            
-            // Auto-close modal after 3 seconds
-            setTimeout(() => {
-                closeModal();
-            }, 3000);
+            // Send to backend
+            fetch('https://email-server-1ub1.onrender.com', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    // Show success message
+                    document.getElementById('rsvpForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    // Don't auto-close modal - let user click the link
+                } else {
+                    throw new Error(result.error || 'Something went wrong');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to submit RSVP. Please try again or contact ask@promontoryai.com');
+                
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
         }
     </script>
 </body>
