@@ -20,7 +20,7 @@
         }
         
         html, body {
-            height: 100vh;
+            min-height: 100vh;
             background: #000000;
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
@@ -28,6 +28,8 @@
             overflow-x: hidden;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
         }
         
         /* Header */
@@ -35,7 +37,7 @@
             position: relative;
             z-index: 1;
             padding: 15px 20px;
-            font-size: clamp(1rem, 1.5vw, 1.5rem);
+            font-size: clamp(1.1rem, 1.7vw, 1.7rem);
             font-weight: 200;
         }
         
@@ -43,19 +45,19 @@
         .main-content {
             position: relative;
             z-index: 1;
-            height: calc(100vh - 140px);
+            min-height: calc(100vh - 160px);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 1rem 2rem;
+            padding: 2rem;
             text-align: center;
         }
         
         .event-title {
             font-size: clamp(3rem, 6vw, 6rem);
             font-weight: 200;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
             background: linear-gradient(135deg, #ffffff, #888888);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -63,20 +65,21 @@
         }
         
         .tagline {
-            font-size: clamp(1rem, 1.5vw, 1.5rem);
+            font-size: clamp(1.2rem, 1.8vw, 1.8rem);
             font-weight: 200;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             opacity: 0.9;
-            max-width: 80%;
+            max-width: 85%;
         }
         
         .subtitle {
-            font-size: clamp(0.9rem, 1.1vw, 1.2rem);
+            font-size: clamp(1rem, 1.3vw, 1.4rem);
             font-weight: 200;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             opacity: 0.8;
-            max-width: 80%;
-            line-height: 1.4;
+            max-width: 70%;
+            line-height: 1.5;
+            text-align: center;
         }
         
         .event-details {
@@ -84,8 +87,8 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
             max-width: 600px;
             width: 100%;
         }
@@ -94,8 +97,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
-            font-size: clamp(0.9rem, 1.1vw, 1.1rem);
+            margin-bottom: 1.5rem;
+            font-size: clamp(1rem, 1.3vw, 1.3rem);
         }
         
         .detail-label {
@@ -134,10 +137,11 @@
             position: relative;
             z-index: 1;
             text-align: center;
-            padding: 1rem;
+            padding: 2rem;
             font-size: 0.9rem;
             font-weight: 200;
             opacity: 0.6;
+            margin-top: auto;
         }
         
         /* Modal Styles */
@@ -170,7 +174,7 @@
             max-height: none;
             overflow: visible;
             font-family: 'IBM Plex Sans', sans-serif;
-            font-weight: 200;
+            font-weight: 100;
         }
         
         .close {
@@ -195,7 +199,7 @@
         .form-group label {
             display: block;
             margin-bottom: 0.4rem;
-            font-weight: 400;
+            font-weight: 200;
             opacity: 0.9;
             font-size: 0.9rem;
         }
@@ -209,6 +213,7 @@
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 0.9rem;
+            font-weight: 100;
             transition: all 0.3s ease;
         }
         
@@ -237,6 +242,7 @@
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 0.9rem;
+            font-weight: 100;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -286,6 +292,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 0.85rem;
+            font-weight: 100;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             line-height: 1.3;
             word-wrap: break-word;
@@ -314,7 +321,7 @@
             border: none;
             padding: 0.8rem 1.5rem;
             font-size: 1rem;
-            font-weight: 400;
+            font-weight: 200;
             border-radius: 10px;
             cursor: pointer;
             width: 100%;
@@ -341,7 +348,7 @@
             font-size: 1.4rem;
             margin-bottom: 1rem;
             color: #ffffff;
-            font-weight: 400;
+            font-weight: 200;
         }
         
         .success-message p {
@@ -419,6 +426,7 @@
             .select-option {
                 padding: 1.2rem 1rem;
                 font-size: 0.9rem;
+                font-weight: 100;
                 line-height: 1.4;
             }
         }
@@ -463,7 +471,7 @@
             <span class="close" onclick="closeModal()">&times;</span>
             
             <div id="rsvpForm">
-                <h2 style="margin-bottom: 1.5rem; font-weight: 400; font-size: 1.4rem;">Reserve Your Spot</h2>
+                <h2 style="margin-bottom: 1.5rem; font-weight: 200; font-size: 1.4rem;">Reserve Your Spot</h2>
                 
                 <form onsubmit="submitRSVP(event)">
                     <div class="form-group">
