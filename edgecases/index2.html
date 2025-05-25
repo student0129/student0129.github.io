@@ -523,7 +523,7 @@
                                 <div class="select-option" data-value="The Interpreter">The Interpreter - I translate AI for people and society</div>
                             </div>
                         </div>
-                        <input type="hidden" id="role" name="role" required>
+                        <input type="hidden" id="role" name="role" required tabindex="-1">
                     </div>
                     
                     <div class="form-group">
@@ -654,13 +654,17 @@
                     toggleSelect();
                     document.querySelector('.select-display').focus();
                 } else if (e.key === 'Tab') {
-                    // Allow natural tab flow
-                    toggleSelect();
+                    // Close dropdown and allow normal tab progression
+                    const selectDisplay = document.querySelector('.select-display');
+                    const selectOptions = document.querySelector('.select-options');
+                    selectDisplay.classList.remove('active');
+                    selectOptions.style.display = 'none';
+                    currentFocusIndex = -1;
                 }
             });
             
-            // Make options focusable
-            option.setAttribute('tabindex', '0');
+            // Remove tabindex from options to prevent them from being in tab order
+            option.setAttribute('tabindex', '-1');
         });
         
         document.querySelector('.select-display').addEventListener('keydown', function(e) {
