@@ -122,6 +122,7 @@
         
         .event-title {
             font-size: clamp(3rem, 6vw, 6rem);
+            font-weight: var(--font-weight-light);
             margin-bottom: 1rem;
             background: linear-gradient(135deg, #ffffff, #888888);
             -webkit-background-clip: text;
@@ -248,6 +249,7 @@
             margin-bottom: 0.4rem;
             opacity: var(--text-opacity-high);
             font-size: 0.9rem;
+            font-weight: var(--font-weight-light);
         }
         
         /* Custom Select Dropdown */
@@ -263,12 +265,14 @@
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 0.9rem;
+            font-weight: var(--font-weight-light);
             cursor: pointer;
             transition: var(--transition-smooth);
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0.8rem;
+            outline: none;
         }
         
         .select-display:hover {
@@ -316,6 +320,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 0.88rem;
+            font-weight: var(--font-weight-light);
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             line-height: 1.4;
             word-wrap: break-word;
@@ -343,6 +348,7 @@
         .submit-btn {
             padding: 0.8rem 1.5rem;
             font-size: 1rem;
+            font-weight: var(--font-weight-light);
             border-radius: var(--border-radius-small);
             width: 100%;
         }
@@ -362,6 +368,7 @@
             font-size: 1.4rem;
             margin-bottom: 1rem;
             color: #ffffff;
+            font-weight: var(--font-weight-light);
         }
         
         .success-message p {
@@ -496,11 +503,11 @@
                                 <span class="select-arrow">▼</span>
                             </div>
                             <div class="select-options">
-                                <div class="select-option" data-value="The Architect" tabindex="0">The Architect - I design and build AI systems</div>
-                                <div class="select-option" data-value="The Operator" tabindex="0">The Operator - I apply and operate AI in real-world systems</div>
-                                <div class="select-option" data-value="The Anomaly" tabindex="0">The Anomaly - I test, probe, and challenge AI systems</div>
-                                <div class="select-option" data-value="The Oracle" tabindex="0">The Oracle - I shape the rules AI must follow</div>
-                                <div class="select-option" data-value="The Interpreter" tabindex="0">The Interpreter - I translate AI for people and society</div>
+                                <div class="select-option" data-value="The Architect">The Architect - I design and build AI systems</div>
+                                <div class="select-option" data-value="The Operator">The Operator - I apply and operate AI in real-world systems</div>
+                                <div class="select-option" data-value="The Anomaly">The Anomaly - I test, probe, and challenge AI systems</div>
+                                <div class="select-option" data-value="The Oracle">The Oracle - I shape the rules AI must follow</div>
+                                <div class="select-option" data-value="The Interpreter">The Interpreter - I translate AI for people and society</div>
                             </div>
                         </div>
                         <input type="hidden" id="role" name="role" required>
@@ -597,14 +604,38 @@
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     selectOption(this);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const next = this.nextElementSibling;
+                    if (next) next.focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prev = this.previousElementSibling;
+                    if (prev) prev.focus();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    toggleSelect();
+                    document.querySelector('.select-display').focus();
                 }
             });
+            
+            // Make options focusable
+            option.setAttribute('tabindex', '0');
         });
         
         document.querySelector('.select-display').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 toggleSelect();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const selectDisplay = document.querySelector('.select-display');
+                const selectOptions = document.querySelector('.select-options');
+                selectDisplay.classList.add('active');
+                selectOptions.style.display = 'block';
+                // Focus first option
+                const firstOption = selectOptions.querySelector('.select-option');
+                if (firstOption) firstOption.focus();
             }
         });
         
