@@ -275,6 +275,12 @@
             outline: none;
         }
         
+        .select-display:focus {
+            border-color: var(--input-focus-border);
+            background: var(--input-focus-bg);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+        
         .select-display:hover {
             border-color: rgba(255, 255, 255, 0.25);
             background: rgba(255, 255, 255, 0.12);
@@ -324,6 +330,13 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             line-height: 1.4;
             word-wrap: break-word;
+            outline: none;
+        }
+        
+        .select-option:focus {
+            background: rgba(255, 255, 255, 0.15);
+            outline: 2px solid rgba(255, 255, 255, 0.3);
+            outline-offset: -2px;
         }
         
         .select-option:last-child {
@@ -533,6 +546,7 @@
 
     <script>
         let selectedRole = '';
+        let currentFocusIndex = -1;
         
         function openModal() {
             const modal = document.getElementById('rsvpModal');
@@ -551,6 +565,7 @@
             document.getElementById('rsvpFormElement').reset();
             resetCustomSelect();
             selectedRole = '';
+            currentFocusIndex = -1;
             document.getElementById('role').value = '';
             document.getElementById('rsvpForm').style.display = 'block';
             document.getElementById('successMessage').style.display = 'none';
@@ -559,7 +574,9 @@
         function resetCustomSelect() {
             const selectDisplay = document.querySelector('.select-display');
             const selectText = document.querySelector('.select-text');
+            const selectOptions = document.querySelector('.select-options');
             selectDisplay.classList.remove('active');
+            selectOptions.style.display = 'none';
             selectText.textContent = 'Select your primary role';
             selectText.className = 'select-text placeholder';
             document.querySelectorAll('.select-option').forEach(option => {
@@ -572,7 +589,14 @@
             const selectOptions = document.querySelector('.select-options');
             
             selectDisplay.classList.toggle('active');
-            selectOptions.style.display = selectDisplay.classList.contains('active') ? 'block' : 'none';
+            
+            if (selectDisplay.classList.contains('active')) {
+                selectOptions.style.display = 'block';
+                currentFocusIndex = -1;
+            } else {
+                selectOptions.style.display = 'none';
+                currentFocusIndex = -1;
+            }
         }
         
         function selectOption(option) {
@@ -587,15 +611,28 @@
             
             selectDisplay.classList.remove('active');
             selectOptions.style.display = 'none';
+            currentFocusIndex = -1;
             
             document.querySelectorAll('.select-option').forEach(opt => {
                 opt.classList.remove('selected');
             });
             option.classList.add('selected');
+            
+            // Return focus to select display
+            selectDisplay.focus();
+        }
+        
+        function focusOption(index) {
+            const options = document.querySelectorAll('.select-option');
+            if (index >= 0 && index < options.length) {
+                options.forEach(opt => opt.blur());
+                options[index].focus();
+                currentFocusIndex = index;
+            }
         }
         
         // Event Listeners
-        document.querySelectorAll('.select-option').forEach(option => {
+        document.querySelectorAll('.select-option').forEach((option, index) => {
             option.addEventListener('click', function() {
                 selectOption(this);
             });
@@ -606,16 +643,19 @@
                     selectOption(this);
                 } else if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    const next = this.nextElementSibling;
-                    if (next) next.focus();
+                    const nextIndex = Math.min(index + 1, document.querySelectorAll('.select-option').length - 1);
+                    focusOption(nextIndex);
                 } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
-                    const prev = this.previousElementSibling;
-                    if (prev) prev.focus();
+                    const prevIndex = Math.max(index - 1, 0);
+                    focusOption(prevIndex);
                 } else if (e.key === 'Escape') {
                     e.preventDefault();
                     toggleSelect();
                     document.querySelector('.select-display').focus();
+                } else if (e.key === 'Tab') {
+                    // Allow natural tab flow
+                    toggleSelect();
                 }
             });
             
@@ -627,15 +667,27 @@
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 toggleSelect();
+                if (this.classList.contains('active')) {
+                    // Focus first option when opening
+                    setTimeout(() => focusOption(0), 50);
+                }
             } else if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 const selectDisplay = document.querySelector('.select-display');
                 const selectOptions = document.querySelector('.select-options');
                 selectDisplay.classList.add('active');
                 selectOptions.style.display = 'block';
-                // Focus first option
-                const firstOption = selectOptions.querySelector('.select-option');
-                if (firstOption) firstOption.focus();
+                // Focus first option with slight delay
+                setTimeout(() => focusOption(0), 50);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const selectDisplay = document.querySelector('.select-display');
+                const selectOptions = document.querySelector('.select-options');
+                selectDisplay.classList.add('active');
+                selectOptions.style.display = 'block';
+                // Focus last option
+                const options = document.querySelectorAll('.select-option');
+                setTimeout(() => focusOption(options.length - 1), 50);
             }
         });
         
