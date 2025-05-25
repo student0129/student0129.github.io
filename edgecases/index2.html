@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge Cases Soirée</title>
+    
+    <meta name="description" content="Join Promontory AI for Edge Cases—a curated soirée in Washington, DC for those breaking AI, pushing boundaries, and shaping the future of artificial intelligence through off-record conversations and thoughtful networking.">
+    <meta name="keywords" content="AI event, Washington DC, AI networking, artificial intelligence, edge cases, Promontory AI, AI happy hour, AI community, AI innovation">
+    
+    <link rel="icon" type="image/png" href="favicon_p.png">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;600&display=swap');
+        
+        /* CSS Custom Properties */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #333333, #666666);
+            --primary-gradient-hover: linear-gradient(135deg, #555555, #888888);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bg-dark: rgba(10, 10, 10, 0.98);
+            --glass-border-light: rgba(255, 255, 255, 0.2);
+            --input-bg: rgba(255, 255, 255, 0.1);
+            --input-border: rgba(255, 255, 255, 0.2);
+            --input-focus-border: rgba(255, 255, 255, 0.4);
+            --input-focus-bg: rgba(255, 255, 255, 0.15);
+            --text-opacity-high: 0.9;
+            --text-opacity-medium: 0.8;
+            --text-opacity-low: 0.6;
+            --text-opacity-placeholder: 0.5;
+            --transition-smooth: all 0.3s ease;
+            --border-radius-large: 20px;
+            --border-radius-medium: 12px;
+            --border-radius-small: 10px;
+            --font-weight-light: 200;
+            --font-weight-normal: 400;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            min-height: 100vh;
+            background: #000000;
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: var(--font-weight-light);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Utility Classes */
+        .glass-effect {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-large);
+        }
+        
+        .button-style {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        
+        .button-style:hover {
+            background: var(--primary-gradient-hover);
+            transform: translateY(-2px);
+        }
+        
+        .input-style {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--border-radius-small);
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: var(--font-weight-light);
+            transition: var(--transition-smooth);
+        }
+        
+        .input-style:focus {
+            outline: none;
+            border-color: var(--input-focus-border);
+            background: var(--input-focus-bg);
+        }
+        
+        .input-style::placeholder {
+            color: rgba(255, 255, 255, var(--text-opacity-placeholder));
+        }
+        
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 1;
+            padding: 15px 20px;
+            font-size: clamp(1.1rem, 1.7vw, 1.7rem);
+        }
+        
+        /* Main Content */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            min-height: calc(100vh - 160px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .event-title {
+            font-size: clamp(3rem, 6vw, 6rem);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #888888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tagline {
+            font-size: clamp(1.2rem, 1.8vw, 1.8rem);
+            margin-bottom: 1.5rem;
+            opacity: var(--text-opacity-high);
+            max-width: 85%;
+        }
+        
+        .subtitle {
+            font-size: clamp(1rem, 1.3vw, 1.4rem);
+            margin-bottom: 2rem;
+            opacity: var(--text-opacity-medium);
+            max-width: 70%;
+            line-height: 1.5;
+        }
+        
+        .event-details {
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: clamp(1rem, 1.3vw, 1.3rem);
+        }
+        
+        .detail-label {
+            font-weight: var(--font-weight-normal);
+            opacity: var(--text-opacity-medium);
+        }
+        
+        .detail-value {
+            text-align: right;
+        }
+        
+        .rsvp-button {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-weight: var(--font-weight-normal);
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 0 transparent;
+        }
+        
+        .rsvp-button:hover {
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Footer */
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+            opacity: var(--text-opacity-low);
+            margin-top: auto;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--glass-bg-dark);
+            margin: auto;
+            padding: 2.5rem;
+            border: 1px solid var(--glass-border-light);
+            border-radius: var(--border-radius-large);
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            font-weight: var(--font-weight-light);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            transition: var(--transition-smooth);
+        }
+        
+        .close:hover {
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            opacity: var(--text-opacity-high);
+            font-size: 0.9rem;
+        }
+        
+        /* Custom Select Dropdown */
+        .custom-select {
+            position: relative;
+            width: 100%;
+        }
+        
+        .select-display {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius-medium);
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+        }
+        
+        .select-display:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .select-display.active {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: var(--input-focus-bg);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+        
+        .select-arrow {
+            transition: transform 0.3s ease;
+            opacity: 0.7;
+            font-size: 0.9rem;
+            margin-left: 8px;
+            font-weight: 300;
+        }
+        
+        .select-display.active .select-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .select-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 15, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius-medium);
+            margin-top: 4px;
+            max-height: 280px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1002;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+        
+        .select-option {
+            padding: 0.9rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.88rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        
+        .select-option:last-child {
+            border-bottom: none;
+        }
+        
+        .select-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .select-option.selected {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border-left: 3px solid rgba(255, 255, 255, 0.4);
+            padding-left: 0.8rem;
+        }
+        
+        .placeholder {
+            color: rgba(255, 255, 255, var(--text-opacity-placeholder));
+        }
+        
+        .submit-btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: var(--border-radius-small);
+            width: 100%;
+        }
+        
+        .submit-btn:disabled {
+            opacity: var(--text-opacity-low);
+            cursor: not-allowed;
+        }
+        
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .success-message h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+        
+        .success-message p {
+            margin-bottom: 1.5rem;
+            opacity: var(--text-opacity-medium);
+        }
+        
+        .return-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius-small);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                font-size: 5vw;
+            }
+            
+            .event-title {
+                font-size: 12vw;
+            }
+            
+            .tagline {
+                font-size: 4vw;
+            }
+            
+            .subtitle {
+                font-size: 3vw;
+            }
+            
+            .event-details {
+                padding: 2rem;
+            }
+            
+            .detail-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+                font-size: 1rem;
+            }
+            
+            .modal-content {
+                padding: 2rem;
+                margin: 10px auto;
+            }
+            
+            .modal {
+                padding: 10px;
+                align-items: flex-start;
+                padding-top: 10vh;
+            }
+            
+            .select-options {
+                max-height: 180px;
+            }
+            
+            .select-option {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Promontory AI</div>
+    
+    <div class="main-content">
+        <h1 class="event-title">Edge Cases</h1>
+        <p class="tagline">A soirée for those working seriously and semi-seriously on artificial intelligence</p>
+        
+        <div class="subtitle">
+            We are the ones who break AI, pretend to understand it, worry about what it will do, launch with fingers crossed, and clean up after the demo. We gather here to talk about failures, foresight, and unfinished thoughts—over cocktails thoughtfully crafted to spark conversation.
+        </div>
+        
+        <div class="event-details glass-effect">
+            <div class="detail-item">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">Wednesday, June 25th, 2025</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">6:00 PM - 9:00 PM</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Location:</span>
+                <span class="detail-value">[VENUE TBD]</span>
+            </div>
+        </div>
+        
+        <button class="rsvp-button button-style" onclick="openModal()">RSVP Now</button>
+    </div>
+    
+    <div class="footer">
+        ask@promontoryai.com
+    </div>
+
+    <!-- RSVP Modal -->
+    <div id="rsvpModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            
+            <div id="rsvpForm">
+                <h2 style="margin-bottom: 1.5rem; font-weight: 200; font-size: 1.4rem;">Reserve Your Spot</h2>
+                
+                <form onsubmit="submitRSVP(event)" id="rsvpFormElement">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="Your full name" class="input-style">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your@email.com" class="input-style">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company">Company/Organization</label>
+                        <input type="text" id="company" name="company" placeholder="Where you work or study" class="input-style">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role">Your Role *</label>
+                        <div class="custom-select">
+                            <div class="select-display" onclick="toggleSelect()" tabindex="0">
+                                <span class="select-text placeholder">Select your primary role</span>
+                                <span class="select-arrow">▼</span>
+                            </div>
+                            <div class="select-options">
+                                <div class="select-option" data-value="The Architect" tabindex="0">The Architect - I design and build AI systems</div>
+                                <div class="select-option" data-value="The Operator" tabindex="0">The Operator - I apply and operate AI in real-world systems</div>
+                                <div class="select-option" data-value="The Anomaly" tabindex="0">The Anomaly - I test, probe, and challenge AI systems</div>
+                                <div class="select-option" data-value="The Oracle" tabindex="0">The Oracle - I shape the rules AI must follow</div>
+                                <div class="select-option" data-value="The Interpreter" tabindex="0">The Interpreter - I translate AI for people and society</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="role" name="role" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edge">What's your edge? (Optional)</label>
+                        <input type="text" id="edge" name="edge" placeholder="One sentence about what makes you an edge case" class="input-style">
+                    </div>
+                    
+                    <button type="submit" class="submit-btn button-style">Submit RSVP</button>
+                </form>
+            </div>
+            
+            <div id="successMessage" class="success-message">
+                <h3>Welcome to Edge Cases Soirée</h3>
+                <p>Thank you for your RSVP. We're looking forward to seeing you there.</p>
+                <p style="font-size: 0.9rem; opacity: 0.7;">Check your email for confirmation details and calendar invite.</p>
+                <a href="https://promontoryai.com" class="return-link button-style">Visit Promontory AI</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedRole = '';
+        
+        function openModal() {
+            const modal = document.getElementById('rsvpModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            document.getElementById('name').focus();
+        }
+        
+        function closeModal() {
+            document.getElementById('rsvpModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetForm();
+        }
+        
+        function resetForm() {
+            document.getElementById('rsvpFormElement').reset();
+            resetCustomSelect();
+            selectedRole = '';
+            document.getElementById('role').value = '';
+            document.getElementById('rsvpForm').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        function resetCustomSelect() {
+            const selectDisplay = document.querySelector('.select-display');
+            const selectText = document.querySelector('.select-text');
+            selectDisplay.classList.remove('active');
+            selectText.textContent = 'Select your primary role';
+            selectText.className = 'select-text placeholder';
+            document.querySelectorAll('.select-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+        }
+        
+        function toggleSelect() {
+            const selectDisplay = document.querySelector('.select-display');
+            const selectOptions = document.querySelector('.select-options');
+            
+            selectDisplay.classList.toggle('active');
+            selectOptions.style.display = selectDisplay.classList.contains('active') ? 'block' : 'none';
+        }
+        
+        function selectOption(option) {
+            selectedRole = option.getAttribute('data-value');
+            const selectText = document.querySelector('.select-text');
+            const selectDisplay = document.querySelector('.select-display');
+            const selectOptions = document.querySelector('.select-options');
+            
+            selectText.textContent = selectedRole;
+            selectText.className = 'select-text';
+            document.getElementById('role').value = selectedRole;
+            
+            selectDisplay.classList.remove('active');
+            selectOptions.style.display = 'none';
+            
+            document.querySelectorAll('.select-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            option.classList.add('selected');
+        }
+        
+        // Event Listeners
+        document.querySelectorAll('.select-option').forEach(option => {
+            option.addEventListener('click', function() {
+                selectOption(this);
+            });
+            
+            option.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectOption(this);
+                }
+            });
+        });
+        
+        document.querySelector('.select-display').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleSelect();
+            }
+        });
+        
+        document.addEventListener('click', function(event) {
+            const customSelect = document.querySelector('.custom-select');
+            if (!customSelect.contains(event.target)) {
+                const selectDisplay = document.querySelector('.select-display');
+                const selectOptions = document.querySelector('.select-options');
+                selectDisplay.classList.remove('active');
+                selectOptions.style.display = 'none';
+            }
+        });
+        
+        function validateForm(data) {
+            const required = ['name', 'email', 'role'];
+            const missing = required.filter(field => !data[field] || data[field].trim() === '');
+            
+            if (missing.length > 0) {
+                alert(`Please fill in the following required fields: ${missing.join(', ')}`);
+                return false;
+            }
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(data.email)) {
+                alert('Please enter a valid email address.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function submitRSVP(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            
+            if (!validateForm(data)) {
+                return;
+            }
+            
+            const submitBtn = event.target.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+            
+            fetch('https://email-server-1ub1.onrender.com/rsvp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Server response:', result);
+                
+                if (result.success) {
+                    document.getElementById('rsvpForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'Something went wrong');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                let errorMessage = 'Failed to submit RSVP. Please try again or contact edgecases@promontoryai.com';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                } else if (error.message.includes('HTTP error! status: 500')) {
+                    errorMessage = 'Server error. Our team has been notified. Please try again in a few minutes.';
+                } else if (error.message.includes('HTTP error! status: 400')) {
+                    errorMessage = 'Please check your form data and try again.';
+                }
+                
+                alert(errorMessage);
+                
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
