@@ -352,7 +352,7 @@
       
       <div class="input-group">
         <label for="access-code">Access Code</label>
-        <input id="access-code" type="password" placeholder="Enter access code" />
+        <input id="access-code" type="text" placeholder="Enter access code" />
       </div>
       
       <button id="joinButton" class="btn">Join Meeting</button>
@@ -505,8 +505,17 @@
 
       // Admin authentication event listeners
       adminUnlockBtn.addEventListener('click', () => {
-        adminAuthModal.classList.add('show');
-        adminPasswordInput.focus();
+        // If already authenticated, go directly to code generator
+        if (isAdminAuthenticated) {
+          codeModal.classList.add('show');
+          const now = new Date();
+          now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+          meetingDateInput.value = now.toISOString().slice(0, 16);
+        } else {
+          // Show authentication modal
+          adminAuthModal.classList.add('show');
+          adminPasswordInput.focus();
+        }
       });
 
       cancelAdminBtn.addEventListener('click', () => {
@@ -573,8 +582,8 @@
           adminPasswordInput.value = '';
           adminPasswordInput.style.borderColor = '';
           
-          // Hide the calendar button
-          adminUnlockBtn.style.display = 'none';
+          // Keep the calendar button visible for future use
+          // adminUnlockBtn.style.display = 'none';  // REMOVED this line
           
           // Show the code generator modal directly
           codeModal.classList.add('show');
@@ -656,9 +665,9 @@
         const accessStart = new Date(result.windowStart);
         const accessEnd = new Date(result.windowEnd);
         
-        // Generate the shareable link
+        // Generate the shareable link (only access code, no name)
         const baseUrl = window.location.origin + window.location.pathname;
-        const shareableLink = `${baseUrl}?accesscode=${result.code}&name=${encodeURIComponent(clientName)}`;
+        const shareableLink = `${baseUrl}?accesscode=${result.code}`;
         
         validityWindowSpan.innerHTML = 
           `<strong>Meeting:</strong> ${meetingStart.toLocaleString()}<br>` +
