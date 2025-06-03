@@ -460,7 +460,31 @@
     
     // Initialize event listeners
     document.addEventListener('DOMContentLoaded', () => {
-      nameInput.focus();
+      // Check for URL parameters and auto-populate
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessCodeFromUrl = urlParams.get('accesscode') || urlParams.get('code');
+      const nameFromUrl = urlParams.get('name');
+      
+      if (accessCodeFromUrl) {
+        accessCodeInput.value = accessCodeFromUrl;
+        console.log('Auto-populated access code from URL:', accessCodeFromUrl);
+      }
+      
+      if (nameFromUrl) {
+        nameInput.value = decodeURIComponent(nameFromUrl);
+        console.log('Auto-populated name from URL:', nameFromUrl);
+      }
+      
+      // Focus on the appropriate field
+      if (accessCodeFromUrl && !nameFromUrl) {
+        nameInput.focus();
+      } else if (!accessCodeFromUrl) {
+        nameInput.focus();
+      } else {
+        // Both populated, focus on join button
+        joinButton.focus();
+      }
+      
       joinButton.addEventListener('click', startMeeting);
       
       nameInput.addEventListener('keypress', (e) => {
@@ -520,6 +544,8 @@
       try {
         showNotification('Authenticating...');
         
+        console.log('Attempting authentication...');
+        
         const response = await fetch('https://jaas-token-server.onrender.com/admin-auth', {
           method: 'POST',
           headers: {
@@ -530,11 +556,16 @@
           })
         });
         
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error('Authentication failed');
+          const errorText = await response.text();
+          console.log('Error response:', errorText);
+          throw new Error(`Authentication failed: ${response.status}`);
         }
         
         const result = await response.json();
+        console.log('Auth result:', result);
         
         if (result.authenticated) {
           isAdminAuthenticated = true;
@@ -542,13 +573,16 @@
           adminPasswordInput.value = '';
           adminPasswordInput.style.borderColor = '';
           
-          // Show the code generator button
-          codeGeneratorBtn.classList.add('visible');
-          
-          // Hide the unlock button
+          // Hide the calendar button
           adminUnlockBtn.style.display = 'none';
           
-          showNotification('Admin access granted!');
+          // Show the code generator modal directly
+          codeModal.classList.add('show');
+          const now = new Date();
+          now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+          meetingDateInput.value = now.toISOString().slice(0, 16);
+          
+          showNotification('Scheduler access granted!');
         } else {
           throw new Error('Invalid password');
         }
@@ -618,9 +652,19 @@
         
         const result = await response.json();
         
-        generatedCodeSpan.textContent = result.code;
-        validityWindowSpan.textContent = 
-          `${new Date(result.windowStart).toLocaleString()} - ${new Date(result.windowEnd).toLocaleString()}`;
+        const meetingStart = new Date(result.meetingStart || result.windowStart);
+        const accessStart = new Date(result.windowStart);
+        const accessEnd = new Date(result.windowEnd);
+        
+        // Generate the shareable link
+        const baseUrl = window.location.origin + window.location.pathname;
+        const shareableLink = `${baseUrl}?accesscode=${result.code}&name=${encodeURIComponent(clientName)}`;
+        
+        validityWindowSpan.innerHTML = 
+          `<strong>Meeting:</strong> ${meetingStart.toLocaleString()}<br>` +
+          `<strong>Access:</strong> ${accessStart.toLocaleString()} - ${accessEnd.toLocaleString()}<br><br>` +
+          `<strong>Shareable Link:</strong><br>` +
+          `<input type="text" value="${shareableLink}" readonly style="width: 100%; padding: 0.5rem; margin-top: 0.5rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px;" onclick="this.select()">`;
         
         codeResult.style.display = 'block';
         showNotification('Code generated successfully!');
@@ -633,17 +677,24 @@
     // Copy code to clipboard
     async function copyToClipboard() {
       try {
-        await navigator.clipboard.writeText(generatedCodeSpan.textContent);
-        showNotification('Code copied to clipboard!');
+        // Get the shareable link instead of just the code
+        const shareableLinkInput = document.querySelector('input[readonly]');
+        const textToCopy = shareableLinkInput ? shareableLinkInput.value : generatedCodeSpan.textContent;
+        
+        await navigator.clipboard.writeText(textToCopy);
+        showNotification('Link copied to clipboard!');
       } catch (err) {
         // Fallback for older browsers
+        const shareableLinkInput = document.querySelector('input[readonly]');
+        const textToCopy = shareableLinkInput ? shareableLinkInput.value : generatedCodeSpan.textContent;
+        
         const textArea = document.createElement('textarea');
-        textArea.value = generatedCodeSpan.textContent;
+        textArea.value = textToCopy;
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        showNotification('Code copied to clipboard!');
+        showNotification('Link copied to clipboard!');
       }
     }
 
