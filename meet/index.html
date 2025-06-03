@@ -500,7 +500,24 @@
       });
 
       newMeetingButton.addEventListener('click', () => {
-        window.location.reload();
+        // Clear all form data and reset authentication
+        nameInput.value = '';
+        accessCodeInput.value = '';
+        isAdminAuthenticated = false;
+        
+        // Show calendar button again
+        adminUnlockBtn.style.display = 'flex';
+        
+        // Hide thank you screen and show main interface
+        thankYouScreen.classList.remove('visible');
+        setTimeout(() => {
+          thankYouScreen.classList.add('hidden');
+        }, 300);
+        
+        // Focus on name input
+        setTimeout(() => {
+          nameInput.focus();
+        }, 400);
       });
 
       // Admin authentication event listeners
@@ -829,6 +846,9 @@
             api.executeCommand('toggleLobby', true);
             console.log('Lobby explicitly enabled on join');
           }
+          
+          // Hide the calendar button during meeting
+          adminUnlockBtn.style.display = 'none';
         });
         
         // Updated videoConferenceLeft event handler
@@ -838,6 +858,9 @@
           // Properly hide the meeting container
           jaasContainer.classList.remove('active');
           jaasContainer.style.display = 'none';
+          
+          // Show calendar button again
+          adminUnlockBtn.style.display = 'flex';
           
           // Show thank you screen
           thankYouScreen.classList.remove('hidden');
