@@ -367,9 +367,8 @@
     </header>
     <div class="thank-you-container">
       <div class="thank-you-content">
-        <h2>Thank You</h2>
-        <p>Thank you for attending the meeting.</p>
-        <button id="newMeetingButton" class="btn">Join Another Meeting</button>
+        <h2>Thank you for attending the meeting.</h2>
+        <p>You may now close this window.</p>
       </div>
     </div>
   </div>
@@ -433,7 +432,6 @@
     const jaasContainer = document.getElementById('jaas-container');
     const notification = document.getElementById('notification');
     const thankYouScreen = document.getElementById('thank-you-screen');
-    const newMeetingButton = document.getElementById('newMeetingButton');
     
     // Code generator elements
     const adminUnlockBtn = document.getElementById('adminUnlockBtn');
@@ -498,27 +496,6 @@
         if (e.key === 'Enter') {
           startMeeting();
         }
-      });
-
-      newMeetingButton.addEventListener('click', () => {
-        // Clear all form data and reset authentication
-        nameInput.value = '';
-        accessCodeInput.value = '';
-        isAdminAuthenticated = false;
-        
-        // Show calendar button again
-        adminUnlockBtn.style.display = 'flex';
-        
-        // Hide thank you screen and show main interface
-        thankYouScreen.classList.remove('visible');
-        setTimeout(() => {
-          thankYouScreen.classList.add('hidden');
-        }, 300);
-        
-        // Focus on name input
-        setTimeout(() => {
-          nameInput.focus();
-        }, 400);
       });
 
       // Admin authentication event listeners
