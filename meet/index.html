@@ -858,6 +858,12 @@
         
         // Updated videoConferenceLeft event handler
         api.addEventListener('videoConferenceLeft', () => {
+          try {
+            api.executeCommand('endConference');
+          } catch (error) {
+            console.error('Error ending the conference:', error);
+          }
+          
           showNotification('You left the meeting');
           
           // Properly hide the meeting container
