@@ -36,19 +36,12 @@
     .header {
       background-color: var(--primary-color);
       color: white;
-      padding: 1rem 2rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-    }
-    
-    .header h1 {
       padding: 20px;
       font-size: 2vw;
       font-weight: 200;
       letter-spacing: 0.5px;
-      align-self: flex-start;
       cursor: pointer;
+      box-shadow: var(--shadow);
     }
     
     .main-container {
@@ -177,7 +170,7 @@
     }
     
     @media (max-width: 768px) {
-      .header h1 {
+      .header {
         font-size: 4vw;
       }
       
@@ -338,9 +331,7 @@
   </style>
 </head>
 <body>
-  <header class="header">
-    <h1>Promontory AI</h1>
-  </header>
+  <div class="header">Promontory AI</div>
 
   <div class="main-container">
     <div id="jaas-container"></div>
@@ -365,9 +356,7 @@
   </div>
 
   <div id="thank-you-screen" class="thank-you-screen hidden">
-    <header class="header">
-      <h1>Promontory AI</h1>
-    </header>
+    <div class="header">Promontory AI</div>
     <div class="thank-you-container">
       <div class="thank-you-content">
         <h2>Thank you for attending the meeting.</h2>
@@ -462,8 +451,8 @@
     
     // Initialize event listeners
     document.addEventListener('DOMContentLoaded', () => {
-      document.querySelector('.header h1').addEventListener('click', () => {
-        window.location.href = 'https://promontory.com';
+      document.querySelector('.header').addEventListener('click', () => {
+        window.location.href = 'https://promontoryai.com';
       });
       
       // Check for URL parameters and auto-populate
