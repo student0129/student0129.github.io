@@ -43,9 +43,12 @@
     }
     
     .header h1 {
-      font-size: 1.5rem;
+      padding: 20px;
+      font-size: 2vw;
       font-weight: 200;
       letter-spacing: 0.5px;
+      align-self: flex-start;
+      cursor: pointer;
     }
     
     .main-container {
@@ -175,7 +178,7 @@
     
     @media (max-width: 768px) {
       .header h1 {
-        font-size: 1.2rem;
+        font-size: 4vw;
       }
       
       .modal {
@@ -459,6 +462,10 @@
     
     // Initialize event listeners
     document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('.header h1').addEventListener('click', () => {
+        window.location.href = 'https://promontory.com';
+      });
+      
       // Check for URL parameters and auto-populate
       const urlParams = new URLSearchParams(window.location.search);
       const accessCodeFromUrl = urlParams.get('accesscode') || urlParams.get('code');
