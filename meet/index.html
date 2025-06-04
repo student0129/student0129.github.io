@@ -877,22 +877,19 @@
         });
 
         // Track participant leave events
-        api.addEventListener('participantLeft', async (participantEvent) => {
+        api.addEventListener('participantLeft', async (event) => {
+          // Optional: Wait briefly to allow internal state to settle
           await new Promise(resolve => setTimeout(resolve, 500));
-          
-          try {
-            const participants = await api.getParticipantsInfo();
-            const moderatorsLeft = participants.filter(p => p.role === 'moderator').length;
-            
-            console.log(`Participant left. Moderators remaining: ${moderatorsLeft}`);
-            
-            // If no moderators are left, end the meeting
-            if (moderatorsLeft === 0) {
-              console.log('No moderators left, ending meeting');
-              api.executeCommand('hangup');
-            }
-          } catch (error) {
-            console.error('Error checking participants after someone left:', error);
+        
+          // Get the updated participant list
+          const participants = await api.getParticipantsInfo();
+        
+          // Check if any moderators are left
+          const someoneIsModerator = participants.some(p => p.role === 'moderator');
+        
+          if (!someoneIsModerator) {
+            // No moderators left — disconnect everyone
+            api.executeCommand('hangup');
           }
         });
         
