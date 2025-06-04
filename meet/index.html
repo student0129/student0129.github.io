@@ -780,11 +780,16 @@
       }, 300);
       
       // Show joining notification
-      showNotification('Joining meeting');
+      showNotification('Joining meeting...');
       
-      setTimeout(() => {
-        showNotification('Connecting to meeting room...', 'info', 5000);
-      }, 3000);
+      // Set up progressive notifications only if server is slow
+      const slowServerTimeout1 = setTimeout(() => {
+        showNotification('Server is starting up, please wait...', 'info', 8000);
+      }, 4000);
+      
+      const slowServerTimeout2 = setTimeout(() => {
+        showNotification('Still connecting... free server takes 30-60 seconds to wake up', 'info', 10000);
+      }, 12000);
 
       try {
         // Get JWT token from the Render service
@@ -805,6 +810,10 @@
         }
         
         const data = await response.json();
+
+        // Clear slow server notifications since we connected successfully
+        clearTimeout(slowServerTimeout1);
+        clearTimeout(slowServerTimeout2);
         
         // Configure meeting options
         const options = {
@@ -1019,6 +1028,8 @@
         
       } catch (error) {
         console.error('Error starting meeting:', error);
+        clearTimeout(slowServerTimeout1);
+        clearTimeout(slowServerTimeout2);
         showNotification('Failed to join meeting. Please try again.', 'error');
         
         // Show modal again on error
