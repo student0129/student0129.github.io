@@ -878,13 +878,7 @@
 
         // Track participant leave events
         api.addEventListener('participantLeft', async (event) => {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const participants = await api.getParticipantsInfo();
-          const someoneIsModerator = participants.some(p => p.role === 'moderator');
-        
-          if (!someoneIsModerator) {
-            api.executeCommand('hangup');
-          }
+          console.log('Participant left:', event.id);
         });
         
       } catch (error) {
