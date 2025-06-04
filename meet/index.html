@@ -969,9 +969,28 @@
           }
         });
         
-        // Track participant leave events
-        api.addEventListener('participantLeft', (event) => {
-          console.log('Participant left the meeting:', event.id);
+        // Track participant leave events with more debugging
+        api.addEventListener('participantLeft', async (event) => {
+          console.log('=== PARTICIPANT LEFT EVENT ===');
+          console.log('Event object:', event);
+          console.log('Event keys:', Object.keys(event));
+          console.log('Reported left ID:', event.id);
+          
+          // Also check current participants to see who's actually gone
+          try {
+            await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+            const roomsInfo = await api.getRoomsInfo();
+            console.log('Remaining participants after leave:');
+            roomsInfo.rooms?.forEach(room => {
+              room.participants?.forEach(p => {
+                console.log(`  Still here: ${p.displayName} (${p.id})`);
+              });
+            });
+          } catch (error) {
+            console.error('Error getting rooms info after participant left:', error);
+          }
+          
+          console.log('===============================');
         });
         
       } catch (error) {
