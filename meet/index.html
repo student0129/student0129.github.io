@@ -987,25 +987,41 @@
           }
         });
         
-        // Track participant leave events with more debugging
         api.addEventListener('participantLeft', async (event) => {
+          api.executeCommand('endConference')
           console.log('=== PARTICIPANT LEFT EVENT ===');
           console.log('Event object:', event);
-          console.log('Event keys:', Object.keys(event));
-          console.log('Reported left ID:', event.id);
           
           // Also check current participants to see who's actually gone
           try {
-            await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+            console.log('About to wait 500ms...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log('Wait complete, calling getRoomsInfo...');
+            
             const roomsInfo = await api.getRoomsInfo();
-            console.log('Remaining participants after leave:');
-            roomsInfo.rooms?.forEach(room => {
-              room.participants?.forEach(p => {
-                console.log(`  Still here: ${p.displayName} (${p.id})`);
+            console.log('getRoomsInfo returned:', roomsInfo);
+            console.log('roomsInfo type:', typeof roomsInfo);
+            console.log('roomsInfo.rooms:', roomsInfo?.rooms);
+            console.log('rooms length:', roomsInfo?.rooms?.length);
+            
+            if (roomsInfo?.rooms) {
+              console.log('Remaining participants after leave:');
+              roomsInfo.rooms.forEach((room, roomIndex) => {
+                console.log(`Room ${roomIndex}:`, room);
+                if (room.participants) {
+                  room.participants.forEach(p => {
+                    console.log(`  Still here: ${p.displayName} (${p.id})`);
+                  });
+                } else {
+                  console.log('  No participants array in room');
+                }
               });
-            });
+            } else {
+              console.log('No rooms data available');
+            }
           } catch (error) {
             console.error('Error getting rooms info after participant left:', error);
+            console.error('Error stack:', error.stack);
           }
           
           console.log('===============================');
