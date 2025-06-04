@@ -853,6 +853,28 @@
           // Hide the calendar button during meeting
           adminUnlockBtn.style.display = 'none';
         });
+
+        // Additional debug: Log when meeting starts
+        api.addEventListener('videoConferenceJoined', async () => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            const participants = await api.getParticipantsInfo();
+            console.log('=== MEETING JOINED DEBUG ===');
+            console.log('Initial participants:', participants.length);
+            participants.forEach((p, index) => {
+              console.log(`Initial participant ${index + 1}:`, {
+                id: p.id,
+                displayName: p.displayName,
+                role: p.role,
+                isLocal: p.isLocal,
+                allProperties: p
+              });
+            });
+            console.log('============================');
+          } catch (error) {
+            console.error('Error in meeting joined debug:', error);
+          }
+        });
         
         // Updated videoConferenceLeft event handler
         api.addEventListener('videoConferenceLeft', () => {
@@ -876,20 +898,88 @@
           accessCodeInput.value = '';
         });
 
-        // Track participant leave events
+        // Debug: Log all participants when someone joins
+        api.addEventListener('participantJoined', async (event) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            const participants = await api.getParticipantsInfo();
+            console.log('=== PARTICIPANT JOINED DEBUG ===');
+            console.log('Total participants:', participants.length);
+            participants.forEach((p, index) => {
+              console.log(`Participant ${index + 1}:`, {
+                id: p.id,
+                displayName: p.displayName,
+                role: p.role,
+                isLocal: p.isLocal,
+                allProperties: Object.keys(p)
+              });
+            });
+            console.log('================================');
+          } catch (error) {
+            console.error('Error in participantJoined debug:', error);
+          }
+        });
+        
+        // Track participant leave events with extensive debugging
         api.addEventListener('participantLeft', async (event) => {
-          // Optional: Wait briefly to allow internal state to settle
-          await new Promise(resolve => setTimeout(resolve, 500));
-        
-          // Get the updated participant list
-          const participants = await api.getParticipantsInfo();
-        
-          // Check if any moderators are left
-          const someoneIsModerator = participants.some(p => p.role === 'moderator');
-        
-          if (!someoneIsModerator) {
-            // No moderators left — disconnect everyone
-            api.executeCommand('hangup');
+          try {
+            console.log('=== PARTICIPANT LEFT EVENT ===');
+            console.log('Event object:', event);
+            
+            // Wait briefly to allow internal state to settle
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          
+            // Get the updated participant list
+            const participants = await api.getParticipantsInfo();
+            
+            console.log(`Total participants after leave: ${participants.length}`);
+            
+            // Log all remaining participants and their roles
+            participants.forEach((p, index) => {
+              console.log(`Remaining participant ${index + 1}:`, {
+                id: p.id,
+                displayName: p.displayName,
+                role: p.role,
+                isLocal: p.isLocal
+              });
+            });
+            
+            // Check different possible role values
+            const moderatorsByRole = participants.filter(p => p.role === 'moderator');
+            const moderatorsByOwner = participants.filter(p => p.role === 'owner');
+            const moderatorsByHost = participants.filter(p => p.role === 'host');
+            const moderatorsByModerator = participants.filter(p => p.role === 'moderator');
+            
+            console.log('Moderators by role "moderator":', moderatorsByRole.length);
+            console.log('Moderators by role "owner":', moderatorsByOwner.length);
+            console.log('Moderators by role "host":', moderatorsByHost.length);
+            
+            // Try different approaches to identify moderators
+            const someoneIsModerator = participants.some(p => 
+              p.role === 'moderator' || 
+              p.role === 'owner' || 
+              p.role === 'host'
+            );
+            
+            console.log('Someone is moderator/owner/host:', someoneIsModerator);
+            
+            // Alternative: Check if there's anyone with elevated permissions
+            const hasElevatedUser = participants.some(p => {
+              // Log all properties to see what's available
+              console.log(`Participant ${p.displayName || p.id} properties:`, Object.keys(p));
+              return p.role === 'moderator' || p.role === 'owner' || p.role === 'host';
+            });
+            
+            if (!someoneIsModerator) {
+              console.log('No moderators/owners/hosts left — ending meeting for all participants');
+              api.executeCommand('hangup');
+            } else {
+              console.log('Moderator still present, keeping meeting active');
+            }
+            
+            console.log('===============================');
+          } catch (error) {
+            console.error('Error checking participants after someone left:', error);
           }
         });
         
