@@ -173,6 +173,30 @@
       .header {
         font-size: 4vw;
       }
+
+      .code-modal {
+        padding: 10px; /* Reduce padding on mobile */
+        align-items: flex-start; /* Align to top instead of center */
+        padding-top: 20px; /* Add some top padding */
+      }
+      
+      .code-modal-content {
+        width: 95%; /* Slightly smaller width on mobile */
+        max-width: none; /* Remove max-width constraint */
+        max-height: 85vh; /* Slightly smaller on mobile */
+        margin-top: 0; /* Remove any top margin */
+      }
+      
+      input[type="datetime-local"] {
+        font-size: 16px; /* Prevents zoom on iOS */
+        max-width: 100%;
+      }
+      
+      /* Ensure the readonly input (shareable link) fits properly */
+      .code-result input[readonly] {
+        font-size: 14px; /* Smaller font for long URLs */
+        word-break: break-all; /* Allow breaking long URLs */
+      }
       
       .modal {
         padding: 1.5rem;
@@ -327,6 +351,29 @@
       font-family: monospace;
       word-break: break-all;
     }
+
+    /* Fix for iOS modal scrolling and sizing */
+    .code-modal {
+      padding: 20px; /* Add padding around the modal */
+    }
+    
+    .code-modal-content {
+      max-height: 90vh; /* Limit height to 90% of viewport */
+      overflow-y: auto; /* Enable vertical scrolling */
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+      position: relative;
+    }
+    
+    /* Ensure datetime input doesn't cause width issues */
+    input[type="datetime-local"] {
+      width: 100% !important;
+      box-sizing: border-box !important;
+      -webkit-appearance: none;
+      -moz-appearance: textfield;
+      min-height: 44px; /* iOS recommended touch target size */
+    }
+    
+    
     
   </style>
 </head>
