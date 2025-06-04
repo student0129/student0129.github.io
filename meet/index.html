@@ -848,18 +848,6 @@
           if (event.visitor === false) {
             api.executeCommand('toggleLobby', true);
             console.log('Lobby explicitly enabled on join');
-
-            // Only moderators listen for when they should end the meeting
-            api.addEventListener('participantLeft', async (participantEvent) => {
-              await new Promise(resolve => setTimeout(resolve, 500));
-              const participants = await api.getParticipantsInfo();
-              const moderatorsLeft = participants.filter(p => p.role === 'moderator').length;
-              
-              // If this was the last moderator, end the meeting for everyone
-              if (moderatorsLeft === 0) {
-                api.executeCommand('hangup');
-              }
-            });
           }
           
           // Hide the calendar button during meeting
@@ -889,8 +877,23 @@
         });
 
         // Track participant leave events
-        api.addEventListener('participantLeft', async (event) => {
-          console.log('Participant left:', event.id);
+        api.addEventListener('participantLeft', async (participantEvent) => {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          try {
+            const participants = await api.getParticipantsInfo();
+            const moderatorsLeft = participants.filter(p => p.role === 'moderator').length;
+            
+            console.log(`Participant left. Moderators remaining: ${moderatorsLeft}`);
+            
+            // If no moderators are left, end the meeting
+            if (moderatorsLeft === 0) {
+              console.log('No moderators left, ending meeting');
+              api.executeCommand('hangup');
+            }
+          } catch (error) {
+            console.error('Error checking participants after someone left:', error);
+          }
         });
         
       } catch (error) {
