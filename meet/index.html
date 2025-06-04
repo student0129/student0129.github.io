@@ -899,31 +899,8 @@
         api.addEventListener('participantRoleChanged', (event) => {
           console.log('Participant role changed:', {
             id: event.id,
-            role: event.role,
-            participantId: event.participantId
+            role: event.role
           });
-        });
-
-        // Use readyToClose to end conference if moderator is leaving
-        api.addEventListener('readyToClose', async () => {
-          console.log('=== READY TO CLOSE EVENT ===');
-          
-          try {
-            // Check if I (the person leaving) am a moderator
-            const roomsInfo = await api.getRoomsInfo();
-            const myParticipant = roomsInfo.rooms?.[0]?.participants?.find(p => p.jid === undefined); // Local participant usually has undefined jid
-            
-            console.log('My role when leaving:', myParticipant?.role);
-            
-            if (myParticipant?.role === 'moderator') {
-              console.log('Moderator leaving - ending conference for everyone');
-              api.executeCommand('endConference');
-            } else {
-              console.log('Participant leaving - conference continues');
-            }
-          } catch (error) {
-            console.error('Error checking role or ending conference:', error);
-          }
         });
         
         // Updated videoConferenceLeft event handler
@@ -988,7 +965,6 @@
         });
         
         api.addEventListener('participantLeft', async (event) => {
-          api.executeCommand('endConference')
           console.log('=== PARTICIPANT LEFT EVENT ===');
           console.log('Event object:', event);
           
@@ -1004,13 +980,18 @@
             console.log('roomsInfo.rooms:', roomsInfo?.rooms);
             console.log('rooms length:', roomsInfo?.rooms?.length);
             
+            let hasActiveModerator = false;
+            
             if (roomsInfo?.rooms) {
               console.log('Remaining participants after leave:');
               roomsInfo.rooms.forEach((room, roomIndex) => {
                 console.log(`Room ${roomIndex}:`, room);
                 if (room.participants) {
                   room.participants.forEach(p => {
-                    console.log(`  Still here: ${p.displayName} (${p.id})`);
+                    console.log(`  Still here: ${p.displayName} (${p.id}) - Role: ${p.role}`);
+                    if (p.role === 'moderator') {
+                      hasActiveModerator = true;
+                    }
                   });
                 } else {
                   console.log('  No participants array in room');
@@ -1019,6 +1000,15 @@
             } else {
               console.log('No rooms data available');
             }
+            
+            console.log('Has active moderator:', hasActiveModerator);
+            
+            // If no moderator is left, hangup
+            if (!hasActiveModerator) {
+              console.log('No moderators left in meeting - hanging up');
+              api.executeCommand('hangup');
+            }
+            
           } catch (error) {
             console.error('Error getting rooms info after participant left:', error);
             console.error('Error stack:', error.stack);
