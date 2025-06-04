@@ -843,17 +843,65 @@
         jaasContainer.classList.add('active');
         
         // For users who might be moderators, listen for conference join
-        api.addEventListener('videoConferenceJoined', (event) => {
+        api.addEventListener('videoConferenceJoined', async (event) => {
           api.executeCommand('toggleTileView');
           if (event.visitor === false) {
             api.executeCommand('toggleLobby', true);
             console.log('Lobby explicitly enabled on join');
             
-            api.executeCommand('grantModerator', event.id);
+            console.log('Attempting to grant moderator to:', event.id);
+            console.log('Event details:', event);
+            
+            try {
+              const result = api.executeCommand('grantModerator', event.id);
+              console.log('grantModerator command result:', result);
+            } catch (error) {
+              console.error('Error executing grantModerator:', error);
+            }
+            
+            // Debug: Log all rooms and participant info
+            try {
+              const roomsInfo = await api.getRoomsInfo();
+              console.log('=== ROOMS INFO DEBUG ===');
+              console.log('Total rooms:', roomsInfo.rooms?.length || 0);
+              
+              roomsInfo.rooms?.forEach((room, roomIndex) => {
+                console.log(`Room ${roomIndex + 1}:`, {
+                  id: room.id,
+                  jid: room.jid,
+                  isMainRoom: room.isMainRoom,
+                  participantCount: room.participants?.length || 0
+                });
+                
+                room.participants?.forEach((participant, pIndex) => {
+                  console.log(`  Participant ${pIndex + 1}:`, {
+                    id: participant.id,
+                    jid: participant.jid,
+                    displayName: participant.displayName,
+                    role: participant.role,
+                    avatarUrl: participant.avatarUrl,
+                    allProperties: Object.keys(participant)
+                  });
+                });
+              });
+              
+              console.log('Raw roomsInfo object:', roomsInfo);
+              console.log('======================');
+            } catch (error) {
+              console.error('Error getting rooms info:', error);
+            }
           }
-          
           // Hide the calendar button during meeting
           adminUnlockBtn.style.display = 'none';
+        });
+        
+        // Optional: Listen for moderator status changes to confirm the command worked
+        api.addEventListener('participantRoleChanged', (event) => {
+          console.log('Participant role changed:', {
+            id: event.id,
+            role: event.role,
+            participantId: event.participantId
+          });
         });
         
         // Updated videoConferenceLeft event handler
@@ -888,15 +936,30 @@
         api.addEventListener('participantJoined', async (event) => {
           await new Promise(resolve => setTimeout(resolve, 1000));
           try {
-            const participants = await api.getParticipantsInfo();
+            const roomsInfo = await api.getRoomsInfo();
             console.log('=== PARTICIPANT JOINED DEBUG ===');
-            console.log('Total participants:', participants.length);
-            participants.forEach((p, index) => {
+            
+            // Extract all participants from all rooms
+            const allParticipants = [];
+            roomsInfo.rooms.forEach(room => {
+              room.participants.forEach(participant => {
+                allParticipants.push({
+                  ...participant,
+                  roomId: room.id,
+                  isMainRoom: room.isMainRoom
+                });
+              });
+            });
+            
+            console.log('Total participants:', allParticipants.length);
+            allParticipants.forEach((p, index) => {
               console.log(`Participant ${index + 1}:`, {
                 id: p.id,
                 displayName: p.displayName,
                 role: p.role,
-                isLocal: p.isLocal,
+                jid: p.jid,
+                roomId: p.roomId,
+                isMainRoom: p.isMainRoom,
                 allProperties: Object.keys(p)
               });
             });
@@ -908,7 +971,7 @@
         
         // Track participant leave events
         api.addEventListener('participantLeft', (event) => {
-          console.log('Participant left the meeting:', event.id, event.displayName);
+          console.log('Participant left the meeting:', event.id);
         });
         
       } catch (error) {
