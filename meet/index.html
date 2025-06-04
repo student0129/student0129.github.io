@@ -903,14 +903,32 @@
             participantId: event.participantId
           });
         });
+
+        // Use readyToClose to end conference if moderator is leaving
+        api.addEventListener('readyToClose', async () => {
+          console.log('=== READY TO CLOSE EVENT ===');
+          
+          try {
+            // Check if I (the person leaving) am a moderator
+            const roomsInfo = await api.getRoomsInfo();
+            const myParticipant = roomsInfo.rooms?.[0]?.participants?.find(p => p.jid === undefined); // Local participant usually has undefined jid
+            
+            console.log('My role when leaving:', myParticipant?.role);
+            
+            if (myParticipant?.role === 'moderator') {
+              console.log('Moderator leaving - ending conference for everyone');
+              api.executeCommand('endConference');
+            } else {
+              console.log('Participant leaving - conference continues');
+            }
+          } catch (error) {
+            console.error('Error checking role or ending conference:', error);
+          }
+        });
         
         // Updated videoConferenceLeft event handler
         api.addEventListener('videoConferenceLeft', () => {
-          try {
-            api.executeCommand('endConference');
-          } catch (error) {
-            console.error('Error ending the conference:', error);
-          }
+          console.log('=== VIDEO CONFERENCE LEFT ===');
           
           showNotification('You left the meeting');
           
