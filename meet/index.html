@@ -848,6 +848,18 @@
           if (event.visitor === false) {
             api.executeCommand('toggleLobby', true);
             console.log('Lobby explicitly enabled on join');
+
+            // Only moderators listen for when they should end the meeting
+            api.addEventListener('participantLeft', async (participantEvent) => {
+              await new Promise(resolve => setTimeout(resolve, 500));
+              const participants = await api.getParticipantsInfo();
+              const moderatorsLeft = participants.filter(p => p.role === 'moderator').length;
+              
+              // If this was the last moderator, end the meeting for everyone
+              if (moderatorsLeft === 0) {
+                api.executeCommand('hangup');
+              }
+            });
           }
           
           // Hide the calendar button during meeting
