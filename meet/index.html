@@ -854,25 +854,40 @@
           adminUnlockBtn.style.display = 'none';
         });
 
-        // Additional debug: Log when meeting starts
+        // Debug: Log when meeting starts with FULL participant object details
         api.addEventListener('videoConferenceJoined', async () => {
           await new Promise(resolve => setTimeout(resolve, 1000));
           try {
             const participants = await api.getParticipantsInfo();
-            console.log('=== MEETING JOINED DEBUG ===');
+            console.log('=== COMPREHENSIVE PARTICIPANT DEBUG ===');
             console.log('Initial participants:', participants.length);
+            
             participants.forEach((p, index) => {
-              console.log(`Initial participant ${index + 1}:`, {
-                id: p.id,
-                displayName: p.displayName,
-                role: p.role,
-                isLocal: p.isLocal,
-                allProperties: p
-              });
+              console.log(`\n--- Participant ${index + 1} ---`);
+              console.log('Full object:', p);
+              console.log('Object.keys():', Object.keys(p));
+              console.log('Object.getOwnPropertyNames():', Object.getOwnPropertyNames(p));
+              
+              // Check specific properties that might contain role info
+              console.log('Checking role-related properties:');
+              console.log('  p.role:', p.role);
+              console.log('  p.moderator:', p.moderator);
+              console.log('  p.affiliation:', p.affiliation);
+              console.log('  p.features:', p.features);
+              console.log('  p.context:', p.context);
+              console.log('  p.user:', p.user);
+              
+              // Check if role info is nested somewhere
+              if (p.features) {
+                console.log('  p.features keys:', Object.keys(p.features));
+              }
+              if (p.context) {
+                console.log('  p.context:', p.context);
+              }
             });
-            console.log('============================');
+            console.log('=====================================');
           } catch (error) {
-            console.error('Error in meeting joined debug:', error);
+            console.error('Error in comprehensive debug:', error);
           }
         });
         
