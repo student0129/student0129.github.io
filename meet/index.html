@@ -851,16 +851,16 @@
             email: ""
           })
         });
+
+        // Clear slow server notifications immediately after fetch completes
+        clearTimeout(slowServerTimeout1);
+        clearTimeout(slowServerTimeout2);
         
         if (!response.ok) {
           throw new Error('Failed to get token');
         }
         
         const data = await response.json();
-
-        // Clear slow server notifications since we connected successfully
-        clearTimeout(slowServerTimeout1);
-        clearTimeout(slowServerTimeout2);
         
         // Configure meeting options
         const options = {
