@@ -40,10 +40,7 @@
       font-size: 2vw;
       font-weight: 200;
       letter-spacing: 0.5px;
-      cursor: pointer;
       box-shadow: var(--shadow);
-      position: relative;  /* Add this line */
-      z-index: 1005;      /* Add this line */
     }
     
     .main-container {
@@ -380,7 +377,7 @@
   </style>
 </head>
 <body>
-  <div class="header">Promontory AI</div>
+  <div class="header"><span class="title-link">Promontory AI</span></div>
 
   <div class="main-container">
     <div id="jaas-container"></div>
@@ -405,7 +402,7 @@
   </div>
 
   <div id="thank-you-screen" class="thank-you-screen hidden">
-    <div class="header">Promontory AI</div>
+    <div class="header"><span class="title-link">Promontory AI</span></div>
     <div class="thank-you-container">
       <div class="thank-you-content">
         <h2>Thank you for attending the meeting.</h2>
@@ -500,7 +497,7 @@
     
     // Initialize event listeners
     document.addEventListener('DOMContentLoaded', () => {
-      document.querySelector('.header').addEventListener('click', () => {
+      document.querySelector('.title-link').addEventListener('click', () => {
         window.location.href = 'https://promontoryai.com';
       });
       
@@ -857,8 +854,8 @@
         const data = await response.json();
 
         // Clear slow server notifications since we connected successfully
-        if (slowServerTimeout1) clearTimeout(slowServerTimeout1);
-        if (slowServerTimeout2) clearTimeout(slowServerTimeout2);
+        // if (slowServerTimeout1) clearTimeout(slowServerTimeout1);
+        // if (slowServerTimeout2) clearTimeout(slowServerTimeout2);
         
         // Configure meeting options
         const options = {
@@ -1073,8 +1070,8 @@
         
       } catch (error) {
         console.error('Error starting meeting:', error);
-        if (slowServerTimeout1) clearTimeout(slowServerTimeout1);
-        if (slowServerTimeout2) clearTimeout(slowServerTimeout2);
+        // if (slowServerTimeout1) clearTimeout(slowServerTimeout1);
+        // if (slowServerTimeout2) clearTimeout(slowServerTimeout2);
         showNotification('Failed to join meeting. Please try again.', 'error');
         
         // Show modal again on error
