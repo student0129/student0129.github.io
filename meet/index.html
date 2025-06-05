@@ -902,11 +902,11 @@
             disableDeepLinking: true,
             startWithAudioMuted: false,
             startWithVideoMuted: false,
-            enableWelcomePage: false
+            enableWelcomePage: false,
             // Simply use the current page URL - it already has the access code!
             inviteURLTransformer: (originalURL) => {
               return window.location.href;
-            }  
+            }
           },
           interfaceConfigOverwrite: {
             TOOLBAR_BUTTONS: [
