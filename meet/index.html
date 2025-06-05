@@ -147,7 +147,7 @@
     }
     
     .hidden {
-      display: none;
+      display: none !important;
     }
     
     .notification {
@@ -420,7 +420,7 @@
   <button id="adminUnlockBtn" class="admin-unlock" title="Schedule Meeting">📅</button>
 
   <!-- Admin Authentication Modal -->
-  <div id="adminAuthModal" class="admin-auth-modal">
+  <div id="adminAuthModal" class="admin-auth-modal hidden">
     <div class="modal">
       <h2>Schedule Access</h2>
       
@@ -565,13 +565,15 @@
           setTimeout(() => clientNameInput.focus(), 100);
         } else {
           // Show authentication modal
-          adminAuthModal.classList.add('show');
+          adminAuthModal.classList.remove('hidden');
+          adminAuthModal.classList.add('show'); 
           adminPasswordInput.focus();
         }
       });
 
       cancelAdminBtn.addEventListener('click', () => {
         adminAuthModal.classList.remove('show');
+        adminAuthModal.classList.add('hidden');
         adminPasswordInput.value = '';
       });
 
@@ -638,6 +640,7 @@
         if (result.authenticated) {
           isAdminAuthenticated = true;
           adminAuthModal.classList.remove('show');
+          adminAuthModal.classList.add('hidden');
           adminPasswordInput.value = '';
           adminPasswordInput.style.borderColor = '';
           
