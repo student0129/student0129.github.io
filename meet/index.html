@@ -550,9 +550,19 @@
         // If already authenticated, go directly to code generator
         if (isAdminAuthenticated) {
           codeModal.classList.add('show');
+
+          // Clear previous values and set fresh datetime
+          clientNameInput.value = '';
+          codeResult.style.display = 'none';
+          generatedCodeSpan.textContent = '';
+          validityWindowSpan.innerHTML = '';
+          
           const now = new Date();
           now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
           meetingDateInput.value = now.toISOString().slice(0, 16);
+
+          // Focus on the client name input for convenience
+          setTimeout(() => clientNameInput.focus(), 100);
         } else {
           // Show authentication modal
           adminAuthModal.classList.add('show');
@@ -576,6 +586,13 @@
       closeCodeModal.addEventListener('click', () => {
         codeModal.classList.remove('show');
         codeResult.style.display = 'none';
+        // Clear the form fields when closing
+        clientNameInput.value = '';
+        meetingDateInput.value = '';
+        
+        // Also clear the generated code display
+        generatedCodeSpan.textContent = '';
+        validityWindowSpan.innerHTML = '';
       });
 
       generateCodeBtn.addEventListener('click', generateAccessCodeFromServer);
@@ -626,9 +643,19 @@
           
           // Show the code generator modal directly
           codeModal.classList.add('show');
+
+          // Clear previous values and set fresh datetime
+          clientNameInput.value = '';
+          codeResult.style.display = 'none';
+          generatedCodeSpan.textContent = '';
+          validityWindowSpan.innerHTML = '';
+          
           const now = new Date();
           now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
           meetingDateInput.value = now.toISOString().slice(0, 16);
+
+          // Focus on the client name input for convenience
+          setTimeout(() => clientNameInput.focus(), 100);
           
           showNotification('Scheduler access granted!');
         } else {
