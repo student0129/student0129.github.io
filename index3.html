@@ -323,30 +323,7 @@
             border-color: #2d2d2d;
         }
 
-        /* Status indicator */
-        .tracking-status {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 8px 16px;
-            background: rgba(26, 26, 26, 0.9);
-            backdrop-filter: blur(20px);
-            color: white;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 200;
-            font-family: 'IBM Plex Sans', sans-serif;
-            display: none;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
 
-        .tracking-status.show {
-            display: block;
-        }
-
-        .tracking-status.declined {
-            background: rgba(239, 68, 68, 0.9);
-        }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
@@ -412,10 +389,7 @@
         </button>
     </div>
 
-    <!-- Tracking status indicator -->
-    <div id="trackingStatus" class="tracking-status">
-        <span id="statusText">Tracking Status</span>
-    </div>
+
 
     <!-- Elegant notification-style consent popup -->
     <div id="consentNotification" class="consent-notification">
@@ -582,24 +556,8 @@
             }
 
             updateStatus() {
-                const consent = this.getConsent();
-                const statusEl = document.getElementById('trackingStatus');
-                const statusText = document.getElementById('statusText');
-                
-                if (consent) {
-                    if (consent.marketing) {
-                        statusText.textContent = 'Marketing tracking active';
-                        statusEl.className = 'tracking-status show';
-                    } else {
-                        statusText.textContent = 'Marketing tracking disabled';
-                        statusEl.className = 'tracking-status show declined';
-                    }
-                    
-                    // Hide status after 4 seconds
-                    setTimeout(() => {
-                        statusEl.classList.remove('show');
-                    }, 4000);
-                }
+                // Silent operation - no user notifications
+                // Tracking starts/stops in background
             }
         }
 
