@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenAI-Style Consent Banner</title>
+    <title>Elegant Consent Notification</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;500&display=swap');
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 200;
             margin: 0;
             padding: 20px;
-            background: #f7f7f8;
+            background: #f8fafc;
             line-height: 1.6;
             color: #1a1a1a;
         }
@@ -24,111 +27,164 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        /* OpenAI-style consent banner */
-        .consent-banner {
+        /* Elegant notification-style consent popup */
+        .consent-notification {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1a1a1a;
-            color: #ffffff;
-            padding: 16px 20px;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             z-index: 10000;
             display: none;
-            border-top: 1px solid #333;
+            transform: translateX(-100%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'IBM Plex Sans', sans-serif;
         }
 
-        .consent-banner.show {
+        .consent-notification.show {
             display: block;
+            transform: translateX(0);
+            opacity: 1;
         }
 
-        .consent-content {
-            max-width: 1200px;
-            margin: 0 auto;
+        .notification-content {
             display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        .consent-text {
-            flex: 1;
-            min-width: 300px;
+        .notification-title {
+            font-size: 16px;
+            font-weight: 400;
+            color: #1a1a1a;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .notification-text {
             font-size: 14px;
-            line-height: 1.4;
+            font-weight: 200;
+            color: #6b7280;
+            line-height: 1.5;
+            margin: 0;
         }
 
-        .consent-text a {
-            color: #10a37f;
-            text-decoration: underline;
-        }
-
-        .consent-text a:hover {
+        .notification-text a {
+            color: #1a1a1a;
             text-decoration: none;
+            border-bottom: 1px solid rgba(26, 26, 26, 0.3);
+            transition: border-color 0.2s ease;
         }
 
-        .consent-buttons {
+        .notification-text a:hover {
+            border-bottom-color: #1a1a1a;
+        }
+
+        .notification-buttons {
             display: flex;
             gap: 12px;
-            align-items: center;
         }
 
-        .consent-btn {
-            padding: 8px 16px;
-            border: 1px solid #4a4a4a;
-            border-radius: 6px;
+        .notification-btn {
+            padding: 10px 20px;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+            border-radius: 8px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 200;
+            font-family: 'IBM Plex Sans', sans-serif;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             background: transparent;
-            color: #ffffff;
-            white-space: nowrap;
+            color: #374151;
+            flex: 1;
+            text-align: center;
+            letter-spacing: -0.01em;
         }
 
         .btn-accept {
-            background: #10a37f;
-            border-color: #10a37f;
-            color: #ffffff;
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+            color: white;
         }
 
         .btn-accept:hover {
-            background: #0d8f6b;
-            border-color: #0d8f6b;
+            background: #2d2d2d;
+            border-color: #2d2d2d;
+            transform: translateY(-1px);
         }
 
         .btn-decline:hover {
-            background: #2a2a2a;
-            border-color: #5a5a5a;
+            background: rgba(107, 114, 128, 0.05);
+            border-color: rgba(107, 114, 128, 0.5);
+            transform: translateY(-1px);
         }
 
-        .btn-settings {
-            background: transparent;
-            border: none;
-            color: #10a37f;
-            text-decoration: underline;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 8px 4px;
+        .notification-settings {
+            margin-top: 8px;
+            text-align: center;
         }
 
-        .btn-settings:hover {
+        .settings-link {
+            color: #6b7280;
             text-decoration: none;
+            font-size: 12px;
+            font-weight: 200;
+            border-bottom: 1px solid rgba(107, 114, 128, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        /* Preferences Modal - OpenAI style */
+        .settings-link:hover {
+            color: #1a1a1a;
+            border-bottom-color: #1a1a1a;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #9ca3af;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 200;
+        }
+
+        .close-btn:hover {
+            background: rgba(156, 163, 175, 0.1);
+            color: #6b7280;
+        }
+
+        /* Preferences Modal */
         .preferences-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
             z-index: 10001;
             display: none;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            font-family: 'IBM Plex Sans', sans-serif;
         }
 
         .preferences-modal.show {
@@ -136,14 +192,15 @@
         }
 
         .preferences-content {
-            background: #ffffff;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
             padding: 32px;
             max-width: 500px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
         }
 
         .preferences-header {
@@ -152,23 +209,25 @@
 
         .preferences-title {
             font-size: 20px;
-            font-weight: 600;
+            font-weight: 400;
             color: #1a1a1a;
             margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
         }
 
         .preferences-subtitle {
             font-size: 14px;
-            color: #6b6b6b;
+            font-weight: 200;
+            color: #6b7280;
             margin: 0;
         }
 
         .cookie-category {
             margin-bottom: 20px;
             padding: 20px;
-            border: 1px solid #e5e5e5;
-            border-radius: 8px;
-            background: #fafafa;
+            border: 1px solid rgba(229, 231, 235, 0.6);
+            border-radius: 12px;
+            background: rgba(249, 250, 251, 0.5);
         }
 
         .category-header {
@@ -179,24 +238,25 @@
         }
 
         .category-title {
-            font-weight: 600;
+            font-weight: 400;
             font-size: 16px;
             color: #1a1a1a;
             margin: 0;
+            letter-spacing: -0.01em;
         }
 
         .toggle-switch {
             position: relative;
             width: 44px;
             height: 24px;
-            background: #e5e5e5;
+            background: #e5e7eb;
             border-radius: 12px;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .toggle-switch.active {
-            background: #10a37f;
+            background: #1a1a1a;
         }
 
         .toggle-switch::after {
@@ -208,8 +268,8 @@
             height: 20px;
             background: white;
             border-radius: 50%;
-            transition: transform 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .toggle-switch.active::after {
@@ -218,9 +278,10 @@
 
         .category-description {
             font-size: 14px;
-            color: #6b6b6b;
+            font-weight: 200;
+            color: #6b7280;
             margin: 0;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .modal-buttons {
@@ -228,35 +289,38 @@
             gap: 12px;
             margin-top: 24px;
             padding-top: 20px;
-            border-top: 1px solid #e5e5e5;
+            border-top: 1px solid rgba(229, 231, 235, 0.6);
         }
 
         .modal-btn {
             flex: 1;
             padding: 12px 24px;
-            border: 1px solid #e5e5e5;
-            border-radius: 6px;
+            border: 1px solid rgba(229, 231, 235, 0.6);
+            border-radius: 8px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 200;
+            font-family: 'IBM Plex Sans', sans-serif;
             cursor: pointer;
-            transition: all 0.15s ease;
-            background: #ffffff;
-            color: #1a1a1a;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+            color: #374151;
+            letter-spacing: -0.01em;
         }
 
         .modal-btn-primary {
-            background: #10a37f;
-            border-color: #10a37f;
-            color: #ffffff;
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+            color: white;
         }
 
         .modal-btn:hover {
-            background: #f5f5f5;
+            background: rgba(249, 250, 251, 0.8);
+            transform: translateY(-1px);
         }
 
         .modal-btn-primary:hover {
-            background: #0d8f6b;
-            border-color: #0d8f6b;
+            background: #2d2d2d;
+            border-color: #2d2d2d;
         }
 
         /* Status indicator */
@@ -264,14 +328,16 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 8px 12px;
-            background: #10a37f;
+            padding: 8px 16px;
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(20px);
             color: white;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 200;
+            font-family: 'IBM Plex Sans', sans-serif;
             display: none;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
         .tracking-status.show {
@@ -279,25 +345,21 @@
         }
 
         .tracking-status.declined {
-            background: #ef4444;
+            background: rgba(239, 68, 68, 0.9);
         }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
-            .consent-content {
+            .consent-notification {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                max-width: none;
+                padding: 20px;
+            }
+            
+            .notification-buttons {
                 flex-direction: column;
-                align-items: stretch;
-                gap: 16px;
-            }
-            
-            .consent-text {
-                min-width: unset;
-                text-align: center;
-            }
-            
-            .consent-buttons {
-                justify-content: center;
-                flex-wrap: wrap;
             }
             
             .preferences-content {
@@ -310,29 +372,42 @@
             }
         }
 
-        /* Smooth transitions */
-        .consent-banner {
-            transform: translateY(100%);
-            transition: transform 0.3s ease-out;
+        /* Refined animations */
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
-        .consent-banner.show {
-            transform: translateY(0);
+        @keyframes slideOutLeft {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Main page content -->
     <div class="main-content">
-        <h1>Your Website</h1>
-        <p>This consent banner matches OpenAI's clean, professional design. It appears at the bottom of the page with a simple choice between Accept and Decline.</p>
-        <p>The design prioritizes clarity and user choice while maintaining GDPR/CCPA compliance.</p>
+        <h1 style="font-weight: 400; letter-spacing: -0.02em;">Your Website</h1>
+        <p style="font-weight: 200;">This elegant notification matches your sophisticated design aesthetic. It appears in the bottom left corner with refined typography and smooth animations.</p>
+        <p style="font-weight: 200;">The design uses IBM Plex Sans and maintains the same visual refinement as your main site.</p>
         
-        <button onclick="showPreferences()" style="margin-top: 20px; padding: 10px 20px; background: #10a37f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+        <button onclick="showPreferences()" style="margin-top: 20px; padding: 12px 24px; background: #1a1a1a; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 200; font-family: 'IBM Plex Sans', sans-serif; letter-spacing: -0.01em;">
             Manage Cookie Preferences
         </button>
 
-        <button onclick="resetConsent()" style="margin: 20px 0 0 12px; padding: 10px 20px; background: transparent; color: #6b6b6b; border: 1px solid #e5e5e5; border-radius: 6px; cursor: pointer; font-weight: 500;">
+        <button onclick="resetConsent()" style="margin: 20px 0 0 12px; padding: 12px 24px; background: transparent; color: #6b7280; border: 1px solid rgba(229, 231, 235, 0.6); border-radius: 8px; cursor: pointer; font-weight: 200; font-family: 'IBM Plex Sans', sans-serif; letter-spacing: -0.01em;">
             Reset (for testing)
         </button>
     </div>
@@ -342,18 +417,24 @@
         <span id="statusText">Tracking Status</span>
     </div>
 
-    <!-- OpenAI-style Consent Banner -->
-    <div id="consentBanner" class="consent-banner">
-        <div class="consent-content">
-            <div class="consent-text">
-                We use cookies to provide and improve our services. By using our site, you consent to cookies. 
-                <a href="#privacy">Learn more</a> about our use of cookies in our 
-                <a href="#privacy">Privacy Policy</a> and <a href="#cookies">Cookie Policy</a>.
+    <!-- Elegant notification-style consent popup -->
+    <div id="consentNotification" class="consent-notification">
+        <button class="close-btn" onclick="hideNotification()">×</button>
+        
+        <div class="notification-content">
+            <h3 class="notification-title">We use cookies</h3>
+            <p class="notification-text">
+                We use cookies to improve your experience and for analytics. 
+                <a href="#privacy">Learn more</a> in our privacy policy.
+            </p>
+            
+            <div class="notification-buttons">
+                <button class="notification-btn btn-decline" onclick="declineAll()">Decline</button>
+                <button class="notification-btn btn-accept" onclick="acceptAll()">Accept</button>
             </div>
-            <div class="consent-buttons">
-                <button class="btn-settings" onclick="showPreferences()">Cookie settings</button>
-                <button class="consent-btn btn-decline" onclick="declineAll()">Decline</button>
-                <button class="consent-btn btn-accept" onclick="acceptAll()">Accept</button>
+            
+            <div class="notification-settings">
+                <a class="settings-link" onclick="showPreferences()">Cookie settings</a>
             </div>
         </div>
     </div>
@@ -404,7 +485,7 @@
     </div>
 
     <script>
-        // OpenAI-style Consent Management System
+        // Elegant Consent Management System
         class ConsentManager {
             constructor() {
                 this.consentKey = 'cookie-consent';
@@ -414,7 +495,7 @@
             init() {
                 const consent = this.getConsent();
                 if (!consent) {
-                    setTimeout(() => this.showBanner(), 1500);
+                    setTimeout(() => this.showNotification(), 2500);
                 } else {
                     this.loadApprovedScripts();
                     this.updateStatus();
@@ -434,18 +515,18 @@
                 };
                 localStorage.setItem(this.consentKey, JSON.stringify(consentData));
                 this.loadApprovedScripts();
-                this.hideBanner();
+                this.hideNotification();
                 this.updateStatus();
             }
 
-            showBanner() {
-                const banner = document.getElementById('consentBanner');
-                banner.classList.add('show');
+            showNotification() {
+                const notification = document.getElementById('consentNotification');
+                notification.classList.add('show');
             }
 
-            hideBanner() {
-                const banner = document.getElementById('consentBanner');
-                banner.classList.remove('show');
+            hideNotification() {
+                const notification = document.getElementById('consentNotification');
+                notification.classList.remove('show');
             }
 
             loadApprovedScripts() {
@@ -525,7 +606,7 @@
         // Initialize consent manager
         const consentManager = new ConsentManager();
 
-        // Banner interaction functions
+        // Notification interaction functions
         function acceptAll() {
             consentManager.setConsent({
                 essential: true,
@@ -540,6 +621,10 @@
                 analytics: false,
                 marketing: false
             });
+        }
+
+        function hideNotification() {
+            document.getElementById('consentNotification').classList.remove('show');
         }
 
         function showPreferences() {
