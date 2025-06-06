@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI-Style Consent Banner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f7f7f8;
+            line-height: 1.6;
+            color: #1a1a1a;
+        }
+
+        /* Main content styling */
+        .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* OpenAI-style consent banner */
+        .consent-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 16px 20px;
+            z-index: 10000;
+            display: none;
+            border-top: 1px solid #333;
+        }
+
+        .consent-banner.show {
+            display: block;
+        }
+
+        .consent-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .consent-text {
+            flex: 1;
+            min-width: 300px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .consent-text a {
+            color: #10a37f;
+            text-decoration: underline;
+        }
+
+        .consent-text a:hover {
+            text-decoration: none;
+        }
+
+        .consent-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .consent-btn {
+            padding: 8px 16px;
+            border: 1px solid #4a4a4a;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: transparent;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+
+        .btn-accept {
+            background: #10a37f;
+            border-color: #10a37f;
+            color: #ffffff;
+        }
+
+        .btn-accept:hover {
+            background: #0d8f6b;
+            border-color: #0d8f6b;
+        }
+
+        .btn-decline:hover {
+            background: #2a2a2a;
+            border-color: #5a5a5a;
+        }
+
+        .btn-settings {
+            background: transparent;
+            border: none;
+            color: #10a37f;
+            text-decoration: underline;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 4px;
+        }
+
+        .btn-settings:hover {
+            text-decoration: none;
+        }
+
+        /* Preferences Modal - OpenAI style */
+        .preferences-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10001;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .preferences-modal.show {
+            display: flex;
+        }
+
+        .preferences-content {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .preferences-header {
+            margin-bottom: 24px;
+        }
+
+        .preferences-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0 0 8px 0;
+        }
+
+        .preferences-subtitle {
+            font-size: 14px;
+            color: #6b6b6b;
+            margin: 0;
+        }
+
+        .cookie-category {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .category-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #e5e5e5;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .toggle-switch.active {
+            background: #10a37f;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .category-description {
+            font-size: 14px;
+            color: #6b6b6b;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .modal-btn-primary {
+            background: #10a37f;
+            border-color: #10a37f;
+            color: #ffffff;
+        }
+
+        .modal-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .modal-btn-primary:hover {
+            background: #0d8f6b;
+            border-color: #0d8f6b;
+        }
+
+        /* Status indicator */
+        .tracking-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 12px;
+            background: #10a37f;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            display: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .tracking-status.show {
+            display: block;
+        }
+
+        .tracking-status.declined {
+            background: #ef4444;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .consent-content {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+            
+            .consent-text {
+                min-width: unset;
+                text-align: center;
+            }
+            
+            .consent-buttons {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .preferences-content {
+                margin: 20px;
+                padding: 24px;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Smooth transitions */
+        .consent-banner {
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .consent-banner.show {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Main page content -->
+    <div class="main-content">
+        <h1>Your Website</h1>
+        <p>This consent banner matches OpenAI's clean, professional design. It appears at the bottom of the page with a simple choice between Accept and Decline.</p>
+        <p>The design prioritizes clarity and user choice while maintaining GDPR/CCPA compliance.</p>
+        
+        <button onclick="showPreferences()" style="margin-top: 20px; padding: 10px 20px; background: #10a37f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+            Manage Cookie Preferences
+        </button>
+
+        <button onclick="resetConsent()" style="margin: 20px 0 0 12px; padding: 10px 20px; background: transparent; color: #6b6b6b; border: 1px solid #e5e5e5; border-radius: 6px; cursor: pointer; font-weight: 500;">
+            Reset (for testing)
+        </button>
+    </div>
+
+    <!-- Tracking status indicator -->
+    <div id="trackingStatus" class="tracking-status">
+        <span id="statusText">Tracking Status</span>
+    </div>
+
+    <!-- OpenAI-style Consent Banner -->
+    <div id="consentBanner" class="consent-banner">
+        <div class="consent-content">
+            <div class="consent-text">
+                We use cookies to provide and improve our services. By using our site, you consent to cookies. 
+                <a href="#privacy">Learn more</a> about our use of cookies in our 
+                <a href="#privacy">Privacy Policy</a> and <a href="#cookies">Cookie Policy</a>.
+            </div>
+            <div class="consent-buttons">
+                <button class="btn-settings" onclick="showPreferences()">Cookie settings</button>
+                <button class="consent-btn btn-decline" onclick="declineAll()">Decline</button>
+                <button class="consent-btn btn-accept" onclick="acceptAll()">Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preferences Modal -->
+    <div id="preferencesModal" class="preferences-modal">
+        <div class="preferences-content">
+            <div class="preferences-header">
+                <h2 class="preferences-title">Cookie preferences</h2>
+                <p class="preferences-subtitle">Manage your cookie settings and privacy preferences.</p>
+            </div>
+
+            <div class="cookie-category">
+                <div class="category-header">
+                    <h3 class="category-title">Essential cookies</h3>
+                    <div class="toggle-switch active" data-category="essential">
+                        <input type="hidden" value="true" disabled>
+                    </div>
+                </div>
+                <p class="category-description">These cookies are necessary for the website to function and cannot be switched off in our systems.</p>
+            </div>
+
+            <div class="cookie-category">
+                <div class="category-header">
+                    <h3 class="category-title">Analytics cookies</h3>
+                    <div class="toggle-switch" data-category="analytics" onclick="toggleCategory('analytics')">
+                        <input type="hidden" id="analytics-consent" value="false">
+                    </div>
+                </div>
+                <p class="category-description">These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site.</p>
+            </div>
+
+            <div class="cookie-category">
+                <div class="category-header">
+                    <h3 class="category-title">Marketing cookies</h3>
+                    <div class="toggle-switch" data-category="marketing" onclick="toggleCategory('marketing')">
+                        <input type="hidden" id="marketing-consent" value="false">
+                    </div>
+                </div>
+                <p class="category-description">These cookies may be set through our site by our advertising partners, including LinkedIn, to build a profile of your interests.</p>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="hidePreferences()">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="savePreferences()">Save preferences</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // OpenAI-style Consent Management System
+        class ConsentManager {
+            constructor() {
+                this.consentKey = 'cookie-consent';
+                this.init();
+            }
+
+            init() {
+                const consent = this.getConsent();
+                if (!consent) {
+                    setTimeout(() => this.showBanner(), 1500);
+                } else {
+                    this.loadApprovedScripts();
+                    this.updateStatus();
+                }
+            }
+
+            getConsent() {
+                const stored = localStorage.getItem(this.consentKey);
+                return stored ? JSON.parse(stored) : null;
+            }
+
+            setConsent(consent) {
+                const consentData = {
+                    ...consent,
+                    timestamp: new Date().toISOString(),
+                    version: '1.0'
+                };
+                localStorage.setItem(this.consentKey, JSON.stringify(consentData));
+                this.loadApprovedScripts();
+                this.hideBanner();
+                this.updateStatus();
+            }
+
+            showBanner() {
+                const banner = document.getElementById('consentBanner');
+                banner.classList.add('show');
+            }
+
+            hideBanner() {
+                const banner = document.getElementById('consentBanner');
+                banner.classList.remove('show');
+            }
+
+            loadApprovedScripts() {
+                const consent = this.getConsent();
+                if (!consent) return;
+
+                // Load LinkedIn Insight Tag if marketing consent given
+                if (consent.marketing && !window.linkedinTagLoaded) {
+                    this.loadLinkedInTag();
+                }
+
+                // Load analytics if consent given
+                if (consent.analytics && !window.analyticsLoaded) {
+                    console.log('Analytics tracking enabled');
+                    window.analyticsLoaded = true;
+                }
+            }
+
+            loadLinkedInTag() {
+                // LinkedIn Insight Tag implementation
+                window._linkedin_partner_id = "8459257";
+                window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+                window._linkedin_data_partner_ids.push(window._linkedin_partner_id);
+
+                (function(l) {
+                    if (!l) {
+                        window.lintrk = function(a,b) {
+                            window.lintrk.q.push([a,b]);
+                        };
+                        window.lintrk.q = [];
+                    }
+                    var s = document.getElementsByTagName("script")[0];
+                    var b = document.createElement("script");
+                    b.type = "text/javascript";
+                    b.async = true;
+                    b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+                    s.parentNode.insertBefore(b, s);
+                })(window.lintrk);
+
+                // Add noscript img for non-JS users
+                if (!document.querySelector('img[src*="px.ads.linkedin.com"]')) {
+                    const img = document.createElement('img');
+                    img.height = '1';
+                    img.width = '1';
+                    img.style.display = 'none';
+                    img.alt = '';
+                    img.src = 'https://px.ads.linkedin.com/collect/?pid=8459257&fmt=gif';
+                    document.body.appendChild(img);
+                }
+
+                window.linkedinTagLoaded = true;
+                console.log('LinkedIn Insight Tag loaded');
+            }
+
+            updateStatus() {
+                const consent = this.getConsent();
+                const statusEl = document.getElementById('trackingStatus');
+                const statusText = document.getElementById('statusText');
+                
+                if (consent) {
+                    if (consent.marketing) {
+                        statusText.textContent = 'Marketing tracking active';
+                        statusEl.className = 'tracking-status show';
+                    } else {
+                        statusText.textContent = 'Marketing tracking disabled';
+                        statusEl.className = 'tracking-status show declined';
+                    }
+                    
+                    // Hide status after 4 seconds
+                    setTimeout(() => {
+                        statusEl.classList.remove('show');
+                    }, 4000);
+                }
+            }
+        }
+
+        // Initialize consent manager
+        const consentManager = new ConsentManager();
+
+        // Banner interaction functions
+        function acceptAll() {
+            consentManager.setConsent({
+                essential: true,
+                analytics: true,
+                marketing: true
+            });
+        }
+
+        function declineAll() {
+            consentManager.setConsent({
+                essential: true,
+                analytics: false,
+                marketing: false
+            });
+        }
+
+        function showPreferences() {
+            // Load current preferences
+            const consent = consentManager.getConsent();
+            if (consent) {
+                document.getElementById('analytics-consent').value = consent.analytics;
+                document.getElementById('marketing-consent').value = consent.marketing;
+                
+                // Update toggle switches
+                const analyticsToggle = document.querySelector('[data-category="analytics"]');
+                const marketingToggle = document.querySelector('[data-category="marketing"]');
+                
+                analyticsToggle.classList.toggle('active', consent.analytics);
+                marketingToggle.classList.toggle('active', consent.marketing);
+            }
+            
+            document.getElementById('preferencesModal').classList.add('show');
+        }
+
+        function hidePreferences() {
+            document.getElementById('preferencesModal').classList.remove('show');
+        }
+
+        function toggleCategory(category) {
+            const toggle = document.querySelector(`[data-category="${category}"]`);
+            const input = document.getElementById(`${category}-consent`);
+            
+            const isActive = toggle.classList.contains('active');
+            toggle.classList.toggle('active');
+            input.value = isActive ? 'false' : 'true';
+        }
+
+        function savePreferences() {
+            const analyticsConsent = document.getElementById('analytics-consent').value === 'true';
+            const marketingConsent = document.getElementById('marketing-consent').value === 'true';
+            
+            consentManager.setConsent({
+                essential: true,
+                analytics: analyticsConsent,
+                marketing: marketingConsent
+            });
+            
+            hidePreferences();
+        }
+
+        function resetConsent() {
+            localStorage.removeItem('cookie-consent');
+            location.reload();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('preferencesModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hidePreferences();
+            }
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('preferencesModal');
+                if (modal.classList.contains('show')) {
+                    hidePreferences();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
