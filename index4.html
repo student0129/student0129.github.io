@@ -97,6 +97,18 @@
             object-fit: cover;
             z-index: -1;
         }
+
+        /* Fallback background when video doesn't load */
+        .video-background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            z-index: -1;
+        }
         
         .header, .content, .footer {
             position: relative;
@@ -183,17 +195,17 @@
             max-width: 400px;
             box-shadow: 0 20px 40px var(--shadow-light);
             z-index: 10000;
-            display: none;
             transform: translateX(-100%);
             opacity: 0;
             transition: var(--transition-smooth);
             font-family: 'IBM Plex Sans', sans-serif;
+            visibility: hidden;
         }
         
         .consent-notification.show {
-            display: block;
             transform: translateX(0);
             opacity: 1;
+            visibility: visible;
         }
         
         .notification-content {
@@ -624,10 +636,18 @@
             }
 
             init() {
+                console.log('ConsentManager initializing...');
                 const consent = this.getCurrentConsent();
+                console.log('Current consent:', consent);
+                
                 if (!consent) {
-                    setTimeout(() => this.showNotification(), NOTIFICATION_DELAY);
+                    console.log('No consent found, will show notification in', NOTIFICATION_DELAY, 'ms');
+                    setTimeout(() => {
+                        console.log('Showing notification now');
+                        this.showNotification();
+                    }, NOTIFICATION_DELAY);
                 } else {
+                    console.log('Consent found, loading scripts');
                     this.loadApprovedScripts();
                 }
                 this.bindEventListeners();
@@ -650,7 +670,16 @@
             }
 
             showNotification() {
-                document.getElementById('consentNotification').classList.add('show');
+                console.log('Attempting to show notification');
+                const notification = document.getElementById('consentNotification');
+                console.log('Notification element:', notification);
+                
+                if (notification) {
+                    notification.classList.add('show');
+                    console.log('Added show class to notification');
+                } else {
+                    console.error('Could not find notification element');
+                }
             }
 
             hideNotification() {
@@ -788,10 +817,35 @@
             }
         }
 
-        // Initialize everything
-        // Don't wait for DOMContentLoaded since we're at the end of body
-        window.typingAnimation = new TypingAnimation();
-        window.consentManager = new ConsentManager();
+        // Initialize everything with error handling
+        console.log('Script starting...');
+        
+        try {
+            window.typingAnimation = new TypingAnimation();
+            console.log('Typing animation initialized');
+            
+            window.consentManager = new ConsentManager();
+            console.log('Consent manager initialized');
+        } catch (error) {
+            console.error('Error during initialization:', error);
+        }
+
+        // Add video error handling
+        const video = document.querySelector('.video-background');
+        if (video) {
+            video.addEventListener('error', function() {
+                console.log('Video failed to load, using fallback background');
+                this.style.display = 'none';
+            });
+            
+            video.addEventListener('loadstart', function() {
+                console.log('Video loading started');
+            });
+            
+            video.addEventListener('canplay', function() {
+                console.log('Video can start playing');
+            });
+        }
     </script>
 </body>
 </html>
