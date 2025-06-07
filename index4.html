@@ -74,7 +74,7 @@
         }
 
         html, body {
-            background: #000000;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 200;
@@ -503,7 +503,9 @@
 <body>
     <video autoplay muted loop playsinline preload="metadata" class="video-background" aria-hidden="true">
         <source src="background-video.mp4" type="video/mp4">
-        Your browser does not support the video tag.
+        <source src="background-video.webm" type="video/webm">
+        <!-- Fallback background if video fails to load -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);"></div>
     </video>
 
     <header class="header">Promontory AI</header>
@@ -787,10 +789,9 @@
         }
 
         // Initialize everything
-        document.addEventListener('DOMContentLoaded', () => {
-            window.typingAnimation = new TypingAnimation();
-            window.consentManager = new ConsentManager();
-        });
+        // Don't wait for DOMContentLoaded since we're at the end of body
+        window.typingAnimation = new TypingAnimation();
+        window.consentManager = new ConsentManager();
     </script>
 </body>
 </html>
