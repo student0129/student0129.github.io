@@ -462,15 +462,19 @@
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData);
             
-            // Add URL parameters for tracking
-            const urlParams = new URLSearchParams(window.location.search);
-            const adSource = urlParams.get('what') || 'direct';
-            
-            // Add tracking data
-            data.ad_source = adSource;
-            data.referrer_url = window.location.href;
-            data.timestamp = new Date().toISOString();
-            data.form_type = 'startsmart_contact';
+            // Transform data to match server expectations
+            const serverData = {
+                name: `${data.firstName} ${data.lastName}`.trim(),
+                email: data.email,
+                company: data.company || '',
+                role: data.role || 'Business Contact', // Server requires this field
+                edge: data.message, // Use message field as edge field
+                // Keep tracking fields
+                ad_source: adSource,
+                referrer_url: window.location.href,
+                timestamp: new Date().toISOString(),
+                form_type: 'startsmart_contact'
+            };
             
             // Validate form data
             if (!validateForm(data)) {
@@ -489,7 +493,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(serverData)
             })
             .then(response => {
                 if (!response.ok) {
