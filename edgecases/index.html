@@ -34,11 +34,10 @@
         
         /* Header */
         .header {
-            position: relative;
-            z-index: 1;
-            padding: 15px 20px;
-            font-size: clamp(1.1rem, 1.7vw, 1.7rem);
+            padding: 20px;
+            font-size: 2vw;
             font-weight: 200;
+            align-self: flex-start;
         }
         
         /* Main Content */
@@ -134,14 +133,13 @@
         
         /* Footer */
         .footer {
-            position: relative;
-            z-index: 1;
             text-align: center;
-            padding: 2rem;
-            font-size: 0.9rem;
+            font-size: 1.5vw;
             font-weight: 200;
-            opacity: 0.6;
-            margin-top: auto;
+            position: fixed;
+            bottom: 2vh;
+            left: 50%;
+            transform: translateX(-50%);
         }
         
         /* Modal Styles */
@@ -383,7 +381,11 @@
         /* Responsive Design */
         @media (max-width: 768px) {
             .header {
-                font-size: 5vw;
+                font-size: 4vw;
+            }
+
+            .footer {
+                font-size: 3vw;
             }
             
             .event-title {
