@@ -305,7 +305,7 @@
     
     <div class="main-content">
         <h1 class="page-title" id="pageTitle">Ready to transform your business with AI?</h1>
-        <p class="tagline" id="pageTagline">Smart start begins with the right strategy</p>
+        <p class="tagline" id="pageTagline">Smart start begins with conversation</p>
         
         <div class="subtitle" id="pageSubtitle">
             We partner with ambitious leaders to deliver precise AI strategy and engineered solutions that turn vision into reality. Let's discuss how we can accelerate your success.
@@ -324,12 +324,17 @@
             <span class="close" onclick="closeModal()">&times;</span>
             
             <div id="contactForm">
-                <h2 style="margin-bottom: 1.5rem; font-weight: 200; font-size: 1.4rem;" id="formTitle">Tell us about your project</h2>
+                <h2 style="margin-bottom: 1.5rem; font-weight: 200; font-size: 1.4rem;" id="formTitle">Let's start the conversation</h2>
                 
                 <form onsubmit="submitContact(event)" id="contactFormElement">
                     <div class="form-group">
-                        <label for="name">Full Name *</label>
-                        <input type="text" id="name" name="name" required placeholder="Your full name">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required placeholder="Your first name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required placeholder="Your last name">
                     </div>
                     
                     <div class="form-group">
@@ -377,31 +382,31 @@
                 title: "Stop Bolting On AI",
                 tagline: "Smart start means integrated solutions",
                 subtitle: "Bolting AI onto existing systems rarely works. We engineer AI solutions that seamlessly integrate with your operations, creating lasting competitive advantage rather than digital band-aids.",
-                formTitle: "Tell us about your integration challenges"
+                formTitle: "Let's discuss your integration challenges"
             },
             piloting: {
                 title: "Beyond Endless Pilots",
                 tagline: "Smart start means scaling from proof to production",
                 subtitle: "Tired of AI pilots that never graduate? We specialize in taking promising AI concepts and engineering them into production-ready systems that deliver measurable business impact.",
-                formTitle: "Tell us about your scaling challenges"
+                formTitle: "Let's discuss your scaling challenges"
             },
             hoarding: {
                 title: "Turn Data Hoarding Into Intelligence",
                 tagline: "Smart start means unlocking the value in your data",
                 subtitle: "You've been collecting data for years, but it's not driving decisions. We transform data hoards into intelligent systems that provide actionable insights and automated decision-making.",
-                formTitle: "Tell us about your data and intelligence needs"
+                formTitle: "Let's discuss your data and intelligence goals"
             },
             building: {
                 title: "Build AI That Actually Works",
                 tagline: "Smart start means engineered AI solutions",
                 subtitle: "Building effective AI requires more than following tutorials. We architect and engineer custom AI systems designed for your specific challenges, ensuring reliability, scalability, and measurable outcomes.",
-                formTitle: "Tell us about your AI building challenges"
+                formTitle: "Let's discuss your AI development needs"
             },
             overpaying: {
                 title: "Stop Overpaying for AI Promises",
                 tagline: "Smart start means AI strategy that delivers value",
                 subtitle: "Expensive AI consultants making big promises with little delivery? We provide precise AI strategy and engineered solutions focused on measurable outcomes and genuine competitive advantage.",
-                formTitle: "Tell us about your AI investment priorities"
+                formTitle: "Let's discuss your AI investment priorities"
             }
         };
 
@@ -430,8 +435,8 @@
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
             
-            // Focus on the name field when modal opens
-            document.getElementById('name').focus();
+            // Focus on the first name field when modal opens
+            document.getElementById('firstName').focus();
         }
         
         function closeModal() {
@@ -528,11 +533,20 @@
         }
         
         function validateForm(formData) {
-            const required = ['name', 'email', 'company', 'message'];
+            const required = ['firstName', 'lastName', 'email', 'company', 'message'];
             const missing = required.filter(field => !formData[field] || formData[field].trim() === '');
             
             if (missing.length > 0) {
-                alert(`Please fill in the following required fields: ${missing.join(', ')}`);
+                // Convert field names to user-friendly labels
+                const fieldLabels = {
+                    'firstName': 'First Name',
+                    'lastName': 'Last Name',
+                    'email': 'Email',
+                    'company': 'Company',
+                    'message': 'Message'
+                };
+                const missingLabels = missing.map(field => fieldLabels[field] || field);
+                alert(`Please fill in the following required fields: ${missingLabels.join(', ')}`);
                 return false;
             }
             
