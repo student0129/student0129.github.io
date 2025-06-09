@@ -3,187 +3,557 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promontory AI</title>
+    <title>Start Smart - Promontory AI</title>
 
-    <!-- SEO -->
-    <meta name="description" content="Promontory AI partners with ambitious leaders shaping their industries, delivering precise AI strategy and engineered AI solutions that turn vision into reality.">
-    <meta name="keywords" content="AI strategy consulting, custom AI solutions, AI implementation, MLOps, digital transformation, AI governance, predictive analytics, risk management">
+    <meta name="description" content="Ready to transform your business with AI? Promontory AI delivers precise AI strategy and engineered solutions that turn vision into reality.">
+    <meta name="keywords" content="AI strategy consulting, custom AI solutions, AI implementation, start smart, Promontory AI">
 
-    <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="16x16 32x32 128x128" href="favicon_p.png">
-
-    <!-- Pre‑connects and fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;500&display=swap&text=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" rel="stylesheet" media="print" onload="this.media='all'">
-
-    <!-- Structured data -->
-    <script type="application/ld+json">
-    {"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"Promontory AI","url":"https://promontoryai.com","logo":"https://promontoryai.com/favicon_p.png","description":"Promontory AI partners with ambitious leaders shaping their industries, delivering precise AI strategy and engineered AI solutions that turn vision into reality."},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What services does Promontory AI provide?","acceptedAnswer":{"@type":"Answer","text":"Promontory AI provides strategic AI consulting, custom AI solutions, and engineered AI systems to help leaders create competitive advantage through AI."}},{"@type":"Question","name":"How can AI improve decision‑making in businesses?","acceptedAnswer":{"@type":"Answer","text":"AI enhances business decision‑making by using machine learning, predictive analytics, and cognitive computing to reduce bias and increase efficiency."}},{"@type":"Question","name":"How does Promontory AI help businesses implement AI?","acceptedAnswer":{"@type":"Answer","text":"Promontory AI helps businesses implement AI by providing end‑to‑end strategy, system engineering, and AI product delivery with a focus on measurable outcomes."}}]}]}
-    </script>
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon_p.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon_p.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="../favicon_p.png">
 
     <style>
-        :root{
-            --primary-bg:#1a1a1a;
-            --text-light:#6b7280;
-            --text-dark:#374151;
-            --gray-100:#e5e7eb;
-            --border-light:color-mix(in srgb,var(--gray-100) 60%,transparent);
-            --backdrop-blur:rgba(255,255,255,.95);
-            --shadow-light:rgba(0,0,0,.1);
-            --transition-smooth:all .3s cubic-bezier(.4,0,.2,1)
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        /* Base */
-        *,::before,::after{box-sizing:border-box}
-        html,body{margin:0;padding:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(135deg,#1a1a1a 0%,#2d2d2d 50%,#1a1a1a 100%);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-weight:200}
-        header,main,footer{position:relative;z-index:1}
-
-        /* Video background */
-        .video-bg{position:fixed;inset:0;width:100vw;height:100vh;object-fit:cover;z-index:-1}
-
-        /* Layout and scale */
-        header{padding:20px;font-size:clamp(20px,2vw,36px)}
-        main{flex-grow:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;padding-inline-end:5vw;font-size:clamp(28px,5vw,64px);text-align:right;line-height:1.3}
-        footer{position:fixed;bottom:2vh;left:50%;transform:translateX(-50%);font-size:clamp(12px,1.5vw,20px)}
-
-        /* Typing */
-        .typing-text{display:inline-block;overflow:hidden;border-right:3px solid #fff;white-space:nowrap}
-        .typing-text.finished{border-right:3px solid transparent}
-        .line1{animation:typing1 3s steps(20,end) forwards,blink .7s step-end infinite}
-        .line2{visibility:hidden;animation:typing2 3.9s steps(26,end) 3s forwards,blink .7s step-end infinite}
-        @keyframes typing1{to{width:100%}}
-        @keyframes typing2{to{width:100%}}
-        @keyframes blink{50%{border-color:transparent}}
-
-        /* Consent banner + modal */
-        .consent-banner{position:fixed;bottom:20px;left:20px;background:var(--backdrop-blur);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:24px;max-width:400px;box-shadow:0 20px 40px var(--shadow-light);z-index:10000;display:none;transform:translateX(-100%);opacity:0;transition:var(--transition-smooth);font-weight:200}
-        .consent-banner.show{display:block;transform:none;opacity:1}
-        .banner-btn{padding:10px 20px;border:1px solid rgba(107,114,128,.3);border-radius:8px;font-size:14px;background:transparent;color:var(--text-dark);cursor:pointer;transition:var(--transition-smooth);flex:1;text-align:center}
-        .banner-btn.accept{background:var(--primary-bg);border-color:var(--primary-bg);color:#fff}
-        .banner-btn.accept:hover{background:#2d2d2d}
-        .banner-btn.decline:hover{background:rgba(107,114,128,.05)}
-        .settings-link{font-size:12px;color:var(--text-light);text-decoration:none;border-bottom:1px solid rgba(107,114,128,.3);cursor:pointer}
-        .settings-link:hover{color:var(--primary-bg);border-bottom-color:var(--primary-bg)}
-
-        .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:10001;padding:20px}
-        .modal.show{display:flex}
-        .modal-content{background:rgba(255,255,255,.98);backdrop-filter:blur(20px);border-radius:16px;padding:32px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,.15)}
-        .category{margin-bottom:20px;padding:20px;border:1px solid var(--border-light);border-radius:12px;background:rgba(249,250,251,.5)}
-        .toggle{position:relative;width:44px;height:24px;background:#e5e7eb;border-radius:12px;cursor:pointer;transition:var(--transition-smooth)}
-        .toggle.active{background:var(--primary-bg)}
-        .toggle::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:var(--transition-smooth);box-shadow:0 2px 4px var(--shadow-light)}
-        .toggle.active::after{transform:translateX(20px)}
-
-        /* Responsive tweaks */
-        @media(max-width:768px){header{font-size:clamp(22px,4vw,32px)}main{font-size:clamp(32px,7vw,56px);padding-inline-end:3vw}footer{font-size:clamp(14px,3vw,18px)}.consent-banner{left:10px;right:10px;bottom:10px;max-width:none;padding:20px}}
+        
+        html, body {
+            min-height: 100vh;
+            background: #000000;
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 200;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 1;
+            padding: 15px 20px;
+            font-size: clamp(1.1rem, 1.7vw, 1.7rem);
+            font-weight: 200;
+        }
+        
+        /* Main Content */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            min-height: calc(100vh - 160px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .page-title {
+            font-size: clamp(3rem, 6vw, 6rem);
+            font-weight: 200;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #888888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tagline {
+            font-size: clamp(1.2rem, 1.8vw, 1.8rem);
+            font-weight: 200;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+            max-width: 85%;
+        }
+        
+        .subtitle {
+            font-size: clamp(1rem, 1.3vw, 1.4rem);
+            font-weight: 200;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+            max-width: 70%;
+            line-height: 1.5;
+            text-align: center;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 400;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+        }
+        
+        .cta-button:hover {
+            background: linear-gradient(135deg, #555555, #888888);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Footer */
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+            font-weight: 200;
+            opacity: 0.6;
+            margin-top: auto;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: rgba(10, 10, 10, 0.98);
+            margin: auto;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            max-height: none;
+            overflow: visible;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 100;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+        }
+        
+        .close:hover {
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 200;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 200;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'IBM Plex Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #555555, #888888);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .success-message h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            font-weight: 200;
+        }
+        
+        .success-message p {
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+        
+        .return-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .return-link:hover {
+            background: linear-gradient(135deg, #555555, #888888);
+            transform: translateY(-1px);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                font-size: 5vw;
+            }
+            
+            .page-title {
+                font-size: 12vw;
+            }
+            
+            .tagline {
+                font-size: 4vw;
+            }
+            
+            .subtitle {
+                font-size: 3.5vw;
+                max-width: 90%;
+            }
+            
+            .modal-content {
+                padding: 2rem;
+                margin: 10px auto;
+            }
+            
+            .modal {
+                padding: 10px;
+                align-items: flex-start;
+                padding-top: 10vh;
+            }
+        }
     </style>
 </head>
 <body>
-    <video class="video-bg" autoplay muted loop playsinline preload="metadata" loading="lazy" poster="fallback.jpg">
-        <source src="background-video.mp4" type="video/mp4">
-        <source src="background-video.webm" type="video/webm">
-    </video>
-
-    <header>Promontory AI</header>
-
-    <main>
-        <div class="typing-container">
-            <span id="line1" class="typing-text line1">We do the hard AI, </span>
-            <span id="line2" class="typing-text line2">so life is easy for you. </span>
+    <div class="header">Promontory AI</div>
+    
+    <div class="main-content">
+        <h1 class="page-title" id="pageTitle">Start Smart</h1>
+        <p class="tagline" id="pageTagline">Ready to transform your business with AI?</p>
+        
+        <div class="subtitle" id="pageSubtitle">
+            We partner with ambitious leaders to deliver precise AI strategy and engineered solutions that turn vision into reality. Let's discuss how we can accelerate your success.
         </div>
-    </main>
-
-    <footer>ask@promontoryai.com</footer>
-
-    <!-- Consent banner -->
-    <div id="consentBanner" class="consent-banner" role="dialog" aria-live="polite">
-        <button class="close" aria-label="Close" style="position:absolute;top:12px;right:12px;border:none;background:none;color:#9ca3af;font-size:16px;cursor:pointer">×</button>
-        <h3 style="margin:0 0 12px 0;color:var(--primary-bg);font-weight:400;font-size:16px">We use cookies</h3>
-        <p style="margin:0 0 16px 0;color:var(--text-light);font-size:14px">We use cookies to improve your experience and for analytics. <a href="/privacy" class="settings-link">Learn more</a>.</p>
-        <div style="display:flex;gap:12px">
-            <button class="banner-btn decline">Decline</button>
-            <button class="banner-btn accept">Accept</button>
-        </div>
-        <div style="margin-top:8px;text-align:center"><a class="settings-link open-settings">Cookie settings</a></div>
+        
+        <button class="cta-button" onclick="openModal()">Let's Talk</button>
+    </div>
+    
+    <div class="footer">
+        ask@promontoryai.com
     </div>
 
-    <!-- Preferences modal -->
-    <div id="preferencesModal" class="modal" aria-modal="true" role="dialog">
-        <div class="modal-content" role="document">
-            <h2 style="margin:0 0 8px 0;color:var(--primary-bg);font-weight:400;font-size:20px">Cookie preferences</h2>
-            <p style="margin:0 0 24px 0;color:var(--text-light);font-size:14px">Manage your cookie settings and privacy preferences.</p>
-
-            <div class="category">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <h3 style="margin:0;font-size:16px;font-weight:400;color:var(--primary-bg)">Essential cookies</h3>
-                    <div class="toggle active" data-cat="essential" aria-checked="true"></div>
-                </div>
-                <p style="margin:0;color:var(--text-light);font-size:14px">These cookies are necessary for the website to function and cannot be switched off.</p>
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            
+            <div id="contactForm">
+                <h2 style="margin-bottom: 1.5rem; font-weight: 200; font-size: 1.4rem;" id="formTitle">Tell us about your project</h2>
+                
+                <form onsubmit="submitContact(event)" id="contactFormElement">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="Your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Your phone number (optional)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company">Company/Organization *</label>
+                        <input type="text" id="company" name="company" required placeholder="Where you work">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role">Your Role</label>
+                        <input type="text" id="role" name="role" placeholder="Your job title">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">What do you want to talk about? *</label>
+                        <textarea id="message" name="message" required placeholder="Tell us about your AI needs, challenges, or goals..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
             </div>
-
-            <div class="category">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <h3 style="margin:0;font-size:16px;font-weight:400;color:var(--primary-bg)">Analytics cookies</h3>
-                    <div class="toggle" data-cat="analytics" aria-checked="false"></div>
-                </div>
-                <p style="margin:0;color:var(--text-light);font-size:14px">These cookies allow us to measure site performance.</p>
-            </div>
-
-            <div class="category">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <h3 style="margin:0;font-size:16px;font-weight:400;color:var(--primary-bg)">Marketing cookies</h3>
-                    <div class="toggle" data-cat="marketing" aria-checked="false"></div>
-                </div>
-                <p style="margin:0;color:var(--text-light);font-size:14px">These cookies may be set by our advertising partners.</p>
-            </div>
-
-            <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border-light)">
-                <button class="banner-btn close-modal" style="flex:1">Cancel</button>
-                <button class="banner-btn accept save-prefs" style="flex:1">Save preferences</button>
+            
+            <div id="successMessage" class="success-message">
+                <h3>Thank you for reaching out</h3>
+                <p>We've received your message and will get back to you within 24 hours.</p>
+                <p style="font-size: 0.9rem; opacity: 0.7;">We look forward to discussing how we can help accelerate your AI initiatives.</p>
+                <a href="https://promontoryai.com" class="return-link">Visit Promontory AI</a>
             </div>
         </div>
     </div>
 
     <script>
-    /* Typing effect driven by animation events */
-    document.addEventListener('DOMContentLoaded',()=>{
-        const l1=document.getElementById('line1');
-        const l2=document.getElementById('line2');
-        l1.addEventListener('animationend',()=>{l1.classList.add('finished');l2.style.visibility='visible'});
-        l2.addEventListener('animationend',()=>l2.classList.add('finished'));
-    });
+        // Configuration for different LinkedIn ads
+        const adConfigs = {
+            bolting: {
+                title: "Stop Bolting On AI",
+                tagline: "Ready for AI that actually integrates?",
+                subtitle: "Bolting AI onto existing systems rarely works. We engineer AI solutions that seamlessly integrate with your operations, creating lasting competitive advantage rather than digital band-aids.",
+                formTitle: "Tell us about your integration challenges"
+            },
+            piloting: {
+                title: "Beyond Endless Pilots",
+                tagline: "Ready to scale your AI from proof to production?",
+                subtitle: "Tired of AI pilots that never graduate? We specialize in taking promising AI concepts and engineering them into production-ready systems that deliver measurable business impact.",
+                formTitle: "Tell us about your scaling challenges"
+            },
+            hoarding: {
+                title: "Turn Data Hoarding Into Intelligence",
+                tagline: "Ready to unlock the value in your data?",
+                subtitle: "You've been collecting data for years, but it's not driving decisions. We transform data hoards into intelligent systems that provide actionable insights and automated decision-making.",
+                formTitle: "Tell us about your data and intelligence needs"
+            },
+            building: {
+                title: "Build AI That Actually Works",
+                tagline: "Ready for engineered AI solutions?",
+                subtitle: "Building effective AI requires more than following tutorials. We architect and engineer custom AI systems designed for your specific challenges, ensuring reliability, scalability, and measurable outcomes.",
+                formTitle: "Tell us about your AI building challenges"
+            },
+            overpaying: {
+                title: "Stop Overpaying for AI Promises",
+                tagline: "Ready for AI strategy that delivers value?",
+                subtitle: "Expensive AI consultants making big promises with little delivery? We provide precise AI strategy and engineered solutions focused on measurable outcomes and genuine competitive advantage.",
+                formTitle: "Tell us about your AI investment priorities"
+            }
+        };
 
-    /* Consent manager */
-    (()=>{
-        const KEY='promontory-cookie-consent-v1';
-        const banner=document.getElementById('consentBanner');
-        const modal=document.getElementById('preferencesModal');
-        const toggles=[...modal.querySelectorAll('.toggle')];
+        // Check URL parameters when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const adCode = urlParams.get('what');
+            
+            if (adCode && adConfigs[adCode]) {
+                customizePage(adCode);
+            }
+        });
 
-        const state=JSON.parse(localStorage.getItem(KEY)||'null');
-        if(!state){setTimeout(()=>banner.classList.add('show'),2500)}else{apply(state)}
-
-        /* Helpers */
-        function getPrefs(){const obj={essential:true};toggles.forEach(t=>obj[t.dataset.cat]=t.classList.contains('active'));return obj}
-        function save(prefs){localStorage.setItem(KEY,JSON.stringify({...prefs,timestamp:new Date().toISOString()}));apply(prefs)}
-        function apply(prefs){if(prefs.marketing&&!window.linkedinLoaded){loadLinkedIn()}if(prefs.analytics&&!window.analyticsLoaded){console.log('Analytics enabled');window.analyticsLoaded=true}}
-        function loadLinkedIn(){window._linkedin_partner_id='8459257';window._linkedin_data_partner_ids=window._linkedin_data_partner_ids||[];window._linkedin_data_partner_ids.push(window._linkedin_partner_id);if(!window.lintrk){window.lintrk=(a,b)=>window.lintrk.q.push([a,b]);window.lintrk.q=[]}
-            const s=document.createElement('script');s.src='https://snap.licdn.com/li.lms-analytics/insight.min.js';s.async=true;document.head.appendChild(s);window.linkedinLoaded=true}
-
-        /* Banner actions */
-        banner.querySelector('.accept').onclick=()=>{save({essential:true,analytics:true,marketing:true});banner.classList.remove('show')};
-        banner.querySelector('.decline').onclick=()=>{save({essential:true,analytics:false,marketing:false});banner.classList.remove('show')};
-        banner.querySelector('.open-settings').onclick=()=>{syncToggles();modal.classList.add('show')};
-        banner.querySelector('.close').onclick=()=>banner.classList.remove('show');
-
-        /* Modal actions */
-        modal.onclick=e=>{if(e.target===modal)modal.classList.remove('show')};
-        modal.querySelector('.close-modal').onclick=()=>modal.classList.remove('show');
-        modal.querySelector('.save-prefs').onclick=()=>{save(getPrefs());modal.classList.remove('show');banner.classList.remove('show')};
-        toggles.forEach(t=>t.onclick=()=>t.dataset.cat!=='essential'&&t.classList.toggle('active'));
-        function syncToggles(){const prefs=state||{essential:true,analytics:false,marketing:false};toggles.forEach(t=>{t.classList.toggle('active',prefs[t.dataset.cat])})}
-    })();
+        function customizePage(adCode) {
+            const config = adConfigs[adCode];
+            
+            // Update page content based on ad code
+            document.getElementById('pageTitle').textContent = config.title;
+            document.getElementById('pageTagline').textContent = config.tagline;
+            document.getElementById('pageSubtitle').textContent = config.subtitle;
+            document.getElementById('formTitle').textContent = config.formTitle;
+        }
+        
+        function openModal() {
+            const modal = document.getElementById('contactModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Focus on the name field when modal opens
+            document.getElementById('name').focus();
+        }
+        
+        function closeModal() {
+            document.getElementById('contactModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            // Reset form when closing
+            resetForm();
+        }
+        
+        function resetForm() {
+            // Reset the form
+            document.getElementById('contactFormElement').reset();
+            
+            // Reset views
+            document.getElementById('contactForm').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        function submitContact(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            
+            // Add URL parameters for tracking
+            const urlParams = new URLSearchParams(window.location.search);
+            const adSource = urlParams.get('what') || 'direct';
+            
+            // Add tracking data
+            data.ad_source = adSource;
+            data.referrer_url = window.location.href;
+            data.timestamp = new Date().toISOString();
+            data.form_type = 'startsmart_contact';
+            
+            // Validate form data
+            if (!validateForm(data)) {
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = event.target.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+            
+            // Send to backend using the same endpoint as the Edge Cases event
+            fetch('https://email-server-1ub1.onrender.com/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Server response:', result);
+                
+                if (result.success) {
+                    // Show success message
+                    document.getElementById('contactForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    // Clear form after successful submission
+                    document.getElementById('contactFormElement').reset();
+                } else {
+                    throw new Error(result.error || 'Something went wrong');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                let errorMessage = 'Failed to send message. Please try again or contact ask@promontoryai.com';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                } else if (error.message.includes('HTTP error! status: 500')) {
+                    errorMessage = 'Server error. Our team has been notified. Please try again in a few minutes.';
+                } else if (error.message.includes('HTTP error! status: 400')) {
+                    errorMessage = 'Please check your form data and try again.';
+                }
+                
+                alert(errorMessage);
+                
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+        
+        function validateForm(formData) {
+            const required = ['name', 'email', 'company', 'message'];
+            const missing = required.filter(field => !formData[field] || formData[field].trim() === '');
+            
+            if (missing.length > 0) {
+                alert(`Please fill in the following required fields: ${missing.join(', ')}`);
+                return false;
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                alert('Please enter a valid email address.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Keyboard support for modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('contactModal');
+                if (modal.style.display === 'flex') {
+                    closeModal();
+                }
+            }
+        });
     </script>
 </body>
 </html>
