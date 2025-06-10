@@ -544,6 +544,14 @@
         let selectedRole = '';
         
         function openModal() {
+            // Wake up the Render server
+            fetch('https://rsvp-server-f7wb.onrender.com', {
+                method: 'GET',
+            }).catch(err => {
+                // Ignore errors - this is just to wake up the server
+                console.log('Server wake-up ping failed, but that\'s okay');
+            });
+            
             const modal = document.getElementById('rsvpModal');
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
