@@ -508,10 +508,13 @@
             
             // Transform data to match server expectations
             const serverData = {
+                firstName: data.firstName,
+                lastName: data.lastName,
                 name: `${data.firstName} ${data.lastName}`.trim(),
                 email: data.email,
                 company: data.company || '',
                 role: data.role || 'Business Contact',
+                message: data.message,
                 edge: data.message,
                 phone: data.phone || '',
                 ad_source: adSource,
@@ -521,6 +524,7 @@
             };
             
             console.log('Sending data:', serverData);
+            console.log('Form data collected:', data);
             
             // Send to backend
             fetch('https://email-server-1ub1.onrender.com/email', {
