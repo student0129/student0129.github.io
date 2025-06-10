@@ -502,6 +502,14 @@
     
     // Initialize event listeners
     document.addEventListener('DOMContentLoaded', () => {
+      // Wake up the server when page loads
+      fetch('https://jaas-token-server.onrender.com', {
+        method: 'GET',
+      }).catch(err => {
+        // Ignore errors - this is just to wake up the server
+        console.log('Server wake-up ping failed, but that\'s okay');
+      });
+      
       document.querySelector('.title-link').addEventListener('click', () => {
         window.location.href = 'https://promontoryai.com';
       });
