@@ -335,7 +335,7 @@
     </div>
 
     <!-- Contact Modal -->
-    <div id="contactModal" class="modal">
+    <div id="" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             
@@ -453,6 +453,14 @@
         }
         
         function openModal() {
+            // Wake up the Render server
+            fetch('https://email-server-1ub1.onrender.com', {
+                method: 'GET',
+            }).catch(err => {
+                // Ignore errors - this is just to wake up the server
+                console.log('Server wake-up ping failed, but that\'s okay');
+            });
+            
             const modal = document.getElementById('contactModal');
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
