@@ -264,6 +264,16 @@
             background: linear-gradient(135deg, #555555, #888888);
             transform: translateY(-1px);
         }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
         
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -325,6 +335,8 @@
             
             <div id="contactForm">
                 <h2 style="margin-bottom: 1.5rem; font-weight: 200; font-size: 1.4rem;" id="formTitle">Let's start the conversation</h2>
+                
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
                 
                 <form onsubmit="submitContact(event)" id="contactFormElement">
                     <div class="form-group">
@@ -410,6 +422,9 @@
             }
         };
 
+        // Initialize adSource variable
+        let adSource = 'direct';
+
         // Check URL parameters when page loads
         window.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -417,6 +432,7 @@
             
             if (adCode && adConfigs[adCode]) {
                 customizePage(adCode);
+                adSource = adCode;
             }
         });
 
@@ -436,7 +452,9 @@
             document.body.style.overflow = 'hidden';
             
             // Focus on the first name field when modal opens
-            document.getElementById('firstName').focus();
+            setTimeout(() => {
+                document.getElementById('firstName').focus();
+            }, 100);
         }
         
         function closeModal() {
@@ -453,30 +471,31 @@
             // Reset views
             document.getElementById('contactForm').style.display = 'block';
             document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
         }
         
         function submitContact(event) {
             event.preventDefault();
             
+            // Hide any previous errors
+            hideError();
+            
             // Get form data
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData);
             
-            // Transform data to match server expectations
-            const serverData = {
-                name: `${data.firstName} ${data.lastName}`.trim(),
-                email: data.email,
-                company: data.company || '',
-                role: data.role || 'Business Contact', // Server requires this field
-                edge: data.message, // Use message field as edge field
-                // Keep tracking fields
-                ad_source: adSource,
-                referrer_url: window.location.href,
-                timestamp: new Date().toISOString(),
-                form_type: 'startsmart_contact'
-            };
-            
-            // Validate form data
+            // Validate form data first
             if (!validateForm(data)) {
                 return;
             }
@@ -487,7 +506,23 @@
             submitBtn.textContent = 'Sending...';
             submitBtn.disabled = true;
             
-            // Send to backend using the same endpoint as the Edge Cases event
+            // Transform data to match server expectations
+            const serverData = {
+                name: `${data.firstName} ${data.lastName}`.trim(),
+                email: data.email,
+                company: data.company || '',
+                role: data.role || 'Business Contact',
+                edge: data.message,
+                phone: data.phone || '',
+                ad_source: adSource,
+                referrer_url: window.location.href,
+                timestamp: new Date().toISOString(),
+                form_type: 'startsmart_contact'
+            };
+            
+            console.log('Sending data:', serverData);
+            
+            // Send to backend
             fetch('https://email-server-1ub1.onrender.com/email', {
                 method: 'POST',
                 headers: {
@@ -496,6 +531,7 @@
                 body: JSON.stringify(serverData)
             })
             .then(response => {
+                console.log('Response status:', response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -512,23 +548,25 @@
                     // Clear form after successful submission
                     document.getElementById('contactFormElement').reset();
                 } else {
-                    throw new Error(result.error || 'Something went wrong');
+                    throw new Error(result.error || 'Server returned failure status');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 
-                let errorMessage = 'Failed to send message. Please try again or contact ask@promontoryai.com';
+                let errorMessage = 'Failed to send message. Please try again or contact ask@promontoryai.com directly.';
                 
                 if (error.message.includes('Failed to fetch')) {
-                    errorMessage = 'Network error. Please check your connection and try again.';
+                    errorMessage = 'Network error. Please check your internet connection and try again.';
                 } else if (error.message.includes('HTTP error! status: 500')) {
-                    errorMessage = 'Server error. Our team has been notified. Please try again in a few minutes.';
+                    errorMessage = 'Server error. Our team has been notified. Please try again in a few minutes or contact ask@promontoryai.com directly.';
                 } else if (error.message.includes('HTTP error! status: 400')) {
                     errorMessage = 'Please check your form data and try again.';
+                } else if (error.message.includes('HTTP error! status: 429')) {
+                    errorMessage = 'Too many requests. Please wait a few minutes before trying again.';
                 }
                 
-                alert(errorMessage);
+                showError(errorMessage);
                 
                 // Reset button
                 submitBtn.textContent = originalText;
@@ -541,23 +579,22 @@
             const missing = required.filter(field => !formData[field] || formData[field].trim() === '');
             
             if (missing.length > 0) {
-                // Convert field names to user-friendly labels
                 const fieldLabels = {
                     'firstName': 'First Name',
                     'lastName': 'Last Name',
-                    'email': 'Email',
-                    'company': 'Company',
+                    'email': 'Email Address',
+                    'company': 'Company/Organization',
                     'message': 'Message'
                 };
                 const missingLabels = missing.map(field => fieldLabels[field] || field);
-                alert(`Please fill in the following required fields: ${missingLabels.join(', ')}`);
+                showError(`Please fill in the following required fields: ${missingLabels.join(', ')}`);
                 return false;
             }
             
             // Basic email validation
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(formData.email)) {
-                alert('Please enter a valid email address.');
+                showError('Please enter a valid email address.');
                 return false;
             }
             
@@ -571,6 +608,13 @@
                 if (modal.style.display === 'flex') {
                     closeModal();
                 }
+            }
+        });
+
+        // Click outside modal to close
+        document.getElementById('contactModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
             }
         });
     </script>
