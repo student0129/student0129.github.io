@@ -632,13 +632,13 @@
 
     <!-- Innovative Side Navigation -->
     <nav class="side-nav">
-        <div class="nav-dot active" data-label="Home"></div>
-        <div class="nav-dot" data-label="Communities"></div>
-        <div class="nav-dot" data-label="Value"></div>
-        <div class="nav-dot" data-label="Standards"></div>
-        <div class="nav-dot" data-label="Benefits"></div>
-        <div class="nav-dot" data-label="Stories"></div>
-        <div class="nav-dot" data-label="Apply"></div>
+        <div class="nav-dot active" data-label="Home" data-target="hero"></div>
+        <div class="nav-dot" data-label="Stories" data-target="testimonials"></div>
+        <div class="nav-dot" data-label="Communities" data-target="communities"></div>
+        <div class="nav-dot" data-label="Value" data-target="value"></div>
+        <div class="nav-dot" data-label="Standards" data-target="standards"></div>
+        <div class="nav-dot" data-label="Benefits" data-target="benefits"></div>
+        <div class="nav-dot" data-label="Apply" data-target="apply"></div>
     </nav>
 
     <!-- Main Content -->
@@ -896,6 +896,13 @@
                         behavior: 'smooth',
                         block: 'start'
                     });
+                    
+                    // Update active dot
+                    document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
 
         // Form submission handling
         document.querySelector('.membership-form').addEventListener('submit', function(e) {
@@ -910,7 +917,7 @@
                     isValid = false;
                     field.style.borderColor = 'red';
                 } else {
-                    field.style.borderColor = '#ddd';
+                    field.style.borderColor = '#333';
                 }
             });
             
@@ -931,13 +938,6 @@
             } else {
                 alert('Please fill in all required fields.');
             }
-        });
-                }
-                
-                // Update active dot
-                document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
-                this.classList.add('active');
-            });
         });
 
         // Update active navigation dot on scroll with enhanced transitions
