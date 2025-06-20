@@ -10,13 +10,13 @@
     
     <style>
         :root {
-            --primary-color: #000000;
-            --primary-dark: #333333;
-            --primary-light: #666666;
-            --text-color: #000000;
-            --bg-color: #ffffff;
-            --card-color: #ffffff;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --primary-color: #ffffff;
+            --primary-dark: #cccccc;
+            --primary-light: #999999;
+            --text-color: #ffffff;
+            --bg-color: #000000;
+            --card-color: #111111;
+            --shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
         }
         
         * {
@@ -38,7 +38,7 @@
         
         /* Header matching Promontory AI exactly */
         .header {
-            background-color: var(--primary-color);
+            background-color: #000000;
             color: white;
             padding: 1rem 2rem;
             box-shadow: var(--shadow);
@@ -52,7 +52,7 @@
         }
         
         .header h1 {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 200;
             letter-spacing: 0.5px;
         }
@@ -74,7 +74,7 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.3);
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
@@ -92,7 +92,7 @@
             top: 50%;
             transform: translateY(-50%);
             background-color: var(--primary-color);
-            color: white;
+            color: #000000;
             padding: 6px 12px;
             border-radius: 4px;
             font-size: 0.8rem;
@@ -188,7 +188,7 @@
         
         .btn {
             background-color: var(--primary-color);
-            color: white;
+            color: #000000;
             border: none;
             padding: 1rem 2rem;
             border-radius: 4px;
@@ -208,7 +208,7 @@
         
         /* Communities Section */
         .communities {
-            background-color: #f8f9fa;
+            background-color: #0a0a0a;
         }
         
         .section-header {
@@ -324,7 +324,7 @@
         
         /* Membership Standards */
         .membership-standards {
-            background-color: #f8f9fa;
+            background-color: #0a0a0a;
         }
         
         .standards-content {
@@ -355,9 +355,18 @@
         
         .waitlist-info {
             background-color: var(--card-color);
+            border: 1px solid #333;
             border-radius: 8px;
             padding: 1.5rem;
             box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .waitlist-info.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .standards-stats {
@@ -417,20 +426,41 @@
             overflow: hidden;
         }
         
+        .testimonials-wrapper {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 1rem 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .testimonials-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+        
         .testimonials-container {
             display: flex;
             gap: 2rem;
-            padding: 1rem 0;
-            animation: scroll 30s linear infinite;
+            padding: 1rem;
+            width: max-content;
         }
         
         .testimonial-card {
             background-color: var(--card-color);
+            border: 1px solid #333;
             border-radius: 8px;
             padding: 2rem;
             box-shadow: var(--shadow);
-            min-width: 400px;
+            width: 400px;
             flex-shrink: 0;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .testimonial-card.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .testimonial-card blockquote {
@@ -446,15 +476,6 @@
             color: var(--primary-light);
             font-style: normal;
         }
-        
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        
-        .testimonials-container:hover {
-            animation-play-state: paused;
-        }
 
         /* Enhanced Transitions */
         .section {
@@ -466,8 +487,8 @@
             padding: 2rem;
             scroll-snap-align: start;
             opacity: 0;
-            transform: translateY(50px);
-            transition: all 0.8s ease-out;
+            transform: translateY(30px);
+            transition: all 0.5s ease-out;
         }
         
         .section.visible {
@@ -508,11 +529,12 @@
         .form-group select {
             width: 100%;
             padding: 0.8rem;
-            border: 1px solid #ddd;
+            border: 1px solid #333;
             border-radius: 4px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
-            background-color: white;
+            background-color: #222;
+            color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 200;
         }
@@ -521,19 +543,19 @@
         .form-group select:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
         }
         
         /* Footer matching Promontory AI exactly */
         .footer {
-            background-color: var(--primary-color);
+            background-color: #000000;
             color: white;
             padding: 1rem 2rem;
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 200;
         }
         
@@ -549,7 +571,7 @@
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 1.2rem;
+                font-size: 1rem;
             }
             
             .hero h1 {
@@ -610,13 +632,13 @@
 
     <!-- Innovative Side Navigation -->
     <nav class="side-nav">
-        <div class="nav-dot active" data-label="Home" data-target="hero"></div>
-        <div class="nav-dot" data-label="Communities" data-target="communities"></div>
-        <div class="nav-dot" data-label="Value" data-target="value"></div>
-        <div class="nav-dot" data-label="Standards" data-target="standards"></div>
-        <div class="nav-dot" data-label="Benefits" data-target="benefits"></div>
-        <div class="nav-dot" data-label="Stories" data-target="testimonials"></div>
-        <div class="nav-dot" data-label="Apply" data-target="apply"></div>
+        <div class="nav-dot active" data-label="Home"></div>
+        <div class="nav-dot" data-label="Communities"></div>
+        <div class="nav-dot" data-label="Value"></div>
+        <div class="nav-dot" data-label="Standards"></div>
+        <div class="nav-dot" data-label="Benefits"></div>
+        <div class="nav-dot" data-label="Stories"></div>
+        <div class="nav-dot" data-label="Apply"></div>
     </nav>
 
     <!-- Main Content -->
@@ -639,30 +661,24 @@
                     <p>Insights from executives transforming their organizations</p>
                 </div>
                 
-                <div class="testimonials-container">
-                    <div class="testimonial-card">
-                        <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
-                        <cite>— Sarah Chen, Chief Data Officer, TechFlow Ventures</cite>
-                    </div>
-                    <div class="testimonial-card">
-                        <blockquote>"Finally, a community where I can ask the hard questions about AI governance without vendor pitches. The benchmarking data alone has informed three major strategic decisions this quarter."</blockquote>
-                        <cite>— Michael Rodriguez, Chief AI Officer, Global Manufacturing Inc.</cite>
-                    </div>
-                    <div class="testimonial-card">
-                        <blockquote>"The Coterie's FintechData community connected me with three CDOs who had solved our exact data lineage challenge. What would have been months of trial and error became a week of implementation."</blockquote>
-                        <cite>— Jennifer Park, Chief Data Officer, FinTech Innovations</cite>
-                    </div>
-                    <div class="testimonial-card">
-                        <blockquote>"The role-based cohorts are brilliant. Being able to discuss ML infrastructure challenges with other heads of AI who understand the technical depth and business pressure is invaluable."</blockquote>
-                        <cite>— David Thompson, VP of Analytics, Healthcare Solutions Ltd</cite>
-                    </div>
-                    <div class="testimonial-card">
-                        <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
-                        <cite>— Sarah Chen, Chief Data Officer, TechFlow Ventures</cite>
-                    </div>
-                    <div class="testimonial-card">
-                        <blockquote>"Finally, a community where I can ask the hard questions about AI governance without vendor pitches. The benchmarking data alone has informed three major strategic decisions this quarter."</blockquote>
-                        <cite>— Michael Rodriguez, Chief AI Officer, Global Manufacturing Inc.</cite>
+                <div class="testimonials-wrapper">
+                    <div class="testimonials-container">
+                        <div class="testimonial-card">
+                            <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
+                            <cite>— Sarah Chen, Chief Data Officer, TechFlow Ventures</cite>
+                        </div>
+                        <div class="testimonial-card">
+                            <blockquote>"Finally, a community where I can ask the hard questions about AI governance without vendor pitches. The benchmarking data alone has informed three major strategic decisions this quarter."</blockquote>
+                            <cite>— Michael Rodriguez, Chief AI Officer, Global Manufacturing Inc.</cite>
+                        </div>
+                        <div class="testimonial-card">
+                            <blockquote>"The Coterie's FintechData community connected me with three CDOs who had solved our exact data lineage challenge. What would have been months of trial and error became a week of implementation."</blockquote>
+                            <cite>— Jennifer Park, Chief Data Officer, FinTech Innovations</cite>
+                        </div>
+                        <div class="testimonial-card">
+                            <blockquote>"The role-based cohorts are brilliant. Being able to discuss ML infrastructure challenges with other heads of AI who understand the technical depth and business pressure is invaluable."</blockquote>
+                            <cite>— David Thompson, VP of Analytics, Healthcare Solutions Ltd</cite>
+                        </div>
                     </div>
                 </div>
             </div>
