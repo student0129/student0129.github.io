@@ -135,11 +135,21 @@
         }
         
         .hero h1 {
-            font-size: 3rem;
+            font-size: 4rem;
             font-weight: 200;
             margin-bottom: 1.5rem;
             letter-spacing: 1px;
             color: var(--text-color);
+        }
+        
+        .hero-description {
+            font-size: 1.1rem;
+            font-weight: 200;
+            margin-bottom: 2rem;
+            color: var(--primary-light);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .hero-subtitle {
@@ -401,7 +411,74 @@
             color: var(--text-color);
         }
         
-        /* Application Section */
+        /* Testimonials Section */
+        .testimonials {
+            background-color: var(--bg-color);
+            overflow: hidden;
+        }
+        
+        .testimonials-container {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem 0;
+            animation: scroll 30s linear infinite;
+        }
+        
+        .testimonial-card {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            min-width: 400px;
+            flex-shrink: 0;
+        }
+        
+        .testimonial-card blockquote {
+            font-size: 1.1rem;
+            font-style: italic;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .testimonial-card cite {
+            font-size: 0.9rem;
+            color: var(--primary-light);
+            font-style: normal;
+        }
+        
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .testimonials-container:hover {
+            animation-play-state: paused;
+        }
+
+        /* Enhanced Transitions */
+        .section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            scroll-snap-align: start;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+        
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .section.hero {
+            opacity: 1;
+            transform: translateY(0);
+        }
         .application-section {
             background-color: #f8f9fa;
         }
@@ -455,6 +532,7 @@
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
+            justify-content: center;
             font-size: 0.9rem;
             font-weight: 200;
         }
@@ -475,7 +553,7 @@
             }
             
             .hero h1 {
-                font-size: 2rem;
+                font-size: 3rem;
             }
             
             .hero-subtitle {
@@ -527,7 +605,7 @@
 <body>
     <!-- Header matching Promontory AI -->
     <header class="header">
-        <h1>The Coterie</h1>
+        <h1>Promontory AI</h1>
     </header>
 
     <!-- Innovative Side Navigation -->
@@ -537,6 +615,7 @@
         <div class="nav-dot" data-label="Value" data-target="value"></div>
         <div class="nav-dot" data-label="Standards" data-target="standards"></div>
         <div class="nav-dot" data-label="Benefits" data-target="benefits"></div>
+        <div class="nav-dot" data-label="Stories" data-target="testimonials"></div>
         <div class="nav-dot" data-label="Apply" data-target="apply"></div>
     </nav>
 
@@ -545,13 +624,47 @@
         <!-- Hero Section -->
         <section id="hero" class="section hero">
             <div class="content-wrapper">
-                <h1>Lead Better. Move Faster. Stay Ahead.</h1>
-                <p class="hero-subtitle">The Coterie is an invite-only peer community for data, analytics, and AI executives. Share real answers. Benchmark in real time. Make smarter decisions—together.</p>
-                <div class="hero-testimonial">
-                    <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
-                    <cite>— Sarah Chen, Chief Data Officer, TechFlow Ventures (Member since 2024)</cite>
-                </div>
+                <h1>The Coterie</h1>
+                <p class="hero-subtitle">Lead Better. Move Faster. Stay Ahead.</p>
+                <p class="hero-description">The Coterie is an invite-only peer community for data, analytics, and AI executives. Share real answers. Benchmark in real time. Make smarter decisions—together.</p>
                 <a href="#apply" class="btn">Request Access</a>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section id="testimonials" class="section testimonials">
+            <div class="content-wrapper">
+                <div class="section-header">
+                    <h2>What Members Say</h2>
+                    <p>Insights from executives transforming their organizations</p>
+                </div>
+                
+                <div class="testimonials-container">
+                    <div class="testimonial-card">
+                        <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
+                        <cite>— Sarah Chen, Chief Data Officer, TechFlow Ventures</cite>
+                    </div>
+                    <div class="testimonial-card">
+                        <blockquote>"Finally, a community where I can ask the hard questions about AI governance without vendor pitches. The benchmarking data alone has informed three major strategic decisions this quarter."</blockquote>
+                        <cite>— Michael Rodriguez, Chief AI Officer, Global Manufacturing Inc.</cite>
+                    </div>
+                    <div class="testimonial-card">
+                        <blockquote>"The Coterie's FintechData community connected me with three CDOs who had solved our exact data lineage challenge. What would have been months of trial and error became a week of implementation."</blockquote>
+                        <cite>— Jennifer Park, Chief Data Officer, FinTech Innovations</cite>
+                    </div>
+                    <div class="testimonial-card">
+                        <blockquote>"The role-based cohorts are brilliant. Being able to discuss ML infrastructure challenges with other heads of AI who understand the technical depth and business pressure is invaluable."</blockquote>
+                        <cite>— David Thompson, VP of Analytics, Healthcare Solutions Ltd</cite>
+                    </div>
+                    <div class="testimonial-card">
+                        <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
+                        <cite>— Sarah Chen, Chief Data Officer, TechFlow Ventures</cite>
+                    </div>
+                    <div class="testimonial-card">
+                        <blockquote>"Finally, a community where I can ask the hard questions about AI governance without vendor pitches. The benchmarking data alone has informed three major strategic decisions this quarter."</blockquote>
+                        <cite>— Michael Rodriguez, Chief AI Officer, Global Manufacturing Inc.</cite>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -767,37 +880,6 @@
                         behavior: 'smooth',
                         block: 'start'
                     });
-                }
-                
-                // Update active dot
-                document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
-        // Update active navigation dot on scroll
-        const sections = document.querySelectorAll('.section');
-        const navDots = document.querySelectorAll('.nav-dot');
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const currentId = entry.target.getAttribute('id');
-                    navDots.forEach(dot => {
-                        dot.classList.remove('active');
-                        if (dot.getAttribute('data-target') === currentId) {
-                            dot.classList.add('active');
-                        }
-                    });
-                }
-            });
-        }, {
-            threshold: 0.6
-        });
-
-        sections.forEach(section => {
-            observer.observe(section);
-        });
 
         // Form submission handling
         document.querySelector('.membership-form').addEventListener('submit', function(e) {
@@ -834,25 +916,75 @@
                 alert('Please fill in all required fields.');
             }
         });
+                }
+                
+                // Update active dot
+                document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
 
-        // Add scroll effect to cards
-        const observerCards = new IntersectionObserver((entries) => {
+        // Update active navigation dot on scroll with enhanced transitions
+        const sections = document.querySelectorAll('.section');
+        const navDots = document.querySelectorAll('.nav-dot');
+
+        const sectionObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+                    // Add visible class for section transitions
+                    entry.target.classList.add('visible');
+                    
+                    // Update active navigation dot
+                    const currentId = entry.target.getAttribute('id');
+                    navDots.forEach(dot => {
+                        dot.classList.remove('active');
+                        if (dot.getAttribute('data-target') === currentId) {
+                            dot.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, {
+            threshold: 0.3,
+            rootMargin: '-100px 0px -100px 0px'
+        });
+
+        sections.forEach(section => {
+            sectionObserver.observe(section);
+        });
+
+        // Enhanced card animations with staggered timing
+        const cardObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0) scale(1)';
+                    }, index * 100); // Staggered animation
                 }
             });
         }, {
             threshold: 0.1
         });
 
-        // Observe cards for scroll animations
-        document.querySelectorAll('.community-card, .benefit-item, .criteria-item, .benefit-detail').forEach(el => {
+        // Observe cards for scroll animations with enhanced effects
+        document.querySelectorAll('.community-card, .benefit-item, .criteria-item, .benefit-detail, .testimonial-card').forEach((el, index) => {
             el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observerCards.observe(el);
+            el.style.transform = 'translateY(40px) scale(0.95)';
+            el.style.transition = `opacity 0.8s ease ${index * 0.1}s, transform 0.8s ease ${index * 0.1}s`;
+            cardObserver.observe(el);
+        });
+
+        // Parallax effect for section headers
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelectorAll('.section-header h2');
+            
+            parallax.forEach((element, index) => {
+                const speed = 0.5;
+                const yPos = -(scrolled * speed);
+                element.style.transform = `translateY(${yPos}px)`;
+            });
         });
     </script>
 </body>
