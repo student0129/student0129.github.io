@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Coterie - The premier network for analytics and AI leadership. Connecting executives who are transforming business through data and artificial intelligence.">
+    <meta name="keywords" content="AI executives, data leaders, CDO network, CAO community, artificial intelligence strategy, executive networking">
+    <title>The Coterie | Where AI Strategy Meets Executive Excellence</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;500&display=swap');
+
+        html, body {
+            background: #000000;
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 200;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .main-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+        }
+
+        .logo {
+            font-size: 1.8em;
+            font-weight: 400;
+            color: white;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 40px;
+        }
+
+        .nav-menu a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 200;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: white;
+        }
+
+        .cta-button {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            padding: 12px 24px !important;
+            border-radius: 6px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .cta-button:hover {
+            background: rgba(255, 255, 255, 0.12) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 40px 80px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.9));
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 200;
+            line-height: 1.2;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #ffffff, #cccccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3em;
+            font-weight: 200;
+            margin-bottom: 50px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+        }
+
+        .hero-testimonial {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 40px;
+            margin: 50px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-testimonial blockquote {
+            font-size: 1.1em;
+            font-style: italic;
+            margin: 0 0 20px 0;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        .hero-testimonial cite {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: normal;
+        }
+
+        .primary-cta {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 400;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .primary-cta:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+        }
+
+        /* Section Styling */
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5em;
+            font-weight: 200;
+            margin-bottom: 20px;
+        }
+
+        .section-header p {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 200;
+        }
+
+        /* Communities Section */
+        .communities {
+            padding: 100px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .community-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .community-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .community-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .community-image {
+            height: 200px;
+            background: linear-gradient(135deg, #333, #666);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9em;
+        }
+
+        .community-content {
+            padding: 30px;
+        }
+
+        .community-content h3 {
+            font-size: 1.4em;
+            font-weight: 400;
+            margin: 0 0 15px 0;
+        }
+
+        .community-content p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .learn-more {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 300;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .learn-more:hover {
+            color: white;
+            border-bottom-color: white;
+        }
+
+        /* Value Proposition Section */
+        .value-proposition {
+            background: rgba(255, 255, 255, 0.01);
+            padding: 100px 40px;
+        }
+
+        .value-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .value-content h2 {
+            font-size: 2.5em;
+            font-weight: 200;
+            margin-bottom: 30px;
+        }
+
+        .value-content > p {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 60px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .benefit-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .benefit-item h4 {
+            font-size: 1.2em;
+            font-weight: 400;
+            margin: 0 0 15px 0;
+        }
+
+        .benefit-item p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Membership Standards Section */
+        .membership-standards {
+            background: rgba(255, 255, 255, 0.01);
+            padding: 100px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .standards-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        .standards-text h2 {
+            font-size: 2.3em;
+            font-weight: 200;
+            margin-bottom: 25px;
+        }
+
+        .standards-text > p {
+            font-size: 1.1em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .criteria-list {
+            margin-bottom: 40px;
+        }
+
+        .criteria-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .criteria-item h4 {
+            font-weight: 400;
+            margin: 0 0 12px 0;
+            font-size: 1.1em;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .criteria-item p {
+            color: rgba(255, 255, 255, 0.75);
+            margin: 0;
+            line-height: 1.5;
+            font-size: 0.95em;
+        }
+
+        .waitlist-info {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .waitlist-info p {
+            margin: 8px 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95em;
+        }
+
+        .waitlist-info em {
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+
+        .standards-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 200;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffffff, #cccccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+            font-weight: 200;
+            line-height: 1.3;
+        }
+
+        /* Supporting Communities */
+        .supporting-communities {
+            padding: 100px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .supporting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .supporting-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .supporting-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateY(-5px);
+        }
+
+        .supporting-image {
+            height: 180px;
+            background: linear-gradient(135deg, #444, #777);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9em;
+        }
+
+        .supporting-content {
+            padding: 30px;
+        }
+
+        .supporting-content h3 {
+            font-size: 1.3em;
+            font-weight: 400;
+            margin: 0 0 15px 0;
+        }
+
+        /* Member Showcase */
+        .member-showcase {
+            background: rgba(255, 255, 255, 0.01);
+            padding: 100px 40px;
+        }
+
+        .member-showcase .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+            margin-bottom: 60px;
+        }
+
+        .see-more-members {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 300;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .member-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .member-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #555, #888);
+            margin-bottom: 15px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .member-card h4 {
+            font-weight: 400;
+            margin: 0 0 8px 0;
+            font-size: 1em;
+        }
+
+        .member-card p {
+            margin: 4px 0;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        /* Membership Benefits */
+        .membership-benefits {
+            padding: 100px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .benefits-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .benefits-header h2 {
+            font-size: 2.5em;
+            font-weight: 200;
+            margin-bottom: 20px;
+        }
+
+        .benefits-header p {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .benefits-list {
+            display: grid;
+            gap: 30px;
+        }
+
+        .benefit-detail {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .benefit-detail h3 {
+            font-weight: 400;
+            margin: 0 0 15px 0;
+            font-size: 1.3em;
+        }
+
+        .benefit-detail p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Neural Network Section */
+        .neural-network {
+            background: rgba(255, 255, 255, 0.01);
+            padding: 100px 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .neural-content h2 {
+            font-size: 2.3em;
+            font-weight: 200;
+            margin-bottom: 25px;
+        }
+
+        .neural-content p {
+            font-size: 1.1em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .neural-benefits {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .neural-benefits li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .neural-benefits li:before {
+            content: "→ ";
+            color: rgba(255, 255, 255, 0.6);
+            margin-right: 10px;
+        }
+
+        .neural-image {
+            height: 400px;
+            background: linear-gradient(135deg, #222, #555);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Application Section */
+        .application-section {
+            padding: 100px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .application-content {
+            text-align: center;
+        }
+
+        .application-content h2 {
+            font-size: 2.5em;
+            font-weight: 200;
+            margin-bottom: 20px;
+        }
+
+        .application-content > p {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 50px;
+        }
+
+        .application-form {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: rgba(255, 255, 255, 0.3);
+            outline: none;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .submit-button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 18px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 400;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .submit-button:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .site-footer {
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 60px 40px 40px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 60px;
+        }
+
+        .footer-brand h3 {
+            font-size: 1.5em;
+            font-weight: 400;
+            margin: 0 0 15px 0;
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 200;
+        }
+
+        .footer-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .footer-column h4 {
+            font-weight: 400;
+            margin: 0 0 20px 0;
+            font-size: 1.1em;
+        }
+
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-column li {
+            margin-bottom: 12px;
+        }
+
+        .footer-column a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 200;
+            transition: color 0.3s ease;
+        }
+
+        .footer-column a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 40px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9em;
+        }
+
+        .footer-bottom a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 15px 20px;
+            }
+            
+            .nav-menu {
+                gap: 20px;
+                font-size: 0.9em;
+            }
+            
+            .hero {
+                padding: 100px 20px 60px;
+            }
+            
+            .hero h1 {
+                font-size: 2.5em;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1em;
+            }
+            
+            .communities,
+            .supporting-communities,
+            .membership-benefits,
+            .application-section {
+                padding: 60px 20px;
+            }
+            
+            .value-proposition,
+            .member-showcase {
+                padding: 60px 20px;
+            }
+            
+            .neural-network {
+                grid-template-columns: 1fr;
+                padding: 60px 20px;
+                text-align: center;
+            }
+            
+            .section-header h2 {
+                font-size: 2em;
+            }
+            
+            .member-showcase .section-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .standards-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .standards-stats {
+                flex-direction: row;
+                justify-content: space-around;
+            }
+            
+            .stat-item {
+                flex: 1;
+                margin: 0 10px;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .footer-links {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+            
+            .nav-menu {
+                gap: 15px;
+                font-size: 0.8em;
+            }
+            
+            .cta-button {
+                padding: 10px 18px !important;
+                font-size: 0.9em !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="logo">The Coterie</div>
+            <ul class="nav-menu">
+                <li><a href="#communities">Communities</a></li>
+                <li><a href="#benefits">Benefits</a></li>
+                <li><a href="#members">Members</a></li>
+                <li><a href="#apply" class="cta-button">Apply</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>The Premier Network for Analytics & AI Leadership</h1>
+            <p class="hero-subtitle">An invitation-only network connecting the most influential executives transforming business through data and artificial intelligence</p>
+            <div class="hero-testimonial">
+                <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
+                <cite>— Sarah Chen, Chief Data Officer, TechFlow Ventures (Member since 2024)</cite>
+            </div>
+            <a href="#apply" class="primary-cta">Request Invitation</a>
+        </div>
+    </section>
+
+    <!-- Core Communities Section -->
+    <section id="communities" class="communities">
+        <div class="section-header">
+            <h2>Curated Executive Communities</h2>
+            <p>Membership limited to 150 executives per community</p>
+        </div>
+        
+        <div class="community-grid">
+            <!-- DataGC Community -->
+            <div class="community-card">
+                <div class="community-image">
+                    DataGC Executive Strategy Session
+                </div>
+                <div class="community-content">
+                    <h3>DataGC</h3>
+                    <p>For CDOs & CAOs at high-growth companies with $100M+ revenue scaling data operations and AI implementation.</p>
+                    <a href="#" class="learn-more">Learn more</a>
+                </div>
+            </div>
+            <!-- EnterpriseAI Community -->
+            <div class="community-card">
+                <div class="community-image">
+                    Enterprise AI Strategy Board
+                </div>
+                <div class="community-content">
+                    <h3>EnterpriseAI</h3>
+                    <p>For senior AI executives at Fortune 1000 companies driving enterprise transformation at scale.</p>
+                    <a href="#" class="learn-more">Learn more</a>
+                </div>
+            </div>
+            <!-- FintechData Community -->
+            <div class="community-card">
+                <div class="community-image">
+                    Financial Analytics Executive Summit
+                </div>
+                <div class="community-content">
+                    <h3>FintechData</h3>
+                    <p>For data & AI leaders at financial institutions with $5B+ AUM and fintech companies post-Series B.</p>
+                    <a href="#" class="learn-more">Learn more</a>
+                </div>
+            </div>
+            <!-- HealthTechAI Community -->
+            <div class="community-card">
+                <div class="community-image">
+                    Healthcare AI Innovation Lab
+                </div>
+                <div class="community-content">
+                    <h3>HealthTechAI</h3>
+                    <p>For AI executives at healthcare organizations with 1M+ patient records and biotech companies in clinical trials.</p>
+                    <a href="#" class="learn-more">Learn more</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Value Proposition Section -->
+    <section class="value-proposition">
+        <div class="value-content">
+            <h2>Why Standards Matter</h2>
+            <p>We maintain rigorous membership criteria not to exclude, but to ensure every conversation delivers exceptional value. When you're surrounded by peers who've navigated similar challenges at scale, insights emerge that simply aren't available elsewhere.</p>
+            
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <h4>Strategic Peer Network</h4>
+                    <p>Connect with executives who've navigated similar AI transformations</p>
+                </div>
+                <div class="benefit-item">
+                    <h4>Confidential Benchmarking</h4>
+                    <p>Access exclusive data on AI ROI, team structures, and budget allocations</p>
+                </div>
+                <div class="benefit-item">
+                    <h4>Future-Ready Insights</h4>
+                    <p>Stay ahead of emerging AI trends and regulatory changes</p>
+                </div>
+                <div class="benefit-item">
+                    <h4>Implementation Playbooks</h4>
+                    <p>Learn from real-world AI deployment successes and failures</p>
+                </div>
+                <div class="benefit-item">
+                    <h4>Vendor Intelligence</h4>
+                    <p>Unbiased insights on AI tools, platforms, and service providers</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Membership Standards Section -->
+    <section class="membership-standards">
+        <div class="standards-content">
+            <div class="standards-text">
+                <h2>Membership by Invitation Only</h2>
+                <p>We recognize that exceptional leadership takes many forms. Our membership reflects the diverse paths to AI excellence across industries and company stages.</p>
+                
+                <div class="criteria-list">
+                    <div class="criteria-item">
+                        <h4>Leadership Impact</h4>
+                        <p>C-level, VP, or Director with direct responsibility for data/AI strategy affecting business outcomes</p>
+                    </div>
+                    <div class="criteria-item">
+                        <h4>Organizational Scale</h4>
+                        <p>Minimum team of 5+ data professionals or $1M+ annual data/AI budget</p>
+                    </div>
+                    <div class="criteria-item">
+                        <h4>Peer Endorsement</h4>
+                        <p>Reference from current member or recognized industry leader</p>
+                    </div>
+                </div>
+                
+                <div class="waitlist-info">
+                    <p><strong>Current Status:</strong> 847 executives on our invitation waitlist</p>
+                    <p><em>Next review cycle: March 2025</em></p>
+                </div>
+            </div>
+            <div class="standards-stats">
+                <div class="stat-item">
+                    <div class="stat-number">92%</div>
+                    <div class="stat-label">Member retention rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Average months on waitlist</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">15:1</div>
+                    <div class="stat-label">Application to acceptance ratio</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Supporting Communities Section -->
+    <section class="supporting-communities">
+        <div class="section-header">
+            <h2>Supporting Executive Networks</h2>
+            <p>Focused communities to empower your entire organization</p>
+        </div>
+        
+        <div class="supporting-grid">
+            <div class="supporting-card">
+                <div class="supporting-image">
+                    DataOps Leadership Collaboration
+                </div>
+                <div class="supporting-content">
+                    <h3>DataOps Leaders</h3>
+                    <p>Community connecting Directors and VPs of Data Engineering, MLOps, and Data Platform teams.</p>
+                    <a href="#" class="learn-more">Learn more</a>
+                </div>
+            </div>
+            <div class="supporting-card">
+                <div class="supporting-image">
+                    AI Ethics Council Meeting
+                </div>
+                <div class="supporting-content">
+                    <h3>AI Ethics Council</h3>
+                    <p>Cross-functional leaders responsible for ethical AI implementation and responsible innovation.</p>
+                    <a href="#" class="learn-more">Learn more</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Member Showcase Section -->
+    <section id="members" class="member-showcase">
+        <div class="section-header">
+            <h2>The Leaders Defining the Future of AI in Business</h2>
+            <a href="#" class="see-more-members">See more members</a>
+        </div>
+        
+        <div class="members-grid">
+            <div class="member-card">
+                <img src="" alt="Executive photo">
+                <h4>Dr. Michael Rodriguez</h4>
+                <p>Chief AI Officer</p>
+                <p>Global Manufacturing Inc.</p>
+            </div>
+            <div class="member-card">
+                <img src="" alt="Executive photo">
+                <h4>Jennifer Park</h4>
+                <p>Chief Data Officer</p>
+                <p>FinTech Innovations</p>
+            </div>
+            <div class="member-card">
+                <img src="" alt="Executive photo">
+                <h4>David Thompson</h4>
+                <p>VP of Analytics</p>
+                <p>Healthcare Solutions Ltd</p>
+            </div>
+            <div class="member-card">
+                <img src="" alt="Executive photo">
+                <h4>Dr. Lisa Wang</h4>
+                <p>Chief Analytics Officer</p>
+                <p>BioTech Genomics</p>
+            </div>
+            <div class="member-card">
+                <img src="" alt="Executive photo">
+                <h4>Robert Kumar</h4>
+                <p>Head of AI Strategy</p>
+                <p>Retail Dynamics Corp</p>
+            </div>
+            <div class="member-card">
+                <img src="" alt="Executive photo">
+                <h4>Maria Gonzalez</h4>
+                <p>Chief Data Officer</p>
+                <p>Energy Solutions Inc</p>
+            </div>
+            <div class="member-card">
+                <img src="" alt="Executive photo">
+                <h4>Dr. James Patterson</h4>
+                <p>VP of Machine Learning</p>
+                <p>Tech Innovations Group</p>
+            </div>
+            <div class="member-card">
+                <img src="" alt="Executive photo">
+                <h4>Rachel Singh</h4>
+                <p>Chief AI Officer</p>
+                <p>Financial Services Co</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Membership Benefits Section -->
+    <section id="benefits" class="membership-benefits">
+        <div class="benefits-header">
+            <h2>A Membership That Transforms Your AI Leadership</h2>
+            <p>The Coterie's comprehensive membership is designed to accelerate your success as a data and AI executive.</p>
+        </div>
+        
+        <div class="benefits-list">
+            <div class="benefit-detail">
+                <h3>Executive AI Platform</h3>
+                <p>Collaborative member portal with discussion forums, resource libraries, and peer matching</p>
+            </div>
+            <div class="benefit-detail">
+                <h3>Confidential AI Benchmarking</h3>
+                <p>Quarterly reports on AI spending, team structures, and performance metrics</p>
+            </div>
+            <div class="benefit-detail">
+                <h3>Exclusive Summits & Workshops</h3>
+                <p>Quarterly in-person events and monthly virtual deep-dives with industry leaders</p>
+            </div>
+            <div class="benefit-detail">
+                <h3>AI Strategy Sprints</h3>
+                <p>Small-group problem-solving sessions for immediate challenges and opportunities</p>
+            </div>
+            <div class="benefit-detail">
+                <h3>Regulatory Updates</h3>
+                <p>Real-time insights on AI governance and compliance requirements</p>
+            </div>
+            <div class="benefit-detail">
+                <h3>Vendor Evaluations</h3>
+                <p>Peer-reviewed assessments of AI tools and platforms from actual users</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Neural Network Section -->
+    <section class="neural-network">
+        <div class="neural-content">
+            <h2>Your Executive Neural Network</h2>
+            <p>Even at the top of your game, there is always more to learn from your peers. The Coterie is your strategic advantage.</p>
+            
+            <ul class="neural-benefits">
+                <li>Collaborate with your closest AI executive peers</li>
+                <li>Get answers for your most pressing data challenges</li>
+                <li>Learn and stay ahead of the AI curve</li>
+                <li>Tap into the executive information flow</li>
+                <li>Turn AI insights into strategic decisions</li>
+            </ul>
+        </div>
+        <div class="neural-image">
+            Executive Networking at AI Summit
+        </div>
+    </section>
+
+    <!-- Application Section -->
+    <section id="apply" class="application-section">
+        <div class="application-content">
+            <h2>Ready to Request an Invitation?</h2>
+            <p>Membership decisions are made quarterly by our Advisory Board. We review each application thoroughly and respond to every submission personally.</p>
+            
+            <div class="application-form">
+                <form class="membership-form">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="company">Company *</label>
+                        <input type="text" id="company" name="company" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="community">Primary Community Interest *</label>
+                        <select id="community" name="community" required>
+                            <option value="">Select a community</option>
+                            <option value="datagc">DataGC</option>
+                            <option value="enterpriseai">EnterpriseAI</option>
+                            <option value="fintechdata">FintechData</option>
+                            <option value="healthtechai">HealthTechAI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="referral">How did you hear about us?</label>
+                        <input type="text" id="referral" name="referral">
+                    </div>
+                    <button type="submit" class="submit-button">Request Invitation</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>The Coterie</h3>
+                <p>Where AI Strategy Meets Executive Excellence</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4>Communities</h4>
+                    <ul>
+                        <li><a href="#">DataGC</a></li>
+                        <li><a href="#">EnterpriseAI</a></li>
+                        <li><a href="#">FintechData</a></li>
+                        <li><a href="#">HealthTechAI</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Membership Benefits</a></li>
+                        <li><a href="#">Member Directory</a></li>
+                        <li><a href="#">Events</a></li>
+                        <li><a href="#">Apply</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 The Coterie | <a href="https://promontoryai.com">Promontory AI</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Form submission handling
+        document.querySelector('.membership-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Basic form validation
+            const requiredFields = this.querySelectorAll('input[required], select[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = 'rgba(255, 100, 100, 0.5)';
+                } else {
+                    field.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                }
+            });
+            
+            if (isValid) {
+                // Simulate form submission
+                const submitButton = this.querySelector('.submit-button');
+                const originalText = submitButton.textContent;
+                
+                submitButton.textContent = 'Submitting...';
+                submitButton.disabled = true;
+                
+                setTimeout(() => {
+                    alert('Invitation request submitted successfully! Our Advisory Board will review your submission and respond within 2 weeks. Given current demand, please expect potential placement on our invitation waitlist.');
+                    this.reset();
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                }, 1500);
+            } else {
+                alert('Please fill in all required fields.');
+            }
+        });
+
+        // Mobile menu toggle (basic implementation)
+        const navToggle = document.querySelector('.nav-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+        
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('nav-menu-active');
+            });
+        }
+
+        // Add scroll effect to navigation
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.main-nav');
+            if (window.scrollY > 100) {
+                nav.style.background = 'rgba(0, 0, 0, 0.98)';
+            } else {
+                nav.style.background = 'rgba(0, 0, 0, 0.95)';
+            }
+        });
+
+        // Add hover effects to cards
+        document.querySelectorAll('.community-card, .supporting-card, .member-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add intersection observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for scroll animations
+        document.querySelectorAll('.community-card, .supporting-card, .benefit-item, .benefit-detail').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
