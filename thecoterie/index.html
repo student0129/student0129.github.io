@@ -4,23 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="The Coterie - The premier network for analytics and AI leadership. Connecting executives who are transforming business through data and artificial intelligence.">
-    <meta name="keywords" content="AI executives, data leaders, CDO network, CAO community, artificial intelligence strategy, executive networking">
     <title>The Coterie | Where AI Strategy Meets Executive Excellence</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400&display=swap">
+    <style>
+        :root {
+            --primary-color: #ffffff;
+            --primary-dark: #cccccc;
+            --primary-light: #999999;
+            --text-color: #ffffff;
+            --bg-color: #000000;
+            --card-color: #111111;
+            --shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+        }
 
 ```
-<style>
-    :root {
-        --primary-color: #ffffff;
-        --primary-dark: #cccccc;
-        --primary-light: #999999;
-        --text-color: #ffffff;
-        --bg-color: #000000;
-        --card-color: #111111;
-        --shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
-    }
-    
     * {
         margin: 0;
         padding: 0;
@@ -29,25 +26,23 @@
         font-weight: 200;
     }
     
-    html {
-        scroll-behavior: smooth;
-    }
-    
-    body {
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        line-height: 1.6;
+    html { scroll-behavior: smooth; }
+    body { 
+        background-color: var(--bg-color); 
+        color: var(--text-color); 
+        line-height: 1.6; 
         overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
     }
     
-    /* Header */
     .header {
-        background-color: #000000;
+        background: transparent !important;
+        background-color: transparent !important;
         color: white;
         padding: 20px;
         font-size: 2vw;
         font-weight: 200;
-        box-shadow: var(--shadow);
         position: fixed;
         top: 0;
         left: 0;
@@ -56,15 +51,11 @@
         height: 80px;
         display: flex;
         align-items: center;
+        border: none;
+        box-shadow: none;
+        backdrop-filter: none;
     }
     
-    .header h1 {
-        font-size: inherit;
-        font-weight: inherit;
-        letter-spacing: 0.5px;
-    }
-    
-    /* Side Navigation */
     .side-nav {
         position: fixed;
         right: 20px;
@@ -108,16 +99,10 @@
         transition: opacity 0.3s ease;
     }
     
-    .nav-dot:hover::after {
-        opacity: 1;
-    }
+    .nav-dot:hover::after { opacity: 1; }
     
-    /* Main content container */
-    .main-container {
-        padding-top: 80px; /* Account for fixed header */
-    }
+    .main-container { padding-top: 80px; padding-bottom: 80px; }
     
-    /* Section styling */
     .section {
         min-height: 100vh;
         padding: 60px 2rem;
@@ -128,16 +113,15 @@
         position: relative;
     }
     
-    .content-wrapper {
-        width: 100%;
-        max-width: 1200px;
-        text-align: center;
-    }
+    .content-wrapper { width: 100%; max-width: 1200px; text-align: center; }
     
-    /* Hero Section */
     .hero {
         background-color: var(--bg-color);
-        padding-top: 100px;
+        padding-top: 0;
+        padding-bottom: 60px;
+        position: relative;
+        margin-top: -80px;
+        padding-top: 180px;
     }
     
     .hero h1 {
@@ -146,10 +130,12 @@
         margin-bottom: 1.5rem;
         letter-spacing: 1px;
         color: var(--text-color);
+        position: relative;
+        z-index: 2;
     }
     
-    .hero-description {
-        font-size: 1.1rem;
+    .hero-subtitle {
+        font-size: 1.3rem;
         font-weight: 200;
         margin-bottom: 2rem;
         color: var(--primary-light);
@@ -158,8 +144,8 @@
         margin-right: auto;
     }
     
-    .hero-subtitle {
-        font-size: 1.3rem;
+    .hero-description {
+        font-size: 1.1rem;
         font-weight: 200;
         margin-bottom: 2rem;
         color: var(--primary-light);
@@ -184,14 +170,9 @@
         margin-top: 1rem;
     }
     
-    .btn:hover {
-        background-color: var(--primary-dark);
-    }
+    .btn:hover { background-color: var(--primary-dark); }
     
-    /* Testimonials Section */
-    .testimonials {
-        background-color: #0a0a0a;
-    }
+    .testimonials { background-color: #0a0a0a; }
     
     .section-header {
         margin-bottom: 3rem;
@@ -219,15 +200,14 @@
         scroll-behavior: smooth;
     }
     
-    .testimonials-wrapper::-webkit-scrollbar {
-        display: none;
-    }
+    .testimonials-wrapper::-webkit-scrollbar { display: none; }
     
     .testimonials-container {
         display: flex;
         gap: 2rem;
         padding: 1rem;
         width: max-content;
+        max-width: none;
     }
     
     .testimonials-nav {
@@ -261,6 +241,20 @@
         flex-shrink: 0;
     }
     
+    .testimonial-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #333, #555);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 300;
+        font-size: 1.2rem;
+        color: var(--primary-color);
+    }
+    
     .testimonial-card blockquote {
         font-size: 1.1rem;
         font-style: italic;
@@ -275,9 +269,22 @@
         font-style: normal;
     }
     
-    /* Communities Section */
     .communities {
         background-color: var(--bg-color);
+        position: relative;
+    }
+    
+    .communities::before {
+        content: '{ }';
+        position: absolute;
+        top: 20%;
+        left: 8%;
+        font-size: 4rem;
+        font-weight: 100;
+        color: rgba(255,255,255,0.04);
+        pointer-events: none;
+        z-index: 1;
+        font-family: 'Courier New', monospace;
     }
     
     .community-grid {
@@ -292,14 +299,10 @@
         border-radius: 8px;
         padding: 2rem;
         box-shadow: var(--shadow);
-        transition: transform 0.3s ease;
         perspective: 1000px;
         height: 320px;
         position: relative;
-    }
-    
-    .community-card:hover {
-        transform: translateY(-5px);
+        overflow: hidden;
     }
     
     .card-inner {
@@ -311,9 +314,7 @@
         transform-style: preserve-3d;
     }
     
-    .community-card.flipped .card-inner {
-        transform: rotateY(180deg);
-    }
+    .community-card.flipped .card-inner { transform: rotateY(180deg); }
     
     .card-front, .card-back {
         position: absolute;
@@ -332,6 +333,11 @@
         background-color: var(--card-color);
         border-radius: 8px;
         padding: 1rem;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
     }
     
     .card-content {
@@ -345,30 +351,45 @@
     .card-back .card-content {
         justify-content: flex-start;
         text-align: left;
-        font-size: 0.85rem;
-        line-height: 1.4;
+        font-size: 0.75rem;
+        line-height: 1.3;
+        padding: 0.5rem;
+        overflow: hidden;
     }
     
     .card-back h3 {
-        font-size: 1.2rem;
+        font-size: 1rem;
         margin-bottom: 0.8rem;
         text-align: center;
+        color: var(--primary-color);
     }
     
     .card-back ul {
-        margin: 0.3rem 0 0.8rem 0;
+        margin: 0.5rem 0;
         padding-left: 0;
         list-style: none;
     }
     
     .card-back li {
-        margin-bottom: 0.2rem;
-        font-size: 0.8rem;
+        margin-bottom: 0.3rem;
+        font-size: 0.75rem;
+        line-height: 1.2;
+        position: relative;
+        padding-left: 12px;
+    }
+    
+    .card-back li::before {
+        content: "•";
+        color: var(--primary-color);
+        position: absolute;
+        left: 0;
+        top: 0;
     }
     
     .card-back p {
-        margin-bottom: 0.6rem;
-        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.75rem;
+        line-height: 1.3;
     }
     
     .card-footer {
@@ -397,13 +418,29 @@
         cursor: pointer;
     }
     
-    .learn-more:hover {
-        border-bottom-color: var(--primary-color);
-    }
+    .learn-more:hover { border-bottom-color: var(--primary-color); }
     
-    /* Value Proposition */
     .value-proposition {
         background-color: #0a0a0a;
+        position: relative;
+    }
+    
+    .value-proposition::before {
+        content: 'AI';
+        position: absolute;
+        top: 15%;
+        right: 5%;
+        font-size: 8rem;
+        font-weight: 100;
+        color: rgba(255,255,255,0.02);
+        pointer-events: none;
+        z-index: 1;
+        transform: rotate(-15deg);
+    }
+    
+    .value-proposition .content-wrapper {
+        position: relative;
+        z-index: 2;
     }
     
     .solution-statement {
@@ -448,13 +485,23 @@
         color: var(--text-color);
     }
     
-    .benefit-item p {
-        color: var(--primary-light);
-    }
+    .benefit-item p { color: var(--primary-light); }
     
-    /* Membership Standards */
     .membership-standards {
         background-color: var(--bg-color);
+        position: relative;
+    }
+    
+    .membership-standards::after {
+        content: '150';
+        position: absolute;
+        bottom: 10%;
+        left: 5%;
+        font-size: 6rem;
+        font-weight: 100;
+        color: rgba(255,255,255,0.03);
+        pointer-events: none;
+        z-index: 1;
     }
     
     .standards-content {
@@ -465,9 +512,7 @@
         text-align: left;
     }
     
-    .criteria-list {
-        margin: 2rem 0;
-    }
+    .criteria-list { margin: 2rem 0; }
     
     .criteria-item {
         background-color: var(--card-color);
@@ -485,7 +530,6 @@
     
     .waitlist-info {
         background-color: var(--card-color);
-        border: 1px solid #333;
         border-radius: 8px;
         padding: 1.5rem;
         box-shadow: var(--shadow);
@@ -517,9 +561,22 @@
         font-size: 0.9rem;
     }
     
-    /* Benefits Section */
     .membership-benefits {
         background-color: #0a0a0a;
+        position: relative;
+    }
+    
+    .membership-benefits::before {
+        content: '↗';
+        position: absolute;
+        top: 25%;
+        right: 8%;
+        font-size: 5rem;
+        font-weight: 100;
+        color: rgba(255,255,255,0.03);
+        pointer-events: none;
+        z-index: 1;
+        transform: rotate(15deg);
     }
     
     .benefits-list {
@@ -542,9 +599,22 @@
         color: var(--text-color);
     }
     
-    /* Application Section */
     .application-section {
         background-color: var(--bg-color);
+        position: relative;
+    }
+    
+    .application-section::after {
+        content: '?';
+        position: absolute;
+        top: 15%;
+        left: 10%;
+        font-size: 12rem;
+        font-weight: 100;
+        color: rgba(255,255,255,0.02);
+        pointer-events: none;
+        z-index: 1;
+        transform: rotate(-8deg);
     }
     
     .application-form {
@@ -569,7 +639,8 @@
     }
     
     .form-group input,
-    .form-group select {
+    .form-group select,
+    .form-group textarea {
         width: 100%;
         padding: 0.8rem;
         border: 1px solid #333;
@@ -582,21 +653,31 @@
         font-weight: 200;
     }
     
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
     .form-group input:focus,
-    .form-group select:focus {
+    .form-group select:focus,
+    .form-group textarea:focus {
         outline: none;
         border-color: var(--primary-color);
         box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
     }
     
-    /* Footer */
     .footer {
-        background-color: #000000;
+        background-color: transparent;
         color: white;
         text-align: center;
         padding: 2rem;
         font-size: 1.2rem;
         font-weight: 200;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
     }
     
     .footer a {
@@ -604,11 +685,8 @@
         text-decoration: none;
     }
     
-    .footer a:hover {
-        text-decoration: underline;
-    }
+    .footer a:hover { text-decoration: underline; }
     
-    /* Mobile Responsive */
     @media (max-width: 768px) {
         .header {
             font-size: 1rem;
@@ -618,31 +696,24 @@
         
         .main-container {
             padding-top: 60px;
+            padding-bottom: 60px;
         }
         
-        .hero {
-            padding-top: 80px;
+        .hero { padding-top: 80px; }
+        .hero h1 { font-size: 2.5rem; }
+        .hero-subtitle { font-size: 1.1rem; }
+        .section-header h2 { font-size: 2rem; }
+        .section { 
+            padding: 40px 1rem; 
+            max-width: 100vw;
+            overflow-x: hidden;
         }
         
-        .hero h1 {
-            font-size: 2.5rem;
+        .content-wrapper {
+            max-width: 100%;
+            overflow-x: hidden;
         }
-        
-        .hero-subtitle {
-            font-size: 1.1rem;
-        }
-        
-        .section-header h2 {
-            font-size: 2rem;
-        }
-        
-        .section {
-            padding: 40px 1rem;
-        }
-        
-        .community-grid {
-            grid-template-columns: 1fr;
-        }
+        .community-grid { grid-template-columns: 1fr; }
         
         .standards-content {
             grid-template-columns: 1fr;
@@ -660,18 +731,18 @@
         }
         
         .side-nav {
-            display: none;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .footer {
+            font-size: 0.9rem;
+            padding: 1rem;
         }
     }
     
-    /* Animation classes */
     .fade-in {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    
-    .fade-in.visible {
         opacity: 1;
         transform: translateY(0);
     }
@@ -680,13 +751,11 @@
 
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <h1>Promontory AI</h1>
     </header>
 
 ```
-<!-- Side Navigation -->
 <nav class="side-nav">
     <div class="nav-dot active" data-label="Home" data-target="hero"></div>
     <div class="nav-dot" data-label="Stories" data-target="testimonials"></div>
@@ -697,19 +766,16 @@
     <div class="nav-dot" data-label="Apply" data-target="apply"></div>
 </nav>
 
-<!-- Main Content -->
 <div class="main-container">
-    <!-- Hero Section -->
     <section id="hero" class="section hero">
         <div class="content-wrapper">
             <h1>The Coterie</h1>
             <p class="hero-subtitle">Lead Better. Move Faster. Stay Ahead.</p>
             <p class="hero-description">The Coterie is an invite-only peer community for data, analytics, and AI executives. Share real answers. Benchmark in real time. Make smarter decisions—together.</p>
-            <a href="#apply" class="btn">Request Access</a>
+            <a href="#apply" class="btn">Request an Invitation</a>
         </div>
     </section>
 
-    <!-- Testimonials Section -->
     <section id="testimonials" class="section testimonials">
         <div class="content-wrapper">
             <div class="section-header fade-in">
@@ -720,18 +786,22 @@
             <div class="testimonials-wrapper fade-in">
                 <div class="testimonials-container">
                     <div class="testimonial-card">
+                        <div class="testimonial-avatar">SC</div>
                         <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
                         <cite>— Sarah Chen, Chief Data Officer, TechFlow Ventures</cite>
                     </div>
                     <div class="testimonial-card">
+                        <div class="testimonial-avatar">MR</div>
                         <blockquote>"Finally, a community where I can ask the hard questions about AI governance without vendor pitches. The benchmarking data alone has informed three major strategic decisions this quarter."</blockquote>
                         <cite>— Michael Rodriguez, Chief AI Officer, Global Manufacturing Inc.</cite>
                     </div>
                     <div class="testimonial-card">
-                        <blockquote>"The Coterie's FintechData community connected me with three CDOs who had solved our exact data lineage challenge. What would have been months of trial and error became a week of implementation."</blockquote>
+                        <div class="testimonial-avatar">JP</div>
+                        <blockquote>"The Coterie's FinData community connected me with three CDOs who had solved our exact data lineage challenge. What would have been months of trial and error became a week of implementation."</blockquote>
                         <cite>— Jennifer Park, Chief Data Officer, FinTech Innovations</cite>
                     </div>
                     <div class="testimonial-card">
+                        <div class="testimonial-avatar">DT</div>
                         <blockquote>"The role-based cohorts are brilliant. Being able to discuss ML infrastructure challenges with other heads of AI who understand the technical depth and business pressure is invaluable."</blockquote>
                         <cite>— David Thompson, VP of Analytics, Healthcare Solutions Ltd</cite>
                     </div>
@@ -747,7 +817,6 @@
         </div>
     </section>
 
-    <!-- Communities Section -->
     <section id="communities" class="section communities">
         <div class="content-wrapper">
             <div class="section-header fade-in">
@@ -771,57 +840,7 @@
                             <div class="card-content">
                                 <h3>Velocity Core</h3>
                                 <div>
-                                    <p>For CAIOs at fast-growth tech companies where analytics and AI are critical to surviving the next inflection point. Members lead platform rewrites, embed LLMs into products, and rebuild decision pipelines in flight. Growth is non-linear. So are the problems.</p>
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <span class="learn-more" data-card="velocity">Back</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="community-card fade-in">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <div class="card-content">
-                                <h3>Command Line</h3>
-                                <p>Move the enterprise with intelligence</p>
-                            </div>
-                            <div class="card-footer">
-                                <span class="learn-more" data-card="command">Learn more</span>
-                            </div>
-                        </div>
-                        <div class="card-back">
-                            <div class="card-content">
-                                <h3>Command Line</h3>
-                                <div>
-                                    <p>This is the room for senior AI executives tasked with enterprise transformation across massive orgs. You deal in complexity: overlapping systems, legacy stacks, political firewalls. AI is not an add-on—it is your leverage point.</p>
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <span class="learn-more" data-card="command">Back</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="community-card fade-in">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <div class="card-content">
-                                <h3>Signal Ledger</h3>
-                                <p>Predict, detect, decide—in real time</p>
-                            </div>
-                            <div class="card-footer">
-                                <span class="learn-more" data-card="signal">Learn more</span>
-                            </div>
-                        </div>
-                        <div class="card-back">
-                            <div class="card-content">
-                                <h3>Signal Ledger</h3>
-                                <div>
-                                    <p>Built for analytics and AI officers at top banks, asset managers, and fintechs operating under surveillance and volatility. Members drive algorithmic strategy, fraud ops, personalized finance, and AI auditability in markets that punish mistakes.</p>
+                                    <p>For leaders at banks, asset managers, and fintechs operating under surveillance and market volatility.</p>
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -846,7 +865,14 @@
                             <div class="card-content">
                                 <h3>Inference Lab</h3>
                                 <div>
-                                    <p>For leaders operationalizing AI across healthcare delivery, diagnostics, and biotech pipelines. This is not experimentation. You are under clinical, regulatory, and ethical pressure—using models to augment care, not just optimize it.</p>
+                                    <p><strong>Healthcare, Biotech & Life Sciences</strong></p>
+                                    <ul>
+                                        <li>Clinical decision support</li>
+                                        <li>Diagnostic AI implementation</li>
+                                        <li>Biotech pipeline optimization</li>
+                                        <li>Regulatory & ethical compliance</li>
+                                    </ul>
+                                    <p>Operating under clinical, regulatory, and ethical pressure—using models to augment care, not just optimize it.</p>
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -871,7 +897,14 @@
                             <div class="card-content">
                                 <h3>Consumer Pulse</h3>
                                 <div>
-                                    <p>For analytics and AI leads turning fragmented behavior into actionable intelligence. Topics span demand sensing, live experimentation, adaptive pricing, and digital-first merchandising. Members come from CPG majors and high-growth DTC brands.</p>
+                                    <p><strong>Retail, CPG & Experience Brands</strong></p>
+                                    <ul>
+                                        <li>Demand sensing & forecasting</li>
+                                        <li>Live experimentation platforms</li>
+                                        <li>Adaptive pricing strategies</li>
+                                        <li>Digital-first merchandising</li>
+                                    </ul>
+                                    <p>Turning fragmented consumer behavior into actionable intelligence for CPG majors and high-growth DTC brands.</p>
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -896,7 +929,14 @@
                             <div class="card-content">
                                 <h3>Civic Circuit</h3>
                                 <div>
-                                    <p>For senior analytics and AI leaders making public infrastructure smarter and more responsive. You operate under constraints: legacy systems, public trust, budget cycles. But the ambition is real—justice algorithms, real-time mobility, responsive cities.</p>
+                                    <p><strong>Public Sector, Infra & Cities</strong></p>
+                                    <ul>
+                                        <li>Justice algorithm deployment</li>
+                                        <li>Real-time mobility systems</li>
+                                        <li>Responsive city infrastructure</li>
+                                        <li>Public trust & transparency</li>
+                                    </ul>
+                                    <p>Operating under constraints of legacy systems, public trust, and budget cycles with real ambition for impact.</p>
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -909,10 +949,9 @@
         </div>
     </section>
 
-    <!-- Value Proposition Section -->
     <section id="value" class="section value-proposition">
         <div class="content-wrapper">
-            <div class="fade-in">
+            <div class="section-header fade-in">
                 <h2>Data and AI Leaders Are Facing It Alone</h2>
                 <p>Data and AI are moving fast. Most leaders are navigating org design, LLM integration, tooling, governance, and vendor noise—without a reliable peer network.</p>
             </div>
@@ -947,12 +986,11 @@
         </div>
     </section>
 
-    <!-- Membership Standards Section -->
     <section id="standards" class="section membership-standards">
         <div class="content-wrapper">
             <div class="standards-content">
                 <div class="standards-text">
-                    <div class="fade-in">
+                    <div class="section-header fade-in">
                         <h2>Membership by Invitation Only</h2>
                         <p>We recognize that exceptional leadership takes many forms. Our membership reflects the diverse paths to AI excellence across industries and company stages.</p>
                     </div>
@@ -995,7 +1033,6 @@
         </div>
     </section>
 
-    <!-- Membership Benefits Section -->
     <section id="benefits" class="section membership-benefits">
         <div class="content-wrapper">
             <div class="section-header fade-in">
@@ -1028,11 +1065,10 @@
         </div>
     </section>
 
-    <!-- Application Section -->
     <section id="apply" class="section application-section">
         <div class="content-wrapper">
             <div class="section-header fade-in">
-                <h2>Ready to Request Access?</h2>
+                <h2>Ready to Request an Invitation?</h2>
                 <p>Membership is by invitation. We prioritize fit over scale to keep conversations high-trust and high-signal.</p>
             </div>
             
@@ -1070,37 +1106,44 @@
                         <label for="referral">How did you hear about us?</label>
                         <input type="text" id="referral" name="referral">
                     </div>
-                    <button type="submit" class="btn" style="width: 100%;">Request Access</button>
+                    <div class="form-group">
+                        <label for="connection">Do you know any current members? If so, who?</label>
+                        <input type="text" id="connection" name="connection" placeholder="Current member name (if applicable)">
+                    </div>
+                    <div class="form-group">
+                        <label for="qualification">Why would you be a good fit for The Coterie? *</label>
+                        <textarea id="qualification" name="qualification" rows="4" required placeholder="Tell us about your leadership role, data/AI challenges you're solving, and what you'd bring to peer discussions..."></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">Request an Invitation</button>
                 </form>
             </div>
         </div>
     </section>
 </div>
 
-<!-- Footer -->
 <footer class="footer">
     <span>thecoterie@promontoryai.com</span>
 </footer>
 
 <script>
-    // Intersection Observer for fade-in animations
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
+    // Intersection Observer for fade-in animations - disabled for stability
+    // const observerOptions = {
+    //     threshold: 0.1,
+    //     rootMargin: '0px 0px -50px 0px'
+    // };
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, observerOptions);
+    // const observer = new IntersectionObserver((entries) => {
+    //     entries.forEach(entry => {
+    //         if (entry.isIntersecting) {
+    //             entry.target.classList.add('visible');
+    //         }
+    //     });
+    // }, observerOptions);
 
-    // Observe all fade-in elements
-    document.querySelectorAll('.fade-in').forEach(el => {
-        observer.observe(el);
-    });
+    // // Observe all fade-in elements
+    // document.querySelectorAll('.fade-in').forEach(el => {
+    //     observer.observe(el);
+    // });
 
     // Navigation dot functionality
     const navDots = document.querySelectorAll('.nav-dot');
@@ -1212,7 +1255,7 @@
     document.querySelector('.membership-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const requiredFields = this.querySelectorAll('input[required], select[required]');
+        const requiredFields = this.querySelectorAll('input[required], select[required], textarea[required]');
         let isValid = true;
         
         requiredFields.forEach(field => {
@@ -1232,7 +1275,7 @@
             submitButton.disabled = true;
             
             setTimeout(() => {
-                alert('Access request submitted successfully! Our team will review your submission and respond within 2 weeks. Given current demand, please expect potential placement on our invitation waitlist.');
+                alert('Invitation request submitted successfully! Our team will review your submission and respond within 2 weeks. Given current demand, please expect potential placement on our invitation waitlist.');
                 this.reset();
                 submitButton.textContent = originalText;
                 submitButton.disabled = false;
