@@ -27,31 +27,33 @@
             font-weight: 200;
         }
         
+        html {
+            scroll-behavior: smooth;
+        }
+        
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
             line-height: 1.6;
+            overflow-x: hidden;
         }
         
-        /* Header matching Promontory AI exactly */
+        /* Header */
         .header {
             background-color: #000000;
             color: white;
             padding: 20px;
             font-size: 2vw;
             font-weight: 200;
-            align-self: flex-start;
             box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
+            height: 80px;
+            display: flex;
+            align-items: center;
         }
         
         .header h1 {
@@ -60,17 +62,16 @@
             letter-spacing: 0.5px;
         }
         
-        /* Innovative Side Navigation */
+        /* Side Navigation */
         .side-nav {
             position: fixed;
-            right: 0;
+            right: 20px;
             top: 50%;
             transform: translateY(-50%);
             z-index: 500;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            padding: 20px;
         }
         
         .nav-dot {
@@ -109,32 +110,32 @@
             opacity: 1;
         }
         
-        /* Main content area */
+        /* Main content container */
         .main-container {
-            flex: 1;
-            margin-top: 80px; /* Account for fixed header */
-            overflow-y: auto;
+            padding-top: 80px; /* Account for fixed header */
         }
         
+        /* Section styling */
         .section {
             min-height: 100vh;
+            padding: 60px 2rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 2rem;
-            scroll-snap-align: start;
+            position: relative;
         }
         
         .content-wrapper {
             width: 100%;
-            max-width: 800px;
+            max-width: 1200px;
             text-align: center;
         }
         
         /* Hero Section */
         .hero {
             background-color: var(--bg-color);
+            padding-top: 100px;
         }
         
         .hero h1 {
@@ -165,30 +166,6 @@
             margin-right: auto;
         }
         
-        .hero-testimonial {
-            background-color: var(--card-color);
-            border-radius: 8px;
-            padding: 2rem;
-            margin: 2rem 0;
-            box-shadow: var(--shadow);
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .hero-testimonial blockquote {
-            font-size: 1.1rem;
-            font-style: italic;
-            margin-bottom: 1rem;
-            color: var(--text-color);
-        }
-        
-        .hero-testimonial cite {
-            font-size: 0.9rem;
-            color: var(--primary-light);
-            font-style: normal;
-        }
-        
         .btn {
             background-color: var(--primary-color);
             color: #000000;
@@ -209,11 +186,9 @@
             background-color: var(--primary-dark);
         }
         
-        /* Communities Section */
-        .communities {
+        /* Testimonials Section */
+        .testimonials {
             background-color: #0a0a0a;
-            margin-top: 2rem;
-            padding-top: 2rem;
         }
         
         .section-header {
@@ -231,6 +206,76 @@
             font-size: 1.2rem;
             color: var(--primary-light);
             font-weight: 200;
+        }
+        
+        .testimonials-wrapper {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 1rem 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-behavior: smooth;
+        }
+        
+        .testimonials-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .testimonials-container {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem;
+            width: max-content;
+        }
+        
+        .testimonials-nav {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 2rem;
+        }
+        
+        .testimonial-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .testimonial-dot:hover, .testimonial-dot.active {
+            background-color: var(--primary-color);
+            transform: scale(1.3);
+        }
+        
+        .testimonial-card {
+            background-color: var(--card-color);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            width: 400px;
+            flex-shrink: 0;
+        }
+        
+        .testimonial-card blockquote {
+            font-size: 1.1rem;
+            font-style: italic;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .testimonial-card cite {
+            font-size: 0.9rem;
+            color: var(--primary-light);
+            font-style: normal;
+        }
+        
+        /* Communities Section */
+        .communities {
+            background-color: var(--bg-color);
         }
         
         .community-grid {
@@ -311,6 +356,7 @@
         .card-back ul {
             margin: 0.3rem 0 0.8rem 0;
             padding-left: 0;
+            list-style: none;
         }
         
         .card-back li {
@@ -346,6 +392,7 @@
             font-weight: 300;
             border-bottom: 1px solid transparent;
             transition: border-bottom-color 0.3s ease;
+            cursor: pointer;
         }
         
         .learn-more:hover {
@@ -354,7 +401,7 @@
         
         /* Value Proposition */
         .value-proposition {
-            background-color: var(--bg-color);
+            background-color: #0a0a0a;
         }
         
         .solution-statement {
@@ -405,7 +452,7 @@
         
         /* Membership Standards */
         .membership-standards {
-            background-color: #0a0a0a;
+            background-color: var(--bg-color);
         }
         
         .standards-content {
@@ -440,14 +487,6 @@
             border-radius: 8px;
             padding: 1.5rem;
             box-shadow: var(--shadow);
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-        
-        .waitlist-info.visible {
-            opacity: 1;
-            transform: translateY(0);
         }
         
         .standards-stats {
@@ -478,7 +517,7 @@
         
         /* Benefits Section */
         .membership-benefits {
-            background-color: var(--bg-color);
+            background-color: #0a0a0a;
         }
         
         .benefits-list {
@@ -501,105 +540,7 @@
             color: var(--text-color);
         }
         
-        /* Testimonials Section */
-        .testimonials {
-            background-color: var(--bg-color);
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .testimonials-wrapper {
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 1rem 0;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            scroll-behavior: smooth;
-        }
-        
-        .testimonials-wrapper::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .testimonials-container {
-            display: flex;
-            gap: 2rem;
-            padding: 1rem;
-            width: max-content;
-        }
-        
-        /* Horizontal navigation dots for testimonials */
-        .testimonials-nav {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 2rem;
-        }
-        
-        .testimonial-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .testimonial-dot:hover, .testimonial-dot.active {
-            background-color: var(--primary-color);
-            transform: scale(1.3);
-        }
-        
-        .testimonial-card {
-            background-color: var(--card-color);
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: var(--shadow);
-            width: 400px;
-            flex-shrink: 0;
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-        
-        .testimonial-card blockquote {
-            font-size: 1.1rem;
-            font-style: italic;
-            margin-bottom: 1rem;
-            color: var(--text-color);
-            line-height: 1.6;
-        }
-        
-        .testimonial-card cite {
-            font-size: 0.9rem;
-            color: var(--primary-light);
-            font-style: normal;
-        }
-
-        /* Enhanced Transitions */
-        .section {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            scroll-snap-align: start;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.5s ease-out;
-        }
-        
-        .section.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .section.hero {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        /* Application Section */
         .application-section {
             background-color: var(--bg-color);
         }
@@ -646,17 +587,14 @@
             box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
         }
         
-        /* Footer matching Promontory AI exactly */
+        /* Footer */
         .footer {
             background-color: #000000;
             color: white;
             text-align: center;
-            font-size: 1.5vw;
+            padding: 2rem;
+            font-size: 1.2rem;
             font-weight: 200;
-            position: fixed;
-            bottom: 2vh;
-            left: 50%;
-            transform: translateX(-50%);
         }
         
         .footer a {
@@ -670,12 +608,22 @@
         
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            .header h1 {
+            .header {
                 font-size: 1rem;
+                padding: 15px;
+                height: 60px;
+            }
+            
+            .main-container {
+                padding-top: 60px;
+            }
+            
+            .hero {
+                padding-top: 80px;
             }
             
             .hero h1 {
-                font-size: 3rem;
+                font-size: 2.5rem;
             }
             
             .hero-subtitle {
@@ -684,6 +632,10 @@
             
             .section-header h2 {
                 font-size: 2rem;
+            }
+            
+            .section {
+                padding: 40px 1rem;
             }
             
             .community-grid {
@@ -708,29 +660,28 @@
             .side-nav {
                 display: none;
             }
-            
-            .section {
-                padding: 1rem;
-            }
         }
         
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
+        /* Animation classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
         
-        .main-container {
-            scroll-snap-type: y mandatory;
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
-    <!-- Header matching Promontory AI -->
+    <!-- Header -->
     <header class="header">
         <h1>Promontory AI</h1>
     </header>
 
-    <!-- Innovative Side Navigation -->
+    <!-- Side Navigation -->
     <nav class="side-nav">
         <div class="nav-dot active" data-label="Home" data-target="hero"></div>
         <div class="nav-dot" data-label="Stories" data-target="testimonials"></div>
@@ -756,12 +707,12 @@
         <!-- Testimonials Section -->
         <section id="testimonials" class="section testimonials">
             <div class="content-wrapper">
-                <div class="section-header">
+                <div class="section-header fade-in">
                     <h2>What Members Say</h2>
                     <p>Insights from executives transforming their organizations</p>
                 </div>
                 
-                <div class="testimonials-wrapper">
+                <div class="testimonials-wrapper fade-in">
                     <div class="testimonials-container">
                         <div class="testimonial-card">
                             <blockquote>"The most valuable hour of my week is connecting with peers who've solved tomorrow's AI challenges today. In six months, The Coterie has given me insights that would have taken years to develop independently."</blockquote>
@@ -782,8 +733,7 @@
                     </div>
                 </div>
                 
-                <!-- Horizontal navigation dots -->
-                <div class="testimonials-nav">
+                <div class="testimonials-nav fade-in">
                     <div class="testimonial-dot active" data-index="0"></div>
                     <div class="testimonial-dot" data-index="1"></div>
                     <div class="testimonial-dot" data-index="2"></div>
@@ -795,133 +745,157 @@
         <!-- Communities Section -->
         <section id="communities" class="section communities">
             <div class="content-wrapper">
-                <div class="section-header">
+                <div class="section-header fade-in">
                     <h2>Curated Executive Communities</h2>
                     <p>Membership limited to 150 executives per community</p>
                 </div>
                 
                 <div class="community-grid">
-                    <div class="community-card">
+                    <div class="community-card fade-in">
                         <div class="card-inner">
                             <div class="card-front">
                                 <div class="card-content">
-                                    <h3>DataGC</h3>
-                                    <p>For CDOs & CAOs at high-growth companies with $100M+ revenue scaling data operations and AI implementation.</p>
+                                    <h3>Velocity Core</h3>
+                                    <p>Scale without fracturing</p>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="learn-more" data-card="datagc" style="cursor: pointer;">Learn more</span>
+                                    <span class="learn-more" data-card="velocity">Learn more</span>
                                 </div>
                             </div>
                             <div class="card-back">
                                 <div class="card-content">
-                                    <h3>DataGC Details</h3>
+                                    <h3>Velocity Core</h3>
                                     <div>
-                                        <p><strong>Focus Areas:</strong></p>
-                                        <ul style="list-style: none; padding-left: 0;">
-                                            <li>• Data governance frameworks</li>
-                                            <li>• MLOps and AI infrastructure</li>
-                                            <li>• Team scaling strategies</li>
-                                        </ul>
-                                        <p><strong>Profile:</strong> Series B+ companies, 50-2000 employees</p>
-                                        <p><strong>Events:</strong> Technical deep-dives, procurement roundtables</p>
+                                        <p>For CAIOs at fast-growth tech companies where analytics and AI are critical to surviving the next inflection point. Members lead platform rewrites, embed LLMs into products, and rebuild decision pipelines in flight. Growth is non-linear. So are the problems.</p>
                                     </div>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="learn-more" data-card="datagc" style="cursor: pointer;">Back</span>
+                                    <span class="learn-more" data-card="velocity">Back</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="community-card">
+                    
+                    <div class="community-card fade-in">
                         <div class="card-inner">
                             <div class="card-front">
                                 <div class="card-content">
-                                    <h3>EnterpriseAI</h3>
-                                    <p>For senior AI executives at Fortune 1000 companies driving enterprise transformation at scale.</p>
+                                    <h3>Command Line</h3>
+                                    <p>Move the enterprise with intelligence</p>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="learn-more" data-card="enterpriseai" style="cursor: pointer;">Learn more</span>
+                                    <span class="learn-more" data-card="command">Learn more</span>
                                 </div>
                             </div>
                             <div class="card-back">
                                 <div class="card-content">
-                                    <h3>EnterpriseAI Details</h3>
+                                    <h3>Command Line</h3>
                                     <div>
-                                        <p><strong>Focus Areas:</strong></p>
-                                        <ul style="list-style: none; padding-left: 0;">
-                                            <li>• Enterprise AI strategy</li>
-                                            <li>• Change management at scale</li>
-                                            <li>• AI ethics & compliance</li>
-                                        </ul>
-                                        <p><strong>Profile:</strong> Fortune 1000 companies, 10,000+ employees</p>
-                                        <p><strong>Events:</strong> C-suite strategy sessions, compliance workshops</p>
+                                        <p>This is the room for senior AI executives tasked with enterprise transformation across massive orgs. You deal in complexity: overlapping systems, legacy stacks, political firewalls. AI is not an add-on—it is your leverage point.</p>
                                     </div>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="learn-more" data-card="enterpriseai" style="cursor: pointer;">Back</span>
+                                    <span class="learn-more" data-card="command">Back</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="community-card">
+                    
+                    <div class="community-card fade-in">
                         <div class="card-inner">
                             <div class="card-front">
                                 <div class="card-content">
-                                    <h3>FintechData</h3>
-                                    <p>For data & AI leaders at financial institutions with $5B+ AUM and fintech companies post-Series B.</p>
+                                    <h3>Signal Ledger</h3>
+                                    <p>Predict, detect, decide—in real time</p>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="learn-more" data-card="fintechdata" style="cursor: pointer;">Learn more</span>
+                                    <span class="learn-more" data-card="signal">Learn more</span>
                                 </div>
                             </div>
                             <div class="card-back">
                                 <div class="card-content">
-                                    <h3>FintechData Details</h3>
+                                    <h3>Signal Ledger</h3>
                                     <div>
-                                        <p><strong>Focus Areas:</strong></p>
-                                        <ul style="list-style: none; padding-left: 0;">
-                                            <li>• Financial data compliance</li>
-                                            <li>• Real-time fraud detection</li>
-                                            <li>• Regulatory reporting automation</li>
-                                        </ul>
-                                        <p><strong>Profile:</strong> Banks, investment firms, fintech unicorns</p>
-                                        <p><strong>Events:</strong> RegTech discussions, risk modeling workshops</p>
+                                        <p>Built for analytics and AI officers at top banks, asset managers, and fintechs operating under surveillance and volatility. Members drive algorithmic strategy, fraud ops, personalized finance, and AI auditability in markets that punish mistakes.</p>
                                     </div>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="learn-more" data-card="fintechdata" style="cursor: pointer;">Back</span>
+                                    <span class="learn-more" data-card="signal">Back</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="community-card">
+                    
+                    <div class="community-card fade-in">
                         <div class="card-inner">
                             <div class="card-front">
                                 <div class="card-content">
-                                    <h3>HealthTechAI</h3>
-                                    <p>For AI executives at healthcare organizations with 1M+ patient records and biotech companies in clinical trials.</p>
+                                    <h3>Inference Lab</h3>
+                                    <p>Decisions with consequences</p>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="learn-more" data-card="healthtechai" style="cursor: pointer;">Learn more</span>
+                                    <span class="learn-more" data-card="inference">Learn more</span>
                                 </div>
                             </div>
                             <div class="card-back">
                                 <div class="card-content">
-                                    <h3>HealthTechAI Details</h3>
-                                    <div style="text-align: left;">
-                                        <p><strong>Focus Areas:</strong></p>
-                                        <ul style="list-style: none; padding-left: 0; margin: 0.5rem 0;">
-                                            <li>• HIPAA-compliant AI systems</li>
-                                            <li>• Clinical decision support tools</li>
-                                            <li>• Drug discovery & development AI</li>
-                                            <li>• Population health analytics</li>
-                                        </ul>
-                                        <p><strong>Member Profile:</strong> Health systems, pharma companies, medtech startups, digital health platforms</p>
-                                        <p><strong>Monthly Events:</strong> Clinical AI showcases, regulatory workshops, patient outcome studies</p>
+                                    <h3>Inference Lab</h3>
+                                    <div>
+                                        <p>For leaders operationalizing AI across healthcare delivery, diagnostics, and biotech pipelines. This is not experimentation. You are under clinical, regulatory, and ethical pressure—using models to augment care, not just optimize it.</p>
                                     </div>
                                 </div>
                                 <div class="card-footer">
-                                    <a href="#" class="learn-more" data-card="healthtechai">Back</a>
+                                    <span class="learn-more" data-card="inference">Back</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="community-card fade-in">
+                        <div class="card-inner">
+                            <div class="card-front">
+                                <div class="card-content">
+                                    <h3>Consumer Pulse</h3>
+                                    <p>Learn faster than the market shifts</p>
+                                </div>
+                                <div class="card-footer">
+                                    <span class="learn-more" data-card="consumer">Learn more</span>
+                                </div>
+                            </div>
+                            <div class="card-back">
+                                <div class="card-content">
+                                    <h3>Consumer Pulse</h3>
+                                    <div>
+                                        <p>For analytics and AI leads turning fragmented behavior into actionable intelligence. Topics span demand sensing, live experimentation, adaptive pricing, and digital-first merchandising. Members come from CPG majors and high-growth DTC brands.</p>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <span class="learn-more" data-card="consumer">Back</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="community-card fade-in">
+                        <div class="card-inner">
+                            <div class="card-front">
+                                <div class="card-content">
+                                    <h3>Civic Circuit</h3>
+                                    <p>Intelligence where it matters most</p>
+                                </div>
+                                <div class="card-footer">
+                                    <span class="learn-more" data-card="civic">Learn more</span>
+                                </div>
+                            </div>
+                            <div class="card-back">
+                                <div class="card-content">
+                                    <h3>Civic Circuit</h3>
+                                    <div>
+                                        <p>For senior analytics and AI leaders making public infrastructure smarter and more responsive. You operate under constraints: legacy systems, public trust, budget cycles. But the ambition is real—justice algorithms, real-time mobility, responsive cities.</p>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <span class="learn-more" data-card="civic">Back</span>
                                 </div>
                             </div>
                         </div>
@@ -933,32 +907,34 @@
         <!-- Value Proposition Section -->
         <section id="value" class="section value-proposition">
             <div class="content-wrapper">
-                <h2>Data and AI Leaders Are Facing It Alone</h2>
-                <p>Data and AI are moving fast. Most leaders are navigating org design, LLM integration, tooling, governance, and vendor noise—without a reliable peer network.</p>
+                <div class="fade-in">
+                    <h2>Data and AI Leaders Are Facing It Alone</h2>
+                    <p>Data and AI are moving fast. Most leaders are navigating org design, LLM integration, tooling, governance, and vendor noise—without a reliable peer network.</p>
+                </div>
                 
-                <div class="solution-statement">
+                <div class="solution-statement fade-in">
                     <h3>The Coterie changes that.</h3>
                     <p>It connects CDOs, CAOs, and senior AI leaders across sectors in a high-trust space built for fast exchange and strategic depth.</p>
                 </div>
                 
                 <div class="benefits-grid">
-                    <div class="benefit-item">
+                    <div class="benefit-item fade-in">
                         <h4>Private Peer Forum</h4>
                         <p>Ask and answer real-world questions with other executives in a trusted environment</p>
                     </div>
-                    <div class="benefit-item">
+                    <div class="benefit-item fade-in">
                         <h4>Flash Surveys + Benchmarks</h4>
                         <p>See how others approach AI, data governance, org structure, and spend in real time</p>
                     </div>
-                    <div class="benefit-item">
+                    <div class="benefit-item fade-in">
                         <h4>Reference Tools</h4>
                         <p>Member-contributed playbooks, procurement docs, architectures, and frameworks</p>
                     </div>
-                    <div class="benefit-item">
+                    <div class="benefit-item fade-in">
                         <h4>Events and Roundtables</h4>
                         <p>Closed-door, invite-only conversations and workshops—no vendors, no noise</p>
                     </div>
-                    <div class="benefit-item">
+                    <div class="benefit-item fade-in">
                         <h4>Role-Based Cohorts</h4>
                         <p>Tailored tracks for CDOs, enterprise AI leads, data infrastructure heads, and rising leaders</p>
                     </div>
@@ -971,39 +947,41 @@
             <div class="content-wrapper">
                 <div class="standards-content">
                     <div class="standards-text">
-                        <h2>Membership by Invitation Only</h2>
-                        <p>We recognize that exceptional leadership takes many forms. Our membership reflects the diverse paths to AI excellence across industries and company stages.</p>
+                        <div class="fade-in">
+                            <h2>Membership by Invitation Only</h2>
+                            <p>We recognize that exceptional leadership takes many forms. Our membership reflects the diverse paths to AI excellence across industries and company stages.</p>
+                        </div>
                         
                         <div class="criteria-list">
-                            <div class="criteria-item">
+                            <div class="criteria-item fade-in">
                                 <h4>Leadership Impact</h4>
                                 <p>C-level, VP, or Director with direct responsibility for data/AI strategy affecting business outcomes</p>
                             </div>
-                            <div class="criteria-item">
+                            <div class="criteria-item fade-in">
                                 <h4>Organizational Scale</h4>
                                 <p>Minimum team of 5+ data professionals or $1M+ annual data/AI budget</p>
                             </div>
-                            <div class="criteria-item">
+                            <div class="criteria-item fade-in">
                                 <h4>Peer Endorsement</h4>
                                 <p>Reference from current member or recognized industry leader</p>
                             </div>
                         </div>
                         
-                        <div class="waitlist-info">
+                        <div class="waitlist-info fade-in">
                             <p><strong>Current Status:</strong> 847 executives on our invitation waitlist</p>
                             <p><em>Next review cycle: March 2025</em></p>
                         </div>
                     </div>
                     <div class="standards-stats">
-                        <div class="stat-item">
+                        <div class="stat-item fade-in">
                             <div class="stat-number">92%</div>
                             <div class="stat-label">Member retention rate</div>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item fade-in">
                             <div class="stat-number">24</div>
                             <div class="stat-label">Average months on waitlist</div>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item fade-in">
                             <div class="stat-number">15:1</div>
                             <div class="stat-label">Application to acceptance ratio</div>
                         </div>
@@ -1015,29 +993,29 @@
         <!-- Membership Benefits Section -->
         <section id="benefits" class="section membership-benefits">
             <div class="content-wrapper">
-                <div class="section-header">
+                <div class="section-header fade-in">
                     <h2>Built for Senior Leaders Driving Change</h2>
                     <p>Whether you are scaling AI across a business unit or rewriting your data stack, The Coterie connects you with others solving the same problems.</p>
                 </div>
                 
                 <div class="benefits-list">
-                    <div class="benefit-detail">
+                    <div class="benefit-detail fade-in">
                         <h3>Chief Data Officers</h3>
                         <p>Connect with CDOs navigating enterprise data strategy, governance frameworks, and organizational transformation.</p>
                     </div>
-                    <div class="benefit-detail">
+                    <div class="benefit-detail fade-in">
                         <h3>Chief Analytics Officers</h3>
                         <p>Exchange insights with CAOs driving analytics adoption, measurement strategies, and business impact.</p>
                     </div>
-                    <div class="benefit-detail">
+                    <div class="benefit-detail fade-in">
                         <h3>Heads of AI/ML</h3>
                         <p>Collaborate with AI leaders implementing machine learning at scale and navigating ethical AI challenges.</p>
                     </div>
-                    <div class="benefit-detail">
+                    <div class="benefit-detail fade-in">
                         <h3>Data Platform + Engineering Leads</h3>
                         <p>Share technical strategies with leaders building robust data infrastructure and modern data stacks.</p>
                     </div>
-                    <div class="benefit-detail">
+                    <div class="benefit-detail fade-in">
                         <h3>Enterprise Architects and AI Strategists</h3>
                         <p>Engage with strategic leaders designing AI-first organizations and enterprise architecture.</p>
                     </div>
@@ -1048,12 +1026,12 @@
         <!-- Application Section -->
         <section id="apply" class="section application-section">
             <div class="content-wrapper">
-                <div class="section-header">
+                <div class="section-header fade-in">
                     <h2>Ready to Request Access?</h2>
                     <p>Membership is by invitation. We prioritize fit over scale to keep conversations high-trust and high-signal.</p>
                 </div>
                 
-                <div class="application-form">
+                <div class="application-form fade-in">
                     <form class="membership-form">
                         <div class="form-group">
                             <label for="name">Full Name *</label>
@@ -1075,10 +1053,12 @@
                             <label for="community">Primary Community Interest *</label>
                             <select id="community" name="community" required>
                                 <option value="">Select a community</option>
-                                <option value="datagc">DataGC</option>
-                                <option value="enterpriseai">EnterpriseAI</option>
-                                <option value="fintechdata">FintechData</option>
-                                <option value="healthtechai">HealthTechAI</option>
+                                <option value="velocity">Velocity Core - High-Growth Tech</option>
+                                <option value="command">Command Line - Fortune 1000 & Global Enterprises</option>
+                                <option value="signal">Signal Ledger - Financial Services & Fintech</option>
+                                <option value="inference">Inference Lab - Healthcare, Biotech & Life Sciences</option>
+                                <option value="consumer">Consumer Pulse - Retail, CPG & Experience Brands</option>
+                                <option value="civic">Civic Circuit - Public Sector, Infra & Cities</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1092,18 +1072,84 @@
         </section>
     </div>
 
-    <!-- Footer matching Promontory AI -->
+    <!-- Footer -->
     <footer class="footer">
         <span>thecoterie@promontoryai.com</span>
     </footer>
 
     <script>
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all fade-in elements
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Navigation dot functionality
+        const navDots = document.querySelectorAll('.nav-dot');
+        const sections = document.querySelectorAll('.section');
+
+        // Handle nav dot clicks
+        navDots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetSection = document.getElementById(targetId);
+                
+                if (targetSection) {
+                    const headerHeight = 80;
+                    const targetPosition = targetSection.offsetTop - headerHeight;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update active dot
+                    navDots.forEach(d => d.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Update active nav dot on scroll
+        const navObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const currentId = entry.target.getAttribute('id');
+                    navDots.forEach(dot => {
+                        dot.classList.remove('active');
+                        if (dot.getAttribute('data-target') === currentId) {
+                            dot.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, {
+            threshold: 0.5,
+            rootMargin: '-100px 0px -100px 0px'
+        });
+
+        sections.forEach(section => {
+            navObserver.observe(section);
+        });
+
         // Community card flip functionality
         document.querySelectorAll('.learn-more').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                const cardId = this.getAttribute('data-card');
                 const currentCard = this.closest('.community-card');
                 
                 // Flip back all other cards first
@@ -1118,19 +1164,18 @@
             });
         });
 
-        // Testimonials horizontal navigation
+        // Testimonials navigation
         const testimonialsWrapper = document.querySelector('.testimonials-wrapper');
         const testimonialDots = document.querySelectorAll('.testimonial-dot');
         const testimonialCards = document.querySelectorAll('.testimonial-card');
         
-        // Calculate card width including gap
         function getCardWidth() {
             const card = testimonialCards[0];
             const gap = 32; // 2rem gap
-            return card ? card.offsetWidth + gap : 432; // 400px card + 32px gap
+            return card ? card.offsetWidth + gap : 432;
         }
         
-        // Handle dot clicks
+        // Handle testimonial dot clicks
         testimonialDots.forEach((dot, index) => {
             dot.addEventListener('click', function() {
                 const cardWidth = getCardWidth();
@@ -1147,7 +1192,7 @@
             });
         });
         
-        // Update active dot on scroll
+        // Update active testimonial dot on scroll
         testimonialsWrapper.addEventListener('scroll', function() {
             const cardWidth = getCardWidth();
             const scrollPosition = this.scrollLeft;
@@ -1158,30 +1203,10 @@
             });
         });
 
-        // Smooth scrolling for navigation dots
-        document.querySelectorAll('.nav-dot').forEach((dot, index) => {
-            dot.addEventListener('click', function() {
-                const target = this.getAttribute('data-target');
-                const targetSection = document.getElementById(target);
-                
-                if (targetSection) {
-                    targetSection.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                    
-                    // Update active dot
-                    document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
-                    this.classList.add('active');
-                }
-            });
-        });
-
         // Form submission handling
         document.querySelector('.membership-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Basic form validation
             const requiredFields = this.querySelectorAll('input[required], select[required]');
             let isValid = true;
             
@@ -1195,7 +1220,6 @@
             });
             
             if (isValid) {
-                // Simulate form submission
                 const submitButton = this.querySelector('.btn');
                 const originalText = submitButton.textContent;
                 
@@ -1213,66 +1237,20 @@
             }
         });
 
-        // Update active navigation dot on scroll with enhanced transitions
-        const sections = document.querySelectorAll('.section');
-        const navDots = document.querySelectorAll('.nav-dot');
-
-        const sectionObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    // Add visible class for section transitions
-                    entry.target.classList.add('visible');
+        // Smooth anchor link scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const headerHeight = 80;
+                    const targetPosition = target.offsetTop - headerHeight;
                     
-                    // Update active navigation dot
-                    const currentId = entry.target.getAttribute('id');
-                    navDots.forEach(dot => {
-                        dot.classList.remove('active');
-                        if (dot.getAttribute('data-target') === currentId) {
-                            dot.classList.add('active');
-                        }
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
                     });
                 }
-            });
-        }, {
-            threshold: 0.3,
-            rootMargin: '-100px 0px -100px 0px'
-        });
-
-        sections.forEach(section => {
-            sectionObserver.observe(section);
-        });
-
-        // Enhanced card animations with staggered timing
-        const cardObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry, index) => {
-                if (entry.isIntersecting) {
-                    setTimeout(() => {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0) scale(1)';
-                    }, index * 100); // Staggered animation
-                }
-            });
-        }, {
-            threshold: 0.1
-        });
-
-        // Observe cards for scroll animations with enhanced effects
-        document.querySelectorAll('.community-card, .benefit-item, .criteria-item, .benefit-detail, .testimonial-card').forEach((el, index) => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(40px) scale(0.95)';
-            el.style.transition = `opacity 0.8s ease ${index * 0.1}s, transform 0.8s ease ${index * 0.1}s`;
-            cardObserver.observe(el);
-        });
-
-        // Parallax effect for section headers
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const parallax = document.querySelectorAll('.section-header h2');
-            
-            parallax.forEach((element, index) => {
-                const speed = 0.5;
-                const yPos = -(scrolled * speed);
-                element.style.transform = `translateY(${yPos}px)`;
             });
         });
     </script>
