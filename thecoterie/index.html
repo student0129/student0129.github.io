@@ -53,6 +53,16 @@
             box-shadow: none;
             backdrop-filter: none;
         }
+
+        .event-title {
+            font-size: clamp(3rem, 6vw, 6rem);
+            font-weight: 200;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #888888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
         
         .side-nav {
             position: fixed;
@@ -710,7 +720,7 @@
     <div class="main-container">
         <section id="hero" class="section hero">
             <div class="content-wrapper">
-                <h1>The Coterie</h1>
+                <h1 class="event-title">The Coterie</h1>
                 <p class="hero-subtitle">Lead Better. Move Faster. Stay Ahead.</p>
                 <p class="hero-description">The Coterie is an invite-only peer community for data, analytics, and AI executives. Share real answers. Benchmark in real time. Make smarter decisions—together.</p>
                 <a href="#apply" class="btn">Request an Invitation</a>
