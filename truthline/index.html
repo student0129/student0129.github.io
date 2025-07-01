@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Truthline - Hero-Powered AI Conversations with Wonder Woman & Superman Theme">
+    <meta name="author" content="Truthline">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; connect-src 'self' api.anthropic.com;">
     <title>Truthline</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🦸‍♀️</text></svg>">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&family=Roboto:wght@300;400;500;700;900&display=swap');
         
@@ -952,19 +956,40 @@
 
             async handleFileUpload(event) {
                 const files = Array.from(event.target.files);
+                const maxSize = 5 * 1024 * 1024; // 5MB limit for Anthropic API
+                const supportedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
                 
                 for (const file of files) {
-                    const base64 = await this.fileToBase64(file);
-                    const fileObj = {
-                        name: file.name,
-                        type: file.type,
-                        size: file.size,
-                        data: base64
-                    };
+                    // Check file size
+                    if (file.size > maxSize) {
+                        this.showError(`🚨 File "${file.name}" is too large! Maximum size is 5MB. 🚨`);
+                        continue;
+                    }
                     
-                    this.uploadedFiles.push(fileObj);
-                    this.renderUploadedFiles();
+                    // Check file type - Anthropic API only supports images directly
+                    if (!supportedImageTypes.includes(file.type.toLowerCase())) {
+                        this.showError(`🚨 File type "${file.type}" not supported! Only images (JPEG, PNG, GIF, WebP) are supported. 🚨`);
+                        continue;
+                    }
+                    
+                    try {
+                        const base64 = await this.fileToBase64(file);
+                        const fileObj = {
+                            name: file.name,
+                            type: file.type,
+                            size: file.size,
+                            data: base64
+                        };
+                        
+                        this.uploadedFiles.push(fileObj);
+                        this.renderUploadedFiles();
+                    } catch (error) {
+                        this.showError(`🚨 Failed to process file "${file.name}": ${error.message} 🚨`);
+                    }
                 }
+                
+                // Clear the input so the same file can be uploaded again if needed
+                event.target.value = '';
             }
 
             fileToBase64(file) {
@@ -1072,16 +1097,9 @@
                                         data: file.data
                                     }
                                 });
-                            } else {
-                                content.push({
-                                    type: 'document',
-                                    source: {
-                                        type: 'base64',
-                                        media_type: file.type,
-                                        data: file.data
-                                    }
-                                });
                             }
+                            // Note: Anthropic API only supports images directly
+                            // Other file types would need server-side processing
                         });
                     }
 
@@ -1127,11 +1145,32 @@
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error?.message || 'API request failed');
+                    let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    try {
+                        const error = await response.json();
+                        errorMessage = error.error?.message || error.message || errorMessage;
+                        
+                        // Handle specific error types
+                        if (response.status === 401) {
+                            errorMessage = '🔑 Invalid API key! Please check your credentials.';
+                        } else if (response.status === 429) {
+                            errorMessage = '⏰ Rate limit exceeded! Please wait a moment before trying again.';
+                        } else if (response.status === 400) {
+                            errorMessage = '📝 Invalid request format. Please check your inputs.';
+                        }
+                    } catch (e) {
+                        // Keep the HTTP status message if we can't parse the error
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 const data = await response.json();
+                
+                // Validate response structure
+                if (!data.content || !Array.isArray(data.content) || data.content.length === 0) {
+                    throw new Error('Invalid response format from API');
+                }
+                
                 return data.content[0].text;
             }
 
@@ -1333,6 +1372,71 @@
             }
         }
 
+        // Add connection status indicator
+        class ConnectionStatus {
+            constructor() {
+                this.indicator = this.createIndicator();
+                this.checkConnection();
+                setInterval(() => this.checkConnection(), 30000); // Check every 30 seconds
+            }
+
+            createIndicator() {
+                const indicator = document.createElement('div');
+                indicator.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 8px 12px;
+                    border-radius: 20px;
+                    font-size: 0.8rem;
+                    font-weight: bold;
+                    z-index: 1000;
+                    transition: all 0.3s ease;
+                `;
+                document.body.appendChild(indicator);
+                return indicator;
+            }
+
+            async checkConnection() {
+                try {
+                    const response = await fetch('/api/check-key', { 
+                        method: 'GET',
+                        signal: AbortSignal.timeout(5000) // 5 second timeout
+                    });
+                    if (response.ok) {
+                        this.setStatus('connected', '🟢 Server Connected');
+                    } else {
+                        this.setStatus('error', '🔴 Server Error');
+                    }
+                } catch (error) {
+                    this.setStatus('disconnected', '🟡 Server Offline');
+                }
+            }
+
+            setStatus(status, text) {
+                this.indicator.textContent = text;
+                const colors = {
+                    connected: { bg: '#4CAF50', color: 'white' },
+                    disconnected: { bg: '#FF9800', color: 'white' },
+                    error: { bg: '#F44336', color: 'white' }
+                };
+                const color = colors[status] || colors.error;
+                this.indicator.style.backgroundColor = color.bg;
+                this.indicator.style.color = color.color;
+                this.indicator.style.border = '2px solid var(--black)';
+                this.indicator.style.boxShadow = '2px 2px 0px var(--black)';
+            }
+        }
+
+        // Add service worker registration for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(registrationError => console.log('SW registration failed'));
+            });
+        }
+
         // Add blinking animation for typewriter cursor
         const style = document.createElement('style');
         style.textContent = `
@@ -1343,8 +1447,9 @@
         `;
         document.head.appendChild(style);
 
-        // Initialize the app
+        // Initialize the app and connection status
         const app = new ClaudeApp();
+        const connectionStatus = new ConnectionStatus();
     </script>
 </body>
 </html>
