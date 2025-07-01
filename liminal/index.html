@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Liminal Global Consulting - Strategic Excellence Through Innovation">
+    <meta name="keywords" content="consulting, strategy, transformation, business">
+    <meta name="author" content="Liminal Global Consulting">
+    <title>Liminal - Global Strategy & Transformation</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Design System */
+        :root {
+            --ink: #1a1a1a;
+            --cream: #fdfcf8;
+            --powder: #f9f7f4;
+            --nude: #e8dfd6;
+            --mauve: #c9a7a6;
+            --charcoal: #2c2c2c;
+            --gold: #c9a961;
+            --shadow-soft: 0 2px 40px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 8px 60px rgba(0, 0, 0, 0.08);
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Typography */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 300;
+            color: var(--ink);
+            background: var(--cream);
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        ::selection {
+            background: var(--mauve);
+            color: white;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Crimson Text', Georgia, serif;
+            font-weight: 400;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--charcoal);
+        }
+
+        h1 { 
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 300;
+            letter-spacing: -0.02em;
+        }
+        
+        h2 { 
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 300;
+        }
+        
+        h3 { 
+            font-size: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            color: var(--charcoal);
+            font-size: 1.05rem;
+            font-weight: 300;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .container-wide {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(253, 252, 248, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        nav.scrolled {
+            box-shadow: var(--shadow-soft);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+
+        .logo {
+            font-family: 'Crimson Text', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--ink);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            transition: var(--transition);
+        }
+
+        .logo:hover {
+            opacity: 0.7;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--charcoal);
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            position: relative;
+            transition: var(--transition);
+            padding: 0.5rem 0;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--mauve);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            background: var(--ink);
+            color: var(--cream);
+            padding: 0.75rem 2rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            transition: var(--transition);
+            border: 1px solid var(--ink);
+        }
+
+        .nav-cta:hover {
+            background: transparent;
+            color: var(--ink);
+        }
+
+        /* Mobile Navigation */
+        .mobile-toggle {
+            display: none;
+            cursor: pointer;
+            width: 24px;
+            height: 16px;
+            position: relative;
+        }
+
+        .mobile-toggle span {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: var(--ink);
+            transition: 0.3s;
+        }
+
+        .mobile-toggle span:nth-child(1) {
+            top: 0;
+        }
+
+        .mobile-toggle span:nth-child(2) {
+            top: 50%;
+        }
+
+        .mobile-toggle span:nth-child(3) {
+            bottom: 0;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-top: 80px;
+            background: var(--cream);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.2s forwards;
+            color: var(--charcoal);
+        }
+
+        .hero-visual {
+            position: relative;
+            height: 600px;
+            opacity: 0;
+            animation: fadeIn 1s ease 0.4s forwards;
+        }
+
+        .hero-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--powder) 0%, var(--nude) 100%);
+            overflow: hidden;
+        }
+
+        .hero-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.05;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 40px, var(--ink) 40px, var(--ink) 41px),
+                repeating-linear-gradient(-45deg, transparent, transparent 40px, var(--ink) 40px, var(--ink) 41px);
+        }
+
+        /* Statistics */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            margin: 4rem 0;
+            border-top: 1px solid var(--nude);
+            border-bottom: 1px solid var(--nude);
+        }
+
+        .stat {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-right: 1px solid var(--nude);
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.6s forwards;
+        }
+
+        .stat:last-child {
+            border-right: none;
+        }
+
+        .stat-number {
+            font-family: 'Crimson Text', serif;
+            font-size: 3.5rem;
+            font-weight: 300;
+            color: var(--ink);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--charcoal);
+            letter-spacing: 0.05em;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: var(--ink);
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            transition: var(--transition);
+            border: 1px solid var(--ink);
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--ink);
+            transform: translateY(-2px);
+        }
+
+        .btn-light {
+            background: var(--cream);
+            color: var(--ink);
+            border-color: var(--nude);
+        }
+
+        .btn-light:hover {
+            background: var(--powder);
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 6rem 0;
+        }
+
+        .section-light {
+            background: var(--cream);
+        }
+
+        .section-neutral {
+            background: var(--powder);
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        /* Service Cards */
+        .service-card {
+            background: white;
+            padding: 3rem;
+            height: 100%;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--mauve);
+            transform: translateX(-100%);
+            transition: transform 0.4s ease;
+        }
+
+        .service-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .service-card:hover {
+            border-color: var(--nude);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-4px);
+        }
+
+        .service-number {
+            font-family: 'Crimson Text', serif;
+            font-size: 3rem;
+            color: var(--nude);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Case Study Cards */
+        .case-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .case-card {
+            background: white;
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+            border: 1px solid var(--nude);
+        }
+
+        .case-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-4px);
+        }
+
+        .case-image {
+            height: 300px;
+            background: linear-gradient(135deg, var(--powder), var(--nude));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .case-content {
+            padding: 2.5rem;
+        }
+
+        .case-tag {
+            font-size: 0.85rem;
+            color: var(--mauve);
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .case-metric {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.5rem;
+            color: var(--ink);
+            margin: 1rem 0;
+        }
+
+        /* Leadership Grid */
+        .leadership-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .leader-card {
+            text-align: center;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        .leader-image {
+            width: 150px;
+            height: 150px;
+            background: var(--nude);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .leader-card:hover .leader-image {
+            transform: scale(1.05);
+        }
+
+        /* Client Logos */
+        .client-strip {
+            padding: 4rem 0;
+            background: white;
+            overflow: hidden;
+        }
+
+        .client-track {
+            display: flex;
+            gap: 6rem;
+            animation: scroll 40s linear infinite;
+        }
+
+        .client-logo {
+            flex: 0 0 auto;
+            opacity: 0.4;
+            transition: opacity 0.3s;
+            font-family: 'Crimson Text', serif;
+            font-size: 1.5rem;
+            white-space: nowrap;
+        }
+
+        .client-logo:hover {
+            opacity: 0.8;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            color: var(--charcoal);
+            font-weight: 400;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem 0;
+            border: none;
+            border-bottom: 1px solid var(--nude);
+            background: transparent;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-bottom-color: var(--mauve);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--ink);
+            color: var(--cream);
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-brand h3 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            color: var(--cream);
+        }
+
+        .footer-section h4 {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            color: var(--cream);
+            letter-spacing: 0.05em;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: rgba(253, 252, 248, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--cream);
+        }
+
+        .footer-bottom {
+            padding-top: 2rem;
+            border-top: 1px solid rgba(253, 252, 248, 0.1);
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(253, 252, 248, 0.5);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Reveal on Scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Image Reveal Animation */
+        .image-reveal {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-reveal::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--cream);
+            transform: translateX(0);
+            transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+            z-index: 2;
+        }
+
+        .image-reveal.revealed::after {
+            transform: translateX(100%);
+        }
+
+        /* Texture Overlay */
+        .texture-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.02;
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 35px,
+                rgba(0, 0, 0, 0.01) 35px,
+                rgba(0, 0, 0, 0.01) 70px
+            );
+            pointer-events: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .grid-2,
+            .grid-3,
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            
+            .hero-visual {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                right: -100%;
+                top: 80px;
+                flex-direction: column;
+                background: var(--cream);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: var(--shadow-soft);
+                padding: 2rem 0;
+            }
+
+            .nav-menu.active {
+                right: 0;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .grid-2,
+            .grid-3,
+            .grid-4,
+            .case-grid,
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .stat {
+                border-right: none;
+                border-bottom: 1px solid var(--nude);
+            }
+
+            .stat:last-child {
+                border-bottom: none;
+            }
+
+            .leadership-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="container">
+            <div class="nav-container">
+                <a href="#home" class="logo">Liminal</a>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="#home" class="nav-link">Home</a></li>
+                    <li><a href="#about" class="nav-link">About</a></li>
+                    <li><a href="#services" class="nav-link">Services</a></li>
+                    <li><a href="#industries" class="nav-link">Industries</a></li>
+                    <li><a href="#insights" class="nav-link">Insights</a></li>
+                    <li><a href="#contact" class="nav-cta">Contact</a></li>
+                </ul>
+                <div class="mobile-toggle" id="mobileToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero section-light">
+        <div class="container-wide">
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <h1>Strategic Excellence Through Innovation</h1>
+                    <p>We partner with global leaders to navigate complexity, accelerate transformation, and create sustainable competitive advantage in an evolving world.</p>
+                    
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-number" data-target="500">0</span>
+                            <span class="stat-label">Projects Delivered</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" data-target="23">0</span>
+                            <span class="stat-label">Industries Served</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" data-target="6">0</span>
+                            <span class="stat-label">Continents</span>
+                        </div>
+                    </div>
+
+                    <a href="#contact" class="btn">Start Conversation</a>
+                </div>
+
+                <div class="hero-visual image-reveal">
+                    <div class="hero-image">
+                        <div class="hero-pattern"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Client Strip -->
+    <div class="client-strip">
+        <div class="client-track">
+            <div class="client-logo">Fortune 500</div>
+            <div class="client-logo">Global Banking</div>
+            <div class="client-logo">Tech Leaders</div>
+            <div class="client-logo">Healthcare Giants</div>
+            <div class="client-logo">Energy Sector</div>
+            <div class="client-logo">Retail Leaders</div>
+            <!-- Duplicate for seamless loop -->
+            <div class="client-logo">Fortune 500</div>
+            <div class="client-logo">Global Banking</div>
+            <div class="client-logo">Tech Leaders</div>
+            <div class="client-logo">Healthcare Giants</div>
+            <div class="client-logo">Energy Sector</div>
+            <div class="client-logo">Retail Leaders</div>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <section id="about" class="section section-neutral">
+        <div class="container">
+            <div class="grid-2">
+                <div>
+                    <h2 class="reveal">Four Decades of Impact</h2>
+                    <p class="reveal">Since 1985, Liminal has been at the forefront of business transformation, combining strategic insight with operational excellence to deliver measurable results for the world's most ambitious organizations.</p>
+                    <p class="reveal">Our approach is rooted in deep industry expertise, data-driven insights, and a commitment to sustainable value creation that extends beyond traditional consulting.</p>
+                </div>
+                <div class="reveal">
+                    <div style="display: grid; gap: 2rem;">
+                        <div style="padding: 2rem; background: white;">
+                            <h3 style="font-size: 2.5rem; color: var(--mauve); margin-bottom: 0.5rem;">$50B+</h3>
+                            <p style="margin: 0;">Value created for clients</p>
+                        </div>
+                        <div style="padding: 2rem; background: white;">
+                            <h3 style="font-size: 2.5rem; color: var(--mauve); margin-bottom: 0.5rem;">2,500+</h3>
+                            <p style="margin: 0;">Expert consultants globally</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leadership -->
+            <h3 style="text-align: center; margin-top: 5rem; margin-bottom: 3rem;" class="reveal">Leadership Team</h3>
+            <div class="leadership-grid reveal">
+                <div class="leader-card">
+                    <div class="leader-image"></div>
+                    <h4>Sarah Chen</h4>
+                    <p style="color: var(--mauve); font-size: 0.9rem; margin: 0;">Global CEO</p>
+                </div>
+                <div class="leader-card">
+                    <div class="leader-image"></div>
+                    <h4>Michael Harrison</h4>
+                    <p style="color: var(--mauve); font-size: 0.9rem; margin: 0;">Chief Strategy Officer</p>
+                </div>
+                <div class="leader-card">
+                    <div class="leader-image"></div>
+                    <h4>Dr. Priya Patel</h4>
+                    <p style="color: var(--mauve); font-size: 0.9rem; margin: 0;">Chief Innovation Officer</p>
+                </div>
+                <div class="leader-card">
+                    <div class="leader-image"></div>
+                    <h4>James Mitchell</h4>
+                    <p style="color: var(--mauve); font-size: 0.9rem; margin: 0;">Chief Operating Officer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="section section-light">
+        <div class="container">
+            <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+                <h2 class="reveal">How We Create Value</h2>
+                <p class="reveal">Our integrated service offerings combine strategic thinking with practical implementation to drive lasting transformation.</p>
+            </div>
+
+            <div class="grid-3" style="margin-top: 4rem;">
+                <div class="service-card reveal">
+                    <span class="service-number">01</span>
+                    <h3>Strategy & Growth</h3>
+                    <p>Market entry strategies, portfolio optimization, and growth acceleration programs that deliver 3-5x returns.</p>
+                    <a href="#" style="color: var(--mauve); text-decoration: none; font-size: 0.9rem;">Learn more →</a>
+                </div>
+
+                <div class="service-card reveal">
+                    <span class="service-number">02</span>
+                    <h3>Digital Transformation</h3>
+                    <p>End-to-end digitalization, AI implementation, and data architecture that drives 40% efficiency gains.</p>
+                    <a href="#" style="color: var(--mauve); text-decoration: none; font-size: 0.9rem;">Learn more →</a>
+                </div>
+
+                <div class="service-card reveal">
+                    <span class="service-number">03</span>
+                    <h3>Operations Excellence</h3>
+                    <p>Process optimization, supply chain transformation, and cost reduction delivering $100M+ savings.</p>
+                    <a href="#" style="color: var(--mauve); text-decoration: none; font-size: 0.9rem;">Learn more →</a>
+                </div>
+
+                <div class="service-card reveal">
+                    <span class="service-number">04</span>
+                    <h3>M&A Advisory</h3>
+                    <p>Due diligence, integration planning, and value capture for transactions totaling $50B+.</p>
+                    <a href="#" style="color: var(--mauve); text-decoration: none; font-size: 0.9rem;">Learn more →</a>
+                </div>
+
+                <div class="service-card reveal">
+                    <span class="service-number">05</span>
+                    <h3>Sustainability</h3>
+                    <p>ESG strategy, carbon neutrality roadmaps, and sustainable business model innovation.</p>
+                    <a href="#" style="color: var(--mauve); text-decoration: none; font-size: 0.9rem;">Learn more →</a>
+                </div>
+
+                <div class="service-card reveal">
+                    <span class="service-number">06</span>
+                    <h3>Organization Design</h3>
+                    <p>Agile transformation, talent strategy, and culture change driving 35% productivity gains.</p>
+                    <a href="#" style="color: var(--mauve); text-decoration: none; font-size: 0.9rem;">Learn more →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Industries Section -->
+    <section id="industries" class="section section-neutral">
+        <div class="container">
+            <h2 style="text-align: center;" class="reveal">Industry Expertise</h2>
+            <p style="text-align: center; max-width: 600px; margin: 0 auto;" class="reveal">Deep sector knowledge combined with cross-industry insights to solve your most complex challenges.</p>
+
+            <div class="grid-4" style="margin-top: 4rem;">
+                <div style="padding: 2rem; text-align: center;" class="reveal">
+                    <h4>Financial Services</h4>
+                    <p style="color: var(--mauve); font-size: 2rem; margin: 0.5rem 0;">40%</p>
+                    <p style="font-size: 0.9rem; margin: 0;">Cost reduction achieved</p>
+                </div>
+                <div style="padding: 2rem; text-align: center;" class="reveal">
+                    <h4>Healthcare</h4>
+                    <p style="color: var(--mauve); font-size: 2rem; margin: 0.5rem 0;">30%</p>
+                    <p style="font-size: 0.9rem; margin: 0;">Faster drug development</p>
+                </div>
+                <div style="padding: 2rem; text-align: center;" class="reveal">
+                    <h4>Technology</h4>
+                    <p style="color: var(--mauve); font-size: 2rem; margin: 0.5rem 0;">10x</p>
+                    <p style="font-size: 0.9rem; margin: 0;">Growth acceleration</p>
+                </div>
+                <div style="padding: 2rem; text-align: center;" class="reveal">
+                    <h4>Energy</h4>
+                    <p style="color: var(--mauve); font-size: 2rem; margin: 0.5rem 0;">60%</p>
+                    <p style="font-size: 0.9rem; margin: 0;">Renewable integration</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Studies -->
+    <section class="section section-light">
+        <div class="container">
+            <h2 style="text-align: center;" class="reveal">Recent Impact</h2>
+            
+            <div class="case-grid">
+                <div class="case-card reveal">
+                    <div class="case-image image-reveal">
+                        <div class="texture-overlay"></div>
+                    </div>
+                    <div class="case-content">
+                        <span class="case-tag">FINANCIAL SERVICES</span>
+                        <h3>Digital Banking Transformation</h3>
+                        <div class="case-metric">70%</div>
+                        <p>Operational cost reduction through AI-powered automation and cloud migration.</p>
+                    </div>
+                </div>
+
+                <div class="case-card reveal">
+                    <div class="case-image image-reveal">
+                        <div class="texture-overlay"></div>
+                    </div>
+                    <div class="case-content">
+                        <span class="case-tag">RETAIL</span>
+                        <h3>Omnichannel Excellence</h3>
+                        <div class="case-metric">125%</div>
+                        <p>Increase in online conversion through personalized customer experiences.</p>
+                    </div>
+                </div>
+
+                <div class="case-card reveal">
+                    <div class="case-image image-reveal">
+                        <div class="texture-overlay"></div>
+                    </div>
+                    <div class="case-content">
+                        <span class="case-tag">HEALTHCARE</span>
+                        <h3>R&D Acceleration</h3>
+                        <div class="case-metric">$2.5B</div>
+                        <p>Value created through streamlined drug development processes.</p>
+                    </div>
+                </div>
+
+                <div class="case-card reveal">
+                    <div class="case-image image-reveal">
+                        <div class="texture-overlay"></div>
+                    </div>
+                    <div class="case-content">
+                        <span class="case-tag">ENERGY</span>
+                        <h3>Sustainable Transition</h3>
+                        <div class="case-metric">Net Zero</div>
+                        <p>Achieved carbon neutrality 5 years ahead of industry targets.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Insights Section -->
+    <section id="insights" class="section section-neutral">
+        <div class="container">
+            <h2 style="text-align: center;" class="reveal">Latest Thinking</h2>
+            
+            <div class="grid-3" style="margin-top: 4rem;">
+                <div style="background: white; overflow: hidden; transition: var(--transition);" class="reveal">
+                    <div style="height: 200px; background: linear-gradient(135deg, var(--powder), var(--nude));"></div>
+                    <div style="padding: 2rem;">
+                        <span style="color: var(--mauve); font-size: 0.85rem;">ARTICLE</span>
+                        <h3 style="margin: 1rem 0;">The Future of Work</h3>
+                        <p>How AI and human collaboration will reshape organizational design.</p>
+                        <a href="#" class="btn btn-light" style="margin-top: 1rem;">Read More</a>
+                    </div>
+                </div>
+
+                <div style="background: white; overflow: hidden; transition: var(--transition);" class="reveal">
+                    <div style="height: 200px; background: linear-gradient(135deg, var(--nude), var(--mauve));"></div>
+                    <div style="padding: 2rem;">
+                        <span style="color: var(--mauve); font-size: 0.85rem;">WHITEPAPER</span>
+                        <h3 style="margin: 1rem 0;">Sustainable Growth</h3>
+                        <p>Balancing profitability with environmental stewardship.</p>
+                        <a href="#" class="btn btn-light" style="margin-top: 1rem;">Download</a>
+                    </div>
+                </div>
+
+                <div style="background: white; overflow: hidden; transition: var(--transition);" class="reveal">
+                    <div style="height: 200px; background: linear-gradient(135deg, var(--mauve), var(--powder));"></div>
+                    <div style="padding: 2rem;">
+                        <span style="color: var(--mauve); font-size: 0.85rem;">VIDEO</span>
+                        <h3 style="margin: 1rem 0;">CEO Perspectives</h3>
+                        <p>Leaders share strategies for navigating uncertainty.</p>
+                        <a href="#" class="btn btn-light" style="margin-top: 1rem;">Watch</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Newsletter -->
+            <div style="background: var(--ink); color: var(--cream); padding: 4rem; margin-top: 5rem; text-align: center;" class="reveal">
+                <h3 style="color: var(--cream); margin-bottom: 1rem;">Stay Informed</h3>
+                <p style="color: rgba(253, 252, 248, 0.8); margin-bottom: 2rem;">Get our latest insights delivered to your inbox.</p>
+                <form style="display: flex; gap: 1rem; max-width: 500px; margin: 0 auto; flex-wrap: wrap; justify-content: center;">
+                    <input type="email" class="form-input" placeholder="Enter your email" style="flex: 1; min-width: 250px; background: transparent; border: 1px solid rgba(253, 252, 248, 0.3); color: var(--cream);" required>
+                    <button type="submit" class="btn" style="background: var(--cream); color: var(--ink);">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section section-light">
+        <div class="container">
+            <div class="grid-2">
+                <div>
+                    <h2 class="reveal">Let's Connect</h2>
+                    <p class="reveal">Ready to transform your business? Our team is here to understand your challenges and explore how we can create value together.</p>
+                    
+                    <div style="margin-top: 3rem;" class="reveal">
+                        <h4>Global Headquarters</h4>
+                        <div style="display: grid; gap: 2rem; margin-top: 1.5rem;">
+                            <div>
+                                <strong>New York</strong><br>
+                                350 Fifth Avenue<br>
+                                New York, NY 10118<br>
+                                +1 (212) 555-0100
+                            </div>
+                            <div>
+                                <strong>London</strong><br>
+                                One Canada Square<br>
+                                London E14 5AB<br>
+                                +44 20 7555 0100
+                            </div>
+                            <div>
+                                <strong>Singapore</strong><br>
+                                One Raffles Quay<br>
+                                Singapore 048583<br>
+                                +65 6555 0100
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reveal">
+                    <form style="background: var(--powder); padding: 3rem;">
+                        <div class="form-group">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company</label>
+                            <input type="text" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-textarea" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3>Liminal</h3>
+                    <p style="color: rgba(253, 252, 248, 0.7); line-height: 1.8;">
+                        Strategic excellence through innovation.<br>
+                        Transforming business since 1985.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul class="footer-links">
+                        <li><a href="#services">Strategy & Growth</a></li>
+                        <li><a href="#services">Digital Transformation</a></li>
+                        <li><a href="#services">Operations Excellence</a></li>
+                        <li><a href="#services">M&A Advisory</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Industries</h4>
+                    <ul class="footer-links">
+                        <li><a href="#industries">Financial Services</a></li>
+                        <li><a href="#industries">Healthcare</a></li>
+                        <li><a href="#industries">Technology</a></li>
+                        <li><a href="#industries">Energy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#insights">Insights</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Liminal Global Consulting. All rights reserved. | Privacy Policy | Terms of Service</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile Navigation
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        if (mobileToggle && navMenu) {
+            mobileToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                mobileToggle.classList.toggle('active');
+            });
+        }
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    if (navMenu) {
+                        navMenu.classList.remove('active');
+                    }
+                }
+            });
+        });
+
+        // Navbar on Scroll
+        const navbar = document.getElementById('navbar');
+        if (navbar) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+        }
+
+        // Animated Counter
+        const counters = document.querySelectorAll('.stat-number');
+        const speed = 200;
+        let countersAnimated = false;
+
+        const animateCounters = () => {
+            if (countersAnimated) return;
+            countersAnimated = true;
+            
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                let count = 0;
+                const increment = target / speed;
+
+                const updateCounter = () => {
+                    if (count < target) {
+                        count += increment;
+                        counter.innerText = Math.ceil(count);
+                        setTimeout(updateCounter, 10);
+                    } else {
+                        counter.innerText = target + '+';
+                    }
+                };
+                updateCounter();
+            });
+        };
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        // Counter animation observer
+        if (counters.length > 0) {
+            const counterObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !countersAnimated) {
+                        animateCounters();
+                    }
+                });
+            }, observerOptions);
+
+            counters.forEach(counter => {
+                counterObserver.observe(counter);
+            });
+        }
+
+        // Reveal animation observer
+        const reveals = document.querySelectorAll('.reveal');
+        if (reveals.length > 0) {
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            reveals.forEach(reveal => {
+                revealObserver.observe(reveal);
+            });
+        }
+
+        // Image reveal effect
+        const imageReveals = document.querySelectorAll('.image-reveal');
+        if (imageReveals.length > 0) {
+            const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('revealed');
+                        }, 200);
+                        imageObserver.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            imageReveals.forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+
+        // Form submission
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('.btn');
+                if (btn) {
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Thank you!';
+                    btn.style.background = 'var(--mauve)';
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = '';
+                        form.reset();
+                    }, 3000);
+                }
+            });
+        });
+
+        // Parallax effect
+        let ticking = false;
+        function updateParallax() {
+            const scrolled = window.pageYOffset;
+            const parallaxElements = document.querySelectorAll('.hero-visual');
+            
+            parallaxElements.forEach(element => {
+                const speed = 0.5;
+                element.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+            
+            ticking = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(updateParallax);
+                ticking = true;
+            }
+        });
+
+        // Client strip pause on hover
+        const clientTrack = document.querySelector('.client-track');
+        if (clientTrack) {
+            clientTrack.addEventListener('mouseenter', () => {
+                clientTrack.style.animationPlayState = 'paused';
+            });
+            clientTrack.addEventListener('mouseleave', () => {
+                clientTrack.style.animationPlayState = 'running';
+            });
+        }
+
+        // Accessibility improvements
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navMenu && navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+            }
+        });
+
+        console.log('Liminal Global Consulting - Excellence Through Innovation');
+    </script>
+</body>
+</html>
