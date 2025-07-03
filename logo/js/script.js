@@ -1,25 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Simple Logo interpreter - no external dependencies
+    // DOM Elements
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const turtleEl = document.getElementById('turtle');
     const codeArea = document.getElementById('codeArea');
     const logDiv = document.getElementById('log');
     const statusEl = document.getElementById('status');
+    const fileInput = document.getElementById('fileInput');
 
-    let turtle = {
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        angle: 90,
-        pen: true,
-        color: '#000000',
-        width: 2,
-        visible: true
-    };
-
+    // State
+    let turtle = {};
     let userProcedures = {};
     let variables = {};
-    let savedCode = '';
     let isRunning = false;
     let shouldStop = false;
     let executionSpeed = 5;
@@ -32,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         magenta: '#FF00FF'
     };
 
+    // --- Core Functions ---
     function updateStatus(msg) { statusEl.textContent = msg; }
     function log(msg) { logDiv.innerHTML += msg + '<br>'; logDiv.scrollTop = logDiv.scrollHeight; }
     function clearLog() { logDiv.innerHTML = ''; }
@@ -53,8 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const wrapRect = document.getElementById('canvasWrap').getBoundingClientRect();
         const x = (rect.left - wrapRect.left) + turtle.x;
         const y = (rect.top - wrapRect.top) + turtle.y;
-        const transitionTime = Math.max(50, 1000 / executionSpeed);
-        turtleEl.style.transition = `all ${transitionTime}ms ease`;
+        // Adjusted speed calculation for more variance
+        const transitionTime = 2000 / (executionSpeed * executionSpeed);
+        turtleEl.style.transition = `all ${transitionTime}ms linear`;
         turtleEl.style.backgroundColor = turtle.color;
         turtleEl.style.boxShadow = `0 0 10px ${turtle.color}50`;
         turtleEl.style.left = x + 'px';
@@ -98,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             turtle.x = newX;
             turtle.y = newY;
             updateTurtlePosition();
-            setTimeout(resolve, Math.max(50, 1000 / executionSpeed));
+            setTimeout(resolve, 2000 / (executionSpeed * executionSpeed));
         });
     }
 
@@ -106,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise(resolve => {
             turtle.angle = (turtle.angle + angle) % 360;
             updateTurtlePosition();
-            setTimeout(resolve, Math.max(25, 500 / executionSpeed));
+            setTimeout(resolve, 1000 / (executionSpeed * executionSpeed));
         });
     }
 
@@ -118,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lines.forEach((line, lineIndex) => {
             const cleanLine = line.replace(/#[^\n]*/g, '').trim();
             if (cleanLine) {
-                // This regex handles brackets as separate tokens
                 const tokens = cleanLine.match(/\[|\]|[^[\]\s]+/g) || [];
                 tokens.forEach(token => tokenizedLines.push({ token, lineNumber: lineIndex }));
             }
@@ -183,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (lineNumber !== -1) {
                 highlightCurrentLine(lineNumber);
-                await sleep(Math.max(50, 100 / executionSpeed));
+                await sleep(1000 / (executionSpeed * executionSpeed));
             }
 
             if (command === 'TO' && !isProcedure) {
@@ -272,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (userProcedures[command]) {
                 const proc = userProcedures[command];
-                const oldVars = { ...variables }; // Save state
+                const oldVars = { ...variables };
                 
                 let argIndex = i + 1;
                 for(const param of proc.params) {
@@ -282,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 await executeTokens(proc.body, true);
-                variables = oldVars; // Restore state
+                variables = oldVars;
                 i = argIndex;
                 continue;
             }
@@ -361,9 +354,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('stopBtn').addEventListener('click', stopProgram);
     
     document.getElementById('clearBtn').addEventListener('click', () => {
-        resetTurtle(); // Clears the canvas
-        codeArea.value = ''; // Clears the code editor
-        clearLog(); // Clears the console
+        resetTurtle();
+        codeArea.value = '';
+        clearLog();
         updateStatus('Cleared');
         log('Canvas, code, and console cleared.');
     });
@@ -377,19 +370,71 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTurtlePosition();
         const btn = document.getElementById('toggleTurtleBtn');
         btn.textContent = turtle.visible ? '👁️ Hide Turtle' : '👁️ Show Turtle';
-        log(turtle.visible ? 'Turtle is now visible' : 'Turtle is now hidden');
     });
     
-    document.getElementById('helpBtn').addEventListener('click', () => { document.getElementById('instructions').style.display = 'block'; });
-    document.getElementById('closeInstructions').addEventListener('click', () => { document.getElementById('instructions').style.display = 'none'; });
+    // --- Save/Load Logic ---
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        const codeToSave = codeArea.value;
+        const blob = new Blob([codeToSave], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'neologo_code.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        log('Code saved to file.');
+    });
+
+    document.getElementById('loadBtn').addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            codeArea.value = e.target.result;
+            log(`Loaded code from ${file.name}`);
+        };
+        reader.readAsText(file);
+        // Reset file input to allow loading the same file again
+        event.target.value = '';
+    });
+
+    // --- Modal Logic ---
+    const instructionsModal = document.getElementById('instructions');
+    const examplesModal = document.getElementById('examplesModal');
+    
+    document.getElementById('helpBtn').addEventListener('click', () => { instructionsModal.style.display = 'block'; });
+    document.getElementById('examplesBtn').addEventListener('click', () => { examplesModal.style.display = 'block'; });
+
+    document.querySelectorAll('.close-modal-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            instructionsModal.style.display = 'none';
+            examplesModal.style.display = 'none';
+        });
+    });
+
+    document.querySelectorAll('.try-it-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const preElement = e.target.previousElementSibling;
+            codeArea.value = preElement.textContent;
+            examplesModal.style.display = 'none';
+            log('Example code loaded.');
+        });
+    });
     
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runProgram(); }
-        if (e.key === 'Escape') { document.getElementById('instructions').style.display = 'none'; }
+        if (e.key === 'Escape') { 
+            instructionsModal.style.display = 'none';
+            examplesModal.style.display = 'none';
+        }
     });
     
-    document.getElementById('instructions').addEventListener('click', (e) => { if (e.target.id === 'instructions') { document.getElementById('instructions').style.display = 'none'; } });
-
     // --- Initial Load ---
     resetTurtle();
     updateStatus('Ready');
