@@ -133,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return isNaN(num) ? token : num;
     }
     
-    // New helper to evaluate simple expressions like ":n - 3"
     function evaluateExpression(tokens, index) {
         const val1Token = tokens[index];
         const opToken = tokens[index + 1];
@@ -154,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return { value: parseValue(val1Token.token), consumed: 1 };
     }
 
-    // New helper for evaluating conditions like ":n > 5"
     function evaluateCondition(tokens, index) {
         const val1Token = tokens[index];
         const opToken = tokens[index + 1];
@@ -276,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const proc = userProcedures[command];
                 const oldVars = { ...variables }; // Save state
                 
-                // Bind parameters
                 let argIndex = i + 1;
                 for(const param of proc.params) {
                     const arg = evaluateExpression(tokens, argIndex);
@@ -290,7 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 continue;
             }
 
-            // Handle primitive commands
             let argValue;
             let consumed = 1;
             const argCommands = new Set(['FD', 'FORWARD', 'BK', 'BACKWARD', 'RT', 'RIGHT', 'LT', 'LEFT', 'SETCOLOR', 'SETWIDTH', 'SHOW', 'PRINT']);
@@ -363,10 +359,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     document.getElementById('runBtn').addEventListener('click', runProgram);
     document.getElementById('stopBtn').addEventListener('click', stopProgram);
-    document.getElementById('clearBtn').addEventListener('click', () => { resetTurtle(); updateStatus('Canvas cleared'); log('Canvas cleared'); });
+    
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        resetTurtle(); // Clears the canvas
+        codeArea.value = ''; // Clears the code editor
+        clearLog(); // Clears the console
+        updateStatus('Cleared');
+        log('Canvas, code, and console cleared.');
+    });
+
     const speedSlider = document.getElementById('speedSlider');
     const speedValue = document.getElementById('speedValue');
     speedSlider.addEventListener('input', (e) => { executionSpeed = parseInt(e.target.value); speedValue.textContent = executionSpeed; });
+    
     document.getElementById('toggleTurtleBtn').addEventListener('click', () => {
         turtle.visible = !turtle.visible;
         updateTurtlePosition();
@@ -374,12 +379,15 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.textContent = turtle.visible ? '👁️ Hide Turtle' : '👁️ Show Turtle';
         log(turtle.visible ? 'Turtle is now visible' : 'Turtle is now hidden');
     });
+    
     document.getElementById('helpBtn').addEventListener('click', () => { document.getElementById('instructions').style.display = 'block'; });
     document.getElementById('closeInstructions').addEventListener('click', () => { document.getElementById('instructions').style.display = 'none'; });
+    
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runProgram(); }
         if (e.key === 'Escape') { document.getElementById('instructions').style.display = 'none'; }
     });
+    
     document.getElementById('instructions').addEventListener('click', (e) => { if (e.target.id === 'instructions') { document.getElementById('instructions').style.display = 'none'; } });
 
     // --- Initial Load ---
