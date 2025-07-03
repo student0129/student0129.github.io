@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const wrapRect = document.getElementById('canvasWrap').getBoundingClientRect();
         const x = (rect.left - wrapRect.left) + turtle.x;
         const y = (rect.top - wrapRect.top) + turtle.y;
-        // Adjusted speed calculation for more variance
         const transitionTime = 2000 / (executionSpeed * executionSpeed);
         turtleEl.style.transition = `all ${transitionTime}ms linear`;
         turtleEl.style.backgroundColor = turtle.color;
@@ -126,24 +125,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return isNaN(num) ? token : num;
     }
     
+    // **FIXED** This function now handles chained operations like A * B / C
     function evaluateExpression(tokens, index) {
-        const val1Token = tokens[index];
-        const opToken = tokens[index + 1];
-        const val2Token = tokens[index + 2];
+        let result = parseValue(tokens[index].token);
+        let consumed = 1;
+        let currentIndex = index + 1;
 
-        if (opToken && ['+', '-', '*', '/'].includes(opToken.token)) {
-            const val1 = parseValue(val1Token.token);
-            const val2 = parseValue(val2Token.token);
-            let result;
-            switch (opToken.token) {
-                case '+': result = val1 + val2; break;
-                case '-': result = val1 - val2; break;
-                case '*': result = val1 * val2; break;
-                case '/': result = val1 / val2; break;
+        while (currentIndex < tokens.length) {
+            const opToken = tokens[currentIndex];
+            if (!['+', '-', '*', '/'].includes(opToken.token)) {
+                break; // Not an operator, expression finished
             }
-            return { value: result, consumed: 3 };
+            const valToken = tokens[currentIndex + 1];
+            if (!valToken) {
+                break; // Operator without a value, expression finished
+            }
+
+            const value = parseValue(valToken.token);
+            switch (opToken.token) {
+                case '+': result += value; break;
+                case '-': result -= value; break;
+                case '*': result *= value; break;
+                case '/': result /= value; break;
+            }
+            consumed += 2; // Consumed operator and value
+            currentIndex += 2;
         }
-        return { value: parseValue(val1Token.token), consumed: 1 };
+        return { value: result, consumed: consumed };
     }
 
     function evaluateCondition(tokens, index) {
@@ -400,7 +408,6 @@ document.addEventListener('DOMContentLoaded', () => {
             log(`Loaded code from ${file.name}`);
         };
         reader.readAsText(file);
-        // Reset file input to allow loading the same file again
         event.target.value = '';
     });
 
