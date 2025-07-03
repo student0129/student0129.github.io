@@ -15,7 +15,7 @@
             <button id="saveBtn">💾 Save</button>
             <button id="loadBtn">📁 Load</button>
             <input type="file" id="fileInput" accept=".txt,.logo" style="display: none;" />
-            <button id="examplesBtn">✨ Examples</button>
+            <button id="examplesBtn">☄️ Examples</button>
             <button id="toggleTurtleBtn">👁️ Hide Turtle</button>
             <button id="helpBtn">❓ Help</button>
             <div id="speedControl">
@@ -67,22 +67,13 @@
             </ul>
             <h3>🔢 Variables, Loops & Conditions</h3>
             <p>Control the flow of your program with variables, loops, and conditional statements.</p>
-            <pre>
-# 1. Variables: Store a value
-MAKE "size 100
-FD :size  # Use the variable with a colon
-
-# 2. Loops: Repeat actions
-REPEAT 4 [
-  FD :size
-  RT 90
-]
-
-# 3. Conditions: Make decisions
-#    Use operators like >, <, =
-IF :size > 50 [
-  SETCOLOR "red
-]</pre>
+            <ul>
+                <li><code>MAKE "size 100</code> - Create variable named "size"</li>
+                <li><code>FD :size</code> - Use variable with colon prefix</li>
+                <li><code>REPEAT 4 [FD 50 RT 90]</code> - Repeat commands in brackets</li>
+                <li><code>IF :size > 50 [SETCOLOR "red"]</code> - Conditional execution</li>
+                <li><code>WHILE :x < 100 [FD 10 MAKE "x :x + 10]</code> - Loop while condition is true</li>
+            </ul>
             <h3>⌨️ Keyboard Shortcuts</h3>
             <ul>
                 <li><strong>Ctrl+Enter</strong> - Run program</li>
@@ -95,103 +86,537 @@ IF :size > 50 [
     <div id="examplesModal">
         <div id="examplesContent">
             <button class="close-modal-btn">✕ Close</button>
-            <h2>✨ Code Examples</h2>
+            <h2>☄️ Code Examples</h2>
             <div class="example-item">
-                <h4>Fractal Tree</h4>
-                <pre>TO tree :size
-  IF :size < 5 [ STOP ]
-  
-  SETWIDTH :size / 10
-  FD :size
-  
-  LT 30
-  tree :size * 0.7
-  RT 60
-  tree :size * 0.7
-  LT 30
-  
-  BK :size
-END
-
-PU
-HOME
-BK 250
-PD
-SETCOLOR "green"
-tree 100</pre>
+                <h4>Simple Circle</h4>
+                <pre># Method 1: Using small steps
+REPEAT 360 [
+  FD 1
+  RT 1
+]</pre>
                 <button class="try-it-btn">Try It</button>
             </div>
             <div class="example-item">
-                <h4>Starburst</h4>
-                <pre>TO starburst :sides :length
-  SETWIDTH 2
-  SETCOLOR "orange"
-  REPEAT :sides [
-    FD :length
-    BK :length
-    RT 360 / :sides
-  ]
-END
-
-starburst 36 150</pre>
-                <button class="try-it-btn">Try It</button>
-            </div>
-            <div class="example-item">
-                <h4>Circle</h4>
-                <pre># Draws a circle from the center
-TO circle :radius
-  PU
-  HOME
-  FD :radius
-  LT 90
-  PD
-  
-  MAKE "circumference 2 * 3.14159 * :radius
-  MAKE "side :circumference / 360
-  
-  REPEAT 360 [
-    FD :side
-    LT 1
-  ]
-  
-  PU
-  HOME
-  PD
-END
-
-SETCOLOR "red"
-SETWIDTH 3
-circle 150</pre>
+                <h4>Smooth Circle</h4>
+                <pre># Method 2: Fewer steps for smoother look
+REPEAT 36 [
+  FD 10
+  RT 10
+]</pre>
                 <button class="try-it-btn">Try It</button>
             </div>
             <div class="example-item">
                 <h4>3D Cube</h4>
-                <pre>TO square :size
-  REPEAT 4 [ FD :size RT 90 ]
-END
+                <pre># Draw a cube with 3D perspective
+MAKE "size 60
 
-PU HOME BK 75 LT 90 BK 75 RT 90 PD
+# Front face
+REPEAT 4 [
+  FD :size
+  RT 90
+]
+
+# Move to back face position
+PU
+LT 45
+FD 30
+RT 45
+PD
+
+# Back face
+REPEAT 4 [
+  FD :size
+  RT 90
+]
+
+# Connect corners - go to each front corner and draw to back
+# Bottom left to bottom left
+PU
+HOME
+PD
+LT 45
+FD 30
+
+# Bottom right to bottom right  
+PU
+HOME
+FD :size
+PD
+LT 45
+FD 30
+
+# Top right to top right
+PU
+HOME
+FD :size
+LT 270
+FD :size
+RT 270
+PD
+LT 45
+FD 30
+
+# Top left to top left
+PU
+HOME
+LT 270
+FD :size
+RT 270
+PD
+LT 45
+FD 30</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Simple Tree</h4>
+                <pre># Upright tree with many branches
+MAKE "trunk 80
+
+# Draw trunk upward
+LT 90
+FD :trunk
+
+# Left main branch
+LT 30
+FD 40
+# Left sub-branches
+LT 20
+FD 20
+BK 20
+RT 40
+FD 20
+BK 20
+LT 20
+# Back to trunk
+BK 40
+RT 30
+
+# Right main branch
+RT 30
+FD 40
+# Right sub-branches
+RT 20
+FD 20
+BK 20
+LT 40
+FD 20
+BK 20
+RT 20
+# Back to trunk
+BK 40
+LT 30
+
+# More left branches
+LT 45
+FD 30
+LT 15
+FD 15
+BK 15
+RT 30
+FD 15
+BK 15
+LT 15
+BK 30
+RT 45
+
+# More right branches
+RT 45
+FD 30
+RT 15
+FD 15
+BK 15
+LT 30
+FD 15
+BK 15
+RT 15
+BK 30
+LT 45
+
+# Top branches
+LT 15
+FD 25
+BK 25
+RT 30
+FD 25
+BK 25
+LT 15</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Spiral Pattern</h4>
+                <pre># Simple spiral
+MAKE "distance 2
+MAKE "angle 89
+
+SETWIDTH 0.1
+
+REPEAT 500 [
+  FD :distance
+  RT :angle
+  MAKE "distance :distance + 0.5
+]</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Flower Pattern</h4>
+                <pre># Flower-like pattern
+REPEAT 8 [
+  # Draw a petal
+  REPEAT 30 [
+    FD 2
+    RT 3
+  ]
+  # Return to center and rotate
+  REPEAT 30 [
+    BK 2
+    LT 3
+  ]
+  RT 45
+]</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Mandala</h4>
+                <pre># Symmetrical mandala
+REPEAT 12 [
+  REPEAT 6 [
+    FD 50
+    RT 60
+  ]
+  RT 30
+]
+
+# Add inner pattern
+REPEAT 24 [
+  FD 30
+  BK 30
+  RT 15
+]</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Triangle Fractal</h4>
+                <pre># Sierpinski-inspired triangles
+HOME
+SETCOLOR "black"
 SETWIDTH 2
 
-# Front Face
-SETCOLOR "navy"
-square 100
+PU
+BK 150
+RT 90
+BK 100
+LT 90
+PD
 
-# Back Face
-PU RT 45 FD 50 LT 45 PD
-SETCOLOR "blue"
-square 100
+MAKE "size 200
+REPEAT 3 [FD :size RT 120]
 
-# Connecting Lines
-PU BK 100 PD
-LT 135 FD 50
-PU LT 45 FD 100 PD
-RT 135 FD 50
-PU RT 45 BK 100 PD
-RT 45 FD 50
-PU LT 135 FD 100 PD
-LT 135 FD 50
-PU HOME</pre>
+PU
+HOME
+BK 150
+RT 90  
+BK 100
+LT 90
+PD
+
+MAKE "size 100
+
+REPEAT 3 [FD :size RT 120]
+
+PU
+FD 100
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+HOME
+BK 150
+RT 90
+BK 100
+LT 90
+LT 60
+FD 100
+RT 60
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+HOME
+BK 150
+RT 90
+BK 100
+LT 90
+PD
+
+MAKE "size 50
+
+REPEAT 3 [FD :size RT 120]
+
+PU
+FD 50
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+HOME
+BK 150
+RT 90
+BK 100
+LT 90
+LT 60
+FD 50
+RT 60
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+HOME
+BK 150
+RT 90
+BK 100
+LT 90
+FD 100
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+FD 50
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+HOME
+BK 150
+RT 90
+BK 100
+LT 90
+FD 100
+LT 60
+FD 50
+RT 60
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+HOME
+BK 150
+RT 90
+BK 100
+LT 90
+LT 60
+FD 100
+RT 60
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+FD 50
+PD
+REPEAT 3 [FD :size RT 120]
+
+PU
+HOME
+BK 150
+RT 90
+BK 100
+LT 90
+LT 60
+FD 100
+RT 60
+LT 60
+FD 50
+RT 60
+PD
+REPEAT 3 [FD :size RT 120]</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Letter A</h4>
+                <pre># Draw letter A
+LT 75
+FD 100
+RT 150
+FD 100
+BK 35
+RT 105
+FD 35
+</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Stick Figure</h4>
+                <pre># Simple stick figure
+# Head (approximate circle)
+PU
+FD 0
+PD
+REPEAT 12 [
+  FD 8
+  RT 30
+]
+# Move to body start
+PU
+FD 4
+RT 90
+FD 30
+PD
+# Body
+FD 50
+# Left arm
+BK 40
+LT 45
+FD 35
+BK 35
+RT 90
+# Right arm
+FD 35
+BK 35
+LT 45
+# Continue body
+FD 40
+# Left leg
+LT 45
+FD 40
+BK 40
+RT 90
+# Right leg
+FD 40</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Simple House</h4>
+                <pre># House drawing
+# Base
+REPEAT 4 [
+  FD 80
+  RT 90
+]
+
+# Roof
+LT 45
+FD 56
+RT 90
+FD 56
+RT 135
+
+# Chimney
+PU
+FD 20
+RT 90
+FD 20
+PD
+
+FD 15
+RT 90
+FD 15
+RT 90
+FD 30
+RT 90
+
+# Door
+PU
+FD 30
+LT 90
+FD 50
+PD
+REPEAT 2 [
+  FD 35
+  RT 90
+  FD 15
+  RT 90
+]</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Fibonacci Spiral</h4>
+                <pre># Fibonacci-inspired spiral
+MAKE "size1 5
+MAKE "size2 8
+MAKE "temp 0
+
+REPEAT 8 [
+  # Draw quarter circle with current size
+  REPEAT 25 [
+    FD :size2 / 10
+    RT 4
+  ]
+  
+  # Calculate next Fibonacci number
+  MAKE "temp :size1 + :size2
+  MAKE "size1 :size2
+  MAKE "size2 :temp
+]</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Golden Ratio Squares</h4>
+                <pre># Nested squares pattern
+MAKE "size 100
+
+REPEAT 6 [
+  # Draw square
+  REPEAT 4 [
+    FD :size
+    RT 90
+  ]
+  
+  # Move to next square position
+  PU
+  FD :size * 0.618
+  RT 90
+  FD :size * 0.618
+  LT 90
+  PD
+  
+  # Make smaller square
+  MAKE "size :size * 0.618
+]</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>City Grid</h4>
+                <pre># Simple city map
+MAKE "block 40
+
+# Draw horizontal streets
+REPEAT 4 [
+  FD :block * 4
+  PU
+  BK :block * 4
+  RT 90
+  FD :block
+  LT 90
+  PD
+]
+
+# Reset position for vertical streets
+PU
+HOME
+PD
+
+# Draw vertical streets
+REPEAT 4 [
+  LT 90
+  FD :block * 4
+  PU
+  BK :block * 4
+  RT 90
+  FD :block
+  PD
+]
+
+# Add a building
+PU
+HOME
+FD 10
+RT 90
+FD 10
+LT 90
+PD
+REPEAT 4 [
+  FD 20
+  RT 90
+]</pre>
                 <button class="try-it-btn">Try It</button>
             </div>
         </div>
