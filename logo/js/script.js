@@ -1,298 +1,643 @@
-'use strict';
-
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM Elements ---
+    'use strict';
+
+    // DOM Elements
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const turtleEl = document.getElementById('turtle');
     const codeArea = document.getElementById('codeArea');
-    const codeDisplay = document.getElementById('codeDisplay');
     const logDiv = document.getElementById('log');
     const statusEl = document.getElementById('status');
-    const runBtn = document.getElementById('runBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const speedSlider = document.getElementById('speedSlider');
-    const speedValue = document.getElementById('speedValue');
 
-    // --- State Variables ---
-    let turtle = {};
+    // State
+    let turtle = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        angle: 90,
+        pen: true,
+        color: '#000000',
+        width: 2,
+        visible: true
+    };
+
     let userProcedures = {};
     let variables = {};
+    let savedCode = '';
     let isRunning = false;
     let shouldStop = false;
     let executionSpeed = 5;
+    let currentLine = -1;
+    let codeLines = [];
+    let executionQueue = [];
 
     const colors = {
-        red: '#FF0000', blue: '#0000FF', green: '#00FF00', yellow: '#FFFF00',
-        orange: '#FFA500', purple: '#800080', pink: '#FFC0CB', brown: '#A52A2A',
-        black: '#000000', white: '#FFFFFF', gray: '#808080', cyan: '#00FFFF',
+        red: '#FF0000',
+        blue: '#0000FF',
+        green: '#00FF00',
+        yellow: '#FFFF00',
+        orange: '#FFA500',
+        purple: '#800080',
+        pink: '#FFC0CB',
+        brown: '#A52A2A',
+        black: '#000000',
+        white: '#FFFFFF',
+        gray: '#808080',
+        cyan: '#00FFFF',
         magenta: '#FF00FF'
     };
 
     // --- Core Functions ---
-    const log = (msg) => {
-        logDiv.innerHTML += `> ${msg}<br>`;
-        logDiv.scrollTop = logDiv.scrollHeight;
-    };
 
-    const updateStatus = (msg) => {
+    function updateStatus(msg) {
         statusEl.textContent = msg;
-    };
+    }
 
-    const resetTurtle = () => {
-        turtle = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-            angle: 0, // 0 degrees is "up"
-            pen: true,
-            color: '#000000',
-            width: 2,
-            visible: true,
-        };
+    function log(msg) {
+        logDiv.innerHTML += msg + '<br>';
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function clearLog() {
+        logDiv.innerHTML = '';
+    }
+
+    function resetTurtle() {
+        turtle.x = canvas.width / 2;
+        turtle.y = canvas.height / 2;
+        turtle.angle = 90;
+        turtle.pen = true;
+        turtle.color = '#000000';
+        turtle.width = 2;
+        turtle.visible = true;
+        updateTurtlePosition();
+        updateTurtleColor();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        updateTurtleElement();
-    };
+    }
 
-    const updateTurtleElement = () => {
-        const transitionTime = Math.max(50, 400 / executionSpeed);
-        turtleEl.style.transition = `all ${transitionTime}ms linear`;
-        turtleEl.style.left = `${turtle.x}px`;
-        turtleEl.style.top = `${turtle.y}px`;
+    function updateTurtlePosition() {
+        const rect = canvas.getBoundingClientRect();
+        const wrapRect = document.getElementById('canvasWrap').getBoundingClientRect();
+        const x = (rect.left - wrapRect.left) + turtle.x;
+        const y = (rect.top - wrapRect.top) + turtle.y;
+
+        const transitionTime = Math.max(50, 1000 / executionSpeed);
+        turtleEl.style.transition = `all ${transitionTime}ms ease`;
+
+        turtleEl.style.backgroundColor = turtle.color;
+        turtleEl.style.boxShadow = `0 0 10px ${turtle.color}50`;
+
+        turtleEl.style.left = x + 'px';
+        turtleEl.style.top = y + 'px';
+
+        turtleEl.style.transform = `translate(-10px, -10px)`;
         turtleEl.style.setProperty('--rotation', `${turtle.angle}deg`);
         turtleEl.style.display = turtle.visible ? 'block' : 'none';
-    };
+    }
 
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    function updateTurtleColor() {
+        turtleEl.style.setProperty('--triangle-color', '#333333');
+    }
 
-    const parseValue = (token) => {
+    function highlightCurrentLine(lineNumber) {
+        const oldHighlight = document.querySelector('.highlight-line');
+        if (oldHighlight) {
+            oldHighlight.classList.remove('highlight-line');
+        }
+
+        if (lineNumber >= 0 && lineNumber < codeLines.length) {
+            const lineElements = document.querySelectorAll('#codeDisplay .code-line');
+            if (lineElements[lineNumber]) {
+                lineElements[lineNumber].classList.add('highlight-line');
+            }
+        }
+    }
+
+    function updateCodeDisplay() {
+        const code = codeArea.value;
+        codeLines = code.split('\n');
+        const codeDisplay = document.getElementById('codeDisplay');
+
+        const html = codeLines.map((line, index) =>
+            `<div class="code-line" data-line="${index}">${line || ' '}</div>`
+        ).join('');
+
+        codeDisplay.innerHTML = html;
+        codeDisplay.style.display = isRunning ? 'block' : 'none';
+        codeArea.style.display = isRunning ? 'none' : 'block';
+    }
+
+    function forward(distance) {
+        return new Promise(resolve => {
+            const rad = ((turtle.angle - 90) * Math.PI) / 180;
+            const newX = turtle.x + distance * Math.cos(rad);
+            const newY = turtle.y + distance * Math.sin(rad);
+
+            if (turtle.pen) {
+                ctx.strokeStyle = turtle.color;
+                ctx.lineWidth = turtle.width;
+                ctx.beginPath();
+                ctx.moveTo(turtle.x, turtle.y);
+                ctx.lineTo(newX, newY);
+                ctx.stroke();
+            }
+
+            turtle.x = newX;
+            turtle.y = newY;
+            updateTurtlePosition();
+
+            const delay = Math.max(50, 1000 / executionSpeed);
+            setTimeout(resolve, delay);
+        });
+    }
+
+    function turn(angle) {
+        return new Promise(resolve => {
+            turtle.angle = (turtle.angle + angle) % 360;
+            updateTurtlePosition();
+
+            const delay = Math.max(25, 500 / executionSpeed);
+            setTimeout(resolve, delay);
+        });
+    }
+
+    async function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function home() {
+        return new Promise(resolve => {
+            turtle.x = canvas.width / 2;
+            turtle.y = canvas.height / 2;
+            turtle.angle = 90;
+            updateTurtlePosition();
+            updateTurtleColor();
+            setTimeout(resolve, Math.max(25, 500 / executionSpeed));
+        });
+    }
+
+    function tokenize(code) {
+        const lines = code.split('\n');
+        const tokenizedLines = [];
+
+        lines.forEach((line, lineIndex) => {
+            const cleanLine = line.replace(/#[^\n]*/g, '').trim();
+            if (cleanLine) {
+                const tokens = cleanLine.split(/\s+/).filter(token => token.length > 0);
+                tokens.forEach(token => {
+                    tokenizedLines.push({
+                        token: token,
+                        lineNumber: lineIndex
+                    });
+                });
+            }
+        });
+
+        return tokenizedLines;
+    }
+
+    function parseValue(token) {
         if (!token) return 0;
         if (token.startsWith(':')) {
-            const varName = token.substring(1);
-            if (varName in variables) {
-                return variables[varName];
-            }
-            throw new Error(`Variable :${varName} is not defined.`);
+            return variables[token.substring(1)] || 0;
         }
         const num = parseFloat(token);
         return isNaN(num) ? token : num;
-    };
+    }
 
-    const executeCommand = async (command, args) => {
+    async function executeCommand(command, arg, lineNumber = -1) {
         if (shouldStop) return;
 
-        const cmd = command.toUpperCase();
-        
-        switch (cmd) {
-            case 'FD': case 'FORWARD': {
-                const distance = parseValue(args[0]);
-                const rad = (turtle.angle - 90) * Math.PI / 180; // Convert to math angle
-                const newX = turtle.x + distance * Math.cos(rad);
-                const newY = turtle.y + distance * Math.sin(rad);
-                if (turtle.pen) {
-                    ctx.beginPath();
-                    ctx.moveTo(turtle.x, turtle.y);
-                    ctx.lineTo(newX, newY);
-                    ctx.strokeStyle = turtle.color;
-                    ctx.lineWidth = turtle.width;
-                    ctx.stroke();
-                }
-                turtle.x = newX;
-                turtle.y = newY;
+        if (lineNumber >= 0) {
+            highlightCurrentLine(lineNumber);
+            await sleep(Math.max(100, 200 / executionSpeed));
+        }
+
+        const value = parseValue(arg);
+
+        switch (command.toUpperCase()) {
+            case 'FD':
+            case 'FORWARD':
+                await forward(value);
                 break;
-            }
-            case 'BK': case 'BACKWARD': {
-                const distance = parseValue(args[0]);
-                const rad = (turtle.angle - 90) * Math.PI / 180;
-                const newX = turtle.x - distance * Math.cos(rad);
-                const newY = turtle.y - distance * Math.sin(rad);
-                if (turtle.pen) {
-                    ctx.beginPath();
-                    ctx.moveTo(turtle.x, turtle.y);
-                    ctx.lineTo(newX, newY);
-                    ctx.strokeStyle = turtle.color;
-                    ctx.lineWidth = turtle.width;
-                    ctx.stroke();
-                }
-                turtle.x = newX;
-                turtle.y = newY;
+            case 'BK':
+            case 'BACKWARD':
+                await forward(-value);
                 break;
-            }
-            case 'RT': case 'RIGHT':
-                turtle.angle += parseValue(args[0]);
+            case 'RT':
+            case 'RIGHT':
+                await turn(value);
                 break;
-            case 'LT': case 'LEFT':
-                turtle.angle -= parseValue(args[0]);
+            case 'LT':
+            case 'LEFT':
+                await turn(-value);
                 break;
-            case 'PU': case 'PENUP':
+            case 'PU':
+            case 'PENUP':
                 turtle.pen = false;
+                await sleep(100);
                 break;
-            case 'PD': case 'PENDOWN':
+            case 'PD':
+            case 'PENDOWN':
                 turtle.pen = true;
+                await sleep(100);
                 break;
-            case 'SETCOLOR': {
-                const colorName = parseValue(args[0]).toString().toLowerCase();
-                turtle.color = colors[colorName] || colorName;
+            case 'SETCOLOR':
+                turtle.color = colors[value.toString().toLowerCase()] || value;
+                updateTurtleColor();
+                await sleep(200);
                 break;
-            }
             case 'SETWIDTH':
-                turtle.width = parseValue(args[0]);
+                turtle.width = value;
+                await sleep(100);
                 break;
             case 'CLEAR':
                 resetTurtle();
+                await sleep(200);
                 break;
             case 'HOME':
-                turtle.x = canvas.width / 2;
-                turtle.y = canvas.height / 2;
-                turtle.angle = 0;
+                await home();
                 break;
-            case 'HT': case 'HIDETURTLE':
+            case 'SHOW':
+            case 'PRINT':
+                log('Output: ' + value);
+                await sleep(200);
+                break;
+            case 'HIDETURTLE':
+            case 'HT':
                 turtle.visible = false;
+                updateTurtlePosition();
+                await sleep(100);
                 break;
-            case 'ST': case 'SHOWTURTLE':
+            case 'SHOWTURTLE':
+            case 'ST':
                 turtle.visible = true;
+                updateTurtlePosition();
+                await sleep(100);
                 break;
             default:
-                if (cmd in userProcedures) {
-                    await runProcedure(cmd, args);
+                if (userProcedures[command.toUpperCase()]) {
+                    const proc = userProcedures[command.toUpperCase()];
+                    if (proc.param) {
+                        variables[proc.param] = value;
+                    }
+                    await executeTokens(proc.body);
                 } else {
-                    throw new Error(`Unknown command: ${command}`);
+                    throw new Error('Unknown command: ' + command);
                 }
         }
-        updateTurtleElement();
-        await sleep(Math.max(50, 400 / executionSpeed));
-    };
+    }
 
-    const runProgram = async (code) => {
-        if (isRunning) return;
-        isRunning = true;
-        shouldStop = false;
-        runBtn.disabled = true;
-        stopBtn.disabled = false;
-        logDiv.innerHTML = '';
-        updateStatus('Running...');
-
-        resetTurtle();
-        
-        try {
-            const { procedures, commands } = parseCode(code);
-            userProcedures = procedures;
-            variables = {}; // Global scope
-            await executeBlock(commands, variables);
-            if (!shouldStop) {
-                updateStatus('Complete!');
-                log('Program finished.');
-            }
-        } catch (error) {
-            log(`Error: ${error.message}`);
-            updateStatus('Error');
-        } finally {
-            isRunning = false;
-            runBtn.disabled = false;
-            stopBtn.disabled = true;
-        }
-    };
-    
-    const stopProgram = () => {
-        shouldStop = true;
-        updateStatus('Stopping...');
-        log('Stop requested by user.');
-    };
-    
-    const parseCode = (code) => {
-        const lines = code.split('\n').map(line => line.replace(/#.*/, '').trim()).filter(Boolean);
-        const procedures = {};
-        const commands = [];
-        
+    async function executeTokens(tokenizedInput) {
         let i = 0;
-        while (i < lines.length) {
-            const line = lines[i];
-            const tokens = line.split(/\s+/);
-            
-            if (tokens[0].toUpperCase() === 'TO') {
-                const procName = tokens[1].toUpperCase();
-                const params = tokens.slice(2).filter(t => t.startsWith(':')).map(t => t.substring(1));
-                const body = [];
+
+        let tokens = tokenizedInput;
+        if (Array.isArray(tokenizedInput) && tokenizedInput.length > 0 && typeof tokenizedInput[0] === 'string') {
+            tokens = tokenizedInput.map(token => ({
+                token,
+                lineNumber: -1
+            }));
+        }
+
+        while (i < tokens.length && !shouldStop) {
+            const tokenObj = tokens[i];
+            const token = tokenObj.token;
+            const lineNumber = tokenObj.lineNumber;
+
+            if (token.toUpperCase() === 'TO') {
                 i++;
-                while (i < lines.length && lines[i].toUpperCase().trim() !== 'END') {
-                    body.push(lines[i].trim());
+                const name = tokens[i].token.toUpperCase();
+                i++;
+                let param = null;
+                if (tokens[i] && tokens[i].token.startsWith(':')) {
+                    param = tokens[i].token.substring(1);
                     i++;
                 }
-                procedures[procName] = { params, body };
+
+                const body = [];
+                while (i < tokens.length && tokens[i].token.toUpperCase() !== 'END') {
+                    body.push(tokens[i].token);
+                    i++;
+                }
+
+                userProcedures[name] = {
+                    param,
+                    body
+                };
+            } else if (token.toUpperCase() === 'REPEAT') {
+                if (lineNumber >= 0) {
+                    highlightCurrentLine(lineNumber);
+                    await sleep(Math.max(100, 200 / executionSpeed));
+                }
+
+                i++;
+                const count = parseValue(tokens[i].token);
+                i++;
+                if (tokens[i].token !== '[') {
+                    throw new Error('Expected [ after REPEAT');
+                }
+                i++;
+
+                const body = [];
+                let depth = 1;
+                while (i < tokens.length && depth > 0) {
+                    if (tokens[i].token === '[') depth++;
+                    if (tokens[i].token === ']') depth--;
+                    if (depth > 0) body.push(tokens[i].token);
+                    i++;
+                }
+
+                for (let j = 0; j < count && !shouldStop; j++) {
+                    await executeTokens(body.map(t => ({
+                        token: t,
+                        lineNumber: -1
+                    })));
+                }
+            } else if (token.toUpperCase() === 'MAKE') {
+                if (lineNumber >= 0) {
+                    highlightCurrentLine(lineNumber);
+                    await sleep(Math.max(100, 200 / executionSpeed));
+                }
+
+                i++;
+                const varName = tokens[i].token.replace(/"/g, '');
+                i++;
+                const value = parseValue(tokens[i].token);
+                variables[varName] = value;
+                await sleep(100);
+            } else if (token.toUpperCase() === 'IF') {
+                if (lineNumber >= 0) {
+                    highlightCurrentLine(lineNumber);
+                    await sleep(Math.max(100, 200 / executionSpeed));
+                }
+
+                i++;
+                const condition = parseValue(tokens[i].token);
+                i++;
+                if (tokens[i].token !== '[') {
+                    throw new Error('Expected [ after IF condition');
+                }
+                i++;
+
+                const body = [];
+                let depth = 1;
+                while (i < tokens.length && depth > 0) {
+                    if (tokens[i].token === '[') depth++;
+                    if (tokens[i].token === ']') depth--;
+                    if (depth > 0) body.push(tokens[i].token);
+                    i++;
+                }
+
+                if (condition) {
+                    await executeTokens(body.map(t => ({
+                        token: t,
+                        lineNumber: -1
+                    })));
+                }
             } else {
-                commands.push(line);
+                const nextToken = tokens[i + 1];
+                await executeCommand(token, nextToken ? nextToken.token : undefined, lineNumber);
+                if (nextToken && (nextToken.token.startsWith(':') || !isNaN(parseFloat(nextToken.token)) || colors[nextToken.token])) {
+                    i++;
+                }
             }
             i++;
         }
-        return { procedures, commands };
-    };
+    }
 
-    const executeBlock = async (commandLines, localVariables) => {
-        for (const line of commandLines) {
-            if (shouldStop) return;
-            const tokens = line.split(/\s+/);
-            const cmd = tokens[0].toUpperCase();
-            
-            // Create a new scope for this execution, inheriting from the parent
-            const scope = Object.create(localVariables);
+    async function runProgram() {
+        if (isRunning) return;
 
-            if (cmd === 'MAKE') {
-                const varName = tokens[1].replace(/"/g, '');
-                const value = parseValue(tokens[2]);
-                localVariables[varName] = value;
-            } else if (cmd === 'REPEAT') {
-                const count = parseValue(tokens[1]);
-                const blockStartIndex = line.indexOf('[');
-                const blockEndIndex = line.lastIndexOf(']');
-                const blockCode = line.substring(blockStartIndex + 1, blockEndIndex).trim();
-                for (let i = 0; i < count; i++) {
-                    if (shouldStop) return;
-                    await executeBlock([blockCode], scope);
-                }
+        clearLog();
+        updateStatus('Running...');
+        resetTurtle();
+        userProcedures = {};
+        variables = {};
+        isRunning = true;
+        shouldStop = false;
+
+        document.getElementById('runBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+
+        updateCodeDisplay();
+
+        try {
+            const code = codeArea.value;
+            const tokens = tokenize(code);
+            await executeTokens(tokens);
+
+            if (!shouldStop) {
+                updateStatus('Complete!');
+                log('Program finished successfully!');
             } else {
-                 if (cmd in userProcedures) {
-                    await runProcedure(cmd, tokens.slice(1), scope);
-                } else {
-                    await executeCommand(cmd, tokens.slice(1));
-                }
+                updateStatus('Stopped');
+                log('Program stopped by user');
             }
+        } catch (error) {
+            updateStatus('Error');
+            log('Error: ' + error.message);
+        } finally {
+            isRunning = false;
+            shouldStop = false;
+            highlightCurrentLine(-1);
+
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+
+            updateCodeDisplay();
         }
-    };
+    }
 
-    async function runProcedure(procName, args, callingScope) {
-        const proc = userProcedures[procName];
-        if (!proc) throw new Error(`Procedure ${procName} not found.`);
-
-        // Create a new, isolated scope for the procedure
-        const procedureScope = {}; 
-        
-        // Assign arguments to parameters in the new scope
-        proc.params.forEach((paramName, index) => {
-            const argValue = parseValue(args[index]);
-            procedureScope[paramName] = argValue;
-        });
-        
-        // Set the prototype to the calling scope to allow reading global variables
-        Object.setPrototypeOf(procedureScope, callingScope);
-        
-        await executeBlock(proc.body, procedureScope);
+    function stopProgram() {
+        shouldStop = true;
+        updateStatus('Stopping...');
     }
 
     // --- Event Listeners ---
-    runBtn.addEventListener('click', () => runProgram(codeArea.value));
-    stopBtn.addEventListener('click', stopProgram);
+
+    document.getElementById('runBtn').addEventListener('click', runProgram);
+    document.getElementById('stopBtn').addEventListener('click', stopProgram);
 
     document.getElementById('clearBtn').addEventListener('click', () => {
         resetTurtle();
-        log('Canvas cleared.');
-        updateStatus('Ready');
+        updateStatus('Canvas cleared');
+        log('Canvas cleared');
     });
 
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = document.getElementById('speedValue');
+
     speedSlider.addEventListener('input', (e) => {
-        executionSpeed = parseInt(e.target.value, 10);
+        executionSpeed = parseInt(e.target.value);
         speedValue.textContent = executionSpeed;
     });
 
-    // --- Initial Setup ---
+    document.getElementById('toggleTurtleBtn').addEventListener('click', () => {
+        turtle.visible = !turtle.visible;
+        updateTurtlePosition();
+        const btn = document.getElementById('toggleTurtleBtn');
+        btn.textContent = turtle.visible ? '👁️ Hide Turtle' : '👁️ Show Turtle';
+        log(turtle.visible ? 'Turtle is now visible' : 'Turtle is now hidden');
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+        try {
+            updateStatus('Exporting...');
+
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            const exportCtx = exportCanvas.getContext('2d');
+
+            exportCtx.fillStyle = 'white';
+            exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            exportCtx.drawImage(canvas, 0, 0);
+
+            exportCanvas.toBlob(async (blob) => {
+                try {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'neologo-drawing.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+
+                    updateStatus('Exported!');
+                    log('Drawing exported as PNG image');
+
+                    const shouldPrint = confirm('Drawing exported! Would you also like to print it?');
+                    if (shouldPrint) {
+                        printDrawing();
+                    }
+                } catch (error) {
+                    updateStatus('Export failed');
+                    log('Export failed: ' + error.message);
+                }
+            }, 'image/png');
+
+        } catch (error) {
+            updateStatus('Export failed');
+            log('Export failed: ' + error.message);
+        }
+    });
+
+    function printDrawing() {
+        try {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+          <html>
+            <head>
+              <title>NeoLogo Drawing</title>
+              <style>
+                body { margin: 0; padding: 20px; text-align: center; }
+                canvas { border: 1px solid #ccc; max-width: 100%; height: auto; }
+                @media print {
+                  body { margin: 0; padding: 10px; }
+                  canvas { max-width: 100%; height: auto; }
+                }
+              </style>
+            </head>
+            <body>
+              <h2>NeoLogo Drawing</h2>
+              <canvas id="printCanvas" width="${canvas.width}" height="${canvas.height}"></canvas>
+              <script>
+                const printCanvas = document.getElementById('printCanvas');
+                const printCtx = printCanvas.getContext('2d');
+                printCtx.fillStyle = 'white';
+                printCtx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+              </script>
+            </body>
+          </html>
+        `);
+
+            printWindow.document.close();
+
+            printWindow.onload = () => {
+                const printCanvas = printWindow.document.getElementById('printCanvas');
+                const printCtx = printCanvas.getContext('2d');
+                printCtx.drawImage(canvas, 0, 0);
+
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+            };
+
+            log('Opening print dialog...');
+        } catch (error) {
+            log('Print failed: ' + error.message);
+        }
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        savedCode = codeArea.value;
+        updateStatus('Saved');
+        log('Code saved to memory');
+    });
+
+    document.getElementById('loadBtn').addEventListener('click', () => {
+        if (savedCode) {
+            codeArea.value = savedCode;
+            updateStatus('Loaded');
+            log('Code loaded from memory');
+        } else {
+            log('No saved code found');
+        }
+    });
+
+    document.getElementById('shareBtn').addEventListener('click', () => {
+        try {
+            const code = btoa(encodeURIComponent(codeArea.value));
+            const url = window.location.origin + window.location.pathname + '?code=' + code;
+            navigator.clipboard.writeText(url).then(() => {
+                updateStatus('Link copied!');
+                log('Share link copied to clipboard');
+            });
+        } catch (error) {
+            log('Failed to create share link');
+        }
+    });
+
+    document.getElementById('helpBtn').addEventListener('click', () => {
+        document.getElementById('instructions').style.display = 'block';
+    });
+
+    document.getElementById('closeInstructions').addEventListener('click', () => {
+        document.getElementById('instructions').style.display = 'none';
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            runProgram();
+        }
+        if (e.key === 'Escape') {
+            document.getElementById('instructions').style.display = 'none';
+        }
+    });
+
+    document.getElementById('instructions').addEventListener('click', (e) => {
+        if (e.target.id === 'instructions') {
+            document.getElementById('instructions').style.display = 'none';
+        }
+    });
+
+    // --- Initial Load ---
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedCode = urlParams.get('code');
+    if (sharedCode) {
+        try {
+            codeArea.value = decodeURIComponent(atob(sharedCode));
+            updateStatus('Shared code loaded');
+        } catch (error) {
+            log('Failed to load shared code');
+        }
+    }
+
     resetTurtle();
     updateStatus('Ready');
+
+    window.addEventListener('resize', updateTurtlePosition);
 });
