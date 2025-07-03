@@ -40,11 +40,20 @@ body {
 
 #speedSlider {
     width: 80px;
+    vertical-align: middle;
 }
 
 #speedLabel {
     font-size: 11px;
     color: #fff;
+    vertical-align: middle;
+}
+
+#speedValue {
+    font-size: 11px;
+    vertical-align: middle;
+    width: 12px; /* Give it a fixed width */
+    text-align: center;
 }
 
 #toolbar button {
@@ -133,15 +142,6 @@ body {
     100% { background-color: #3a4a5c; }
 }
 
-#statusBar {
-    background-color: #f0f0f0;
-    padding: 4px 8px;
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    font-size: 12px;
-    color: #333;
-}
-
 #log {
     height: 120px;
     overflow: auto;
@@ -150,6 +150,7 @@ body {
     background: #1a1a1a;
     color: #00ff00;
     font-family: 'Consolas', 'Monaco', monospace;
+    border-top: 1px solid #ddd;
 }
 
 #canvasWrap {
