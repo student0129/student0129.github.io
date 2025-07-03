@@ -1,203 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeoLogo — Full IDE</title>
-  <style>
-    :root {
-      --toolbar: #0033a0;
-      --accent: #ffd700;
-    }
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      font-family: system-ui;
-      background: #f4f4f4;
-    }
-    #sidebar {
-      width: 350px;
-      display: flex;
-      flex-direction: column;
-      border-right: 2px solid #ddd;
-      background: #fff;
-    }
-    #toolbar {
-      background: var(--toolbar);
-      color: #fff;
-      padding: 8px;
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-    #toolbar button {
-      border: none;
-      padding: 6px 12px;
-      background: var(--accent);
-      cursor: pointer;
-      border-radius: 4px;
-      color: #000;
-      font-weight: 600;
-      font-size: 12px;
-    }
-    #toolbar button:hover {
-      background: #ffed4e;
-    }
-    #toolbar button:disabled {
-      background: #999;
-      color: #eee;
-      cursor: not-allowed;
-    }
-    #editor {
-      flex: 1;
-      overflow: hidden;
-      background: #282c34;
-      color: #abb2bf;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 14px;
-    }
-    #codeArea {
-      width: 100%;
-      height: 100%;
-      background: #282c34;
-      color: #abb2bf;
-      border: none;
-      padding: 10px;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 14px;
-      resize: none;
-      outline: none;
-    }
-    #canvasWrap {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      background: #f8f8f8;
-    }
-    #canvas {
-      border: 2px solid #ccc;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    #turtle {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background: #00ff00;
-      border-radius: 50%;
-      transform: translate(-10px, -10px);
-      pointer-events: none;
-      transition: all 0.1s ease;
-      z-index: 10;
-    }
-    #turtle::before {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 0;
-      border-left: 4px solid transparent;
-      border-right: 4px solid transparent;
-      border-bottom: 8px solid #008000;
-      top: -2px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    #log {
-      height: 120px;
-      overflow: auto;
-      font-size: 12px;
-      padding: 8px;
-      background: #1a1a1a;
-      color: #00ff00;
-      font-family: 'Consolas', 'Monaco', monospace;
-      border-top: 1px solid #333;
-    }
-    #instructions {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      z-index: 1000;
-      overflow: auto;
-    }
-    #instructionsContent {
-      background: #fff;
-      margin: 20px auto;
-      padding: 30px;
-      max-width: 800px;
-      border-radius: 8px;
-      font-family: system-ui;
-      line-height: 1.6;
-    }
-    #instructionsContent h2 {
-      color: var(--toolbar);
-      margin-top: 0;
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 10px;
-    }
-    #instructionsContent h3 {
-      color: #333;
-      margin-top: 25px;
-    }
-    #instructionsContent code {
-      background: #f0f0f0;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 13px;
-    }
-    #instructionsContent pre {
-      background: #f8f8f8;
-      padding: 15px;
-      border-radius: 4px;
-      overflow-x: auto;
-      border-left: 4px solid var(--toolbar);
-    }
-    #closeInstructions {
-      float: right;
-      background: var(--toolbar);
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    #closeInstructions:hover {
-      background: #002080;
-    }
-    .status {
-      padding: 4px 8px;
-      font-size: 11px;
-      background: #333;
-      color: #fff;
-      border-radius: 3px;
-      margin-left: auto;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeoLogo — Full IDE</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="sidebar">
-    <div id="toolbar">
-      <button id="runBtn">▶ Run</button>
-      <button id="clearBtn">🗑 Clear</button>
-      <button id="saveBtn">💾 Save</button>
-      <button id="loadBtn">📁 Load</button>
-      <button id="shareBtn">🔗 Share</button>
-      <button id="helpBtn">❓ Help</button>
-      <span class="status" id="status">Ready</span>
-    </div>
-    <div id="editor">
-      <textarea id="codeArea" placeholder="Enter your Logo code here...">
+    <div id="sidebar">
+        <div id="toolbar">
+            <button id="runBtn">▶ Run</button>
+            <button id="stopBtn" disabled>⏹ Stop</button>
+            <button id="clearBtn">🗑 Clear Canvas</button>
+            <button id="saveBtn">💾 Save</button>
+            <button id="loadBtn">📁 Load</button>
+            <button id="shareBtn">🔗 Share</button>
+            <button id="exportBtn">📄 Export</button>
+            <button id="toggleTurtleBtn">👁️ Hide Turtle</button>
+            <button id="helpBtn">❓ Help</button>
+            <div id="speedControl">
+                <span id="speedLabel">Speed:</span>
+                <input type="range" id="speedSlider" min="1" max="10" value="5">
+                <span id="speedValue">5</span>
+            </div>
+            <span class="status" id="status">Ready</span>
+        </div>
+        <div id="editor">
+            <div id="codeDisplay"></div>
+            <textarea id="codeArea" placeholder="Enter your Logo code here...">
 # Welcome to NeoLogo!
-# Edit this code and click 'Run' to see the turtle draw
+# Edit this code and click 'Run' to see the turtle draw.
+# Use the speed slider to control animation speed.
 
 TO square :size
   REPEAT 4 [ FD :size RT 90 ]
@@ -206,463 +39,79 @@ END
 CLEAR
 SETCOLOR blue
 square 100
-
-# Try changing the size or color!
-# SETCOLOR red
-# square 150</textarea>
+            </textarea>
+        </div>
+        <div id="log"></div>
     </div>
-    <div id="log"></div>
-  </div>
 
-  <div id="canvasWrap">
-    <canvas id="canvas" width="800" height="600"></canvas>
-    <div id="turtle"></div>
-  </div>
+    <div id="canvasWrap">
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div id="turtle"></div>
+    </div>
 
-  <div id="instructions">
-    <div id="instructionsContent">
-      <button id="closeInstructions">✕ Close</button>
-      <h2>🐢 NeoLogo Instructions</h2>
-      
-      <h3>🎯 Quick Start</h3>
-      <p>1. <strong>Write code</strong> in the left text area<br>
-         2. <strong>Click "Run"</strong> or press <strong>Ctrl+Enter</strong><br>
-         3. <strong>Watch the turtle</strong> draw on the canvas!</p>
-      
-      <h3>📐 Basic Movement</h3>
-      <ul>
-        <li><code>FD 100</code> - Move forward 100 pixels</li>
-        <li><code>BK 50</code> - Move backward 50 pixels</li>
-        <li><code>RT 90</code> - Turn right 90 degrees</li>
-        <li><code>LT 45</code> - Turn left 45 degrees</li>
-        <li><code>HOME</code> - Return to center, face up</li>
-      </ul>
+    <div id="instructions">
+        <div id="instructionsContent">
+            <button id="closeInstructions">✕ Close</button>
+            <h2>🐢 NeoLogo Instructions</h2>
+            
+            <h3>🎯 Quick Start</h3>
+            <p>
+                1. <strong>Write code</strong> in the editor on the left.<br>
+                2. <strong>Click "Run"</strong> or press <strong>Ctrl+Enter</strong>.<br>
+                3. <strong>Watch the turtle</strong> draw on the canvas!
+            </p>
+            
+            <h3>🐢 Turtle Commands</h3>
+            <ul>
+                <li><code>HIDETURTLE</code> or <code>HT</code> - Hides the turtle.</li>
+                <li><code>SHOWTURTLE</code> or <code>ST</code> - Shows the turtle.</li>
+            </ul>
 
-      <h3>🖊 Pen Control</h3>
-      <ul>
-        <li><code>PU</code> - Pen up (move without drawing)</li>
-        <li><code>PD</code> - Pen down (draw while moving)</li>
-        <li><code>SETCOLOR red</code> - Change pen color</li>
-        <li><code>SETWIDTH 5</code> - Change pen thickness</li>
-      </ul>
+            <h3>📐 Basic Movement</h3>
+            <ul>
+                <li><code>FD 100</code> - Moves forward 100 pixels.</li>
+                <li><code>BK 50</code> - Moves backward 50 pixels.</li>
+                <li><code>RT 90</code> - Turns right 90 degrees.</li>
+                <li><code>LT 45</code> - Turns left 45 degrees.</li>
+                <li><code>HOME</code> - Returns to the center, facing up.</li>
+            </ul>
 
-      <h3>🎨 Available Colors</h3>
-      <p>red, blue, green, yellow, orange, purple, pink, brown, black, white, gray, cyan, magenta</p>
+            <h3>🖊️ Pen Control</h3>
+            <ul>
+                <li><code>PU</code> - Lifts the pen (moves without drawing).</li>
+                <li><code>PD</code> - Lowers the pen (draws while moving).</li>
+                <li><code>SETCOLOR red</code> - Changes the pen color.</li>
+                <li><code>SETWIDTH 5</code> - Changes the pen thickness.</li>
+            </ul>
 
-      <h3>🔄 Loops & Procedures</h3>
-      <pre>REPEAT 6 [ FD 100 RT 60 ]  # Draw hexagon
+            <h3>🎨 Available Colors</h3>
+            <p>red, blue, green, yellow, orange, purple, pink, brown, black, white, gray, cyan, magenta</p>
+
+            <h3>🔄 Loops & Procedures</h3>
+            <pre>
+REPEAT 6 [ FD 100 RT 60 ]  # Draws a hexagon
 
 TO star
   REPEAT 5 [ FD 100 RT 144 ]
 END
-star  # Call the procedure</pre>
 
-      <h3>🔢 Variables</h3>
-      <pre>MAKE "size 50
-FD :size  # Use variable with colon</pre>
+star  # Calls the procedure
+            </pre>
 
-      <h3>✨ Example Programs</h3>
-      
-      <h4>Colorful Spiral:</h4>
-      <pre>TO spiral :n
-  IF :n > 5 [
-    FD :n
-    RT 91
-    spiral :n - 3
-  ]
-END
+            <h3>🔢 Variables</h3>
+            <pre>
+MAKE "size 50
+FD :size  # Use the variable with a colon
+            </pre>
 
-CLEAR
-SETCOLOR purple
-spiral 100</pre>
-
-      <h4>Flower:</h4>
-      <pre>TO petal
-  REPEAT 2 [
-    FD 50
-    RT 60
-    FD 50
-    RT 120
-  ]
-END
-
-TO flower
-  REPEAT 8 [
-    petal
-    RT 45
-  ]
-END
-
-CLEAR
-SETCOLOR pink
-flower</pre>
-
-      <h3>⌨️ Keyboard Shortcuts</h3>
-      <ul>
-        <li><strong>Ctrl+Enter</strong> - Run program</li>
-        <li><strong>Escape</strong> - Close this help</li>
-      </ul>
-
-      <h3>💡 Tips</h3>
-      <ul>
-        <li>Use <code>#</code> for comments</li>
-        <li>Commands are case-insensitive</li>
-        <li>Check the log area for errors</li>
-        <li>Try the example programs!</li>
-      </ul>
+            <h3>⌨️ Keyboard Shortcuts</h3>
+            <ul>
+                <li><strong>Ctrl+Enter</strong> - Runs the program.</li>
+                <li><strong>Escape</strong> - Closes this help menu.</li>
+            </ul>
+        </div>
     </div>
-  </div>
 
-  <script>
-    // Simple Logo interpreter - no external dependencies
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const turtleEl = document.getElementById('turtle');
-    const codeArea = document.getElementById('codeArea');
-    const logDiv = document.getElementById('log');
-    const statusEl = document.getElementById('status');
-
-    let turtle = {
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      angle: 0,
-      pen: true,
-      color: '#000000',
-      width: 2
-    };
-
-    let userProcedures = {};
-    let variables = {};
-    let savedCode = '';
-
-    // Color mapping
-    const colors = {
-      red: '#FF0000', blue: '#0000FF', green: '#00FF00', yellow: '#FFFF00',
-      orange: '#FFA500', purple: '#800080', pink: '#FFC0CB', brown: '#A52A2A',
-      black: '#000000', white: '#FFFFFF', gray: '#808080', cyan: '#00FFFF',
-      magenta: '#FF00FF'
-    };
-
-    function updateStatus(msg) {
-      statusEl.textContent = msg;
-    }
-
-    function log(msg) {
-      logDiv.innerHTML += msg + '<br>';
-      logDiv.scrollTop = logDiv.scrollHeight;
-    }
-
-    function clearLog() {
-      logDiv.innerHTML = '';
-    }
-
-    function resetTurtle() {
-      turtle.x = canvas.width / 2;
-      turtle.y = canvas.height / 2;
-      turtle.angle = 0;
-      turtle.pen = true;
-      turtle.color = '#000000';
-      turtle.width = 2;
-      updateTurtlePosition();
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function updateTurtlePosition() {
-      const rect = canvas.getBoundingClientRect();
-      const wrapRect = document.getElementById('canvasWrap').getBoundingClientRect();
-      const x = (rect.left - wrapRect.left) + turtle.x;
-      const y = (rect.top - wrapRect.top) + turtle.y;
-      
-      turtleEl.style.left = x + 'px';
-      turtleEl.style.top = y + 'px';
-      turtleEl.style.transform = `translate(-10px, -10px) rotate(${turtle.angle}deg)`;
-    }
-
-    function forward(distance) {
-      const rad = (turtle.angle * Math.PI) / 180;
-      const newX = turtle.x + distance * Math.cos(rad);
-      const newY = turtle.y + distance * Math.sin(rad);
-
-      if (turtle.pen) {
-        ctx.strokeStyle = turtle.color;
-        ctx.lineWidth = turtle.width;
-        ctx.beginPath();
-        ctx.moveTo(turtle.x, turtle.y);
-        ctx.lineTo(newX, newY);
-        ctx.stroke();
-      }
-
-      turtle.x = newX;
-      turtle.y = newY;
-      updateTurtlePosition();
-    }
-
-    function turn(angle) {
-      turtle.angle = (turtle.angle + angle) % 360;
-      updateTurtlePosition();
-    }
-
-    function home() {
-      turtle.x = canvas.width / 2;
-      turtle.y = canvas.height / 2;
-      turtle.angle = 0;
-      updateTurtlePosition();
-    }
-
-    function tokenize(code) {
-      return code.replace(/#[^\n]*/g, '') // Remove comments
-                 .split(/\s+/)
-                 .filter(token => token.length > 0);
-    }
-
-    function parseValue(token) {
-      if (!token) return 0;
-      if (token.startsWith(':')) {
-        return variables[token.substring(1)] || 0;
-      }
-      const num = parseFloat(token);
-      return isNaN(num) ? token : num;
-    }
-
-    function executeCommand(command, arg) {
-      const value = parseValue(arg);
-      
-      switch (command.toUpperCase()) {
-        case 'FD':
-        case 'FORWARD':
-          forward(value);
-          break;
-        case 'BK':
-        case 'BACKWARD':
-          forward(-value);
-          break;
-        case 'RT':
-        case 'RIGHT':
-          turn(value);
-          break;
-        case 'LT':
-        case 'LEFT':
-          turn(-value);
-          break;
-        case 'PU':
-        case 'PENUP':
-          turtle.pen = false;
-          break;
-        case 'PD':
-        case 'PENDOWN':
-          turtle.pen = true;
-          break;
-        case 'SETCOLOR':
-          turtle.color = colors[value.toString().toLowerCase()] || value;
-          break;
-        case 'SETWIDTH':
-          turtle.width = value;
-          break;
-        case 'CLEAR':
-          resetTurtle();
-          break;
-        case 'HOME':
-          home();
-          break;
-        case 'SHOW':
-        case 'PRINT':
-          log('Output: ' + value);
-          break;
-        default:
-          if (userProcedures[command.toUpperCase()]) {
-            const proc = userProcedures[command.toUpperCase()];
-            if (proc.param) {
-              variables[proc.param] = value;
-            }
-            executeTokens(proc.body);
-          } else {
-            throw new Error('Unknown command: ' + command);
-          }
-      }
-    }
-
-    function executeTokens(tokens) {
-      let i = 0;
-      
-      while (i < tokens.length) {
-        const token = tokens[i];
-        
-        if (token.toUpperCase() === 'TO') {
-          i++;
-          const name = tokens[i].toUpperCase();
-          i++;
-          let param = null;
-          if (tokens[i] && tokens[i].startsWith(':')) {
-            param = tokens[i].substring(1);
-            i++;
-          }
-          
-          const body = [];
-          while (i < tokens.length && tokens[i].toUpperCase() !== 'END') {
-            body.push(tokens[i]);
-            i++;
-          }
-          
-          userProcedures[name] = { param, body };
-        } else if (token.toUpperCase() === 'REPEAT') {
-          i++;
-          const count = parseValue(tokens[i]);
-          i++;
-          if (tokens[i] !== '[') {
-            throw new Error('Expected [ after REPEAT');
-          }
-          i++;
-          
-          const body = [];
-          let depth = 1;
-          while (i < tokens.length && depth > 0) {
-            if (tokens[i] === '[') depth++;
-            if (tokens[i] === ']') depth--;
-            if (depth > 0) body.push(tokens[i]);
-            i++;
-          }
-          
-          for (let j = 0; j < count; j++) {
-            executeTokens(body);
-          }
-        } else if (token.toUpperCase() === 'MAKE') {
-          i++;
-          const varName = tokens[i].replace(/"/g, '');
-          i++;
-          const value = parseValue(tokens[i]);
-          variables[varName] = value;
-        } else if (token.toUpperCase() === 'IF') {
-          i++;
-          const condition = parseValue(tokens[i]);
-          i++;
-          if (tokens[i] !== '[') {
-            throw new Error('Expected [ after IF condition');
-          }
-          i++;
-          
-          const body = [];
-          let depth = 1;
-          while (i < tokens.length && depth > 0) {
-            if (tokens[i] === '[') depth++;
-            if (tokens[i] === ']') depth--;
-            if (depth > 0) body.push(tokens[i]);
-            i++;
-          }
-          
-          if (condition) {
-            executeTokens(body);
-          }
-        } else {
-          executeCommand(token, tokens[i + 1]);
-          if (tokens[i + 1] && (tokens[i + 1].startsWith(':') || !isNaN(parseFloat(tokens[i + 1])) || colors[tokens[i + 1]])) {
-            i++;
-          }
-        }
-        i++;
-      }
-    }
-
-    function runProgram() {
-      clearLog();
-      updateStatus('Running...');
-      resetTurtle();
-      userProcedures = {};
-      variables = {};
-      
-      try {
-        const code = codeArea.value;
-        const tokens = tokenize(code);
-        executeTokens(tokens);
-        updateStatus('Complete!');
-        log('Program finished successfully!');
-      } catch (error) {
-        updateStatus('Error');
-        log('Error: ' + error.message);
-      }
-    }
-
-    // Event listeners
-    document.getElementById('runBtn').addEventListener('click', runProgram);
-    
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      resetTurtle();
-      clearLog();
-      updateStatus('Cleared');
-    });
-
-    document.getElementById('saveBtn').addEventListener('click', () => {
-      savedCode = codeArea.value;
-      updateStatus('Saved');
-      log('Code saved to memory');
-    });
-
-    document.getElementById('loadBtn').addEventListener('click', () => {
-      if (savedCode) {
-        codeArea.value = savedCode;
-        updateStatus('Loaded');
-        log('Code loaded from memory');
-      } else {
-        log('No saved code found');
-      }
-    });
-
-    document.getElementById('shareBtn').addEventListener('click', () => {
-      try {
-        const code = btoa(encodeURIComponent(codeArea.value));
-        const url = window.location.origin + window.location.pathname + '?code=' + code;
-        navigator.clipboard.writeText(url).then(() => {
-          updateStatus('Link copied!');
-          log('Share link copied to clipboard');
-        });
-      } catch (error) {
-        log('Failed to create share link');
-      }
-    });
-
-    document.getElementById('helpBtn').addEventListener('click', () => {
-      document.getElementById('instructions').style.display = 'block';
-    });
-
-    document.getElementById('closeInstructions').addEventListener('click', () => {
-      document.getElementById('instructions').style.display = 'none';
-    });
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.key === 'Enter') {
-        e.preventDefault();
-        runProgram();
-      }
-      if (e.key === 'Escape') {
-        document.getElementById('instructions').style.display = 'none';
-      }
-    });
-
-    // Close instructions when clicking outside
-    document.getElementById('instructions').addEventListener('click', (e) => {
-      if (e.target.id === 'instructions') {
-        document.getElementById('instructions').style.display = 'none';
-      }
-    });
-
-    // Load shared code
-    const urlParams = new URLSearchParams(window.location.search);
-    const sharedCode = urlParams.get('code');
-    if (sharedCode) {
-      try {
-        codeArea.value = decodeURIComponent(atob(sharedCode));
-        updateStatus('Shared code loaded');
-      } catch (error) {
-        log('Failed to load shared code');
-      }
-    }
-
-    // Initialize
-    resetTurtle();
-    updateStatus('Ready');
-    
-    // Handle window resize
-    window.addEventListener('resize', updateTurtlePosition);
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
