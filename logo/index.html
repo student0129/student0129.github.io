@@ -11,11 +11,11 @@
         <div id="toolbar">
             <button id="runBtn">▶ Run</button>
             <button id="stopBtn" disabled>⏹ Stop</button>
-            <button id="clearBtn">🗑 Clear Canvas</button>
+            <button id="clearBtn">🗑 Clear All</button>
             <button id="saveBtn">💾 Save</button>
             <button id="loadBtn">📁 Load</button>
-            <button id="shareBtn">🔗 Share</button>
-            <button id="exportBtn">📄 Export PDF</button>
+            <input type="file" id="fileInput" accept=".txt,.logo" style="display: none;" />
+            <button id="examplesBtn">✨ Examples</button>
             <button id="toggleTurtleBtn">👁️ Hide Turtle</button>
             <button id="helpBtn">❓ Help</button>
             <div id="speedControl">
@@ -37,22 +37,20 @@
         <div id="turtle"></div>
     </div>
 
+    <!-- Instructions Modal -->
     <div id="instructions">
         <div id="instructionsContent">
-            <button id="closeInstructions">✕ Close</button>
+            <button class="close-modal-btn">✕ Close</button>
             <h2>🐢 NeoLogo Instructions</h2>
-
             <h3>🎯 Quick Start</h3>
             <p>1. <strong>Write code</strong> in the left text area<br>
                 2. <strong>Click "Run"</strong> or press <strong>Ctrl+Enter</strong><br>
                 3. <strong>Watch the turtle</strong> draw on the canvas!</p>
-
             <h3>🐢 Turtle Commands</h3>
             <ul>
                 <li><code>HIDETURTLE</code> or <code>HT</code> - Hide the turtle</li>
                 <li><code>SHOWTURTLE</code> or <code>ST</code> - Show the turtle</li>
             </ul>
-
             <h3>📐 Basic Movement</h3>
             <ul>
                 <li><code>FD 100</code> - Move forward 100 pixels</li>
@@ -61,7 +59,6 @@
                 <li><code>LT 45</code> - Turn left 45 degrees</li>
                 <li><code>HOME</code> - Return to center, face up</li>
             </ul>
-
             <h3>🖊 Pen Control</h3>
             <ul>
                 <li><code>PU</code> - Pen up (move without drawing)</li>
@@ -69,71 +66,112 @@
                 <li><code>SETCOLOR red</code> - Change pen color</li>
                 <li><code>SETWIDTH 5</code> - Change pen thickness</li>
             </ul>
-
-            <h3>🎨 Available Colors</h3>
-            <p>red, blue, green, yellow, orange, purple, pink, brown, black, white, gray, cyan, magenta</p>
-
-            <h3>🔄 Loops & Procedures</h3>
-            <pre>REPEAT 6 [ FD 100 RT 60 ]  # Draw hexagon
-
-TO star
-  REPEAT 5 [ FD 100 RT 144 ]
-END
-star  # Call the procedure</pre>
-
-            <h3>🔢 Variables</h3>
+            <h3>🔢 Variables & Loops</h3>
             <pre>MAKE "size 50
-FD :size  # Use variable with colon</pre>
+FD :size
 
-            <h3>✨ Example Programs</h3>
-
-            <h4>Colorful Spiral:</h4>
-            <pre>TO spiral :n
-  IF :n > 5 [
-    FD :n
-    RT 91
-    spiral :n - 3
-  ]
-END
-
-CLEAR
-SETCOLOR purple
-spiral 100</pre>
-
-            <h4>Flower:</h4>
-            <pre>TO petal
-  REPEAT 2 [
-    FD 50
-    RT 60
-    FD 50
-    RT 120
-  ]
-END
-
-TO flower
-  REPEAT 8 [
-    petal
-    RT 45
-  ]
-END
-
-CLEAR
-SETCOLOR pink
-flower</pre>
-
+REPEAT 4 [ FD 50 RT 90 ]</pre>
             <h3>⌨️ Keyboard Shortcuts</h3>
             <ul>
                 <li><strong>Ctrl+Enter</strong> - Run program</li>
                 <li><strong>Escape</strong> - Close this help</li>
             </ul>
+        </div>
+    </div>
 
-            <h3>💡 Tips</h3>
-            <ul>
-                <li>Use <code>#</code> for comments</li>
-                <li>Commands are case-insensitive</li>
-                <li>Check the log area for errors</li>
-                <li>Try the example programs!</li>
-            </ul>
+    <!-- Examples Modal -->
+    <div id="examplesModal">
+        <div id="examplesContent">
+            <button class="close-modal-btn">✕ Close</button>
+            <h2>✨ Code Examples</h2>
+            <div class="example-item">
+                <h4>Colorful Spiral</h4>
+                <pre>TO spiral :n
+  IF :n > 150 [ STOP ]
+  SETCOLOR (list "red "orange "yellow "green "blue "purple)
+  FD :n
+  RT 59
+  spiral :n + 2
+END
+
+spiral 10</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Flower</h4>
+                <pre>TO petal
+  REPEAT 2 [
+    REPEAT 30 [ FD 5 RT 3 ]
+    RT 90
+  ]
+END
+
+TO flower
+  REPEAT 12 [
+    petal
+    RT 30
+  ]
+END
+
+SETWIDTH 2
+SETCOLOR "pink"
+flower</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>Circle</h4>
+                <pre>TO circle :radius
+  REPEAT 360 [
+    FD :radius * 3.14159 / 180
+    RT 1
+  ]
+END
+
+SETCOLOR "red"
+SETWIDTH 3
+PU
+FD 100
+PD
+circle 100</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
+            <div class="example-item">
+                <h4>3D Cube</h4>
+                <pre>TO square
+  REPEAT 4 [ FD 100 RT 90 ]
+END
+
+PU
+HOME
+BK 150
+LT 90
+BK 50
+RT 90
+PD
+
+SETCOLOR "navy"
+square
+
+RT 30
+FD 50
+LT 30
+
+SETCOLOR "blue"
+square
+
+LT 120
+FD 100
+RT 120
+FD 50
+LT 60
+FD 100
+RT 120
+FD 50
+
+PU
+HOME</pre>
+                <button class="try-it-btn">Try It</button>
+            </div>
         </div>
     </div>
 
