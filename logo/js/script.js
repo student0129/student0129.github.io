@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const turtleEl = document.getElementById('turtle');
     const codeArea = document.getElementById('codeArea');
     const logDiv = document.getElementById('log');
-    const statusEl = document.getElementById('status');
     const fileInput = document.getElementById('fileInput');
 
     // State
@@ -25,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Core Functions ---
-    function updateStatus(msg) { statusEl.textContent = msg; }
     function log(msg) { logDiv.innerHTML += msg + '<br>'; logDiv.scrollTop = logDiv.scrollHeight; }
     function clearLog() { logDiv.innerHTML = ''; }
     
@@ -41,12 +39,17 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    function getDelay() {
+        if (executionSpeed >= 11) return 0; // Infinity speed
+        return 2000 / (executionSpeed * executionSpeed);
+    }
+
     function updateTurtlePosition() {
         const rect = canvas.getBoundingClientRect();
         const wrapRect = document.getElementById('canvasWrap').getBoundingClientRect();
         const x = (rect.left - wrapRect.left) + turtle.x;
         const y = (rect.top - wrapRect.top) + turtle.y;
-        const transitionTime = 2000 / (executionSpeed * executionSpeed);
+        const transitionTime = getDelay();
         turtleEl.style.transition = `all ${transitionTime}ms linear`;
         turtleEl.style.backgroundColor = turtle.color;
         turtleEl.style.boxShadow = `0 0 10px ${turtle.color}50`;
@@ -91,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             turtle.x = newX;
             turtle.y = newY;
             updateTurtlePosition();
-            setTimeout(resolve, 2000 / (executionSpeed * executionSpeed));
+            setTimeout(resolve, getDelay());
         });
     }
 
@@ -99,11 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise(resolve => {
             turtle.angle = (turtle.angle + angle) % 360;
             updateTurtlePosition();
-            setTimeout(resolve, 1000 / (executionSpeed * executionSpeed));
+            setTimeout(resolve, getDelay() / 2); // Turning is faster
         });
     }
 
-    async function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    async function sleep(ms) {
+        if (executionSpeed >= 11) return Promise.resolve();
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     function tokenize(code) {
         const lines = code.split('\n');
@@ -125,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return isNaN(num) ? token : num;
     }
     
-    // **FIXED** This function now handles chained operations like A * B / C
     function evaluateExpression(tokens, index) {
         let result = parseValue(tokens[index].token);
         let consumed = 1;
@@ -134,11 +139,11 @@ document.addEventListener('DOMContentLoaded', () => {
         while (currentIndex < tokens.length) {
             const opToken = tokens[currentIndex];
             if (!['+', '-', '*', '/'].includes(opToken.token)) {
-                break; // Not an operator, expression finished
+                break;
             }
             const valToken = tokens[currentIndex + 1];
             if (!valToken) {
-                break; // Operator without a value, expression finished
+                break;
             }
 
             const value = parseValue(valToken.token);
@@ -148,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case '*': result *= value; break;
                 case '/': result /= value; break;
             }
-            consumed += 2; // Consumed operator and value
+            consumed += 2;
             currentIndex += 2;
         }
         return { value: result, consumed: consumed };
@@ -184,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (lineNumber !== -1) {
                 highlightCurrentLine(lineNumber);
-                await sleep(1000 / (executionSpeed * executionSpeed));
+                await sleep(getDelay() / 10);
             }
 
             if (command === 'TO' && !isProcedure) {
@@ -311,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'SHOW': case 'PRINT': log('Output: ' + argValue); break;
                 case 'HT': case 'HIDETURTLE': turtle.visible = false; updateTurtlePosition(); break;
                 case 'ST': case 'SHOWTURTLE': turtle.visible = true; updateTurtlePosition(); break;
-                default: throw new Error(`Unknown command: ${command}`);
+                default: if (command !== 'STOP') throw new Error(`Unknown command: ${command}`);
             }
             i += consumed;
         }
@@ -320,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function runProgram() {
         if (isRunning) return;
         clearLog();
-        updateStatus('Running...');
+        log('Running...');
         resetTurtle();
         userProcedures = {};
         variables = {};
@@ -335,14 +340,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const tokens = tokenize(code);
             await executeTokens(tokens);
             if (!shouldStop) {
-                updateStatus('Complete!');
                 log('Program finished successfully!');
             } else {
-                updateStatus('Stopped');
                 log('Program stopped by user');
             }
         } catch (error) {
-            updateStatus('Error');
             log('Error: ' + error.message);
             console.error(error);
         } finally {
@@ -355,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function stopProgram() { shouldStop = true; updateStatus('Stopping...'); }
+    function stopProgram() { shouldStop = true; log('Stopping...'); }
 
     // --- Event Listeners ---
     document.getElementById('runBtn').addEventListener('click', runProgram);
@@ -365,13 +367,19 @@ document.addEventListener('DOMContentLoaded', () => {
         resetTurtle();
         codeArea.value = '';
         clearLog();
-        updateStatus('Cleared');
         log('Canvas, code, and console cleared.');
     });
 
     const speedSlider = document.getElementById('speedSlider');
     const speedValue = document.getElementById('speedValue');
-    speedSlider.addEventListener('input', (e) => { executionSpeed = parseInt(e.target.value); speedValue.textContent = executionSpeed; });
+    speedSlider.addEventListener('input', (e) => { 
+        executionSpeed = parseInt(e.target.value);
+        if (executionSpeed >= 11) {
+            speedValue.textContent = '∞';
+        } else {
+            speedValue.textContent = executionSpeed;
+        }
+    });
     
     document.getElementById('toggleTurtleBtn').addEventListener('click', () => {
         turtle.visible = !turtle.visible;
@@ -444,6 +452,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Initial Load ---
     resetTurtle();
-    updateStatus('Ready');
+    log('Ready.');
     window.addEventListener('resize', updateTurtlePosition);
 });
