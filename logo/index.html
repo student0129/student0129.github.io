@@ -145,7 +145,7 @@ flower</pre>
 
     const editor = new EditorView({
       state: EditorState.create({
-        doc: `# NeoLogo demo\nTO square :n\n  REPEAT 4 [ FD :n RT 90 ]\nEND\nCLEAR\nSETCOLOR blue\nsquare 100`,
+        doc: `# NeoLogo Demo - Edit this code below!\n# Click "Run" or press Ctrl+Enter to execute\n\nTO square :n\n  REPEAT 4 [ FD :n RT 90 ]\nEND\n\nCLEAR\nSETCOLOR blue\nsquare 100\n\n# Try changing the color or size!\n# SETCOLOR red\n# square 150`,
         extensions: [basicSetup, oneDark]
       }),
       parent: document.getElementById('editor')
@@ -504,11 +504,11 @@ flower</pre>
     };
 
     // Close instructions when clicking outside
-    document.getElementById('instructions').onclick = (e) => {
+    document.getElementById('instructions').addEventListener('click', (e) => {
       if (e.target.id === 'instructions') {
         document.getElementById('instructions').style.display = 'none';
       }
-    };
+    });
 
     // Close instructions with Escape key
     document.addEventListener('keydown', (e) => {
