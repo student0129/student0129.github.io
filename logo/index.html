@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeoLogo — Full IDE</title>
+  <link rel="stylesheet" href="https://esm.sh/@codemirror/theme-one-dark@6.2.0/theme.css" />
+  <style>
+    :root {
+      --toolbar:#0033a0;--accent:#ffd700;
+    }
+    body{margin:0;height:100vh;display:flex;font-family:system-ui;background:#f4f4f4}
+    #sidebar{width:350px;display:flex;flex-direction:column;border-right:2px solid #ddd;background:#fff}
+    #toolbar{background:var(--toolbar);color:#fff;padding:8px;display:flex;gap:4px}
+    #toolbar button{border:none;padding:6px 12px;background:var(--accent);cursor:pointer;border-radius:4px;color:#000;font-weight:600}
+    #toolbar button:disabled{background:#999;color:#eee;cursor:not-allowed}
+    #editor{flex:1;overflow:hidden}
+    #editor .cm-editor{height:100%}
+    #canvasWrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+    #canvas{border:2px solid #ccc;background:#fff}
+    #turtle{position:absolute;width:24px;height:24px;transform:translate(-12px,-12px);pointer-events:none;transition:transform 0.05s linear}
+    #log{height:100px;overflow:auto;font-size:12px;padding:4px;background:#222;color:#0f0;font-family:monospace}
+    #instructions{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;z-index:1000;overflow:auto}
+    #instructionsContent{background:#fff;margin:20px auto;padding:20px;max-width:800px;border-radius:8px;font-family:system-ui}
+    #instructionsContent h2{color:var(--toolbar);margin-top:0}
+    #instructionsContent code{background:#f0f0f0;padding:2px 4px;border-radius:3px;font-family:monospace}
+    #instructionsContent pre{background:#f8f8f8;padding:10px;border-radius:4px;overflow-x:auto}
+    #closeInstructions{float:right;background:var(--toolbar);color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <div id="toolbar">
+      <button id="runBtn">Run (Ctrl+Enter)</button>
+      <button id="saveBtn">Save</button>
+      <button id="loadBtn">Load</button>
+      <button id="shareBtn">Share</button>
+      <button id="helpBtn">Help</button>
+    </div>
+    <div id="editor"></div>
+    <div id="log"></div>
+  </div>
+  <div id="canvasWrap">
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <img id="turtle" src="https://i.imgur.com/UZVwbGi.png" alt="turtle"/>
+  </div>
+
+  <div id="instructions">
+    <div id="instructionsContent">
+      <button id="closeInstructions">Close</button>
+      <h2>NeoLogo Instructions</h2>
+      
+      <h3>Basic Movement Commands</h3>
+      <ul>
+        <li><code>FD 100</code> or <code>FORWARD 100</code> - Move forward 100 pixels</li>
+        <li><code>BK 50</code> or <code>BACKWARD 50</code> - Move backward 50 pixels</li>
+        <li><code>RT 90</code> or <code>RIGHT 90</code> - Turn right 90 degrees</li>
+        <li><code>LT 45</code> or <code>LEFT 45</code> - Turn left 45 degrees</li>
+        <li><code>HOME</code> - Return to center and face upward</li>
+      </ul>
+
+      <h3>Pen Control</h3>
+      <ul>
+        <li><code>PU</code> or <code>PENUP</code> - Lift pen (move without drawing)</li>
+        <li><code>PD</code> or <code>PENDOWN</code> - Put pen down (draw while moving)</li>
+        <li><code>SETCOLOR blue</code> - Set pen color (red, blue, green, yellow, etc.)</li>
+        <li><code>SETWIDTH 5</code> - Set pen width to 5 pixels</li>
+      </ul>
+
+      <h3>Screen Commands</h3>
+      <ul>
+        <li><code>CLEAR</code> - Clear screen and reset turtle to center</li>
+        <li><code>SHOW "Hello"</code> or <code>PRINT "Hello"</code> - Display text in log</li>
+      </ul>
+
+      <h3>Variables</h3>
+      <ul>
+        <li><code>MAKE "size 100</code> - Create a variable named 'size' with value 100</li>
+        <li><code>:size</code> - Use the variable (e.g., <code>FD :size</code>)</li>
+      </ul>
+
+      <h3>Procedures (Functions)</h3>
+      <pre>TO square :size
+  REPEAT 4 [ FD :size RT 90 ]
+END
+
+square 100</pre>
+
+      <h3>Loops</h3>
+      <ul>
+        <li><code>REPEAT 4 [ FD 100 RT 90 ]</code> - Repeat commands 4 times</li>
+      </ul>
+
+      <h3>Example Programs</h3>
+      <h4>Colorful Spiral:</h4>
+      <pre>TO spiral :size
+  IF :size > 2 [
+    FD :size
+    RT 91
+    SETCOLOR red
+    spiral :size - 2
+  ]
+END
+
+CLEAR
+spiral 100</pre>
+
+      <h4>Flower Pattern:</h4>
+      <pre>TO petal
+  REPEAT 2 [
+    FD 50
+    RT 60
+    FD 50
+    RT 120
+  ]
+END
+
+TO flower
+  REPEAT 8 [
+    petal
+    RT 45
+  ]
+END
+
+CLEAR
+SETCOLOR pink
+flower</pre>
+
+      <h3>Available Colors</h3>
+      <p>black, white, red, green, blue, yellow, cyan, magenta, orange, purple, pink, brown, gray</p>
+
+      <h3>Tips</h3>
+      <ul>
+        <li>Use <code>#</code> for comments</li>
+        <li>Commands are case-insensitive</li>
+        <li>Press <strong>Ctrl+Enter</strong> to run your program</li>
+        <li>Use the log area to see output and error messages</li>
+      </ul>
+    </div>
+  </div>
+  <script type="module">
+    import {EditorState} from "https://esm.sh/@codemirror/state@6.2.0";
+    import {EditorView, basicSetup} from "https://esm.sh/@codemirror/basic-setup@0.20.0";
+    import {oneDark} from "https://esm.sh/@codemirror/theme-one-dark@6.2.0";
+
+    const editor = new EditorView({
+      state: EditorState.create({
+        doc: `# NeoLogo demo\nTO square :n\n  REPEAT 4 [ FD :n RT 90 ]\nEND\nCLEAR\nSETCOLOR blue\nsquare 100`,
+        extensions: [basicSetup, oneDark]
+      }),
+      parent: document.getElementById('editor')
+    });
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const turtleEl = document.getElementById('turtle');
+    let turtle = {x: canvas.width/2, y: canvas.height/2, angle: 0, pen: true, color: '#000', width: 2};
+
+    // In-memory storage instead of localStorage
+    let savedCode = '';
+    let userProcedures = {};
+    let variables = {};
+
+    // Color mapping for common color names
+    const colorMap = {
+      'black': '#000000', 'white': '#ffffff', 'red': '#ff0000', 'green': '#00ff00',
+      'blue': '#0000ff', 'yellow': '#ffff00', 'cyan': '#00ffff', 'magenta': '#ff00ff',
+      'orange': '#ffa500', 'purple': '#800080', 'pink': '#ffc0cb', 'brown': '#a52a2a',
+      'gray': '#808080', 'grey': '#808080'
+    };
+
+    function resetTurtle() {
+      turtle = {x: canvas.width/2, y: canvas.height/2, angle: 0, pen: true, color: '#000', width: 2};
+      updateTurtleIcon();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function updateTurtleIcon() {
+      const canvasRect = canvas.getBoundingClientRect();
+      const wrapRect = document.getElementById('canvasWrap').getBoundingClientRect();
+      const offsetX = (canvasRect.left - wrapRect.left) + turtle.x;
+      const offsetY = (canvasRect.top - wrapRect.top) + turtle.y;
+      turtleEl.style.left = offsetX + 'px';
+      turtleEl.style.top = offsetY + 'px';
+      turtleEl.style.transform = `translate(-12px, -12px) rotate(${turtle.angle}deg)`;
+    }
+
+    function forward(d) {
+      const rad = Math.PI / 180 * turtle.angle;
+      const nx = turtle.x + d * Math.cos(rad);
+      const ny = turtle.y + d * Math.sin(rad);
+      
+      if (turtle.pen) {
+        ctx.strokeStyle = turtle.color;
+        ctx.lineWidth = turtle.width;
+        ctx.beginPath();
+        ctx.moveTo(turtle.x, turtle.y);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+      }
+      
+      turtle.x = nx;
+      turtle.y = ny;
+      updateTurtleIcon();
+    }
+
+    function turn(a) {
+      turtle.angle = (turtle.angle + a) % 360;
+      updateTurtleIcon();
+    }
+
+    function home() {
+      turtle.x = canvas.width / 2;
+      turtle.y = canvas.height / 2;
+      turtle.angle = 0;
+      updateTurtleIcon();
+    }
+
+    function tokenize(src) {
+      // Better tokenization that handles brackets and variables
+      const tokens = [];
+      let current = '';
+      let inComment = false;
+      
+      for (let i = 0; i < src.length; i++) {
+        const char = src[i];
+        
+        if (char === '#') {
+          inComment = true;
+          continue;
+        }
+        
+        if (char === '\n') {
+          if (current.trim()) tokens.push(current.trim());
+          current = '';
+          inComment = false;
+          continue;
+        }
+        
+        if (inComment) continue;
+        
+        if (char === '[' || char === ']') {
+          if (current.trim()) tokens.push(current.trim());
+          tokens.push(char);
+          current = '';
+        } else if (/\s/.test(char)) {
+          if (current.trim()) tokens.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      
+      if (current.trim()) tokens.push(current.trim());
+      return tokens.filter(Boolean);
+    }
+
+    function parse(tokens) {
+      let i = 0;
+      function next() { return tokens[i++]; }
+      
+      const commands = [];
+      
+      while (i < tokens.length) {
+        let tok = next();
+        
+        if (tok === 'TO') {
+          const name = next();
+          const params = [];
+          
+          // Parse parameters
+          while (tokens[i] && tokens[i].startsWith(':')) {
+            params.push(tokens[i++].substring(1));
+          }
+          
+          const body = [];
+          while (tokens[i] !== 'END' && i < tokens.length) {
+            body.push(tokens[i++]);
+          }
+          i++; // skip END
+          
+          userProcedures[name] = { params, body };
+          continue;
+        }
+        
+        if (tok === 'REPEAT') {
+          const count = parseValue(next());
+          if (next() !== '[') throwError('Expected [');
+          const block = [];
+          while (tokens[i] !== ']') {
+            block.push(tokens[i++]);
+          }
+          i++; // skip ]
+          commands.push({ type: 'repeat', count, block });
+          continue;
+        }
+        
+        // Handle variable assignment
+        if (tok === 'MAKE') {
+          const varName = next();
+          const value = parseValue(next());
+          variables[varName] = value;
+          continue;
+        }
+        
+        commands.push({ type: 'cmd', name: tok, arg: tokens[i] });
+        if (tokens[i] && (isNumber(tokens[i]) || tokens[i].startsWith(':'))) {
+          i++;
+        }
+      }
+      
+      return commands;
+    }
+
+    function parseValue(val) {
+      if (!val) return 0;
+      if (val.startsWith(':')) {
+        const varName = val.substring(1);
+        return variables[varName] || 0;
+      }
+      return isNumber(val) ? parseFloat(val) : val;
+    }
+
+    function isNumber(x) {
+      return !isNaN(parseFloat(x));
+    }
+
+    function throwError(msg) {
+      log('Error: ' + msg);
+      throw new Error(msg);
+    }
+
+    function exec(cmds, localVars = {}) {
+      for (const c of cmds) {
+        try {
+          if (c.type === 'repeat') {
+            for (let k = 0; k < c.count; k++) {
+              exec(parse(c.block), localVars);
+            }
+          } else if (c.type === 'cmd') {
+            dispatch(c.name, c.arg, localVars);
+          }
+        } catch (e) {
+          if (e.message !== 'stop') {
+            throw e;
+          }
+        }
+      }
+    }
+
+    function dispatch(name, arg, localVars = {}) {
+      const value = parseValue(arg);
+      
+      switch (name) {
+        case 'FD':
+        case 'FORWARD':
+          forward(value);
+          break;
+        case 'BK':
+        case 'BACKWARD':
+          forward(-value);
+          break;
+        case 'RT':
+        case 'RIGHT':
+          turn(value);
+          break;
+        case 'LT':
+        case 'LEFT':
+          turn(-value);
+          break;
+        case 'PU':
+        case 'PENUP':
+          turtle.pen = false;
+          break;
+        case 'PD':
+        case 'PENDOWN':
+          turtle.pen = true;
+          break;
+        case 'SETCOLOR':
+        case 'SETCOLOUR':
+          if (typeof value === 'string') {
+            turtle.color = colorMap[value.toLowerCase()] || value;
+          } else {
+            turtle.color = '#000';
+          }
+          break;
+        case 'SETWIDTH':
+          turtle.width = value;
+          break;
+        case 'CLEAR':
+          resetTurtle();
+          break;
+        case 'HOME':
+          home();
+          break;
+        case 'SHOW':
+        case 'PRINT':
+          log('Output: ' + value);
+          break;
+        default:
+          if (userProcedures[name]) {
+            const proc = userProcedures[name];
+            const newLocalVars = { ...localVars };
+            
+            // Set parameters
+            if (proc.params.length > 0) {
+              newLocalVars[proc.params[0]] = value;
+            }
+            
+            // Temporarily update variables
+            const oldVars = { ...variables };
+            variables = { ...variables, ...newLocalVars };
+            
+            try {
+              exec(parse(proc.body), newLocalVars);
+            } finally {
+              variables = oldVars;
+            }
+          } else {
+            throwError('Unknown command: ' + name);
+          }
+      }
+    }
+
+    const logDiv = document.getElementById('log');
+    function log(msg) {
+      logDiv.textContent += msg + '\n';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function run() {
+      logDiv.textContent = '';
+      resetTurtle();
+      userProcedures = {};
+      variables = {};
+      
+      try {
+        const tokens = tokenize(editor.state.doc.toString().toUpperCase());
+        const cmds = parse(tokens);
+        exec(cmds);
+        log('Program completed successfully.');
+      } catch (e) {
+        log('Error: ' + e.message);
+      }
+    }
+
+    document.getElementById('runBtn').onclick = run;
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 'Enter') run();
+    });
+
+    // In-memory save/load instead of localStorage
+    document.getElementById('saveBtn').onclick = () => {
+      savedCode = editor.state.doc.toString();
+      log('Code saved to memory.');
+    };
+
+    document.getElementById('loadBtn').onclick = () => {
+      if (savedCode) {
+        editor.dispatch({
+          changes: { from: 0, to: editor.state.doc.length, text: savedCode }
+        });
+        log('Code loaded from memory.');
+      } else {
+        log('No saved code found.');
+      }
+    };
+
+    document.getElementById('shareBtn').onclick = () => {
+      const code = encodeURIComponent(btoa(editor.state.doc.toString()));
+      const shareUrl = location.origin + location.pathname + '?c=' + code;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        log('Share link copied to clipboard!');
+      }).catch(() => {
+        log('Failed to copy link. URL: ' + shareUrl);
+      });
+    };
+
+    // Load shared code
+    const params = new URLSearchParams(location.search);
+    if (params.get('c')) {
+      try {
+        const code = atob(decodeURIComponent(params.get('c')));
+        editor.dispatch({
+          changes: { from: 0, to: editor.state.doc.length, text: code }
+        });
+      } catch (e) {
+        log('Failed to load shared code.');
+      }
+    }
+
+    resetTurtle();
+    
+    // Update turtle position on window resize
+    window.addEventListener('resize', updateTurtleIcon);
+
+    // Help button functionality
+    document.getElementById('helpBtn').onclick = () => {
+      document.getElementById('instructions').style.display = 'block';
+    };
+
+    document.getElementById('closeInstructions').onclick = () => {
+      document.getElementById('instructions').style.display = 'none';
+    };
+
+    // Close instructions when clicking outside
+    document.getElementById('instructions').onclick = (e) => {
+      if (e.target.id === 'instructions') {
+        document.getElementById('instructions').style.display = 'none';
+      }
+    };
+
+    // Close instructions with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('instructions').style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
