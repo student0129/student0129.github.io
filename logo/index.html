@@ -28,9 +28,6 @@
             <div id="codeDisplay"></div>
             <textarea id="codeArea" placeholder="Enter your Logo code here..."></textarea>
         </div>
-        <div id="statusBar">
-            <span class="status" id="status">Ready</span>
-        </div>
         <div id="log"></div>
     </div>
 
@@ -85,8 +82,7 @@ REPEAT 4 [
 #    Use operators like >, <, =
 IF :size > 50 [
   SETCOLOR "red
-]
-</pre>
+]</pre>
             <h3>⌨️ Keyboard Shortcuts</h3>
             <ul>
                 <li><strong>Ctrl+Enter</strong> - Run program</li>
@@ -101,37 +97,43 @@ IF :size > 50 [
             <button class="close-modal-btn">✕ Close</button>
             <h2>✨ Code Examples</h2>
             <div class="example-item">
-                <h4>Colorful Spiral</h4>
-                <pre>TO spiral :n
-  IF :n > 150 [ STOP ]
-  SETCOLOR (list "red "orange "yellow "green "blue "purple)
-  FD :n
-  RT 59
-  spiral :n + 2
+                <h4>Fractal Tree</h4>
+                <pre>TO tree :size
+  IF :size < 5 [ STOP ]
+  
+  SETWIDTH :size / 10
+  FD :size
+  
+  LT 30
+  tree :size * 0.7
+  RT 60
+  tree :size * 0.7
+  LT 30
+  
+  BK :size
 END
 
-spiral 10</pre>
+PU
+HOME
+BK 250
+PD
+SETCOLOR "green"
+tree 100</pre>
                 <button class="try-it-btn">Try It</button>
             </div>
             <div class="example-item">
-                <h4>Flower</h4>
-                <pre>TO petal
-  REPEAT 2 [
-    REPEAT 30 [ FD 5 RT 3 ]
-    RT 90
+                <h4>Starburst</h4>
+                <pre>TO starburst :sides :length
+  SETWIDTH 2
+  SETCOLOR "orange"
+  REPEAT :sides [
+    FD :length
+    BK :length
+    RT 360 / :sides
   ]
 END
 
-TO flower
-  REPEAT 12 [
-    petal
-    RT 30
-  ]
-END
-
-SETWIDTH 2
-SETCOLOR "pink"
-flower</pre>
+starburst 36 150</pre>
                 <button class="try-it-btn">Try It</button>
             </div>
             <div class="example-item">
@@ -168,50 +170,28 @@ circle 150</pre>
   REPEAT 4 [ FD :size RT 90 ]
 END
 
-PU
-HOME
-BK 100
-LT 90
-BK 50
-RT 90
-PD
+PU HOME BK 75 LT 90 BK 75 RT 90 PD
+SETWIDTH 2
 
-SETWIDTH 3
+# Front Face
 SETCOLOR "navy"
 square 100
 
-RT 30
-FD 40
-LT 30
-
+# Back Face
+PU RT 45 FD 50 LT 45 PD
 SETCOLOR "blue"
 square 100
 
-PU
-BK 100
-PD
-LT 120
-FD 40
-RT 120
-
-PU
-FD 100
-PD
-LT 120
-FD 40
-RT 120
-
-PU
-RT 90
-FD 100
-LT 90
-PD
-LT 150
-FD 40
-RT 150
-
-PU
-HOME</pre>
+# Connecting Lines
+PU BK 100 PD
+LT 135 FD 50
+PU LT 45 FD 100 PD
+RT 135 FD 50
+PU RT 45 BK 100 PD
+RT 45 FD 50
+PU LT 135 FD 100 PD
+LT 135 FD 50
+PU HOME</pre>
                 <button class="try-it-btn">Try It</button>
             </div>
         </div>
