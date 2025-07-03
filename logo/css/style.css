@@ -133,6 +133,25 @@ body {
     100% { background-color: #3a4a5c; }
 }
 
+#statusBar {
+    background-color: #f0f0f0;
+    padding: 4px 8px;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    font-size: 12px;
+    color: #333;
+}
+
+#log {
+    height: 120px;
+    overflow: auto;
+    font-size: 12px;
+    padding: 8px;
+    background: #1a1a1a;
+    color: #00ff00;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
 #canvasWrap {
     flex: 1;
     display: flex;
@@ -190,17 +209,6 @@ body {
     transform: translate(-50%, -50%) rotate(var(--rotation));
     z-index: 2;
     transform-origin: center;
-}
-
-#log {
-    height: 120px;
-    overflow: auto;
-    font-size: 12px;
-    padding: 8px;
-    background: #1a1a1a;
-    color: #00ff00;
-    font-family: 'Consolas', 'Monaco', monospace;
-    border-top: 1px solid #333;
 }
 
 /* Modal Styles */
