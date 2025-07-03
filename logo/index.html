@@ -23,11 +23,13 @@
                 <input type="range" id="speedSlider" min="1" max="10" value="5">
                 <span id="speedValue">5</span>
             </div>
-            <span class="status" id="status">Ready</span>
         </div>
         <div id="editor">
             <div id="codeDisplay"></div>
             <textarea id="codeArea" placeholder="Enter your Logo code here..."></textarea>
+        </div>
+        <div id="statusBar">
+            <span class="status" id="status">Ready</span>
         </div>
         <div id="log"></div>
     </div>
@@ -66,11 +68,25 @@
                 <li><code>SETCOLOR red</code> - Change pen color</li>
                 <li><code>SETWIDTH 5</code> - Change pen thickness</li>
             </ul>
-            <h3>🔢 Variables & Loops</h3>
-            <pre>MAKE "size 50
-FD :size
+            <h3>🔢 Variables, Loops & Conditions</h3>
+            <p>Control the flow of your program with variables, loops, and conditional statements.</p>
+            <pre>
+# 1. Variables: Store a value
+MAKE "size 100
+FD :size  # Use the variable with a colon
 
-REPEAT 4 [ FD 50 RT 90 ]</pre>
+# 2. Loops: Repeat actions
+REPEAT 4 [
+  FD :size
+  RT 90
+]
+
+# 3. Conditions: Make decisions
+#    Use operators like >, <, =
+IF :size > 50 [
+  SETCOLOR "red
+]
+</pre>
             <h3>⌨️ Keyboard Shortcuts</h3>
             <ul>
                 <li><strong>Ctrl+Enter</strong> - Run program</li>
@@ -120,53 +136,79 @@ flower</pre>
             </div>
             <div class="example-item">
                 <h4>Circle</h4>
-                <pre>TO circle :radius
+                <pre># Draws a circle from the center
+TO circle :radius
+  PU
+  HOME
+  FD :radius
+  LT 90
+  PD
+  
+  MAKE "circumference 2 * 3.14159 * :radius
+  MAKE "side :circumference / 360
+  
   REPEAT 360 [
-    FD :radius * 3.14159 / 180
-    RT 1
+    FD :side
+    LT 1
   ]
+  
+  PU
+  HOME
+  PD
 END
 
 SETCOLOR "red"
 SETWIDTH 3
-PU
-FD 100
-PD
-circle 100</pre>
+circle 150</pre>
                 <button class="try-it-btn">Try It</button>
             </div>
             <div class="example-item">
                 <h4>3D Cube</h4>
-                <pre>TO square
-  REPEAT 4 [ FD 100 RT 90 ]
+                <pre>TO square :size
+  REPEAT 4 [ FD :size RT 90 ]
 END
 
 PU
 HOME
-BK 150
+BK 100
 LT 90
 BK 50
 RT 90
 PD
 
+SETWIDTH 3
 SETCOLOR "navy"
-square
+square 100
 
 RT 30
-FD 50
+FD 40
 LT 30
 
 SETCOLOR "blue"
-square
+square 100
 
+PU
+BK 100
+PD
 LT 120
-FD 100
+FD 40
 RT 120
-FD 50
-LT 60
+
+PU
 FD 100
+PD
+LT 120
+FD 40
 RT 120
-FD 50
+
+PU
+RT 90
+FD 100
+LT 90
+PD
+LT 150
+FD 40
+RT 150
 
 PU
 HOME</pre>
