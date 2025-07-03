@@ -29,8 +29,8 @@
             <div id="codeDisplay"></div>
             <textarea id="codeArea" placeholder="Enter your Logo code here...">
 # Welcome to NeoLogo!
-# Edit this code and click 'Run' to see the turtle draw.
-# Use the speed slider to control animation speed.
+# Edit this code and click 'Run' to see the turtle draw
+# Use the speed slider to control animation speed
 
 TO square :size
   REPEAT 4 [ FD :size RT 90 ]
@@ -39,7 +39,10 @@ END
 CLEAR
 SETCOLOR blue
 square 100
-            </textarea>
+
+# Try changing the size or color!
+# SETCOLOR red
+# square 150</textarea>
         </div>
         <div id="log"></div>
     </div>
@@ -53,65 +56,101 @@ square 100
         <div id="instructionsContent">
             <button id="closeInstructions">✕ Close</button>
             <h2>🐢 NeoLogo Instructions</h2>
-            
+
             <h3>🎯 Quick Start</h3>
-            <p>
-                1. <strong>Write code</strong> in the editor on the left.<br>
-                2. <strong>Click "Run"</strong> or press <strong>Ctrl+Enter</strong>.<br>
-                3. <strong>Watch the turtle</strong> draw on the canvas!
-            </p>
-            
+            <p>1. <strong>Write code</strong> in the left text area<br>
+                2. <strong>Click "Run"</strong> or press <strong>Ctrl+Enter</strong><br>
+                3. <strong>Watch the turtle</strong> draw on the canvas!</p>
+
             <h3>🐢 Turtle Commands</h3>
             <ul>
-                <li><code>HIDETURTLE</code> or <code>HT</code> - Hides the turtle.</li>
-                <li><code>SHOWTURTLE</code> or <code>ST</code> - Shows the turtle.</li>
+                <li><code>HIDETURTLE</code> or <code>HT</code> - Hide the turtle</li>
+                <li><code>SHOWTURTLE</code> or <code>ST</code> - Show the turtle</li>
             </ul>
 
             <h3>📐 Basic Movement</h3>
             <ul>
-                <li><code>FD 100</code> - Moves forward 100 pixels.</li>
-                <li><code>BK 50</code> - Moves backward 50 pixels.</li>
-                <li><code>RT 90</code> - Turns right 90 degrees.</li>
-                <li><code>LT 45</code> - Turns left 45 degrees.</li>
-                <li><code>HOME</code> - Returns to the center, facing up.</li>
+                <li><code>FD 100</code> - Move forward 100 pixels</li>
+                <li><code>BK 50</code> - Move backward 50 pixels</li>
+                <li><code>RT 90</code> - Turn right 90 degrees</li>
+                <li><code>LT 45</code> - Turn left 45 degrees</li>
+                <li><code>HOME</code> - Return to center, face up</li>
             </ul>
 
-            <h3>🖊️ Pen Control</h3>
+            <h3>🖊 Pen Control</h3>
             <ul>
-                <li><code>PU</code> - Lifts the pen (moves without drawing).</li>
-                <li><code>PD</code> - Lowers the pen (draws while moving).</li>
-                <li><code>SETCOLOR red</code> - Changes the pen color.</li>
-                <li><code>SETWIDTH 5</code> - Changes the pen thickness.</li>
+                <li><code>PU</code> - Pen up (move without drawing)</li>
+                <li><code>PD</code> - Pen down (draw while moving)</li>
+                <li><code>SETCOLOR red</code> - Change pen color</li>
+                <li><code>SETWIDTH 5</code> - Change pen thickness</li>
             </ul>
 
             <h3>🎨 Available Colors</h3>
             <p>red, blue, green, yellow, orange, purple, pink, brown, black, white, gray, cyan, magenta</p>
 
             <h3>🔄 Loops & Procedures</h3>
-            <pre>
-REPEAT 6 [ FD 100 RT 60 ]  # Draws a hexagon
+            <pre>REPEAT 6 [ FD 100 RT 60 ]  # Draw hexagon
 
 TO star
   REPEAT 5 [ FD 100 RT 144 ]
 END
-
-star  # Calls the procedure
-            </pre>
+star  # Call the procedure</pre>
 
             <h3>🔢 Variables</h3>
-            <pre>
-MAKE "size 50
-FD :size  # Use the variable with a colon
-            </pre>
+            <pre>MAKE "size 50
+FD :size  # Use variable with colon</pre>
+
+            <h3>✨ Example Programs</h3>
+
+            <h4>Colorful Spiral:</h4>
+            <pre>TO spiral :n
+  IF :n > 5 [
+    FD :n
+    RT 91
+    spiral :n - 3
+  ]
+END
+
+CLEAR
+SETCOLOR purple
+spiral 100</pre>
+
+            <h4>Flower:</h4>
+            <pre>TO petal
+  REPEAT 2 [
+    FD 50
+    RT 60
+    FD 50
+    RT 120
+  ]
+END
+
+TO flower
+  REPEAT 8 [
+    petal
+    RT 45
+  ]
+END
+
+CLEAR
+SETCOLOR pink
+flower</pre>
 
             <h3>⌨️ Keyboard Shortcuts</h3>
             <ul>
-                <li><strong>Ctrl+Enter</strong> - Runs the program.</li>
-                <li><strong>Escape</strong> - Closes this help menu.</li>
+                <li><strong>Ctrl+Enter</strong> - Run program</li>
+                <li><strong>Escape</strong> - Close this help</li>
+            </ul>
+
+            <h3>💡 Tips</h3>
+            <ul>
+                <li>Use <code>#</code> for comments</li>
+                <li>Commands are case-insensitive</li>
+                <li>Check the log area for errors</li>
+                <li>Try the example programs!</li>
             </ul>
         </div>
     </div>
-
     <script src="js/script.js"></script>
 </body>
 </html>
