@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Core Functions ---
     const log = (msg) => {
-        logDiv.innerHTML += `${msg}<br>`;
+        logDiv.innerHTML += `> ${msg}<br>`;
         logDiv.scrollTop = logDiv.scrollHeight;
     };
 
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         turtle = {
             x: canvas.width / 2,
             y: canvas.height / 2,
-            angle: 0,
+            angle: 0, // 0 degrees is "up"
             pen: true,
             color: '#000000',
             width: 2,
@@ -54,33 +54,40 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateTurtleElement = () => {
+        const transitionTime = Math.max(50, 400 / executionSpeed);
+        turtleEl.style.transition = `all ${transitionTime}ms linear`;
         turtleEl.style.left = `${turtle.x}px`;
         turtleEl.style.top = `${turtle.y}px`;
-        turtleEl.style.setProperty('--rotation', `${turtle.angle - 90}deg`);
+        turtleEl.style.setProperty('--rotation', `${turtle.angle}deg`);
         turtleEl.style.display = turtle.visible ? 'block' : 'none';
     };
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    // --- Execution Logic ---
+    const parseValue = (token) => {
+        if (!token) return 0;
+        if (token.startsWith(':')) {
+            const varName = token.substring(1);
+            if (varName in variables) {
+                return variables[varName];
+            }
+            throw new Error(`Variable :${varName} is not defined.`);
+        }
+        const num = parseFloat(token);
+        return isNaN(num) ? token : num;
+    };
+
     const executeCommand = async (command, args) => {
         if (shouldStop) return;
 
-        const value = (token) => {
-            if (!token) return 0;
-            if (token.startsWith(':')) return variables[token.substring(1)] || 0;
-            const num = parseFloat(token);
-            return isNaN(num) ? token : num;
-        };
-
-        const arg1 = value(args[0]);
         const cmd = command.toUpperCase();
-
+        
         switch (cmd) {
-            case 'FD': case 'FORWARD':
-                const rad = (turtle.angle - 90) * Math.PI / 180;
-                const newX = turtle.x + arg1 * Math.cos(rad);
-                const newY = turtle.y + arg1 * Math.sin(rad);
+            case 'FD': case 'FORWARD': {
+                const distance = parseValue(args[0]);
+                const rad = (turtle.angle - 90) * Math.PI / 180; // Convert to math angle
+                const newX = turtle.x + distance * Math.cos(rad);
+                const newY = turtle.y + distance * Math.sin(rad);
                 if (turtle.pen) {
                     ctx.beginPath();
                     ctx.moveTo(turtle.x, turtle.y);
@@ -92,13 +99,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 turtle.x = newX;
                 turtle.y = newY;
                 break;
-            // ... (Additional commands would be added here)
+            }
+            case 'BK': case 'BACKWARD': {
+                const distance = parseValue(args[0]);
+                const rad = (turtle.angle - 90) * Math.PI / 180;
+                const newX = turtle.x - distance * Math.cos(rad);
+                const newY = turtle.y - distance * Math.sin(rad);
+                if (turtle.pen) {
+                    ctx.beginPath();
+                    ctx.moveTo(turtle.x, turtle.y);
+                    ctx.lineTo(newX, newY);
+                    ctx.strokeStyle = turtle.color;
+                    ctx.lineWidth = turtle.width;
+                    ctx.stroke();
+                }
+                turtle.x = newX;
+                turtle.y = newY;
+                break;
+            }
+            case 'RT': case 'RIGHT':
+                turtle.angle += parseValue(args[0]);
+                break;
+            case 'LT': case 'LEFT':
+                turtle.angle -= parseValue(args[0]);
+                break;
+            case 'PU': case 'PENUP':
+                turtle.pen = false;
+                break;
+            case 'PD': case 'PENDOWN':
+                turtle.pen = true;
+                break;
+            case 'SETCOLOR': {
+                const colorName = parseValue(args[0]).toString().toLowerCase();
+                turtle.color = colors[colorName] || colorName;
+                break;
+            }
+            case 'SETWIDTH':
+                turtle.width = parseValue(args[0]);
+                break;
+            case 'CLEAR':
+                resetTurtle();
+                break;
+            case 'HOME':
+                turtle.x = canvas.width / 2;
+                turtle.y = canvas.height / 2;
+                turtle.angle = 0;
+                break;
+            case 'HT': case 'HIDETURTLE':
+                turtle.visible = false;
+                break;
+            case 'ST': case 'SHOWTURTLE':
+                turtle.visible = true;
+                break;
+            default:
+                if (cmd in userProcedures) {
+                    await runProcedure(cmd, args);
+                } else {
+                    throw new Error(`Unknown command: ${command}`);
+                }
         }
         updateTurtleElement();
         await sleep(Math.max(50, 400 / executionSpeed));
     };
 
-    const runProgram = async () => {
+    const runProgram = async (code) => {
         if (isRunning) return;
         isRunning = true;
         shouldStop = false;
@@ -106,24 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
         stopBtn.disabled = false;
         logDiv.innerHTML = '';
         updateStatus('Running...');
-        
-        resetTurtle();
-        userProcedures = {};
-        variables = {};
-        
-        const code = codeArea.value;
-        const lines = code.split('\n');
 
+        resetTurtle();
+        
         try {
-            for (const line of lines) {
-                if (shouldStop) break;
-                const tokens = line.replace(/#.*/, '').trim().split(/\s+/).filter(Boolean);
-                if (tokens.length > 0) {
-                    const [command, ...args] = tokens;
-                    await executeCommand(command, args);
-                }
+            const { procedures, commands } = parseCode(code);
+            userProcedures = procedures;
+            variables = {}; // Global scope
+            await executeBlock(commands, variables);
+            if (!shouldStop) {
+                updateStatus('Complete!');
+                log('Program finished.');
             }
-            if (!shouldStop) updateStatus('Complete!');
         } catch (error) {
             log(`Error: ${error.message}`);
             updateStatus('Error');
@@ -137,10 +195,90 @@ document.addEventListener('DOMContentLoaded', () => {
     const stopProgram = () => {
         shouldStop = true;
         updateStatus('Stopping...');
+        log('Stop requested by user.');
+    };
+    
+    const parseCode = (code) => {
+        const lines = code.split('\n').map(line => line.replace(/#.*/, '').trim()).filter(Boolean);
+        const procedures = {};
+        const commands = [];
+        
+        let i = 0;
+        while (i < lines.length) {
+            const line = lines[i];
+            const tokens = line.split(/\s+/);
+            
+            if (tokens[0].toUpperCase() === 'TO') {
+                const procName = tokens[1].toUpperCase();
+                const params = tokens.slice(2).filter(t => t.startsWith(':')).map(t => t.substring(1));
+                const body = [];
+                i++;
+                while (i < lines.length && lines[i].toUpperCase().trim() !== 'END') {
+                    body.push(lines[i].trim());
+                    i++;
+                }
+                procedures[procName] = { params, body };
+            } else {
+                commands.push(line);
+            }
+            i++;
+        }
+        return { procedures, commands };
     };
 
+    const executeBlock = async (commandLines, localVariables) => {
+        for (const line of commandLines) {
+            if (shouldStop) return;
+            const tokens = line.split(/\s+/);
+            const cmd = tokens[0].toUpperCase();
+            
+            // Create a new scope for this execution, inheriting from the parent
+            const scope = Object.create(localVariables);
+
+            if (cmd === 'MAKE') {
+                const varName = tokens[1].replace(/"/g, '');
+                const value = parseValue(tokens[2]);
+                localVariables[varName] = value;
+            } else if (cmd === 'REPEAT') {
+                const count = parseValue(tokens[1]);
+                const blockStartIndex = line.indexOf('[');
+                const blockEndIndex = line.lastIndexOf(']');
+                const blockCode = line.substring(blockStartIndex + 1, blockEndIndex).trim();
+                for (let i = 0; i < count; i++) {
+                    if (shouldStop) return;
+                    await executeBlock([blockCode], scope);
+                }
+            } else {
+                 if (cmd in userProcedures) {
+                    await runProcedure(cmd, tokens.slice(1), scope);
+                } else {
+                    await executeCommand(cmd, tokens.slice(1));
+                }
+            }
+        }
+    };
+
+    async function runProcedure(procName, args, callingScope) {
+        const proc = userProcedures[procName];
+        if (!proc) throw new Error(`Procedure ${procName} not found.`);
+
+        // Create a new, isolated scope for the procedure
+        const procedureScope = {}; 
+        
+        // Assign arguments to parameters in the new scope
+        proc.params.forEach((paramName, index) => {
+            const argValue = parseValue(args[index]);
+            procedureScope[paramName] = argValue;
+        });
+        
+        // Set the prototype to the calling scope to allow reading global variables
+        Object.setPrototypeOf(procedureScope, callingScope);
+        
+        await executeBlock(proc.body, procedureScope);
+    }
+
     // --- Event Listeners ---
-    runBtn.addEventListener('click', runProgram);
+    runBtn.addEventListener('click', () => runProgram(codeArea.value));
     stopBtn.addEventListener('click', stopProgram);
 
     document.getElementById('clearBtn').addEventListener('click', () => {
@@ -152,24 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
     speedSlider.addEventListener('input', (e) => {
         executionSpeed = parseInt(e.target.value, 10);
         speedValue.textContent = executionSpeed;
-    });
-    
-    document.getElementById('helpBtn').addEventListener('click', () => {
-        document.getElementById('instructions').style.display = 'block';
-    });
-    
-    document.getElementById('closeInstructions').addEventListener('click', () => {
-        document.getElementById('instructions').style.display = 'none';
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.key === 'Enter') {
-            e.preventDefault();
-            runProgram();
-        }
-        if (e.key === 'Escape') {
-            document.getElementById('instructions').style.display = 'none';
-        }
     });
 
     // --- Initial Setup ---
