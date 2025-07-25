@@ -21,7 +21,7 @@
         .card-icon { width: 1.25rem; height: 1.25rem; margin-right: 0.5rem; color: #4b5563; }
         .mentor-note { background-color: #eef2ff; border-left: 4px solid #4f46e5; padding: 1rem; margin-top: 1rem; border-radius: 0.5rem; }
         .mentor-note p { color: #4338ca; }
-        .guided-textarea { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 0.5rem; }
+        .guided-textarea, .guided-input-group { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 0.5rem; }
         
         .glossary-term { border-bottom: 2px dotted #3b82f6; cursor: pointer; position: relative; }
         .tooltip { visibility: hidden; width: 280px; background-color: #1f2937; color: #fff; text-align: left; border-radius: 6px; padding: 10px; position: absolute; z-index: 50; bottom: 125%; left: 50%; margin-left: -140px; opacity: 0; transition: opacity 0.3s; font-size: 0.875rem; line-height: 1.4; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -39,7 +39,7 @@
         .dark .border-gray-200 { border-color: #334155 !important; }
         .dark .mentor-note { background-color: #312e81; border-left-color: #818cf8; }
         .dark .mentor-note p { color: #c7d2fe; }
-        .dark .guided-textarea { background-color: #334155; border-color: #475569; }
+        .dark .guided-textarea, .dark .guided-input-group { background-color: #334155; border-color: #475569; }
         .dark .comment-input { background-color: #334155; border-color: #475569; color: #e5e7eb; }
         
         /* --- Certificate & Printing --- */
@@ -83,9 +83,8 @@
                     </div>
                     <div>
                         <h3 class="text-2xl font-semibold mb-4 font-serif border-b pb-2">Key Visualizations</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="bg-gray-50 p-4 rounded-lg border"><h4 class="font-bold mb-2">HbA1c Levels Across Patient Groups</h4><div class="w-full h-64 bg-gray-200 rounded-md flex items-center justify-center text-gray-500">Interactive Chart Placeholder</div></div>
-                            <div class="bg-gray-50 p-4 rounded-lg border"><h4 class="font-bold mb-2">BMI vs. Blood Glucose</h4><div class="w-full h-64 bg-gray-200 rounded-md flex items-center justify-center text-gray-500">Interactive Chart Placeholder</div></div>
+                        <div id="showcase-visualizations" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                           <!-- Visualizations will be dynamically inserted here -->
                         </div>
                     </div>
                     <div>
@@ -100,13 +99,18 @@
             </div>
 
             <div id="planner-view" class="hidden">
+                 <section class="bg-blue-50 border border-blue-200 dark:bg-blue-900/50 dark:border-blue-700 p-6 rounded-xl mb-8">
+                    <h2 class="text-2xl font-bold text-blue-800 dark:text-blue-200 font-serif">Welcome to Your Summer Research Project!</h2>
+                    <p class="mt-2 text-blue-700 dark:text-blue-300">This isn't just a checklist; it's an integrated workspace. As you complete the tasks in the planner and fill out your <a href="#notebook-container" class="font-bold underline">Research Notebook</a> below, you are actively building the final, polished showcase of your work that you can share on college applications.</p>
+                </section>
+
                  <div class="sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm p-4 z-30 rounded-lg shadow-sm border border-gray-200 mb-8">
                     <div class="mb-2 flex justify-between items-center"><span class="text-sm font-semibold text-gray-700" id="progressText">Progress: 0%</span></div>
                     <div class="w-full bg-gray-200 rounded-full h-2.5"><div id="progressFill" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
                 </div>
                 <div id="weeks-container" class="space-y-12"></div>
                 <div id="notebook-container" class="mt-12"></div>
-                <div id="completion-container" class="text-center py-6 hidden"><button id="finalize-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition duration-300 shadow-lg">Finalize & View Showcase</button></div>
+                <div id="completion-container" class="text-center py-6"><button id="finalize-btn" disabled class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">View Showcase (Complete Project to Unlock)</button></div>
             </div>
         </main>
     </div>
@@ -114,7 +118,6 @@
     <div id="certificate-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4"><div id="certificate-content" class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl max-w-3xl w-full border-4 border-blue-500 relative"><h2 class="text-center text-4xl font-bold text-gray-800 mb-4 font-serif">Certificate of Completion</h2><p class="text-center text-lg text-gray-600">This certificate is proudly presented to</p><input id="certificate-name" type="text" placeholder="Enter Your Full Name Here" class="text-center text-3xl font-serif w-full my-4 border-0 border-b-2 border-gray-300 focus:ring-0 focus:border-blue-500 bg-transparent"><p class="text-center text-lg text-gray-600">for the successful completion of the</p><p class="text-center text-2xl font-semibold text-blue-600 my-4">3-Week Clinical Diabetes Research Project</p><div class="flex justify-between items-center mt-8"><div class="text-center"><p class="text-sm border-t-2 border-gray-400 pt-1">Date</p><p class="text-sm font-semibold" id="certificate-date"></p></div><div class="text-center"><p class="text-sm border-t-2 border-gray-400 pt-1">Signature</p><p class="font-serif text-xl italic">Digital Mentor</p></div></div><div class="mt-8 flex justify-center gap-4"><button id="certificate-print-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Print</button><button id="certificate-close-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded hover:bg-gray-400">Close</button></div></div></div>
     
     <script type="module">
-        // --- DATA & GLOSSARY ---
         const glossaryTerms = { "Pathophysiology": "The functional changes that accompany a disease.", "HbA1c": "Glycated hemoglobin; a blood test reflecting average blood glucose over 2-3 months.", "Retinopathy": "A diabetes complication affecting eyes.", "Nephropathy": "Deterioration of kidney function.", "Neuropathy": "Nerve damage from high blood sugar.", "Biostatistics": "The application of statistics to biology and medicine." };
 
         const projectData = {
@@ -130,66 +133,68 @@
                     { id: 'day6', title: 'Day 13-14: Testing Your Hypotheses', tasks: ['Use your visualizations and basic statistical tests to analyze your hypotheses.', 'Does the data support or refute your initial ideas? Document your findings.', 'Synthesize your results into key, evidence-based conclusions in your Research Notebook.'], deliverable: '"Clinical Insights" report detailing your analysis and hypothesis outcomes.', resources: [{text: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/'}] }
                 ]},
                 { title: "WEEK 3: Synthesis & Showcase", goal: "Synthesize findings into a professional deliverable for college applications.", days: [
-                    { id: 'day7', title: 'Day 15-17: Building the Final Showcase', tasks: ['Write the Abstract/Executive Summary of your project in the Research Notebook.', 'Select your best visualizations and write up your Key Findings.', 'Write your Personal Reflection on the research process.'], deliverable: 'A completed Research Notebook, ready for the showcase.', mentorNote: "The abstract is the most important part of your report. It should be a concise summary of your entire project: the question, methods, results, and conclusion." },
+                    { id: 'day7', title: 'Day 15-17: Building the Final Showcase', tasks: ['Write the Abstract/Executive Summary of your project in the Research Notebook.', 'Add your best visualizations to the notebook, including titles, descriptions, and embed links.', 'Write up your Key Findings and Personal Reflection.'], deliverable: 'A completed Research Notebook, ready for the showcase.', mentorNote: "The abstract is the most important part of your report. It should be a concise summary of your entire project: the question, methods, results, and conclusion." },
                     { id: 'day8', title: 'Day 18-19: Peer Review & Refinement', tasks: ['Share your draft with a teacher, mentor, or peers for feedback.', 'Refine your writing for clarity, accuracy, and impact.', 'Ensure all sources are properly cited in your bibliography.'], deliverable: 'A revised, polished version of your showcase content.', resources: [{text: 'Purdue OWL: Research Papers', url: 'https://owl.purdue.edu/owl/general_writing/common_writing_assignments/research_papers/index.html'}] },
                     { id: 'day9', title: 'Day 20-21: Finalize & Publish', tasks: ['Review all content one last time.', 'Click the "Finalize & View Showcase" button when it appears.', 'Practice explaining your project and findings as if you were in an interview.'], deliverable: 'A completed, public-facing project and a personal reflection document.', resources: [] }
                 ]}
             ],
             notebook: [
-                { id: 'hypothesis', title: 'My Research Hypotheses', placeholder: 'Based on my Week 1 research, I hypothesize that...\n\n1. Primary Hypothesis: ... because ...\n2. Secondary Hypothesis: ... because ...' },
-                { id: 'abstract', title: 'Final Abstract', placeholder: 'Start with your research question. Briefly describe your methods (dataset, key variables). Summarize your most important results. End with your main conclusion and its significance.' },
-                { id: 'findings', title: 'Key Findings & Discussion', placeholder: '1. Finding: [State your first key finding clearly.]\n   Discussion: [Explain what this finding means. How does it relate to your hypothesis and literature review? What are the clinical implications?]\n\n2. Finding: [State your second key finding.]\n   Discussion: [...]' },
-                { id: 'reflection', title: 'Personal Reflection', placeholder: 'What was the most challenging part of this project? What did you learn about the research process? How has this project influenced your interest in the medical field?' }
+                { id: 'hypothesis', type: 'textarea', title: 'My Research Hypotheses', placeholder: 'Based on my Week 1 research, I hypothesize that...\n\n1. Primary Hypothesis: ... because ...\n2. Secondary Hypothesis: ... because ...' },
+                { id: 'abstract', type: 'textarea', title: 'Final Abstract', placeholder: 'Start with your research question. Briefly describe your methods (dataset, key variables). Summarize your most important results. End with your main conclusion and its significance.' },
+                { id: 'visualizations', type: 'visualizations', title: 'My Key Visualizations', items: [
+                    { id: 'viz1', titlePlaceholder: 'e.g., HbA1c Levels Across Patient Groups', descPlaceholder: 'e.g., This chart shows a clear stratification of HbA1c...', embedPlaceholder: 'Paste embed code from Tableau Public here' },
+                    { id: 'viz2', titlePlaceholder: 'e.g., BMI vs. Blood Glucose', descPlaceholder: 'e.g., A scatter plot indicating a positive correlation...', embedPlaceholder: 'Paste embed code from Google Colab here' }
+                ]},
+                { id: 'findings', type: 'textarea', title: 'Key Findings & Discussion', placeholder: '1. Finding: [State your first key finding clearly.]\n   Discussion: [Explain what this finding means. How does it relate to your hypothesis and literature review? What are the clinical implications?]\n\n2. Finding: [State your second key finding.]\n   Discussion: [...]' },
+                { id: 'reflection', type: 'textarea', title: 'Personal Reflection', placeholder: 'What was the most challenging part of this project? What did you learn about the research process? How has this project influenced your interest in the medical field?' }
             ]
         };
         
-        const STORAGE_KEY = 'diabetesProjectData_v4';
-        let state = { theme: 'light', progress: {}, notebook: {}, userName: '', mode: 'planner' };
+        const STORAGE_KEY = 'diabetesProjectData_v5';
+        let state = { theme: 'light', progress: {}, notebook: { visualizations: [{}, {}] }, userName: '', mode: 'planner' };
 
         function renderPlanner() {
             const weeksContainer = document.getElementById('weeks-container');
             const notebookContainer = document.getElementById('notebook-container');
             weeksContainer.innerHTML = '';
-            notebookContainer.innerHTML = `<h2 class="text-3xl font-bold text-gray-800 font-serif mb-4">My Research Notebook</h2>`;
-
+            notebookContainer.innerHTML = `<h2 id="notebook-header" class="text-3xl font-bold text-gray-800 font-serif mb-4">My Research Notebook</h2>`;
             projectData.weeks.forEach(week => weeksContainer.appendChild(createWeekElement(week)));
             projectData.notebook.forEach(item => notebookContainer.appendChild(createNotebookElement(item)));
-            
             initGlossary();
         }
         
         function createWeekElement(week) {
             const section = document.createElement('section');
             section.className = 'bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-lg';
-            section.innerHTML = `
-                <div class="mb-4"><h3 class="text-2xl font-bold text-gray-800">${week.title}</h3><p class="text-md text-gray-500">${week.goal}</p></div>
-                <div class="space-y-6">${week.days.map(createDayElement).join('')}</div>`;
+            section.innerHTML = `<div class="mb-4"><h3 class="text-2xl font-bold text-gray-800">${week.title}</h3><p class="text-md text-gray-500">${week.goal}</p></div><div class="space-y-6">${week.days.map(createDayElement).join('')}</div>`;
             return section;
         }
 
         function createDayElement(day) {
             const icons = { tasks: `<svg class="card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>`, deliverable: `<svg class="card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`, resources: `<svg class="card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.536a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>`};
-            return `
-                <div class="day-card p-4 border-l-4 border-blue-500 bg-gray-50 rounded-r-lg">
-                    <div class="flex justify-between items-start mb-3"><h4 class="text-lg font-semibold text-gray-800">${day.title}</h4><label class="flex items-center space-x-2 cursor-pointer text-sm font-medium text-green-600"><input type="checkbox" data-day-id="${day.id}" class="day-checkbox h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span>Complete</span></label></div>
-                    <div class="pl-1 space-y-4">
-                        ${day.datasetUrl ? `<a href="${day.datasetUrl}" target="_blank" class="inline-block bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition my-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2 -mt-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Download Dataset</a>` : ''}
-                        <div><h5 class="font-semibold text-gray-700 flex items-center">${icons.tasks}Tasks</h5><ul class="list-disc list-inside text-gray-600 space-y-1 mt-2 ml-4">${day.tasks.map(task => `<li>${task}</li>`).join('')}</ul></div>
-                        <div><h5 class="font-semibold text-gray-700 flex items-center">${icons.deliverable}Deliverable</h5><p class="mt-1 ml-4 text-gray-600">${day.deliverable}</p></div>
-                        ${(day.resources && day.resources.length > 0) ? `<div><h5 class="font-semibold text-gray-700 flex items-center">${icons.resources}Resources</h5><div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 ml-4">${day.resources.map(res => `<a href="${res.url}" target="_blank" class="text-blue-600 hover:underline text-sm">${res.text}</a>`).join('')}</div></div>` : ''}
-                        ${day.mentorNote ? `<div class="mentor-note"><p class="text-sm"><strong class="font-semibold">Mentor Note:</strong> ${day.mentorNote}</p></div>` : ''}
-                    </div>
-                </div>`;
+            return `<div class="day-card p-4 border-l-4 border-blue-500 bg-gray-50 rounded-r-lg"><div class="flex justify-between items-start mb-3"><h4 class="text-lg font-semibold text-gray-800">${day.title}</h4><label class="flex items-center space-x-2 cursor-pointer text-sm font-medium text-green-600"><input type="checkbox" data-day-id="${day.id}" class="day-checkbox h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span>Complete</span></label></div><div class="pl-1 space-y-4">${day.datasetUrl ? `<a href="${day.datasetUrl}" target="_blank" class="inline-block bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition my-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2 -mt-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Download Dataset</a>` : ''}<div><h5 class="font-semibold text-gray-700 flex items-center">${icons.tasks}Tasks</h5><ul class="list-disc list-inside text-gray-600 space-y-1 mt-2 ml-4">${day.tasks.map(task => `<li>${task}</li>`).join('')}</ul></div><div><h5 class="font-semibold text-gray-700 flex items-center">${icons.deliverable}Deliverable</h5><p class="mt-1 ml-4 text-gray-600">${day.deliverable}</p></div>${(day.resources && day.resources.length > 0) ? `<div><h5 class="font-semibold text-gray-700 flex items-center">${icons.resources}Resources</h5><div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 ml-4">${day.resources.map(res => `<a href="${res.url}" target="_blank" class="text-blue-600 hover:underline text-sm">${res.text}</a>`).join('')}</div></div>` : ''}${day.mentorNote ? `<div class="mentor-note"><p class="text-sm"><strong class="font-semibold">Mentor Note:</strong> ${day.mentorNote}</p></div>` : ''}</div></div>`;
         }
 
         function createNotebookElement(item) {
             const div = document.createElement('div');
             div.className = 'mb-8';
-            div.innerHTML = `
-                <h3 class="text-2xl font-semibold text-gray-800 font-serif mb-3">${item.title}</h3>
-                <div class="guided-textarea">
-                    <textarea data-notebook-id="${item.id}" class="w-full h-48 p-2 border-0 focus:ring-0 bg-transparent text-gray-700" placeholder="${item.placeholder}"></textarea>
-                </div>`;
+            if (item.type === 'textarea') {
+                div.innerHTML = `<h3 class="text-2xl font-semibold text-gray-800 font-serif mb-3">${item.title}</h3><div class="guided-textarea"><textarea data-notebook-id="${item.id}" class="w-full h-48 p-2 border-0 focus:ring-0 bg-transparent text-gray-700" placeholder="${item.placeholder}"></textarea></div>`;
+            } else if (item.type === 'visualizations') {
+                div.innerHTML = `<h3 class="text-2xl font-semibold text-gray-800 font-serif mb-3">${item.title}</h3>
+                    <div class="space-y-6">${item.items.map((viz, index) => `
+                        <div class="guided-input-group">
+                            <h4 class="font-bold text-gray-800 mb-2">Visualization ${index + 1}</h4>
+                            <label class="block text-sm font-medium text-gray-700">Title</label>
+                            <input type="text" data-notebook-id="visualizations" data-index="${index}" data-field="title" placeholder="${viz.titlePlaceholder}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                            <label class="block text-sm font-medium text-gray-700 mt-4">Description / Caption</label>
+                            <textarea data-notebook-id="visualizations" data-index="${index}" data-field="desc" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" rows="2" placeholder="${viz.descPlaceholder}"></textarea>
+                            <label class="block text-sm font-medium text-gray-700 mt-4">Embed Link</label>
+                            <input type="text" data-notebook-id="visualizations" data-index="${index}" data-field="embed" placeholder="${viz.embedPlaceholder}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                        </div>`).join('')}
+                    </div>
+                    <div class="mentor-note"><p class="text-sm"><strong class="font-semibold">How to Embed:</strong> After publishing a chart on a tool like Tableau Public, look for a "Share" button. You'll find an "Embed Code" option. Copy this code and paste it into the 'Embed Link' field above.</p></div>`;
+            }
             return div;
         }
 
@@ -235,12 +240,29 @@
             const percentage = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
             document.getElementById('progressFill').style.width = `${percentage}%`;
             document.getElementById('progressText').textContent = `Progress: ${percentage}% (${checkedCount}/${total} tasks)`;
-            document.getElementById('completion-container').classList.toggle('hidden', percentage < 100);
+            
+            const finalizeBtn = document.getElementById('finalize-btn');
+            if(percentage === 100) {
+                finalizeBtn.disabled = false;
+                finalizeBtn.textContent = 'Finalize & View Showcase';
+            } else {
+                finalizeBtn.disabled = true;
+                finalizeBtn.textContent = 'View Showcase (Complete Project to Unlock)';
+            }
         }
         
         function updateNotebookUI() {
-            document.querySelectorAll('[data-notebook-id]').forEach(textarea => {
-                textarea.value = state.notebook[textarea.dataset.notebookId] || '';
+            document.querySelectorAll('textarea[data-notebook-id], input[data-notebook-id]').forEach(input => {
+                const id = input.dataset.notebookId;
+                if (id === 'visualizations') {
+                    const index = input.dataset.index;
+                    const field = input.dataset.field;
+                    if (state.notebook.visualizations && state.notebook.visualizations[index]) {
+                        input.value = state.notebook.visualizations[index][field] || '';
+                    }
+                } else {
+                    input.value = state.notebook[id] || '';
+                }
             });
         }
 
@@ -248,6 +270,19 @@
             document.getElementById('showcase-abstract').textContent = state.notebook.abstract || 'Your abstract will appear here...';
             document.getElementById('showcase-findings').textContent = state.notebook.findings || 'Your key findings will appear here...';
             document.getElementById('showcase-reflection').textContent = state.notebook.reflection || 'Your personal reflection will appear here...';
+            
+            const vizContainer = document.getElementById('showcase-visualizations');
+            vizContainer.innerHTML = '';
+            const vizData = state.notebook.visualizations || [{},{}];
+            vizData.forEach(viz => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-50 p-4 rounded-lg border';
+                const title = viz.title || 'Visualization Title';
+                const desc = viz.desc || 'A description of the chart will appear here.';
+                const embed = viz.embed || '<div class="w-full h-64 bg-gray-200 rounded-md flex items-center justify-center text-gray-500">Your Interactive Chart Will Appear Here</div>';
+                div.innerHTML = `<h4 class="font-bold mb-2">${title}</h4><p class="text-sm text-gray-600 mb-2">${desc}</p>${embed}`;
+                vizContainer.appendChild(div);
+            });
         }
 
         function saveState() {
@@ -257,7 +292,13 @@
         function loadState() {
             try {
                 const savedState = localStorage.getItem(STORAGE_KEY);
-                if (savedState) state = JSON.parse(savedState);
+                if (savedState) {
+                    const loaded = JSON.parse(savedState);
+                    // Ensure notebook structure is valid
+                    if (!loaded.notebook) loaded.notebook = {};
+                    if (!loaded.notebook.visualizations) loaded.notebook.visualizations = [{},{}];
+                    state = loaded;
+                }
             } catch (e) { console.error("Failed to load state", e); }
         }
 
@@ -275,6 +316,7 @@
             });
 
             document.getElementById('finalize-btn').addEventListener('click', () => {
+                if (document.getElementById('finalize-btn').disabled) return;
                 state.mode = 'showcase';
                 updateViewModeUI();
                 saveState();
@@ -294,12 +336,20 @@
             let debounceTimer;
             plannerView.addEventListener('input', (e) => {
                 if (e.target.matches('[data-notebook-id]')) {
-                    if (!state.notebook) state.notebook = {};
-                    state.notebook[e.target.dataset.notebookId] = e.target.value;
+                    if (!state.notebook) state.notebook = { visualizations: [{},{}] };
+                    const id = e.target.dataset.notebookId;
+                    if (id === 'visualizations') {
+                        const index = e.target.dataset.index;
+                        const field = e.target.dataset.field;
+                        if (!state.notebook.visualizations[index]) state.notebook.visualizations[index] = {};
+                        state.notebook.visualizations[index][field] = e.target.value;
+                    } else {
+                        state.notebook[id] = e.target.value;
+                    }
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
                         saveState();
-                        updateShowcaseUI(); // Live update showcase as user types
+                        updateShowcaseUI();
                     }, 500);
                 }
             });
@@ -334,16 +384,7 @@
             const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800'];
 
             for (let i = 0; i < confettiCount; i++) {
-                confetti.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height - canvas.height,
-                    r: Math.random() * 6 + 4, // radius
-                    d: Math.random() * confettiCount, // density
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    tilt: Math.floor(Math.random() * 10) - 10,
-                    tiltAngleIncremental: Math.random() * 0.07 + 0.05,
-                    tiltAngle: 0
-                });
+                confetti.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height, r: Math.random() * 6 + 4, d: Math.random() * confettiCount, color: colors[Math.floor(Math.random() * colors.length)], tilt: Math.floor(Math.random() * 10) - 10, tiltAngleIncremental: Math.random() * 0.07 + 0.05, tiltAngle: 0 });
             }
 
             function draw() {
@@ -355,14 +396,10 @@
                     ctx.moveTo(c.x + c.tilt + c.r, c.y);
                     ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
                     ctx.stroke();
-
                     c.tiltAngle += c.tiltAngleIncremental;
                     c.y += (Math.cos(c.d) + 3 + c.r / 2) / 2;
                     c.tilt = Math.sin(c.tiltAngle - i / 8) * 15;
-
-                    if (c.y > canvas.height) { // If confetti is off screen, reset
-                        confetti[i] = { ...c, x: Math.random() * canvas.width, y: -20 };
-                    }
+                    if (c.y > canvas.height) confetti[i] = { ...c, x: Math.random() * canvas.width, y: -20 };
                 });
                 requestAnimationFrame(draw);
             }
@@ -370,7 +407,6 @@
             setTimeout(() => { ctx.clearRect(0, 0, canvas.width, canvas.height); confetti = []; }, 5000);
         }
 
-        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             loadState();
             renderPlanner();
