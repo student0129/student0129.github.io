@@ -3,358 +3,380 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3-Week Clinical Diabetes Research Project</title>
+    <title>Clinical Diabetes Research Project & Showcase</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Using a more modern font and some base styling */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f7f6;
+            background-color: #f8f9fa;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+        .font-serif { font-family: 'Lora', serif; }
 
-        /* Custom scrollbar for a more polished look */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
-        }
+        /* --- Custom Component Styles --- */
+        .card-icon { width: 1.25rem; height: 1.25rem; margin-right: 0.5rem; color: #4b5563; }
+        .mentor-note { background-color: #eef2ff; border-left: 4px solid #4f46e5; padding: 1rem; margin-top: 1rem; border-radius: 0.5rem; }
+        .mentor-note p { color: #4338ca; }
+        .guided-textarea { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 0.5rem; }
         
-        /* Dark Mode Styles */
-        .dark body {
-            background-color: #111827;
-            color: #d1d5db;
-        }
-        .dark .bg-white {
-            background-color: #1f2937 !important;
-            border-color: #374151 !important;
-        }
-        .dark .bg-gray-100 {
-            background-color: #374151 !important;
-        }
-        .dark .bg-gray-200 {
-             background-color: #4b5563 !important;
-        }
-        .dark .text-gray-800, .dark .text-gray-900 {
-            color: #f9fafb !important;
-        }
-        .dark .text-gray-600, .dark .text-gray-500 {
-            color: #9ca3af !important;
-        }
-        .dark .border-gray-200 {
-            border-color: #374151 !important;
-        }
-        .dark .shadow-lg {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
-        }
-        .dark .week-header {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-        }
-        .dark .comment-input {
-            background-color: #374151;
-            border-color: #4b5563;
-            color: #e5e7eb;
-        }
-        .dark .comment-input::placeholder {
-            color: #9ca3af;
+        .glossary-term { border-bottom: 2px dotted #3b82f6; cursor: pointer; position: relative; }
+        .tooltip { visibility: hidden; width: 280px; background-color: #1f2937; color: #fff; text-align: left; border-radius: 6px; padding: 10px; position: absolute; z-index: 50; bottom: 125%; left: 50%; margin-left: -140px; opacity: 0; transition: opacity 0.3s; font-size: 0.875rem; line-height: 1.4; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1f2937 transparent transparent transparent; }
+        .glossary-term:hover .tooltip { visibility: visible; opacity: 1; }
+
+        /* --- Dark Mode Overrides --- */
+        .dark body { background-color: #0f172a; color: #d1d5db; }
+        .dark .bg-white { background-color: #1e293b !important; border-color: #334155 !important; }
+        .dark .bg-gray-50 { background-color: #334155 !important; }
+        .dark .bg-gray-100 { background-color: #0f172a !important; }
+        .dark .text-gray-800, .dark .text-gray-900 { color: #f8fafc !important; }
+        .dark .text-gray-600, .dark .text-gray-500 { color: #94a3b8 !important; }
+        .dark .text-gray-700 { color: #cbd5e1 !important; }
+        .dark .border-gray-200 { border-color: #334155 !important; }
+        .dark .mentor-note { background-color: #312e81; border-left-color: #818cf8; }
+        .dark .mentor-note p { color: #c7d2fe; }
+        .dark .guided-textarea { background-color: #334155; border-color: #475569; }
+        .dark .comment-input { background-color: #334155; border-color: #475569; color: #e5e7eb; }
+        
+        /* --- Certificate & Printing --- */
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        @media print {
+            body * { visibility: hidden; }
+            #certificate-modal, #certificate-modal * { visibility: visible; }
+            #certificate-modal { position: absolute; left: 0; top: 0; width: 100%; }
+            #certificate-print-btn, #certificate-close-btn { display: none; }
         }
     </style>
 </head>
 <body class="bg-gray-100">
-
-    <div id="app-container" class="max-w-7xl mx-auto bg-white min-h-screen shadow-2xl">
-        <!-- Loading Spinner (will be hidden quickly) -->
-        <div id="loading-overlay" class="fixed inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center">
-            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-            <p class="ml-4 text-lg text-gray-600 dark:text-gray-300">Loading Project...</p>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 z-40 border-b border-gray-200">
-            <div class="mb-2 flex justify-between items-center">
-                <span class="text-sm font-semibold text-gray-600" id="progressText">Progress: 0%</span>
+    <canvas id="confetti-canvas"></canvas>
+    <div id="app-container" class="max-w-7xl mx-auto bg-white min-h-screen">
+        
+        <header class="bg-white p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center">
+             <div class="flex items-center">
+                <svg class="h-10 w-10 text-blue-600 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 16.5L3.5 7.5C3.5 6.11929 4.61929 5 6 5L18 5C19.3807 5 20.5 6.11929 20.5 7.5V16.5C20.5 17.8807 19.3807 19 18 19H6C4.61929 19 3.5 17.8807 3.5 16.5Z" stroke="currentColor" stroke-width="2"/><path d="M8 3L8 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 3L16 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Clinical Diabetes Research Project</h1>
+                    <p class="text-sm text-gray-500">A Portfolio for Pre-Medical Studies</p>
+                </div>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5">
-                <div id="progressFill" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            <div class="flex items-center gap-2">
+                <button id="view-mode-toggle" class="hidden bg-gray-200 text-gray-700 text-xs font-bold py-2 px-3 rounded-full hover:bg-gray-300">Switch to Planner</button>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><svg id="theme-icon-light" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg><svg id="theme-icon-dark" class="h-6 w-6 text-gray-600 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg></button>
             </div>
-        </div>
-
-        <!-- Header -->
-        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-8 text-center">
-            <h1 class="text-4xl font-bold mb-2">3-Week Clinical Diabetes Research Project</h1>
-            <p class="text-lg opacity-90">A comprehensive summer research project for aspiring medical and health science professionals.</p>
         </header>
 
-        <!-- Main Content -->
-        <main class="p-4 sm:p-6 md:p-8 space-y-8">
-            <!-- Project Overview -->
-            <section class="bg-gradient-to-r from-gray-700 to-gray-800 text-white p-6 rounded-xl shadow-lg">
-                <h2 class="text-2xl font-bold mb-3">Project Overview</h2>
-                <p class="mb-4">Conduct an in-depth medical research study on diabetes mellitus, applying clinical knowledge to analyze real patient data from Iraqi medical centers. This project combines rigorous medical research with practical data science skills to understand diabetes diagnosis, risk factors, and clinical patterns.</p>
-                <p><strong>Final Deliverable:</strong> A professional medical research presentation or website demonstrating clinical expertise, data analysis capabilities, and evidence-based insights suitable for medical school applications.</p>
-            </section>
-            
-            <!-- Weeks will be dynamically inserted here by JavaScript -->
-            <div id="weeks-container" class="space-y-12"></div>
+        <main class="p-4 sm:p-6 md:p-8">
+            <div id="showcase-view">
+                <section class="text-center mb-12">
+                     <h2 class="text-4xl font-bold text-gray-900 font-serif">My Research Findings</h2>
+                     <p class="mt-2 text-lg text-gray-600">An analysis of clinical predictors for diabetes mellitus.</p>
+                </section>
+                <div class="space-y-12">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-3 font-serif border-b pb-2">Abstract</h3>
+                        <p id="showcase-abstract" class="text-gray-700 leading-relaxed whitespace-pre-line">Your abstract will appear here once you complete the project...</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 font-serif border-b pb-2">Key Visualizations</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="bg-gray-50 p-4 rounded-lg border"><h4 class="font-bold mb-2">HbA1c Levels Across Patient Groups</h4><div class="w-full h-64 bg-gray-200 rounded-md flex items-center justify-center text-gray-500">Interactive Chart Placeholder</div></div>
+                            <div class="bg-gray-50 p-4 rounded-lg border"><h4 class="font-bold mb-2">BMI vs. Blood Glucose</h4><div class="w-full h-64 bg-gray-200 rounded-md flex items-center justify-center text-gray-500">Interactive Chart Placeholder</div></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-3 font-serif border-b pb-2">Key Findings</h3>
+                        <div id="showcase-findings" class="text-gray-700 leading-relaxed whitespace-pre-line">Your key findings will appear here...</div>
+                    </div>
+                     <div>
+                        <h3 class="text-2xl font-semibold mb-3 font-serif border-b pb-2">Personal Reflection</h3>
+                        <div id="showcase-reflection" class="text-gray-700 leading-relaxed whitespace-pre-line">Your personal reflection will appear here...</div>
+                    </div>
+                </div>
+            </div>
 
-            <!-- Skills Section -->
-            <section class="bg-white p-6 rounded-xl border border-gray-200">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Skills Developed</h2>
-                <ul class="list-disc list-inside space-y-2 text-gray-600">
-                    <li>Medical Research & Literature Review</li>
-                    <li>Clinical Data Interpretation & Biostatistics</li>
-                    <li>Medical Communication & Evidence-Based Medicine</li>
-                    <li>Healthcare Technology Exposure</li>
-                </ul>
-            </section>
+            <div id="planner-view" class="hidden">
+                 <div class="sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm p-4 z-30 rounded-lg shadow-sm border border-gray-200 mb-8">
+                    <div class="mb-2 flex justify-between items-center"><span class="text-sm font-semibold text-gray-700" id="progressText">Progress: 0%</span></div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5"><div id="progressFill" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+                </div>
+                <div id="weeks-container" class="space-y-12"></div>
+                <div id="notebook-container" class="mt-12"></div>
+                <div id="completion-container" class="text-center py-6 hidden"><button id="finalize-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition duration-300 shadow-lg">Finalize & View Showcase</button></div>
+            </div>
         </main>
-
-        <!-- Footer -->
-        <footer class="text-center p-6 bg-gray-100 mt-8">
-            <p class="text-gray-500">Project planner designed for an immersive learning experience.</p>
-        </footer>
     </div>
 
-    <!-- Theme Toggle Button -->
-    <button id="theme-toggle" class="fixed bottom-5 right-5 bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        <!-- Sun Icon -->
-        <svg id="theme-icon-light" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <!-- Moon Icon -->
-        <svg id="theme-icon-dark" class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-    </button>
+    <div id="certificate-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4"><div id="certificate-content" class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl max-w-3xl w-full border-4 border-blue-500 relative"><h2 class="text-center text-4xl font-bold text-gray-800 mb-4 font-serif">Certificate of Completion</h2><p class="text-center text-lg text-gray-600">This certificate is proudly presented to</p><input id="certificate-name" type="text" placeholder="Enter Your Full Name Here" class="text-center text-3xl font-serif w-full my-4 border-0 border-b-2 border-gray-300 focus:ring-0 focus:border-blue-500 bg-transparent"><p class="text-center text-lg text-gray-600">for the successful completion of the</p><p class="text-center text-2xl font-semibold text-blue-600 my-4">3-Week Clinical Diabetes Research Project</p><div class="flex justify-between items-center mt-8"><div class="text-center"><p class="text-sm border-t-2 border-gray-400 pt-1">Date</p><p class="text-sm font-semibold" id="certificate-date"></p></div><div class="text-center"><p class="text-sm border-t-2 border-gray-400 pt-1">Signature</p><p class="font-serif text-xl italic">Digital Mentor</p></div></div><div class="mt-8 flex justify-center gap-4"><button id="certificate-print-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Print</button><button id="certificate-close-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded hover:bg-gray-400">Close</button></div></div></div>
     
-    <!-- App Logic -->
     <script type="module">
-        // --- DATA ---
+        // --- DATA & GLOSSARY ---
+        const glossaryTerms = { "Pathophysiology": "The functional changes that accompany a disease.", "HbA1c": "Glycated hemoglobin; a blood test reflecting average blood glucose over 2-3 months.", "Retinopathy": "A diabetes complication affecting eyes.", "Nephropathy": "Deterioration of kidney function.", "Neuropathy": "Nerve damage from high blood sugar.", "Biostatistics": "The application of statistics to biology and medicine." };
+
         const projectData = {
             weeks: [
-                {
-                    title: "WEEK 1: Deep Medical Research & Diabetes Expertise",
-                    goal: "Develop comprehensive medical knowledge and research skills in diabetes.",
-                    days: [
-                        { id: 'day1', title: 'Day 1-2: Diabetes Pathophysiology & Types', tasks: ['Research detailed pathophysiology of Type 1, Type 2, and Gestational diabetes', 'Understand insulin production, glucose metabolism, and cellular mechanisms', 'Study complications: retinopathy, nephropathy, neuropathy, cardiovascular disease'], deliverable: 'Comprehensive pathophysiology report (3-4 pages) with diagrams', resources: [{text: 'CDC Diabetes Basics', url: 'https://www.cdc.gov/diabetes/basics/index.html'}, {text: 'American Diabetes Association', url: 'https://diabetes.org/'}] },
-                        { id: 'day2', title: 'Day 3-4: Diagnostic Criteria & Clinical Assessment', tasks: ['Research HbA1c, fasting glucose, and oral glucose tolerance tests', 'Understand diagnostic thresholds and their medical rationale', 'Study prediabetes identification and progression'], deliverable: 'Clinical diagnostic flowchart with detailed explanations', resources: [{text: 'ADA Standards of Care', url: '#'}, {text: 'WHO Diagnostic Criteria', url: '#'}] },
-                        { id: 'day3', title: 'Day 5-7: Risk Factors, Treatment & Current Research', tasks: ['Analyze genetic, environmental, and demographic risk factors', 'Research medication classes and lifestyle interventions', 'Review latest research on prevention and emerging therapies'], deliverable: 'Risk factor analysis and treatment algorithm report', resources: [{text: 'NIH Diabetes Resources', url: '#'}, {text: 'ClinicalTrials.gov', url: '#'}] },
-                    ]
-                },
-                {
-                    title: "WEEK 2: Complete Data Analysis & Visualization",
-                    goal: "Apply medical knowledge to understand real-world diabetes data.",
-                    days: [
-                        { id: 'day4', title: 'Day 8-9: Clinical Dataset Analysis', tasks: ['Download and examine the Iraqi medical center diabetes dataset', 'Research each clinical variable\'s medical significance (e.g., HbA1c, Lipid Profile)', 'Create a comprehensive medical data dictionary'], deliverable: 'Clinical data dictionary with normal ranges and pathophysiology connections', resources: [{text: 'Clinical Lab Reference Ranges', url: '#'}, {text: 'UpToDate', url: '#'}] },
-                        { id: 'day5', title: 'Day 10-12: Exploratory Data Analysis & Visualization', tasks: ['Calculate descriptive statistics and create distribution plots', 'Identify outliers and assess clinical significance', 'Create age-stratified charts, BMI visualizations, and lipid profile analyses'], deliverable: 'Clinical visualization portfolio (12-15 charts) with medical interpretations', resources: [{text: 'Tableau Public', url: '#'}, {text: 'Google Colab', url: '#'}] },
-                        { id: 'day6', title: 'Day 13-14: Clinical Pattern Discovery', tasks: ['Analyze correlations between laboratory values using medical knowledge', 'Compare Iraqi population data to published international medical literature', 'Synthesize findings into clinically relevant diagnostic insights'], deliverable: '"Clinical Insights from Patient Data" medical analysis report', resources: [{text: 'PubMed', url: '#'}, {text: 'Google Scholar', url: '#'}] },
-                    ]
-                },
-                {
-                    title: "WEEK 3: Predictive Modeling & Final Presentation",
-                    goal: "Experience predictive analytics and create a professional deliverable.",
-                    days: [
-                        { id: 'day7', title: 'Day 15-16: No-Code Predictive Modeling', tasks: ['Use a no-code tool (e.g., Teachable Machine, Orange) to build a diabetes prediction model', 'Understand model performance metrics', 'Test different algorithms'], deliverable: 'Working prediction model with performance report', resources: [{text: 'Teachable Machine', url: '#'}, {text: 'Orange Data Mining', url: '#'}] },
-                        { id: 'day8', title: 'Day 17-19: Website/Presentation Development', tasks: ['Choose platform (website or presentation)', 'Structure content logically, including all research, visualizations, and model', 'Design a professional layout and write clear explanations'], deliverable: 'Draft of final website or presentation', resources: [{text: 'Google Sites', url: '#'}, {text: 'Canva', url: '#'}] },
-                        { id: 'day9', title: 'Day 20-21: Peer Review & Submission', tasks: ['Get feedback from peers, family, or mentors', 'Make final revisions and check for accuracy', 'Prepare project summary for college applications and resume'], deliverable: 'Final project ready for submission', resources: [{text: 'Writing Center Guides', url: '#'}] },
-                    ]
-                }
+                { title: "WEEK 1: Foundational Medical Research", goal: "Develop medical knowledge and scientific inquiry skills.", days: [
+                    { id: 'day1', title: 'Day 1-2: Diabetes Pathophysiology', tasks: ['Research detailed Pathophysiology of Type 1, Type 2, and Gestational diabetes', 'Study complications: Retinopathy, Nephropathy, Neuropathy'], deliverable: 'Comprehensive pathophysiology report (3-4 pages).', resources: [{text: 'CDC Diabetes Basics', url: 'https://www.cdc.gov/diabetes/basics/index.html'}] },
+                    { id: 'day2', title: 'Day 3-4: Literature Review', tasks: ['Conduct a literature search on PubMed for 5-7 key papers on diabetes diagnosis', 'Learn to identify primary research vs. review articles', 'Write a 2-page annotated bibliography summarizing your chosen articles.'], deliverable: 'Annotated bibliography of key research papers.', resources: [{text: 'ADA Standards of Care', url: 'https://professional.diabetes.org/standards-of-care'}, {text: 'Purdue OWL: Lit Reviews', url: 'https://owl.purdue.edu/owl/research_and_citation/conducting_research/writing_a_literature_review.html'}] },
+                    { id: 'day3', title: 'Day 5-7: Hypothesis & Ethics', tasks: ['Formulate 2-3 specific, testable hypotheses about the dataset in your Research Notebook below.', 'Research and write a paragraph on the ethical considerations of using patient data (e.g., HIPAA, anonymization).'], deliverable: 'A document outlining your research hypotheses and a summary of ethical principles.', resources: [{text: 'NIH Bioethics Resources', url: 'https://bioethics.nih.gov/'}], mentorNote: "A strong hypothesis is specific and testable. Instead of 'BMI affects diabetes,' try 'Patients classified as obese (BMI > 30) will have a higher mean HbA1c level than non-obese patients.'" }
+                ]},
+                { title: "WEEK 2: Clinical Data Analysis", goal: "Apply Biostatistics and medical knowledge to analyze real-world data.", days: [
+                    { id: 'day4', title: 'Day 8-9: Dataset Exploration', datasetUrl: 'https://data.mendeley.com/datasets/wj9rwkp9c2/1', tasks: ['Download the clinical dataset.', 'Perform initial data cleaning and familiarization (e.g., in Excel or Google Colab).', 'Create a comprehensive medical data dictionary for all variables.'], deliverable: 'A clean dataset file and a completed data dictionary.', mentorNote: "Data cleaning is a critical first step. Look for missing values or obvious errors. For example, is a patient's age listed as 200? That's likely an error to investigate." },
+                    { id: 'day5', title: 'Day 10-12: Exploratory Data Analysis (EDA)', tasks: ['Calculate descriptive statistics (mean, median, std. dev.) for key variables.', 'Create visualizations (histograms, box plots) to understand data distributions.', 'Develop scatter plots to investigate relationships between variables (e.g., BMI vs. Glucose).'], deliverable: 'A portfolio of 10-12 data visualizations with brief interpretations.', resources: [{text: 'Tableau Public', url: 'https://public.tableau.com/en-us/s/'}, {text: 'Google Colab', url: 'https://colab.research.google.com/'}] },
+                    { id: 'day6', title: 'Day 13-14: Testing Your Hypotheses', tasks: ['Use your visualizations and basic statistical tests to analyze your hypotheses.', 'Does the data support or refute your initial ideas? Document your findings.', 'Synthesize your results into key, evidence-based conclusions in your Research Notebook.'], deliverable: '"Clinical Insights" report detailing your analysis and hypothesis outcomes.', resources: [{text: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/'}] }
+                ]},
+                { title: "WEEK 3: Synthesis & Showcase", goal: "Synthesize findings into a professional deliverable for college applications.", days: [
+                    { id: 'day7', title: 'Day 15-17: Building the Final Showcase', tasks: ['Write the Abstract/Executive Summary of your project in the Research Notebook.', 'Select your best visualizations and write up your Key Findings.', 'Write your Personal Reflection on the research process.'], deliverable: 'A completed Research Notebook, ready for the showcase.', mentorNote: "The abstract is the most important part of your report. It should be a concise summary of your entire project: the question, methods, results, and conclusion." },
+                    { id: 'day8', title: 'Day 18-19: Peer Review & Refinement', tasks: ['Share your draft with a teacher, mentor, or peers for feedback.', 'Refine your writing for clarity, accuracy, and impact.', 'Ensure all sources are properly cited in your bibliography.'], deliverable: 'A revised, polished version of your showcase content.', resources: [{text: 'Purdue OWL: Research Papers', url: 'https://owl.purdue.edu/owl/general_writing/common_writing_assignments/research_papers/index.html'}] },
+                    { id: 'day9', title: 'Day 20-21: Finalize & Publish', tasks: ['Review all content one last time.', 'Click the "Finalize & View Showcase" button when it appears.', 'Practice explaining your project and findings as if you were in an interview.'], deliverable: 'A completed, public-facing project and a personal reflection document.', resources: [] }
+                ]}
+            ],
+            notebook: [
+                { id: 'hypothesis', title: 'My Research Hypotheses', placeholder: 'Based on my Week 1 research, I hypothesize that...\n\n1. Primary Hypothesis: ... because ...\n2. Secondary Hypothesis: ... because ...' },
+                { id: 'abstract', title: 'Final Abstract', placeholder: 'Start with your research question. Briefly describe your methods (dataset, key variables). Summarize your most important results. End with your main conclusion and its significance.' },
+                { id: 'findings', title: 'Key Findings & Discussion', placeholder: '1. Finding: [State your first key finding clearly.]\n   Discussion: [Explain what this finding means. How does it relate to your hypothesis and literature review? What are the clinical implications?]\n\n2. Finding: [State your second key finding.]\n   Discussion: [...]' },
+                { id: 'reflection', title: 'Personal Reflection', placeholder: 'What was the most challenging part of this project? What did you learn about the research process? How has this project influenced your interest in the medical field?' }
             ]
         };
         
-        // --- LOCAL STATE MANAGEMENT ---
-        const STORAGE_KEY = 'diabetesProjectData';
-        let state = {
-            theme: 'light',
-            progress: {},
-            comments: {}
-        };
+        const STORAGE_KEY = 'diabetesProjectData_v4';
+        let state = { theme: 'light', progress: {}, notebook: {}, userName: '', mode: 'planner' };
 
-        // --- UI RENDERING ---
-        function renderProject() {
-            const container = document.getElementById('weeks-container');
-            container.innerHTML = ''; // Clear existing content
-            projectData.weeks.forEach((week, weekIndex) => {
-                const weekSection = document.createElement('section');
-                weekSection.className = 'bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-lg';
-                weekSection.innerHTML = `
-                    <div class="week-header bg-gradient-to-r from-red-500 to-orange-500 text-white p-4 rounded-lg mb-4">
-                        <h3 class="text-xl font-bold">${week.title}</h3>
-                        <p class="text-sm opacity-90">${week.goal}</p>
-                    </div>
-                    <div class="space-y-6">
-                        ${week.days.map((day, dayIndex) => `
-                            <div class="day-card p-4 border-l-4 border-blue-500 bg-gray-50 dark:bg-gray-700/50 rounded-r-lg fade-in-up" style="animation-delay: ${dayIndex * 100}ms;">
-                                <div class="flex justify-between items-start mb-3">
-                                    <h4 class="text-lg font-semibold text-gray-800">${day.title}</h4>
-                                    <label class="flex items-center space-x-2 cursor-pointer text-sm font-medium text-green-600 dark:text-green-400">
-                                        <input type="checkbox" data-day-id="${day.id}" class="day-checkbox h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <span>Complete</span>
-                                    </label>
-                                </div>
-                                <div class="pl-1">
-                                    <p class="font-semibold text-gray-700">Tasks:</p>
-                                    <ul class="list-disc list-inside text-gray-600 space-y-1 my-2">
-                                        ${day.tasks.map(task => `<li>${task}</li>`).join('')}
-                                    </ul>
-                                    <p class="mt-3 p-2 bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 rounded-md text-sm"><strong>Deliverable:</strong> ${day.deliverable}</p>
-                                    <div class="mt-3">
-                                        <p class="font-semibold text-gray-700">Resources:</p>
-                                        <div class="flex flex-wrap gap-2 mt-1">
-                                            ${day.resources.map(res => `<a href="${res.url}" target="_blank" class="text-blue-600 hover:underline text-sm">${res.text}</a>`).join(' | ')}
-                                        </div>
-                                    </div>
-                                    <div class="mt-4">
-                                         <h5 class="font-semibold text-gray-700 mb-1">Notes & Comments:</h5>
-                                         <textarea data-day-id="${day.id}" class="comment-input w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150" rows="3" placeholder="Add your notes, insights, or questions here..."></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                container.appendChild(weekSection);
-            });
+        function renderPlanner() {
+            const weeksContainer = document.getElementById('weeks-container');
+            const notebookContainer = document.getElementById('notebook-container');
+            weeksContainer.innerHTML = '';
+            notebookContainer.innerHTML = `<h2 class="text-3xl font-bold text-gray-800 font-serif mb-4">My Research Notebook</h2>`;
+
+            projectData.weeks.forEach(week => weeksContainer.appendChild(createWeekElement(week)));
+            projectData.notebook.forEach(item => notebookContainer.appendChild(createNotebookElement(item)));
+            
+            initGlossary();
         }
         
-        // --- UI UPDATE FUNCTIONS ---
+        function createWeekElement(week) {
+            const section = document.createElement('section');
+            section.className = 'bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-lg';
+            section.innerHTML = `
+                <div class="mb-4"><h3 class="text-2xl font-bold text-gray-800">${week.title}</h3><p class="text-md text-gray-500">${week.goal}</p></div>
+                <div class="space-y-6">${week.days.map(createDayElement).join('')}</div>`;
+            return section;
+        }
+
+        function createDayElement(day) {
+            const icons = { tasks: `<svg class="card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>`, deliverable: `<svg class="card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`, resources: `<svg class="card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.536a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>`};
+            return `
+                <div class="day-card p-4 border-l-4 border-blue-500 bg-gray-50 rounded-r-lg">
+                    <div class="flex justify-between items-start mb-3"><h4 class="text-lg font-semibold text-gray-800">${day.title}</h4><label class="flex items-center space-x-2 cursor-pointer text-sm font-medium text-green-600"><input type="checkbox" data-day-id="${day.id}" class="day-checkbox h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span>Complete</span></label></div>
+                    <div class="pl-1 space-y-4">
+                        ${day.datasetUrl ? `<a href="${day.datasetUrl}" target="_blank" class="inline-block bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition my-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2 -mt-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Download Dataset</a>` : ''}
+                        <div><h5 class="font-semibold text-gray-700 flex items-center">${icons.tasks}Tasks</h5><ul class="list-disc list-inside text-gray-600 space-y-1 mt-2 ml-4">${day.tasks.map(task => `<li>${task}</li>`).join('')}</ul></div>
+                        <div><h5 class="font-semibold text-gray-700 flex items-center">${icons.deliverable}Deliverable</h5><p class="mt-1 ml-4 text-gray-600">${day.deliverable}</p></div>
+                        ${(day.resources && day.resources.length > 0) ? `<div><h5 class="font-semibold text-gray-700 flex items-center">${icons.resources}Resources</h5><div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 ml-4">${day.resources.map(res => `<a href="${res.url}" target="_blank" class="text-blue-600 hover:underline text-sm">${res.text}</a>`).join('')}</div></div>` : ''}
+                        ${day.mentorNote ? `<div class="mentor-note"><p class="text-sm"><strong class="font-semibold">Mentor Note:</strong> ${day.mentorNote}</p></div>` : ''}
+                    </div>
+                </div>`;
+        }
+
+        function createNotebookElement(item) {
+            const div = document.createElement('div');
+            div.className = 'mb-8';
+            div.innerHTML = `
+                <h3 class="text-2xl font-semibold text-gray-800 font-serif mb-3">${item.title}</h3>
+                <div class="guided-textarea">
+                    <textarea data-notebook-id="${item.id}" class="w-full h-48 p-2 border-0 focus:ring-0 bg-transparent text-gray-700" placeholder="${item.placeholder}"></textarea>
+                </div>`;
+            return div;
+        }
+
+        function initGlossary() {
+            document.querySelectorAll('#weeks-container li, #weeks-container .mentor-note p').forEach(el => {
+                let originalHTML = el.innerHTML;
+                const regex = new RegExp(`\\b(${Object.keys(glossaryTerms).join('|')})\\b`, "gi");
+                originalHTML = originalHTML.replace(regex, (matched) => {
+                    const key = Object.keys(glossaryTerms).find(k => k.toLowerCase() === matched.toLowerCase());
+                    return key ? `<span class="glossary-term">${matched}<span class="tooltip">${glossaryTerms[key]}</span></span>` : matched;
+                });
+                el.innerHTML = originalHTML;
+            });
+        }
+
         function updateAllUI() {
             updateThemeUI();
+            updateViewModeUI();
             updateProgressUI();
-            updateCommentsUI();
+            updateNotebookUI();
+            updateShowcaseUI();
+        }
+
+        function updateViewModeUI() {
+            const isPlanner = state.mode === 'planner';
+            document.getElementById('planner-view').classList.toggle('hidden', !isPlanner);
+            document.getElementById('showcase-view').classList.toggle('hidden', isPlanner);
+            document.getElementById('view-mode-toggle').classList.toggle('hidden', isPlanner);
         }
 
         function updateThemeUI() {
-            const theme = state.theme || 'light';
-            const htmlEl = document.documentElement;
-            const lightIcon = document.getElementById('theme-icon-light');
-            const darkIcon = document.getElementById('theme-icon-dark');
-            if (theme === 'dark') {
-                htmlEl.classList.add('dark');
-                lightIcon.classList.add('hidden');
-                darkIcon.classList.remove('hidden');
-            } else {
-                htmlEl.classList.remove('dark');
-                lightIcon.classList.remove('hidden');
-                darkIcon.classList.add('hidden');
-            }
+            document.documentElement.className = state.theme || 'light';
+            document.getElementById('theme-icon-light').classList.toggle('hidden', state.theme === 'dark');
+            document.getElementById('theme-icon-dark').classList.toggle('hidden', state.theme !== 'dark');
         }
         
         function updateProgressUI() {
-            const progress = state.progress || {};
             const checkboxes = document.querySelectorAll('.day-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = !!progress[cb.dataset.dayId];
-            });
+            if (checkboxes.length === 0) return;
+            checkboxes.forEach(cb => { cb.checked = !!state.progress[cb.dataset.dayId]; });
             const total = checkboxes.length;
-            const checkedCount = Object.values(progress).filter(Boolean).length;
+            const checkedCount = Object.values(state.progress).filter(Boolean).length;
             const percentage = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
-            
             document.getElementById('progressFill').style.width = `${percentage}%`;
             document.getElementById('progressText').textContent = `Progress: ${percentage}% (${checkedCount}/${total} tasks)`;
+            document.getElementById('completion-container').classList.toggle('hidden', percentage < 100);
         }
         
-        function updateCommentsUI() {
-            const comments = state.comments || {};
-            document.querySelectorAll('.comment-input').forEach(textarea => {
-                const dayId = textarea.dataset.dayId;
-                textarea.value = comments[dayId] || '';
+        function updateNotebookUI() {
+            document.querySelectorAll('[data-notebook-id]').forEach(textarea => {
+                textarea.value = state.notebook[textarea.dataset.notebookId] || '';
             });
         }
 
-        // --- DATA PERSISTENCE ---
+        function updateShowcaseUI() {
+            document.getElementById('showcase-abstract').textContent = state.notebook.abstract || 'Your abstract will appear here...';
+            document.getElementById('showcase-findings').textContent = state.notebook.findings || 'Your key findings will appear here...';
+            document.getElementById('showcase-reflection').textContent = state.notebook.reflection || 'Your personal reflection will appear here...';
+        }
+
         function saveState() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-                console.log("State saved to localStorage:", state);
-            } catch (error) {
-                console.error("Error saving to localStorage:", error);
-            }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { console.error("Failed to save state", e); }
         }
 
         function loadState() {
             try {
                 const savedState = localStorage.getItem(STORAGE_KEY);
-                if (savedState) {
-                    state = JSON.parse(savedState);
-                    console.log("State loaded from localStorage:", state);
-                }
-            } catch (error) {
-                console.error("Error loading from localStorage:", error);
-                // If parsing fails, start with a fresh state
-                state = { theme: 'light', progress: {}, comments: {} };
-            }
+                if (savedState) state = JSON.parse(savedState);
+            } catch (e) { console.error("Failed to load state", e); }
         }
 
-        // --- EVENT LISTENERS ---
         function setupEventListeners() {
-            // Theme Toggle
             document.getElementById('theme-toggle').addEventListener('click', () => {
                 state.theme = state.theme === 'light' ? 'dark' : 'light';
                 updateThemeUI();
                 saveState();
             });
 
-            // Event delegation for checkboxes and textareas
-            document.getElementById('weeks-container').addEventListener('change', (e) => {
+            document.getElementById('view-mode-toggle').addEventListener('click', () => {
+                state.mode = 'planner';
+                updateViewModeUI();
+                saveState();
+            });
+
+            document.getElementById('finalize-btn').addEventListener('click', () => {
+                state.mode = 'showcase';
+                updateViewModeUI();
+                saveState();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                runConfetti();
+            });
+
+            const plannerView = document.getElementById('planner-view');
+            plannerView.addEventListener('change', (e) => {
                 if (e.target.matches('.day-checkbox')) {
                     state.progress[e.target.dataset.dayId] = e.target.checked;
-                    updateProgressUI(); // Update progress bar immediately
+                    updateProgressUI();
                     saveState();
                 }
             });
 
-            // Debounced saving for comments
             let debounceTimer;
-            document.getElementById('weeks-container').addEventListener('input', (e) => {
-                if (e.target.matches('.comment-input')) {
-                    state.comments[e.target.dataset.dayId] = e.target.value;
+            plannerView.addEventListener('input', (e) => {
+                if (e.target.matches('[data-notebook-id]')) {
+                    if (!state.notebook) state.notebook = {};
+                    state.notebook[e.target.dataset.notebookId] = e.target.value;
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
                         saveState();
-                    }, 500); // Save 500ms after user stops typing
+                        updateShowcaseUI(); // Live update showcase as user types
+                    }, 500);
                 }
             });
+
+            const certModal = document.getElementById('certificate-modal');
+            const completionContainer = document.getElementById('completion-container');
+            if (completionContainer) {
+                completionContainer.addEventListener('click', (e) => {
+                    if(Object.values(state.progress).filter(Boolean).length === projectData.weeks.flatMap(w => w.days).length) {
+                        document.getElementById('certificate-date').textContent = new Date().toLocaleDateString();
+                        document.getElementById('certificate-name').value = state.userName || '';
+                        certModal.classList.add('flex');
+                        certModal.classList.remove('hidden');
+                    }
+                });
+            }
+            document.getElementById('certificate-close-btn').addEventListener('click', () => certModal.classList.add('hidden'));
+            document.getElementById('certificate-print-btn').addEventListener('click', () => window.print());
+            document.getElementById('certificate-name').addEventListener('input', (e) => {
+                state.userName = e.target.value;
+                saveState();
+            });
+        }
+
+        function runConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let confetti = [];
+            const confettiCount = 200;
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800'];
+
+            for (let i = 0; i < confettiCount; i++) {
+                confetti.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 6 + 4, // radius
+                    d: Math.random() * confettiCount, // density
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.floor(Math.random() * 10) - 10,
+                    tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+                    tiltAngle: 0
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                confetti.forEach((c, i) => {
+                    ctx.beginPath();
+                    ctx.lineWidth = c.r / 1.5;
+                    ctx.strokeStyle = c.color;
+                    ctx.moveTo(c.x + c.tilt + c.r, c.y);
+                    ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
+                    ctx.stroke();
+
+                    c.tiltAngle += c.tiltAngleIncremental;
+                    c.y += (Math.cos(c.d) + 3 + c.r / 2) / 2;
+                    c.tilt = Math.sin(c.tiltAngle - i / 8) * 15;
+
+                    if (c.y > canvas.height) { // If confetti is off screen, reset
+                        confetti[i] = { ...c, x: Math.random() * canvas.width, y: -20 };
+                    }
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+            setTimeout(() => { ctx.clearRect(0, 0, canvas.width, canvas.height); confetti = []; }, 5000);
         }
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            renderProject();
             loadState();
+            renderPlanner();
             updateAllUI();
             setupEventListeners();
-            // Hide the loading overlay
-            document.getElementById('loading-overlay').classList.add('hidden');
         });
-
     </script>
 </body>
 </html>
