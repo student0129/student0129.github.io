@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Week Clinical Diabetes Research Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Using a more modern font and some base styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom scrollbar for a more polished look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        
+        /* Dark Mode Styles */
+        .dark body {
+            background-color: #111827;
+            color: #d1d5db;
+        }
+        .dark .bg-white {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+        }
+        .dark .bg-gray-100 {
+            background-color: #374151 !important;
+        }
+        .dark .bg-gray-200 {
+             background-color: #4b5563 !important;
+        }
+        .dark .text-gray-800, .dark .text-gray-900 {
+            color: #f9fafb !important;
+        }
+        .dark .text-gray-600, .dark .text-gray-500 {
+            color: #9ca3af !important;
+        }
+        .dark .border-gray-200 {
+            border-color: #374151 !important;
+        }
+        .dark .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+        }
+        .dark .week-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        .dark .comment-input {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        .dark .comment-input::placeholder {
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app-container" class="max-w-7xl mx-auto bg-white min-h-screen shadow-2xl">
+        <!-- Loading Spinner -->
+        <div id="loading-overlay" class="fixed inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+            <p class="ml-4 text-lg text-gray-600 dark:text-gray-300">Initializing Project...</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 z-40 border-b border-gray-200">
+            <div class="mb-2 flex justify-between items-center">
+                <span class="text-sm font-semibold text-gray-600" id="progressText">Progress: 0%</span>
+                <span id="user-id-display" class="text-xs text-gray-400"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div id="progressFill" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-8 text-center">
+            <h1 class="text-4xl font-bold mb-2">3-Week Clinical Diabetes Research Project</h1>
+            <p class="text-lg opacity-90">A comprehensive summer research project for aspiring medical and health science professionals.</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="p-4 sm:p-6 md:p-8 space-y-8">
+            <!-- Project Overview -->
+            <section class="bg-gradient-to-r from-gray-700 to-gray-800 text-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-3">Project Overview</h2>
+                <p class="mb-4">Conduct an in-depth medical research study on diabetes mellitus, applying clinical knowledge to analyze real patient data from Iraqi medical centers. This project combines rigorous medical research with practical data science skills to understand diabetes diagnosis, risk factors, and clinical patterns.</p>
+                <p><strong>Final Deliverable:</strong> A professional medical research presentation or website demonstrating clinical expertise, data analysis capabilities, and evidence-based insights suitable for medical school applications.</p>
+            </section>
+            
+            <!-- Weeks will be dynamically inserted here by JavaScript -->
+            <div id="weeks-container" class="space-y-12"></div>
+
+            <!-- Skills Section -->
+            <section class="bg-white p-6 rounded-xl border border-gray-200">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Skills Developed</h2>
+                <ul class="list-disc list-inside space-y-2 text-gray-600">
+                    <li>Medical Research & Literature Review</li>
+                    <li>Clinical Data Interpretation & Biostatistics</li>
+                    <li>Medical Communication & Evidence-Based Medicine</li>
+                    <li>Healthcare Technology Exposure</li>
+                </ul>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center p-6 bg-gray-100 mt-8">
+            <p class="text-gray-500">Project planner designed for an immersive learning experience.</p>
+        </footer>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" class="fixed bottom-5 right-5 bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <!-- Sun Icon -->
+        <svg id="theme-icon-light" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <!-- Moon Icon -->
+        <svg id="theme-icon-dark" class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+    </button>
+    
+    <!-- Firebase and App Logic -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- DATA ---
+        const projectData = {
+            weeks: [
+                {
+                    title: "WEEK 1: Deep Medical Research & Diabetes Expertise",
+                    goal: "Develop comprehensive medical knowledge and research skills in diabetes.",
+                    days: [
+                        { id: 'day1', title: 'Day 1-2: Diabetes Pathophysiology & Types', tasks: ['Research detailed pathophysiology of Type 1, Type 2, and Gestational diabetes', 'Understand insulin production, glucose metabolism, and cellular mechanisms', 'Study complications: retinopathy, nephropathy, neuropathy, cardiovascular disease'], deliverable: 'Comprehensive pathophysiology report (3-4 pages) with diagrams', resources: [{text: 'CDC Diabetes Basics', url: 'https://www.cdc.gov/diabetes/basics/index.html'}, {text: 'American Diabetes Association', url: 'https://diabetes.org/'}] },
+                        { id: 'day2', title: 'Day 3-4: Diagnostic Criteria & Clinical Assessment', tasks: ['Research HbA1c, fasting glucose, and oral glucose tolerance tests', 'Understand diagnostic thresholds and their medical rationale', 'Study prediabetes identification and progression'], deliverable: 'Clinical diagnostic flowchart with detailed explanations', resources: [{text: 'ADA Standards of Care', url: '#'}, {text: 'WHO Diagnostic Criteria', url: '#'}] },
+                        { id: 'day3', title: 'Day 5-7: Risk Factors, Treatment & Current Research', tasks: ['Analyze genetic, environmental, and demographic risk factors', 'Research medication classes and lifestyle interventions', 'Review latest research on prevention and emerging therapies'], deliverable: 'Risk factor analysis and treatment algorithm report', resources: [{text: 'NIH Diabetes Resources', url: '#'}, {text: 'ClinicalTrials.gov', url: '#'}] },
+                    ]
+                },
+                {
+                    title: "WEEK 2: Complete Data Analysis & Visualization",
+                    goal: "Apply medical knowledge to understand real-world diabetes data.",
+                    days: [
+                        { id: 'day4', title: 'Day 8-9: Clinical Dataset Analysis', tasks: ['Download and examine the Iraqi medical center diabetes dataset', 'Research each clinical variable\'s medical significance (e.g., HbA1c, Lipid Profile)', 'Create a comprehensive medical data dictionary'], deliverable: 'Clinical data dictionary with normal ranges and pathophysiology connections', resources: [{text: 'Clinical Lab Reference Ranges', url: '#'}, {text: 'UpToDate', url: '#'}] },
+                        { id: 'day5', title: 'Day 10-12: Exploratory Data Analysis & Visualization', tasks: ['Calculate descriptive statistics and create distribution plots', 'Identify outliers and assess clinical significance', 'Create age-stratified charts, BMI visualizations, and lipid profile analyses'], deliverable: 'Clinical visualization portfolio (12-15 charts) with medical interpretations', resources: [{text: 'Tableau Public', url: '#'}, {text: 'Google Colab', url: '#'}] },
+                        { id: 'day6', title: 'Day 13-14: Clinical Pattern Discovery', tasks: ['Analyze correlations between laboratory values using medical knowledge', 'Compare Iraqi population data to published international medical literature', 'Synthesize findings into clinically relevant diagnostic insights'], deliverable: '"Clinical Insights from Patient Data" medical analysis report', resources: [{text: 'PubMed', url: '#'}, {text: 'Google Scholar', url: '#'}] },
+                    ]
+                },
+                {
+                    title: "WEEK 3: Predictive Modeling & Final Presentation",
+                    goal: "Experience predictive analytics and create a professional deliverable.",
+                    days: [
+                        { id: 'day7', title: 'Day 15-16: No-Code Predictive Modeling', tasks: ['Use a no-code tool (e.g., Teachable Machine, Orange) to build a diabetes prediction model', 'Understand model performance metrics', 'Test different algorithms'], deliverable: 'Working prediction model with performance report', resources: [{text: 'Teachable Machine', url: '#'}, {text: 'Orange Data Mining', url: '#'}] },
+                        { id: 'day8', title: 'Day 17-19: Website/Presentation Development', tasks: ['Choose platform (website or presentation)', 'Structure content logically, including all research, visualizations, and model', 'Design a professional layout and write clear explanations'], deliverable: 'Draft of final website or presentation', resources: [{text: 'Google Sites', url: '#'}, {text: 'Canva', url: '#'}] },
+                        { id: 'day9', title: 'Day 20-21: Peer Review & Submission', tasks: ['Get feedback from peers, family, or mentors', 'Make final revisions and check for accuracy', 'Prepare project summary for college applications and resume'], deliverable: 'Final project ready for submission', resources: [{text: 'Writing Center Guides', url: '#'}] },
+                    ]
+                }
+            ]
+        };
+        
+        // --- FIREBASE SETUP ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
+        let app, auth, db, userId, userDocRef;
+        let isAuthReady = false;
+        let localDataCache = {}; // Local cache to prevent Firestore writes on initial load
+
+        // Initialize Firebase and Auth
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("User is signed in with UID:", userId);
+                    } else {
+                        // If no user, sign in. Use custom token if available, else anonymously.
+                        try {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } catch (error) {
+                            console.error("Error during sign-in:", error);
+                            // Fallback for local testing if auth fails
+                            userId = 'local-user';
+                            isAuthReady = true;
+                            setupApp();
+                        }
+                        return; // onAuthStateChanged will re-trigger with the new user
+                    }
+                    
+                    isAuthReady = true;
+                    setupApp();
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                document.getElementById('loading-overlay').innerHTML = '<p class="text-red-500">Error: Could not connect to project database.</p>';
+            }
+        }
+        
+        function setupApp() {
+            if (!isAuthReady || !userId) return;
+            
+            document.getElementById('user-id-display').textContent = `User ID: ${userId}`;
+            // FIX: A document reference must have an even number of segments.
+            // The path was .../diabetesProject (5 segments), it needs to point to a document.
+            // We add a specific document ID, e.g., 'data', to make the path valid.
+            userDocRef = doc(db, `artifacts/${appId}/users/${userId}/diabetesProject/data`);
+            
+            // Listen for realtime updates
+            onSnapshot(userDocRef, (docSnap) => {
+                const data = docSnap.exists() ? docSnap.data() : {};
+                localDataCache = data; // Update local cache
+                console.log("Received data from Firestore:", data);
+                
+                // Update UI based on new data
+                updateThemeUI(data.theme || 'light');
+                updateProgressUI(data.progress || {});
+                updateCommentsUI(data.comments || {});
+                
+                // Hide loading overlay once the first data is loaded
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }, (error) => {
+                console.error("Firestore snapshot error:", error);
+                document.getElementById('loading-overlay').innerHTML = '<p class="text-red-500">Error: Could not load project data.</p>';
+            });
+        }
+
+
+        // --- UI RENDERING ---
+        function renderProject() {
+            const container = document.getElementById('weeks-container');
+            container.innerHTML = ''; // Clear existing content
+            projectData.weeks.forEach((week, weekIndex) => {
+                const weekSection = document.createElement('section');
+                weekSection.className = 'bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-lg';
+                weekSection.innerHTML = `
+                    <div class="week-header bg-gradient-to-r from-red-500 to-orange-500 text-white p-4 rounded-lg mb-4">
+                        <h3 class="text-xl font-bold">${week.title}</h3>
+                        <p class="text-sm opacity-90">${week.goal}</p>
+                    </div>
+                    <div class="space-y-6">
+                        ${week.days.map((day, dayIndex) => `
+                            <div class="day-card p-4 border-l-4 border-blue-500 bg-gray-50 dark:bg-gray-700/50 rounded-r-lg fade-in-up" style="animation-delay: ${dayIndex * 100}ms;">
+                                <div class="flex justify-between items-start mb-3">
+                                    <h4 class="text-lg font-semibold text-gray-800">${day.title}</h4>
+                                    <label class="flex items-center space-x-2 cursor-pointer text-sm font-medium text-green-600 dark:text-green-400">
+                                        <input type="checkbox" data-day-id="${day.id}" class="day-checkbox h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span>Complete</span>
+                                    </label>
+                                </div>
+                                <div class="pl-1">
+                                    <p class="font-semibold text-gray-700">Tasks:</p>
+                                    <ul class="list-disc list-inside text-gray-600 space-y-1 my-2">
+                                        ${day.tasks.map(task => `<li>${task}</li>`).join('')}
+                                    </ul>
+                                    <p class="mt-3 p-2 bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 rounded-md text-sm"><strong>Deliverable:</strong> ${day.deliverable}</p>
+                                    <div class="mt-3">
+                                        <p class="font-semibold text-gray-700">Resources:</p>
+                                        <div class="flex flex-wrap gap-2 mt-1">
+                                            ${day.resources.map(res => `<a href="${res.url}" target="_blank" class="text-blue-600 hover:underline text-sm">${res.text}</a>`).join(' | ')}
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                         <h5 class="font-semibold text-gray-700 mb-1">Notes & Comments:</h5>
+                                         <textarea data-day-id="${day.id}" class="comment-input w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150" rows="3" placeholder="Add your notes, insights, or questions here..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(weekSection);
+            });
+        }
+        
+        // --- UI UPDATE FUNCTIONS ---
+        function updateThemeUI(theme) {
+            const htmlEl = document.documentElement;
+            const lightIcon = document.getElementById('theme-icon-light');
+            const darkIcon = document.getElementById('theme-icon-dark');
+            if (theme === 'dark') {
+                htmlEl.classList.add('dark');
+                lightIcon.classList.add('hidden');
+                darkIcon.classList.remove('hidden');
+            } else {
+                htmlEl.classList.remove('dark');
+                lightIcon.classList.remove('hidden');
+                darkIcon.classList.add('hidden');
+            }
+        }
+        
+        function updateProgressUI(progress = {}) {
+            const checkboxes = document.querySelectorAll('.day-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = !!progress[cb.dataset.dayId];
+            });
+            const total = checkboxes.length;
+            const checkedCount = Object.values(progress).filter(Boolean).length;
+            const percentage = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+            
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = `Progress: ${percentage}% (${checkedCount}/${total} tasks)`;
+        }
+        
+        function updateCommentsUI(comments = {}) {
+             document.querySelectorAll('.comment-input').forEach(textarea => {
+                const dayId = textarea.dataset.dayId;
+                if (comments[dayId]) {
+                    textarea.value = comments[dayId];
+                }
+            });
+        }
+
+        // --- DATA PERSISTENCE ---
+        async function saveToFirestore(data) {
+            if (!isAuthReady || !userDocRef) return;
+            try {
+                // Use setDoc with merge to create or update the document
+                await setDoc(userDocRef, data, { merge: true });
+                console.log("Data saved to Firestore:", data);
+            } catch (error) {
+                console.error("Error saving to Firestore:", error);
+            }
+        }
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            // Theme Toggle
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                const isDark = document.documentElement.classList.contains('dark');
+                const newTheme = isDark ? 'light' : 'dark';
+                updateThemeUI(newTheme); // Update UI immediately
+                saveToFirestore({ theme: newTheme });
+            });
+
+            // Event delegation for checkboxes and textareas
+            document.getElementById('weeks-container').addEventListener('change', (e) => {
+                if (e.target.matches('.day-checkbox')) {
+                    const progress = localDataCache.progress || {};
+                    progress[e.target.dataset.dayId] = e.target.checked;
+                    updateProgressUI(progress); // Update UI immediately
+                    saveToFirestore({ progress });
+                }
+            });
+
+            // Debounced saving for comments
+            let debounceTimer;
+            document.getElementById('weeks-container').addEventListener('input', (e) => {
+                if (e.target.matches('.comment-input')) {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const comments = localDataCache.comments || {};
+                        comments[e.target.dataset.dayId] = e.target.value;
+                        saveToFirestore({ comments });
+                    }, 750); // Save 750ms after user stops typing
+                }
+            });
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProject();
+            initializeFirebase();
+            setupEventListeners();
+        });
+
+    </script>
+</body>
+</html>
