@@ -91,17 +91,16 @@
 <body class="bg-gray-100">
 
     <div id="app-container" class="max-w-7xl mx-auto bg-white min-h-screen shadow-2xl">
-        <!-- Loading Spinner -->
+        <!-- Loading Spinner (will be hidden quickly) -->
         <div id="loading-overlay" class="fixed inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center">
             <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-            <p class="ml-4 text-lg text-gray-600 dark:text-gray-300">Initializing Project...</p>
+            <p class="ml-4 text-lg text-gray-600 dark:text-gray-300">Loading Project...</p>
         </div>
 
         <!-- Progress Bar -->
         <div class="sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 z-40 border-b border-gray-200">
             <div class="mb-2 flex justify-between items-center">
                 <span class="text-sm font-semibold text-gray-600" id="progressText">Progress: 0%</span>
-                <span id="user-id-display" class="text-xs text-gray-400"></span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
                 <div id="progressFill" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -156,13 +155,8 @@
         </svg>
     </button>
     
-    <!-- Firebase and App Logic -->
+    <!-- App Logic -->
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
         // --- DATA ---
         const projectData = {
             weeks: [
@@ -196,81 +190,13 @@
             ]
         };
         
-        // --- FIREBASE SETUP ---
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        
-        let app, auth, db, userId, userDocRef;
-        let isAuthReady = false;
-        let localDataCache = {}; // Local cache to prevent Firestore writes on initial load
-
-        // Initialize Firebase and Auth
-        async function initializeFirebase() {
-            try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        console.log("User is signed in with UID:", userId);
-                    } else {
-                        // If no user, sign in. Use custom token if available, else anonymously.
-                        try {
-                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                await signInWithCustomToken(auth, __initial_auth_token);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                        } catch (error) {
-                            console.error("Error during sign-in:", error);
-                            // Fallback for local testing if auth fails
-                            userId = 'local-user';
-                            isAuthReady = true;
-                            setupApp();
-                        }
-                        return; // onAuthStateChanged will re-trigger with the new user
-                    }
-                    
-                    isAuthReady = true;
-                    setupApp();
-                });
-
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                document.getElementById('loading-overlay').innerHTML = '<p class="text-red-500">Error: Could not connect to project database.</p>';
-            }
-        }
-        
-        function setupApp() {
-            if (!isAuthReady || !userId) return;
-            
-            document.getElementById('user-id-display').textContent = `User ID: ${userId}`;
-            // FIX: A document reference must have an even number of segments.
-            // The path was .../diabetesProject (5 segments), it needs to point to a document.
-            // We add a specific document ID, e.g., 'data', to make the path valid.
-            userDocRef = doc(db, `artifacts/${appId}/users/${userId}/diabetesProject/data`);
-            
-            // Listen for realtime updates
-            onSnapshot(userDocRef, (docSnap) => {
-                const data = docSnap.exists() ? docSnap.data() : {};
-                localDataCache = data; // Update local cache
-                console.log("Received data from Firestore:", data);
-                
-                // Update UI based on new data
-                updateThemeUI(data.theme || 'light');
-                updateProgressUI(data.progress || {});
-                updateCommentsUI(data.comments || {});
-                
-                // Hide loading overlay once the first data is loaded
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }, (error) => {
-                console.error("Firestore snapshot error:", error);
-                document.getElementById('loading-overlay').innerHTML = '<p class="text-red-500">Error: Could not load project data.</p>';
-            });
-        }
-
+        // --- LOCAL STATE MANAGEMENT ---
+        const STORAGE_KEY = 'diabetesProjectData';
+        let state = {
+            theme: 'light',
+            progress: {},
+            comments: {}
+        };
 
         // --- UI RENDERING ---
         function renderProject() {
@@ -320,7 +246,14 @@
         }
         
         // --- UI UPDATE FUNCTIONS ---
-        function updateThemeUI(theme) {
+        function updateAllUI() {
+            updateThemeUI();
+            updateProgressUI();
+            updateCommentsUI();
+        }
+
+        function updateThemeUI() {
+            const theme = state.theme || 'light';
             const htmlEl = document.documentElement;
             const lightIcon = document.getElementById('theme-icon-light');
             const darkIcon = document.getElementById('theme-icon-dark');
@@ -335,7 +268,8 @@
             }
         }
         
-        function updateProgressUI(progress = {}) {
+        function updateProgressUI() {
+            const progress = state.progress || {};
             const checkboxes = document.querySelectorAll('.day-checkbox');
             checkboxes.forEach(cb => {
                 cb.checked = !!progress[cb.dataset.dayId];
@@ -348,24 +282,35 @@
             document.getElementById('progressText').textContent = `Progress: ${percentage}% (${checkedCount}/${total} tasks)`;
         }
         
-        function updateCommentsUI(comments = {}) {
-             document.querySelectorAll('.comment-input').forEach(textarea => {
+        function updateCommentsUI() {
+            const comments = state.comments || {};
+            document.querySelectorAll('.comment-input').forEach(textarea => {
                 const dayId = textarea.dataset.dayId;
-                if (comments[dayId]) {
-                    textarea.value = comments[dayId];
-                }
+                textarea.value = comments[dayId] || '';
             });
         }
 
         // --- DATA PERSISTENCE ---
-        async function saveToFirestore(data) {
-            if (!isAuthReady || !userDocRef) return;
+        function saveState() {
             try {
-                // Use setDoc with merge to create or update the document
-                await setDoc(userDocRef, data, { merge: true });
-                console.log("Data saved to Firestore:", data);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                console.log("State saved to localStorage:", state);
             } catch (error) {
-                console.error("Error saving to Firestore:", error);
+                console.error("Error saving to localStorage:", error);
+            }
+        }
+
+        function loadState() {
+            try {
+                const savedState = localStorage.getItem(STORAGE_KEY);
+                if (savedState) {
+                    state = JSON.parse(savedState);
+                    console.log("State loaded from localStorage:", state);
+                }
+            } catch (error) {
+                console.error("Error loading from localStorage:", error);
+                // If parsing fails, start with a fresh state
+                state = { theme: 'light', progress: {}, comments: {} };
             }
         }
 
@@ -373,19 +318,17 @@
         function setupEventListeners() {
             // Theme Toggle
             document.getElementById('theme-toggle').addEventListener('click', () => {
-                const isDark = document.documentElement.classList.contains('dark');
-                const newTheme = isDark ? 'light' : 'dark';
-                updateThemeUI(newTheme); // Update UI immediately
-                saveToFirestore({ theme: newTheme });
+                state.theme = state.theme === 'light' ? 'dark' : 'light';
+                updateThemeUI();
+                saveState();
             });
 
             // Event delegation for checkboxes and textareas
             document.getElementById('weeks-container').addEventListener('change', (e) => {
                 if (e.target.matches('.day-checkbox')) {
-                    const progress = localDataCache.progress || {};
-                    progress[e.target.dataset.dayId] = e.target.checked;
-                    updateProgressUI(progress); // Update UI immediately
-                    saveToFirestore({ progress });
+                    state.progress[e.target.dataset.dayId] = e.target.checked;
+                    updateProgressUI(); // Update progress bar immediately
+                    saveState();
                 }
             });
 
@@ -393,12 +336,11 @@
             let debounceTimer;
             document.getElementById('weeks-container').addEventListener('input', (e) => {
                 if (e.target.matches('.comment-input')) {
+                    state.comments[e.target.dataset.dayId] = e.target.value;
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
-                        const comments = localDataCache.comments || {};
-                        comments[e.target.dataset.dayId] = e.target.value;
-                        saveToFirestore({ comments });
-                    }, 750); // Save 750ms after user stops typing
+                        saveState();
+                    }, 500); // Save 500ms after user stops typing
                 }
             });
         }
@@ -406,8 +348,11 @@
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             renderProject();
-            initializeFirebase();
+            loadState();
+            updateAllUI();
             setupEventListeners();
+            // Hide the loading overlay
+            document.getElementById('loading-overlay').classList.add('hidden');
         });
 
     </script>
