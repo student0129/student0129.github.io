@@ -949,11 +949,19 @@
     
     // Listen for the start of a touch
     document.addEventListener('touchstart', (e) => {
-        // Prevent default browser actions on long press, like text selection
+        // --- FIX FOR UNCLICKABLE LINKS ---
+        // First, check if the user is tapping on a link or a button.
+        // If they are, we do NOT want to interfere.
+        if (e.target.closest('a') || e.target.closest('button')) {
+            return; // Exit and let the browser handle the click normally.
+        }
+    
+        // If it's not a link or button, THEN we prevent the default action
+        // to allow for our Morse code long-press without selecting text.
         e.preventDefault(); 
-        tapStartTime = new Date().getTime();
         
-        // Clear the reset timer because a new tap has started
+        // The rest of the code is the same
+        tapStartTime = new Date().getTime();
         clearTimeout(morseTimeout);
     }, { passive: false });
     
