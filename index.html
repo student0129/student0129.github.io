@@ -935,6 +935,63 @@
             }
         }
     });
+
+    // --- NEW: Morse Code Activation for Touch Devices ---
+
+    const morseSequence = ['dash', 'dot', 'dash', 'dash', 'dash']; // The sequence is (- ·---)
+    let morseUserInput = [];
+    let tapStartTime = 0;
+    let morseTimeout;
+    
+    // Define what counts as a short tap (dot) vs a long tap (dash) in milliseconds
+    const DASH_THRESHOLD = 250; // Anything longer than 250ms is a dash
+    const RESET_TIME = 2000;    // Reset if no new taps for 2 seconds
+    
+    // Listen for the start of a touch
+    document.addEventListener('touchstart', (e) => {
+        // Prevent default browser actions on long press, like text selection
+        e.preventDefault(); 
+        tapStartTime = new Date().getTime();
+        
+        // Clear the reset timer because a new tap has started
+        clearTimeout(morseTimeout);
+    }, { passive: false });
+    
+    // Listen for the end of a touch
+    document.addEventListener('touchend', (e) => {
+        const tapEndTime = new Date().getTime();
+        const duration = tapEndTime - tapStartTime;
+    
+        // Classify the tap as 'dot' or 'dash' based on duration
+        const tapType = (duration > DASH_THRESHOLD) ? 'dash' : 'dot';
+        
+        // Add the detected tap to the user's input sequence
+        morseUserInput.push(tapType);
+        console.log('Morse Input:', morseUserInput.join(' ')); // For testing, you can see this in the browser console
+    
+        // Check if the current input sequence is a valid start to the full code
+        // If not, reset immediately so the user can start over.
+        if (!morseSequence.join(',').startsWith(morseUserInput.join(','))) {
+            morseUserInput = [];
+            console.log('Incorrect sequence, resetting.');
+            return; // Stop further processing
+        }
+    
+        // Check for a successful match
+        if (morseUserInput.join(',') === morseSequence.join(',')) {
+            console.log('Morse code accepted!');
+            document.getElementById('secretMenu').classList.add('show');
+            morseUserInput = []; // Reset after success
+            clearTimeout(morseTimeout); // Stop the reset timer
+            return;
+        }
+    
+        // If the code is not yet complete, set a timer to reset if the user waits too long
+        morseTimeout = setTimeout(() => {
+            morseUserInput = [];
+            console.log('Input timed out, resetting.');
+        }, RESET_TIME);
+    });
     
     </script>
 
