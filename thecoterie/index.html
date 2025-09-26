@@ -61,7 +61,8 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 0.15;
+            opacity: 0; /* Start hidden */
+            transition: opacity 2s ease-in;
         }
 
         .header {
@@ -321,12 +322,38 @@
             transition: border-bottom-color var(--transition-speed) ease;
         }
         .learn-more:hover { border-bottom-color: var(--primary-color); }
-
-        /* The Experience Section */
-        #experience { background-color: #050505; }
-        .experience-grid {
+        
+        /* Our Ethos Section */
+        #ethos { background-color: #050505; }
+        .ethos-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            text-align: left;
+        }
+        .ethos-item {
+            padding: 1.5rem;
+        }
+        .ethos-item svg {
+            width: 40px;
+            height: 40px;
+            stroke: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+        .ethos-item h4 {
+            font-size: 1.3rem;
+            font-weight: 300;
+            margin-bottom: 0.75rem;
+        }
+        .ethos-item p { color: var(--primary-light); }
+
+
+        /* The Experience Section */
+        #experience { background-color: #000; }
+        .experience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 2rem;
             margin-top: 3rem;
             text-align: left;
@@ -353,10 +380,12 @@
             color: var(--primary-light);
             margin-bottom: 1rem;
             display: block;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
         }
         
-        /* Membership Principles Section */
-        .principles-content {
+        /* Membership Criteria Section */
+        .criteria-content {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 3rem;
@@ -364,7 +393,7 @@
             text-align: left;
             margin-top: 3rem;
         }
-        .principles-list .criteria-item {
+        .criteria-list .criteria-item {
             background-color: transparent;
             border: none;
             border-left: 2px solid var(--border-color);
@@ -373,12 +402,12 @@
             margin-bottom: 1.5rem;
             transition: border-color var(--transition-speed) ease;
         }
-        .principles-list .criteria-item:hover { border-color: var(--primary-color); }
+        .criteria-list .criteria-item:hover { border-color: var(--primary-color); }
         .criteria-item h4 {
             font-weight: 300;
             margin-bottom: 0.5rem;
         }
-        .principles-info {
+        .criteria-info {
             background-color: var(--card-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -447,7 +476,7 @@
         }
         
         @media (max-width: 992px) {
-             .principles-content { grid-template-columns: 1fr; }
+             .criteria-content { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
@@ -472,8 +501,9 @@
         <div class="nav-dot active" data-label="Home" data-target="hero"></div>
         <div class="nav-dot" data-label="Premise" data-target="premise"></div>
         <div class="nav-dot" data-label="Communities" data-target="communities"></div>
+        <div class="nav-dot" data-label="Ethos" data-target="ethos"></div>
         <div class="nav-dot" data-label="Experience" data-target="experience"></div>
-        <div class="nav-dot" data-label="Principles" data-target="principles"></div>
+        <div class="nav-dot" data-label="Criteria" data-target="criteria"></div>
         <div class="nav-dot" data-label="Apply" data-target="apply"></div>
     </nav>
 
@@ -482,7 +512,7 @@
             <div class="content-wrapper">
                 <h1 class="event-title">The Coterie</h1>
                 <p class="hero-subtitle">An exclusive peer community for Data, Analytics, and AI leaders in the Washington D.C. Metro Area.</p>
-                <p class="hero-description">The Coterie is a private, high-trust environment for executives to share candid insights, brainstorm solutions, and gain the critical perspectives needed to navigate the evolving technological landscape.</p>
+                <p class="hero-description">The Coterie is a private, high-trust environment for executives to interrogate complex challenges, gain critical perspective, and chart a clearer path forward in the age of intelligent systems.</p>
                 <a href="#apply" class="btn">Request an Invitation</a>
             </div>
         </section>
@@ -491,7 +521,7 @@
             <div class="content-wrapper">
                 <div class="section-header fade-in-up">
                     <h2>Where The Real Conversations Happen</h2>
-                    <p>As a senior leader, you operate beyond the technology. Your true challenges lie at the intersection of people, process, and platforms. The Coterie is where you can bypass the vendor noise and generic advice to discuss the nuanced realities of AI governance, societal impact, and organizational change with peers who understand the stakes.</p>
+                    <p>As a senior leader, you operate beyond the algorithm. Your true challenges are a complex weave of strategy, culture, and code. The Coterie is where you move past the public narrative to discuss the nuanced realities of AI governance, societal impact, and organizational dynamics with peers who truly understand the stakes.</p>
                 </div>
             </div>
         </section>
@@ -504,7 +534,7 @@
                 </div>
             
                 <div class="community-grid">
-                    <div class="community-card fade-in-up">
+                     <div class="community-card fade-in-up">
                         <div class="card-inner">
                             <div class="card-front">
                                 <div class="card-content">
@@ -581,15 +611,41 @@
                             </div>
                             <div class="card-back">
                                 <h3>Civic Circuit</h3>
-                                <p><strong>Focus:</strong> Deploying intelligence where it matters most.</p>
+                                <p><strong>Focus:</strong> Adopting a mission-oriented approach to direct technology toward the public good.</p>
                                 <ul>
-                                    <li>Implementing responsible AI in public services</li>
-                                    <li>Building responsive, data-driven infrastructure</li>
-                                    <li>Fostering public trust and transparency</li>
+                                    <li>Solving grand challenges with data</li>
+                                    <li>Fostering public-private innovation</li>
+                                    <li>Building trust and transparency by design</li>
                                 </ul>
                                 <div class="card-footer"><span class="learn-more">Back</span></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ethos" class="section">
+            <div class="content-wrapper">
+                <div class="section-header fade-in-up">
+                    <h2>Our Ethos</h2>
+                    <p>The Coterie is defined not just by who is in the room, but by the principles that govern our interactions.</p>
+                </div>
+                <div class="ethos-grid">
+                    <div class="ethos-item fade-in-up">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"/><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"/><path d="M12 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+                        <h4>Intellectual Humility</h4>
+                        <p>We believe the most accomplished leaders are the most curious. Members come to learn from one another, not to posture. The difficult questions are more valuable than the easy answers.</p>
+                    </div>
+                    <div class="ethos-item fade-in-up">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <h4>Confidentiality as Default</h4>
+                        <p>Trust is our foundational asset. All discussions operate under a strict Chatham House Rule, creating a secure space for genuine vulnerability and candid exchange on sensitive topics.</p>
+                    </div>
+                    <div class="ethos-item fade-in-up">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <h4>Bias Toward Action</h4>
+                        <p>Our conversations are not academic exercises. The goal is to equip members with diverse perspectives and actionable frameworks that can be applied to drive real-world organizational change.</p>
                     </div>
                 </div>
             </div>
@@ -605,30 +661,35 @@
                     <div class="experience-item fade-in-up">
                         <span class="item-header">MORNING SESSION</span>
                         <h4>Chatham House Dialogues</h4>
-                        <p>Members engage in candid, off-the-record discussions about their most pressing challenges. Topics are member-driven, focusing on real-world issues of governance, strategy, and leadership.</p>
+                        <p>Members engage in off-the-record discussions on their most pressing challenges. Topics are member-driven, focusing on governance, strategy, and leadership.</p>
                     </div>
                     <div class="experience-item fade-in-up">
                         <span class="item-header">AFTERNOON INTENSIVE</span>
                         <h4>Strategic Accelerators</h4>
-                        <p>Deep-dive workshops on complex, forward-looking topics: responsible AI, the societal impact of your work, unintended consequences, and navigating the evolving regulatory landscape.</p>
+                        <p>Deep-dive workshops on complex, forward-looking topics: responsible AI, societal impact, unintended consequences, and the evolving regulatory landscape.</p>
                     </div>
                     <div class="experience-item fade-in-up">
                         <span class="item-header">GUEST PERSPECTIVE</span>
                         <h4>The Outside-In</h4>
-                        <p>A private briefing from a leading academic researcher, policymaker, or venture capitalist whose work directly impacts your strategic horizon—offering insights you won't find anywhere else.</p>
+                        <p>A private briefing from a leading academic, policymaker, or researcher whose work directly impacts your strategic horizon—offering insights you won't find anywhere else.</p>
+                    </div>
+                     <div class="experience-item fade-in-up">
+                        <span class="item-header">FUTURE-STATE SCENARIO</span>
+                        <h4>Red Team Challenge</h4>
+                        <p>Members collaborate to dissect and "red team" a plausible but difficult future scenario (e.g., a systemic AI failure), developing response frameworks under pressure.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="principles" class="section">
+        <section id="criteria" class="section">
             <div class="content-wrapper">
                 <div class="section-header fade-in-up">
-                    <h2>Membership Principles</h2>
+                    <h2>Membership Criteria</h2>
                     <p>The value of The Coterie lies in the quality and commitment of its members. Our community is built on a foundation of shared experience, trust, and a dedication to collective advancement.</p>
                 </div>
-                <div class="principles-content">
-                    <div class="principles-list">
+                <div class="criteria-content">
+                    <div class="criteria-list">
                         <div class="criteria-item fade-in-up">
                             <h4>Proven Leadership & Strategic Responsibility</h4>
                             <p>Members are C-level, VP, or Director-level executives with direct ownership of data, analytics, or AI strategy and its impact on business outcomes.</p>
@@ -642,9 +703,9 @@
                             <p>To foster deep, meaningful connections, members commit to attending the quarterly, in-person sessions held in the Washington D.C. Metro Area.</p>
                         </div>
                     </div>
-                    <div class="principles-info fade-in-up">
+                    <div class="criteria-info fade-in-up">
                         <h3>A High-Signal Community</h3>
-                        <p>We deliberately grow at a measured pace to maintain the quality and intimacy of the discussions. Every member is vetted to ensure alignment with our core principles.</p>
+                        <p>We deliberately grow at a measured pace to maintain the quality and intimacy of the discussions. Every member is vetted to ensure alignment with our core ethos.</p>
                         <a href="#apply" class="btn">Request an Invitation</a>
                     </div>
                 </div>
@@ -655,7 +716,7 @@
             <div class="content-wrapper">
                 <div class="section-header fade-in-up">
                     <h2>Request an Invitation</h2>
-                    <p>Our process is deliberate and focused on fit. If your role and challenges align with our principles, we invite you to submit an expression of interest.</p>
+                    <p>Our process is deliberate and focused on fit. If your role and challenges align with our ethos, we invite you to submit an expression of interest.</p>
                 </div>
                 
                 <div class="application-form fade-in-up">
@@ -705,82 +766,79 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         
-        // --- Subtle Background Animation ---
+        // --- Dynamic Constellation Background ---
         const canvas = document.getElementById('background-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        const particleCount = 50;
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            const starCount = window.innerWidth > 768 ? 100 : 40;
+            const connectionDistance = 120;
 
-        function setCanvasSize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+            const setCanvasSize = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
 
-        function createParticles() {
-            particles = [];
-            for (let i = 0; i < particleCount; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 0.1,
-                    vy: (Math.random() - 0.5) * 0.1,
-                    radius: Math.random() * 1.5
+            const createStars = () => {
+                stars = [];
+                for (let i = 0; i < starCount; i++) {
+                    stars.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 0.3,
+                        vy: (Math.random() - 0.5) * 0.3,
+                        radius: Math.random() * 1.5 + 0.5
+                    });
+                }
+            };
+
+            const animate = () => {
+                if (!ctx) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+
+                stars.forEach(star => {
+                    star.x += star.vx;
+                    star.y += star.vy;
+
+                    if (star.x < 0 || star.x > canvas.width) star.vx *= -1;
+                    if (star.y < 0 || star.y > canvas.height) star.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fill();
                 });
-            }
-        }
 
-        function animate() {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-
-            particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-
-                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
-                    if (dist < 150) {
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i < stars.length; i++) {
+                    for (let j = i + 1; j < stars.length; j++) {
+                        const dist = Math.hypot(stars[i].x - stars[j].x, stars[i].y - stars[j].y);
+                        if (dist < connectionDistance) {
+                            ctx.beginPath();
+                            ctx.moveTo(stars[i].x, stars[i].y);
+                            ctx.lineTo(stars[j].x, stars[j].y);
+                            ctx.stroke();
+                        }
                     }
                 }
-            }
-
-            requestAnimationFrame(animate);
-        }
-        
-        if (canvas) {
+                requestAnimationFrame(animate);
+            };
+            
             setCanvasSize();
-            createParticles();
+            createStars();
             animate();
+            canvas.style.opacity = '0.25'; // Fade in the canvas
             window.addEventListener('resize', () => {
                 setCanvasSize();
-                createParticles();
+                createStars();
             });
         }
 
 
         // --- Animate on Scroll using Intersection Observer ---
-        const observerOptions = {
-            threshold: 0.2,
-            rootMargin: '0px 0px -50px 0px'
-        };
-        
-        const observer = new IntersectionObserver((entries, observer) => {
+        const observerOptions = { threshold: 0.2, rootMargin: '0px 0px -50px 0px' };
+        const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
@@ -788,9 +846,7 @@
             });
         }, observerOptions);
 
-        document.querySelectorAll('.fade-in-up').forEach(el => {
-            observer.observe(el);
-        });
+        document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
 
         // --- Side Navigation Logic ---
         const navDots = document.querySelectorAll('.nav-dot');
@@ -823,21 +879,19 @@
         
         // --- Community Card Flip Functionality ---
         document.querySelectorAll('.learn-more').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.closest('.community-card').classList.toggle('flipped');
+                link.closest('.community-card').classList.toggle('flipped');
             });
         });
 
         // --- Modern Form Submission ---
         const form = document.getElementById('membership-form');
-        const formMessage = document.getElementById('form-message');
-
         if(form) {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const submitButton = this.querySelector('.btn');
-                
+                const formMessage = this.querySelector('#form-message');
                 let isValid = true;
                 this.querySelectorAll('[required]').forEach(input => {
                     if (!input.value.trim()) {
@@ -863,15 +917,10 @@
                     formMessage.textContent = 'Thank you. Your expression of interest has been received. Our team will review it and be in touch.';
                     formMessage.className = 'success';
                     formMessage.style.display = 'block';
-                    
                     this.reset();
                     submitButton.textContent = originalButtonText;
                     submitButton.disabled = false;
-
-                    setTimeout(() => {
-                        formMessage.style.display = 'none';
-                    }, 8000);
-
+                    setTimeout(() => { formMessage.style.display = 'none'; }, 8000);
                 }, 1500);
             });
         }
