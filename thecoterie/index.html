@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="The Coterie by Promontory AI: An exclusive, invite-only peer community for senior Data, Analytics, and AI leaders in the Washington D.C. Metro Area.">
     <title>The Coterie | Where AI Strategy Meets Executive Excellence</title>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
     
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
@@ -27,13 +27,14 @@
         :root {
             --primary-color: #ffffff;
             --primary-dark: #cccccc;
-            --primary-light: #aeaeae;
-            --text-color: #ffffff;
-            --bg-color: #000000;
-            --card-color: #111111;
-            --border-color: #2a2a2a;
-            --shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
-            --transition-speed: 0.4s;
+            --primary-light: #cccccc; 
+            --text-color: #f8f9fa;
+            --klein-blue: #002FA7;
+            --bg-color: #050505; /* Near-black for high contrast */
+            --card-color-rgb: 8, 8, 8; /* For rgba glass effect */
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px 0 rgba(0, 47, 167, 0.15);
+            --transition-speed: 0.5s;
         }
         
         * {
@@ -53,16 +54,14 @@
             overflow-x: hidden;
             width: 100%;
         }
-        
-        #background-canvas {
+
+        #gradient-canvas {
+            width:100%;
+            height:100%;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
             z-index: -1;
-            opacity: 0; /* Start hidden */
-            transition: opacity 2s ease-in;
         }
 
         .header {
@@ -70,7 +69,6 @@
             color: white;
             padding: 20px;
             font-size: 14px;
-            font-weight: 200;
             position: fixed;
             top: 0;
             left: 0;
@@ -80,12 +78,16 @@
             display: flex;
             align-items: center;
         }
+        
+        .header h1 {
+            font-weight: 200;
+        }
 
         .event-title {
             font-size: clamp(3rem, 6vw, 6rem);
             font-weight: 200;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #ffffff, #888888);
+            background: linear-gradient(135deg, #ffffff, #bbbbbb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -115,6 +117,8 @@
         .nav-dot:hover, .nav-dot.active {
             background-color: var(--primary-color);
             transform: scale(1.3);
+            /* COLOR UPDATE */
+            box-shadow: 0 0 12px var(--klein-blue);
         }
         
         .nav-dot::after {
@@ -147,7 +151,7 @@
             overflow: hidden;
         }
         
-        .content-wrapper { width: 100%; max-width: 1200px; text-align: center; }
+        .content-wrapper { width: 100%; max-width: 1200px; text-align: center; z-index: 2; }
         
         .hero {
             padding-top: 180px;
@@ -202,6 +206,20 @@
             font-weight: 200;
             margin-bottom: 1rem;
             letter-spacing: 0.5px;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        /* COLOR UPDATE */
+        .section-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: var(--klein-blue);
+            border-radius: 2px;
         }
         .section-header p {
             font-size: 1.2rem;
@@ -211,21 +229,21 @@
             margin: 0 auto;
         }
 
-        /* Animate on Scroll Classes */
-        .fade-in-up {
+        /* Enhanced Animation System */
+        .animate-on-scroll {
             opacity: 0;
             transform: translateY(30px);
-            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: opacity 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .fade-in-up.visible {
+        .animate-on-scroll.visible {
             opacity: 1;
             transform: translateY(0);
         }
-        
-        /* The Premise Section */
-        #premise { background-color: #050505; }
-        
-        /* Communities Section */
+        /* Staggered animation for grid items */
+        .stagger-children > * {
+            transition-delay: calc(0.15s * var(--stagger-index));
+        }
+
         .community-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -234,28 +252,29 @@
         }
         
         .community-card {
-            background-color: var(--card-color);
+            background: rgba(var(--card-color-rgb), 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 12px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 2rem;
             box-shadow: var(--shadow);
-            perspective: 1000px;
-            height: 340px;
+            perspective: 1500px;
+            height: 360px;
             position: relative;
-            overflow: hidden;
-            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            cursor: pointer;
+            transition: transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
         }
+        /* COLOR UPDATE */
         .community-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08);
+            transform: translateY(-10px);
+            border-color: var(--klein-blue);
         }
 
         .card-inner {
             position: relative;
             width: 100%;
             height: 100%;
-            text-align: center;
-            transition: transform 0.7s cubic-bezier(0.7, 0, 0.3, 1);
+            transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
             transform-style: preserve-3d;
         }
         
@@ -268,21 +287,26 @@
             backface-visibility: hidden;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 2rem;
         }
         
         .card-back {
             transform: rotateY(180deg);
-            background-color: var(--card-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            text-align: left;
-            font-size: 0.9rem;
         }
-        .card-back h3 {
-            font-size: 1.2rem;
+
+        .card-front-content {
+            margin-top: auto;
+            margin-bottom: auto;
             text-align: center;
-            margin-bottom: 1rem;
+            width: 100%;
+        }
+        
+        .card-back h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            font-weight: 300;
         }
         .card-back p { font-size: 0.95rem; margin-bottom: 0.5rem; }
         .card-back ul { list-style: none; padding-left: 0; }
@@ -295,14 +319,11 @@
             content: '›';
             position: absolute;
             left: 0;
-            color: var(--primary-color);
+            color: var(--klein-blue);
             font-weight: 300;
             font-size: 1.2rem;
             line-height: 1;
         }
-
-        .card-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .card-footer { margin-top: auto; padding-top: 1rem; }
         
         .community-card h3 {
             font-size: 1.5rem;
@@ -312,19 +333,6 @@
         
         .community-card p { color: var(--primary-light); }
         
-        .learn-more {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 300;
-            cursor: pointer;
-            padding: 0.25rem 0;
-            border-bottom: 1px solid transparent;
-            transition: border-bottom-color var(--transition-speed) ease;
-        }
-        .learn-more:hover { border-bottom-color: var(--primary-color); }
-        
-        /* Our Ethos Section */
-        #ethos { background-color: #050505; }
         .ethos-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -334,11 +342,15 @@
         }
         .ethos-item {
             padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
+        /* COLOR UPDATE */
         .ethos-item svg {
             width: 40px;
             height: 40px;
-            stroke: var(--primary-light);
+            stroke: var(--klein-blue);
             margin-bottom: 1rem;
         }
         .ethos-item h4 {
@@ -349,8 +361,6 @@
         .ethos-item p { color: var(--primary-light); }
 
 
-        /* The Experience Section */
-        #experience { background-color: #000; }
         .experience-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -359,8 +369,10 @@
             text-align: left;
         }
         .experience-item {
-            background-color: var(--card-color);
-            border-radius: 8px;
+            background-color: rgba(var(--card-color-rgb), 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 12px;
             padding: 2rem;
             border: 1px solid var(--border-color);
             transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
@@ -377,14 +389,14 @@
         .experience-item p { color: var(--primary-light); }
         .experience-item .item-header {
             font-weight: 300;
-            color: var(--primary-light);
+            /* COLOR UPDATE */
+            color: var(--klein-blue);
             margin-bottom: 1rem;
             display: block;
             letter-spacing: 1px;
             font-size: 0.8rem;
         }
         
-        /* Membership Criteria Section */
         .criteria-content {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -402,28 +414,62 @@
             margin-bottom: 1.5rem;
             transition: border-color var(--transition-speed) ease;
         }
-        .criteria-list .criteria-item:hover { border-color: var(--primary-color); }
+        .criteria-list .criteria-item:hover { border-color: var(--klein-blue); }
         .criteria-item h4 {
             font-weight: 300;
             margin-bottom: 0.5rem;
         }
         .criteria-info {
-            background-color: var(--card-color);
+            background: rgba(var(--card-color-rgb), 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 2rem;
             text-align: center;
         }
 
-        /* Application Section */
-        #apply { background-color: #050505; }
-        .application-form {
-            background-color: var(--card-color);
-            border-radius: 8px;
+        .application-form-wrapper {
+            background: rgba(var(--card-color-rgb), 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 12px;
             padding: 3rem;
             border: 1px solid var(--border-color);
             max-width: 600px;
             margin: 2rem auto 0;
+        }
+        .form-group.nomination-type {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+        .nomination-type label {
+            margin-bottom: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+        .nomination-type input[type="radio"] {
+            margin-right: 0.75rem;
+            accent-color: var(--klein-blue);
+        }
+        .nominator-details {
+            display: none; 
+            border-left: 2px solid var(--border-color);
+            padding-left: 1.5rem;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .form-group {
             margin-bottom: 1.5rem;
@@ -433,23 +479,25 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 200;
+            font-size: 0.9rem;
+            color: var(--primary-light);
         }
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #333;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             font-size: 1rem;
             transition: all var(--transition-speed) ease;
-            background-color: #222;
+            background-color: rgba(0,0,0,0.3);
             color: white;
             font-weight: 200;
         }
         .form-group textarea { resize: vertical; min-height: 100px; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+            border-color: var(--klein-blue);
+            box-shadow: 0 0 0 2px rgba(0, 47, 167, 0.2);
         }
         #form-message {
             margin-top: 1.5rem;
@@ -480,19 +528,20 @@
         }
 
         @media (max-width: 768px) {
-            .header { height: 60px; }
+            .header { height: 60px; padding: 0 20px;}
             .section { padding: 60px 1rem; }
-            .hero { padding-top: 100px; }
+            .hero { padding-top: 100px; margin-top: -60px; }
             .hero-subtitle { font-size: 1.2rem; }
             .section-header h2 { font-size: 2.2rem; }
-            .side-nav { right: 10px; }
-            .nav-dot { width: 10px; height: 10px; }
+            .side-nav { display: none; }
+            .footer { position: relative; padding: 2rem 1rem; }
         }
     </style>
 </head>
 <body>
-    <canvas id="background-canvas"></canvas>
     
+    <canvas id="gradient-canvas"></canvas>
+
     <header class="header">
         <h1>Promontory AI</h1>
     </header>
@@ -511,37 +560,36 @@
         <section id="hero" class="section hero">
             <div class="content-wrapper">
                 <h1 class="event-title">The Coterie</h1>
-                <p class="hero-subtitle">An exclusive peer community for Data, Analytics, and AI leaders in the Washington D.C. Metro Area.</p>
-                <p class="hero-description">The Coterie is a private, high-trust environment for executives to interrogate complex challenges, gain critical perspective, and chart a clearer path forward in the age of intelligent systems.</p>
-                <a href="#apply" class="btn">Request an Invitation</a>
+                <p class="hero-subtitle animate-on-scroll">An exclusive peer community for Data, Analytics, and AI leaders.</p>
+                <p class="hero-description animate-on-scroll" style="--stagger-index: 1;">A private, high-trust environment for executives in the Washington D.C. Metro Area to interrogate complex challenges, gain critical perspective, and chart a clearer path forward.</p>
+                <a href="#apply" class="btn animate-on-scroll" style="--stagger-index: 2;">Nominate a Leader</a>
             </div>
         </section>
 
         <section id="premise" class="section">
             <div class="content-wrapper">
-                <div class="section-header fade-in-up">
-                    <h2>Where The Real Conversations Happen</h2>
-                    <p>As a senior leader, you operate beyond the algorithm. Your true challenges are a complex weave of strategy, culture, and code. The Coterie is where you move past the public narrative to discuss the nuanced realities of AI governance, societal impact, and organizational dynamics with peers who truly understand the stakes.</p>
+                <div class="section-header animate-on-scroll">
+                    <h2>The Leadership Imperative</h2>
+                    <p>At Promontory AI, we believe the most critical component in any technology stack is the leader. Your challenges, perspective, and growth are paramount. That’s why we created The Coterie—a space to move beyond the public narrative and discuss the nuanced realities of AI governance, societal impact, and organizational dynamics with peers who truly understand the stakes.</p>
                 </div>
             </div>
         </section>
 
         <section id="communities" class="section communities">
             <div class="content-wrapper">
-                <div class="section-header fade-in-up">
+                <div class="section-header animate-on-scroll">
                     <h2>Curated Executive Communities</h2>
                     <p>To ensure relevance and depth, members join industry or function-focused cohorts, each strictly capped to foster trust and open dialogue.</p>
                 </div>
             
-                <div class="community-grid">
-                     <div class="community-card fade-in-up">
+                <div class="community-grid stagger-children">
+                     <div class="community-card animate-on-scroll" style="--stagger-index: 1;">
                         <div class="card-inner">
                             <div class="card-front">
-                                <div class="card-content">
+                                <div class="card-front-content">
                                     <h3>Catalyst Collective</h3>
                                     <p>For founders and executives at high-growth startups.</p>
                                 </div>
-                                <div class="card-footer"><span class="learn-more">Learn more</span></div>
                             </div>
                             <div class="card-back">
                                 <h3>Catalyst Collective</h3>
@@ -551,19 +599,17 @@
                                     <li>Building lean, high-impact AI/data teams</li>
                                     <li>Navigating fundraising and GTM with data</li>
                                 </ul>
-                                <div class="card-footer"><span class="learn-more">Back</span></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="community-card fade-in-up">
+                    <div class="community-card animate-on-scroll" style="--stagger-index: 2;">
                         <div class="card-inner">
-                            <div class="card-front">
-                                <div class="card-content">
+                             <div class="card-front">
+                                <div class="card-front-content">
                                     <h3>Velocity Core</h3>
                                     <p>For leaders at established technology firms.</p>
                                 </div>
-                                <div class="card-footer"><span class="learn-more">Learn more</span></div>
                             </div>
                             <div class="card-back">
                                 <h3>Velocity Core</h3>
@@ -573,19 +619,17 @@
                                     <li>Rebuilding decision pipelines for scale</li>
                                     <li>Managing non-linear growth challenges</li>
                                 </ul>
-                                <div class="card-footer"><span class="learn-more">Back</span></div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="community-card fade-in-up">
+                    <div class="community-card animate-on-scroll" style="--stagger-index: 3;">
                         <div class="card-inner">
                             <div class="card-front">
-                                <div class="card-content">
+                                <div class="card-front-content">
                                     <h3>Command Line</h3>
                                     <p>For executives in Fortune 1000 and global enterprises.</p>
                                 </div>
-                                <div class="card-footer"><span class="learn-more">Learn more</span></div>
                             </div>
                             <div class="card-back">
                                 <h3>Command Line</h3>
@@ -595,19 +639,17 @@
                                     <li>Overcoming organizational inertia</li>
                                     <li>Using AI as strategic leverage</li>
                                 </ul>
-                                <div class="card-footer"><span class="learn-more">Back</span></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="community-card fade-in-up">
+                    <div class="community-card animate-on-scroll" style="--stagger-index: 4;">
                         <div class="card-inner">
                             <div class="card-front">
-                                <div class="card-content">
+                                <div class="card-front-content">
                                     <h3>Civic Circuit</h3>
                                     <p>For leaders in the public sector, infrastructure, and smart cities.</p>
                                 </div>
-                                <div class="card-footer"><span class="learn-more">Learn more</span></div>
                             </div>
                             <div class="card-back">
                                 <h3>Civic Circuit</h3>
@@ -617,7 +659,6 @@
                                     <li>Fostering public-private innovation</li>
                                     <li>Building trust and transparency by design</li>
                                 </ul>
-                                <div class="card-footer"><span class="learn-more">Back</span></div>
                             </div>
                         </div>
                     </div>
@@ -627,22 +668,22 @@
 
         <section id="ethos" class="section">
             <div class="content-wrapper">
-                <div class="section-header fade-in-up">
+                <div class="section-header animate-on-scroll">
                     <h2>Our Ethos</h2>
                     <p>The Coterie is defined not just by who is in the room, but by the principles that govern our interactions.</p>
                 </div>
-                <div class="ethos-grid">
-                    <div class="ethos-item fade-in-up">
+                <div class="ethos-grid stagger-children">
+                    <div class="ethos-item animate-on-scroll" style="--stagger-index: 1;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"/><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"/><path d="M12 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
                         <h4>Intellectual Humility</h4>
                         <p>We believe the most accomplished leaders are the most curious. Members come to learn from one another, not to posture. The difficult questions are more valuable than the easy answers.</p>
                     </div>
-                    <div class="ethos-item fade-in-up">
+                    <div class="ethos-item animate-on-scroll" style="--stagger-index: 2;">
                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                         <h4>Confidentiality as Default</h4>
                         <p>Trust is our foundational asset. All discussions operate under a strict Chatham House Rule, creating a secure space for genuine vulnerability and candid exchange on sensitive topics.</p>
                     </div>
-                    <div class="ethos-item fade-in-up">
+                    <div class="ethos-item animate-on-scroll" style="--stagger-index: 3;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                         <h4>Bias Toward Action</h4>
                         <p>Our conversations are not academic exercises. The goal is to equip members with diverse perspectives and actionable frameworks that can be applied to drive real-world organizational change.</p>
@@ -653,27 +694,27 @@
 
         <section id="experience" class="section">
             <div class="content-wrapper">
-                <div class="section-header fade-in-up">
+                <div class="section-header animate-on-scroll">
                     <h2>A Day With The Coterie</h2>
                     <p>The Coterie convenes quarterly for an intensive, full-day session. This is not a conference. It is a carefully orchestrated experience designed for maximum strategic value and connection.</p>
                 </div>
-                <div class="experience-grid">
-                    <div class="experience-item fade-in-up">
+                <div class="experience-grid stagger-children">
+                    <div class="experience-item animate-on-scroll" style="--stagger-index: 1;">
                         <span class="item-header">MORNING SESSION</span>
                         <h4>Chatham House Dialogues</h4>
                         <p>Members engage in off-the-record discussions on their most pressing challenges. Topics are member-driven, focusing on governance, strategy, and leadership.</p>
                     </div>
-                    <div class="experience-item fade-in-up">
+                    <div class="experience-item animate-on-scroll" style="--stagger-index: 2;">
                         <span class="item-header">AFTERNOON INTENSIVE</span>
                         <h4>Strategic Accelerators</h4>
                         <p>Deep-dive workshops on complex, forward-looking topics: responsible AI, societal impact, unintended consequences, and the evolving regulatory landscape.</p>
                     </div>
-                    <div class="experience-item fade-in-up">
+                    <div class="experience-item animate-on-scroll" style="--stagger-index: 3;">
                         <span class="item-header">GUEST PERSPECTIVE</span>
                         <h4>The Outside-In</h4>
                         <p>A private briefing from a leading academic, policymaker, or researcher whose work directly impacts your strategic horizon—offering insights you won't find anywhere else.</p>
                     </div>
-                     <div class="experience-item fade-in-up">
+                     <div class="experience-item animate-on-scroll" style="--stagger-index: 4;">
                         <span class="item-header">FUTURE-STATE SCENARIO</span>
                         <h4>Red Team Challenge</h4>
                         <p>Members collaborate to dissect and "red team" a plausible but difficult future scenario (e.g., a systemic AI failure), developing response frameworks under pressure.</p>
@@ -684,29 +725,29 @@
 
         <section id="criteria" class="section">
             <div class="content-wrapper">
-                <div class="section-header fade-in-up">
+                <div class="section-header animate-on-scroll">
                     <h2>Membership Criteria</h2>
                     <p>The value of The Coterie lies in the quality and commitment of its members. Our community is built on a foundation of shared experience, trust, and a dedication to collective advancement.</p>
                 </div>
                 <div class="criteria-content">
-                    <div class="criteria-list">
-                        <div class="criteria-item fade-in-up">
+                    <div class="criteria-list stagger-children">
+                        <div class="criteria-item animate-on-scroll" style="--stagger-index: 1;">
                             <h4>Proven Leadership & Strategic Responsibility</h4>
                             <p>Members are C-level, VP, or Director-level executives with direct ownership of data, analytics, or AI strategy and its impact on business outcomes.</p>
                         </div>
-                        <div class="criteria-item fade-in-up">
+                        <div class="criteria-item animate-on-scroll" style="--stagger-index: 2;">
                             <h4>Commitment to Candor & Contribution</h4>
                             <p>The expectation is active participation. Members come prepared to share their experiences—successes and failures—to contribute to the group's collective knowledge.</p>
                         </div>
-                        <div class="criteria-item fade-in-up">
+                        <div class="criteria-item animate-on-scroll" style="--stagger-index: 3;">
                             <h4>Dedication to Presence</h4>
                             <p>To foster deep, meaningful connections, members commit to attending the quarterly, in-person sessions held in the Washington D.C. Metro Area.</p>
                         </div>
                     </div>
-                    <div class="criteria-info fade-in-up">
+                    <div class="criteria-info animate-on-scroll" style="--stagger-index: 4;">
                         <h3>A High-Signal Community</h3>
                         <p>We deliberately grow at a measured pace to maintain the quality and intimacy of the discussions. Every member is vetted to ensure alignment with our core ethos.</p>
-                        <a href="#apply" class="btn">Request an Invitation</a>
+                        <a href="#apply" class="btn">Nominate a Leader</a>
                     </div>
                 </div>
             </div>
@@ -714,27 +755,36 @@
 
         <section id="apply" class="section application-section">
             <div class="content-wrapper">
-                <div class="section-header fade-in-up">
-                    <h2>Request an Invitation</h2>
-                    <p>Our process is deliberate and focused on fit. If your role and challenges align with our ethos, we invite you to submit an expression of interest.</p>
+                <div class="section-header animate-on-scroll">
+                    <h2>Nominate a Leader</h2>
+                    <p>Our process is deliberate and focused on fit. We invite you to submit a nomination for a peer—or for yourself—who is shaping the future of AI and data in the D.C. area.</p>
                 </div>
                 
-                <div class="application-form fade-in-up">
+                <div class="application-form-wrapper animate-on-scroll">
                     <form id="membership-form">
+                        <div class="form-group nomination-type">
+                            <label><input type="radio" name="nominationType" value="self" checked> I am nominating myself.</label>
+                            <label><input type="radio" name="nominationType" value="peer"> I am nominating a peer.</label>
+                        </div>
+
                         <div class="form-group">
-                            <label for="name">Full Name *</label>
+                            <label for="name">Full Name of Nominee *</label>
                             <input type="text" id="name" name="name" required>
                         </div>
                         <div class="form-group">
-                            <label for="title">Title *</label>
+                            <label for="email">Email of Nominee *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="title">Title of Nominee *</label>
                             <input type="text" id="title" name="title" required>
                         </div>
                         <div class="form-group">
-                            <label for="company">Company *</label>
+                            <label for="company">Company of Nominee *</label>
                             <input type="text" id="company" name="company" required>
                         </div>
                          <div class="form-group">
-                            <label for="linkedin">LinkedIn Profile URL *</label>
+                            <label for="linkedin">LinkedIn Profile URL of Nominee *</label>
                             <input type="url" id="linkedin" name="linkedin" required placeholder="https://linkedin.com/in/yourprofile">
                         </div>
                         <div class="form-group">
@@ -748,10 +798,22 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="qualification">Briefly describe your current strategic challenges. *</label>
-                            <textarea id="qualification" name="qualification" rows="4" required placeholder="e.g., 'Scaling our MLOps practice,' 'Establishing an enterprise AI governance council,' 'Measuring ROI on GenAI investments...'"></textarea>
+                            <label for="qualification">Why is this individual a strong fit for The Coterie? *</label>
+                            <textarea id="qualification" name="qualification" rows="4" required placeholder="Describe their leadership role, the challenges they face, and the unique perspective they would bring to the community..."></textarea>
                         </div>
-                        <button type="submit" class="btn" style="width: 100%;">Submit Interest</button>
+                        
+                        <div class="nominator-details" id="nominator-details">
+                             <div class="form-group">
+                                <label for="nominatorName">Your Name (Nominator) *</label>
+                                <input type="text" id="nominatorName" name="nominatorName">
+                            </div>
+                             <div class="form-group">
+                                <label for="nominatorEmail">Your Email (Nominator) *</label>
+                                <input type="email" id="nominatorEmail" name="nominatorEmail">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn" style="width: 100%;">Submit Nomination</button>
                         <div id="form-message"></div>
                     </form>
                 </div>
@@ -762,79 +824,106 @@
     <footer class="footer">
         <span>thecoterie@promontoryai.com</span>
     </footer>
-
+    
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        
-        // --- Dynamic Constellation Background ---
-        const canvas = document.getElementById('background-canvas');
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            let stars = [];
-            const starCount = window.innerWidth > 768 ? 100 : 40;
-            const connectionDistance = 120;
-
-            const setCanvasSize = () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            };
-
-            const createStars = () => {
-                stars = [];
-                for (let i = 0; i < starCount; i++) {
-                    stars.push({
-                        x: Math.random() * canvas.width,
-                        y: Math.random() * canvas.height,
-                        vx: (Math.random() - 0.5) * 0.3,
-                        vy: (Math.random() - 0.5) * 0.3,
-                        radius: Math.random() * 1.5 + 0.5
-                    });
-                }
-            };
-
-            const animate = () => {
-                if (!ctx) return;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-
-                stars.forEach(star => {
-                    star.x += star.vx;
-                    star.y += star.vy;
-
-                    if (star.x < 0 || star.x > canvas.width) star.vx *= -1;
-                    if (star.y < 0 || star.y > canvas.height) star.vy *= -1;
-
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                    ctx.fill();
-                });
-
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.lineWidth = 0.5;
-                for (let i = 0; i < stars.length; i++) {
-                    for (let j = i + 1; j < stars.length; j++) {
-                        const dist = Math.hypot(stars[i].x - stars[j].x, stars[i].y - stars[j].y);
-                        if (dist < connectionDistance) {
-                            ctx.beginPath();
-                            ctx.moveTo(stars[i].x, stars[i].y);
-                            ctx.lineTo(stars[j].x, stars[j].y);
-                            ctx.stroke();
-                        }
-                    }
-                }
-                requestAnimationFrame(animate);
-            };
+    // --- Award-Winning Background: Dynamic Proximity Connections ---
+    class GlowingConstellation {
+        constructor(canvasId) {
+            this.canvas = document.getElementById(canvasId);
+            if (!this.canvas) return;
+            this.ctx = this.canvas.getContext('2d');
             
-            setCanvasSize();
-            createStars();
-            animate();
-            canvas.style.opacity = '0.25'; // Fade in the canvas
-            window.addEventListener('resize', () => {
-                setCanvasSize();
-                createStars();
-            });
+            this.settings = {
+                starCount: window.innerWidth > 768 ? 60 : 30, // Increased for a fuller feel
+                connectionDistance: 130,
+                kleinBlue: 'rgba(0, 47, 167, 0.9)',
+                velocity: 0.4
+            };
+
+            this.stars = [];
+            window.addEventListener('resize', () => this.resize());
+            this.init();
         }
 
+        init() {
+            this.resize();
+            this.animate();
+        }
+
+        resize() {
+            this.width = window.innerWidth;
+            this.height = window.innerHeight;
+            this.canvas.width = this.width;
+            this.canvas.height = this.height;
+            this.createStars();
+        }
+
+        createStars() {
+            this.stars = [];
+            for (let i = 0; i < this.settings.starCount; i++) {
+                this.stars.push({
+                    x: Math.random() * this.width,
+                    y: Math.random() * this.height,
+                    vx: (Math.random() - 0.5) * this.settings.velocity,
+                    vy: (Math.random() - 0.5) * this.settings.velocity,
+                    radius: Math.random() * 1.5 + 0.5
+                });
+            }
+        }
+
+        animate() {
+            this.ctx.clearRect(0, 0, this.width, this.height);
+
+            // Update star positions
+            this.stars.forEach(star => {
+                star.x += star.vx;
+                star.y += star.vy;
+                if (star.x < -star.radius) star.x = this.width + star.radius;
+                if (star.x > this.width + star.radius) star.x = -star.radius;
+                if (star.y < -star.radius) star.y = this.height + star.radius;
+                if (star.y > this.height + star.radius) star.y = -star.radius;
+            });
+
+            // Dynamically find and draw connections
+            for (let i = 0; i < this.stars.length; i++) {
+                for (let j = i + 1; j < this.stars.length; j++) {
+                    const dist = Math.hypot(this.stars[i].x - this.stars[j].x, this.stars[i].y - this.stars[j].y);
+
+                    if (dist < this.settings.connectionDistance) {
+                        // Opacity is stronger when closer, creating a natural fade effect
+                        const opacity = 1 - (dist / this.settings.connectionDistance);
+                        
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.stars[i].x, this.stars[i].y);
+                        this.ctx.lineTo(this.stars[j].x, this.stars[j].y);
+                        
+                        this.ctx.strokeStyle = `rgba(220, 230, 255, ${opacity * 0.4})`; // Brighter core line
+                        this.ctx.lineWidth = 1;
+                        this.ctx.shadowColor = this.settings.kleinBlue;
+                        this.ctx.shadowBlur = opacity * 20; // Proportional glow
+                        this.ctx.stroke();
+                    }
+                }
+            }
+            
+            this.ctx.shadowBlur = 0;
+            
+            // Draw stars on top
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            this.stars.forEach(star => {
+                this.ctx.beginPath();
+                this.ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                this.ctx.fill();
+            });
+
+            requestAnimationFrame(() => this.animate());
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('gradient-canvas')) {
+            new GlowingConstellation('gradient-canvas');
+        }
 
         // --- Animate on Scroll using Intersection Observer ---
         const observerOptions = { threshold: 0.2, rootMargin: '0px 0px -50px 0px' };
@@ -842,11 +931,19 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
+                    // Stagger children if the container has the class
+                    if (entry.target.classList.contains('stagger-children')) {
+                        const children = entry.target.querySelectorAll('.animate-on-scroll');
+                        children.forEach((child, index) => {
+                            child.style.setProperty('--stagger-index', index);
+                        });
+                    }
                 }
             });
         }, observerOptions);
 
-        document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
+        document.querySelectorAll('.animate-on-scroll, .stagger-children').forEach(el => observer.observe(el));
+
 
         // --- Side Navigation Logic ---
         const navDots = document.querySelectorAll('.nav-dot');
@@ -878,16 +975,31 @@
         sections.forEach(section => navObserver.observe(section));
         
         // --- Community Card Flip Functionality ---
-        document.querySelectorAll('.learn-more').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                link.closest('.community-card').classList.toggle('flipped');
+        document.querySelectorAll('.community-card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('flipped');
             });
         });
 
         // --- Modern Form Submission ---
         const form = document.getElementById('membership-form');
         if(form) {
+            const nominationRadios = form.querySelectorAll('input[name="nominationType"]');
+            const nominatorDetails = form.querySelector('#nominator-details');
+            const nominatorFields = nominatorDetails.querySelectorAll('input');
+
+            nominationRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'peer') {
+                        nominatorDetails.style.display = 'block';
+                        nominatorFields.forEach(field => field.required = true);
+                    } else {
+                        nominatorDetails.style.display = 'none';
+                        nominatorFields.forEach(field => field.required = false);
+                    }
+                });
+            });
+
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const submitButton = this.querySelector('.btn');
@@ -898,7 +1010,7 @@
                         isValid = false;
                         input.style.borderColor = '#dc3545';
                     } else {
-                        input.style.borderColor = '#333';
+                        input.style.borderColor = 'var(--border-color)';
                     }
                 });
                 
@@ -914,10 +1026,14 @@
                 submitButton.disabled = true;
 
                 setTimeout(() => {
-                    formMessage.textContent = 'Thank you. Your expression of interest has been received. Our team will review it and be in touch.';
+                    formMessage.textContent = 'Thank you. Your nomination has been received. Our team will review it and be in touch.';
                     formMessage.className = 'success';
                     formMessage.style.display = 'block';
                     this.reset();
+                    // Reset form state visually
+                    nominatorDetails.style.display = 'none';
+                    nominatorFields.forEach(field => field.required = false);
+                    
                     submitButton.textContent = originalButtonText;
                     submitButton.disabled = false;
                     setTimeout(() => { formMessage.style.display = 'none'; }, 8000);
