@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="The Coterie by Promontory AI: An exclusive, invite-only peer community for senior Data, Analytics, and AI leaders in the Washington D.C. Metro Area.">
     <title>The Coterie | Where analytics and AI leaders navigate what's next</title>
-    <link href="https://fonts.googleapis.comcom/css2?family=IBM+Plex+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
     
@@ -233,8 +233,8 @@
                     <h2>Claim Your Vantage Point</h2>
                     <p>From the right elevation, the path becomes clear. The Coterie offers senior data and AI leaders the perspective that comes from genuine peer exchange—where Core strengthens core, Craft sharpens craft, and Cause amplifies cause. Each member is nominated and vetted, selected for what they bring to the room and what they seek to build beyond it.</p>
                 </div>
-                <div class="criteria-content">
-                    <div class="criteria-list stagger-children">
+                <div class="stagger-children"> 
+                    <div class="criteria-list">
                         <div class="criteria-item animate-on-scroll" style="--stagger-index: 1;">
                             <h4>Senior Data & AI Leadership</h4>
                             <p>Members are C-level, VP, or Director-level executives actively leading data, analytics, or AI initiatives with budget authority and strategic influence.</p>
@@ -248,12 +248,15 @@
                             <p>Members commit to quarterly, in-person sessions in the Washington D.C. Metro Area. This geographic concentration enables deep relationships and real-time collaboration impossible in virtual formats.</p>
                         </div>
                     </div>
-                    <div class="criteria-info animate-on-scroll" style="--stagger-index: 4;">
-                        <h3>A Vetted Community</h3>
-                        <p>We deliberately limit membership to maintain quality and intimacy. Each nomination undergoes careful review for expertise, influence, and alignment with our ethos. This isn't open enrollment—it's a curated group where every member is chosen for the value they bring and receive.</p>
-                        <button class="btn open-modal-btn">Nominate a Leader</button>
-                    </div>
                 </div>
+            </div>
+        </section>
+
+        <section id="nominate" class="section cta-section">
+            <div class="content-wrapper animate-on-scroll">
+                <h3>A Vetted Community</h3>
+                <p>This isn't open enrollment—it's a curated group where every member is chosen for the value they bring and receive.</p>
+                <button class="btn open-modal-btn">Nominate a Leader</button>
             </div>
         </section>
     </main>
@@ -265,58 +268,59 @@
                 <button class="close-modal" aria-label="Close nomination form">&times;</button>
             </div>
             <div class="modal-content">
-                 <form id="membership-form">
-                    <div class="form-group nomination-type">
-                        <label><input type="radio" name="nominationType" value="self" checked> I am nominating myself.</label>
-                        <label><input type="radio" name="nominationType" value="peer"> I am nominating a peer.</label>
+                <div class="form-step active" data-step="1">
+                    <p class="step-question">Who are you nominating for The Coterie?</p>
+                    <div class="choice-container">
+                        <button class="choice-btn" data-next-step="2-self">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>I am nominating myself</span>
+                        </button>
+                        <button class="choice-btn" data-next-step="2-peer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>
+                            <span>I am nominating a peer</span>
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label for="name">Full Name of Nominee *</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email of Nominee *</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="title">Title of Nominee *</label>
-                        <input type="text" id="title" name="title" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="company">Company of Nominee *</label>
-                        <input type="text" id="company" name="company" required>
-                    </div>
-                     <div class="form-group">
-                        <label for="linkedin">LinkedIn Profile URL of Nominee *</label>
-                        <input type="url" id="linkedin" name="linkedin" required placeholder="https://linkedin.com/in/yourprofile">
-                    </div>
-                    <div class="form-group">
-                        <label for="community">Primary Community Interest *</label>
-                        <select id="community" name="community" required>
-                            <option value="">Select a community...</option>
-                            <option value="Founders Circle">Founders Circle</option>
-                            <option value="Platform Leaders">Platform Leaders</option>
-                            <option value="Enterprise Architects">Enterprise Architects</option>
-                            <option value="Public Innovators">Public Innovators</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="qualification">Why is this individual a strong fit for The Coterie? *</label>
-                        <textarea id="qualification" name="qualification" rows="4" required placeholder="Describe their leadership role, the challenges they face, and the unique perspective they would bring..."></textarea>
-                    </div>
-                    <div class="nominator-details" id="nominator-details">
-                         <div class="form-group">
-                            <label for="nominatorName">Your Name (Nominator) *</label>
-                            <input type="text" id="nominatorName" name="nominatorName">
-                        </div>
-                         <div class="form-group">
-                            <label for="nominatorEmail">Your Email (Nominator) *</label>
-                            <input type="email" id="nominatorEmail" name="nominatorEmail">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn" style="width: 100%;">Submit Nomination</button>
-                    <div id="form-message"></div>
-                </form>
+                </div>
+            
+                <div class="form-step" data-step="2-self">
+                    <button class="back-btn" aria-label="Go back to previous step">&larr; Back</button>
+                    <form class="nomination-form" data-form-type="self">
+                        <div class="form-group"><label for="self-name">Full Name *</label><input type="text" id="self-name" name="name" required></div>
+                        <div class="form-group"><label for="self-email">Email *</label><input type="email" id="self-email" name="email" required></div>
+                        <div class="form-group"><label for="self-title">Title *</label><input type="text" id="self-title" name="title" required></div>
+                        <div class="form-group"><label for="self-company">Company *</label><input type="text" id="self-company" name="company" required></div>
+                        <div class="form-group"><label for="self-linkedin">LinkedIn Profile URL *</label><input type="url" id="self-linkedin" name="linkedin" required placeholder="https://linkedin.com/in/yourprofile"></div>
+                        <div class="form-group"><label for="self-community">Primary Community Interest *</label><select id="self-community" name="community" required><option value="">Select a community...</option><option value="Founders Circle">Founders Circle</option><option value="Platform Leaders">Platform Leaders</option><option value="Enterprise Architects">Enterprise Architects</option><option value="Public Innovators">Public Innovators</option></select></div>
+                        <div class="form-group"><label for="self-qualification">Why are you a strong fit for The Coterie? *</label><textarea id="self-qualification" name="qualification" rows="4" required placeholder="Describe your leadership role, the challenges you face, and the unique perspective you would bring..."></textarea></div>
+                        <input type="hidden" name="nominationType" value="self">
+                        <button type="submit" class="btn" style="width: 100%;">Submit Nomination</button>
+                        <div class="form-message"></div>
+                    </form>
+                </div>
+            
+                <div class="form-step" data-step="2-peer">
+                    <button class="back-btn" aria-label="Go back to previous step">&larr; Back</button>
+                    <form class="nomination-form" data-form-type="peer">
+                        <fieldset>
+                            <legend>About the Nominee</legend>
+                            <div class="form-group"><label for="peer-name">Full Name *</label><input type="text" id="peer-name" name="name" required></div>
+                            <div class="form-group"><label for="peer-email">Email *</label><input type="email" id="peer-email" name="email" required></div>
+                            <div class="form-group"><label for="peer-title">Title *</label><input type="text" id="peer-title" name="title" required></div>
+                            <div class="form-group"><label for="peer-company">Company *</label><input type="text" id="peer-company" name="company" required></div>
+                            <div class="form-group"><label for="peer-linkedin">LinkedIn Profile URL *</label><input type="url" id="peer-linkedin" name="linkedin" required placeholder="https://linkedin.com/in/yourprofile"></div>
+                            <div class="form-group"><label for="peer-community">Primary Community Interest *</label><select id="peer-community" name="community" required><option value="">Select a community...</option><option value="Founders Circle">Founders Circle</option><option value="Platform Leaders">Platform Leaders</option><option value="Enterprise Architects">Enterprise Architects</option><option value="Public Innovators">Public Innovators</option></select></div>
+                            <div class="form-group"><label for="peer-qualification">Why is this individual a strong fit? *</label><textarea id="peer-qualification" name="qualification" rows="4" required placeholder="Describe their leadership role..."></textarea></div>
+                        </fieldset>
+                        <fieldset>
+                            <legend>About You (The Nominator)</legend>
+                            <div class="form-group"><label for="nominatorName">Your Name *</label><input type="text" id="nominatorName" name="nominatorName" required></div>
+                            <div class="form-group"><label for="nominatorEmail">Your Email *</label><input type="email" id="nominatorEmail" name="nominatorEmail" required></div>
+                        </fieldset>
+                        <input type="hidden" name="nominationType" value="peer">
+                        <button type="submit" class="btn" style="width: 100%;">Submit Nomination</button>
+                        <div class="form-message"></div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
