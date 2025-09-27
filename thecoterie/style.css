@@ -214,12 +214,11 @@ body {
 
 .community-grid {
     display: grid;
-    grid-template-columns: 1fr; /* Default to 1 column */
+    grid-template-columns: 1fr;
     gap: 2rem;
     margin-top: 2rem;
 }
 
-/* New media query for 2x2 grid layout */
 @media (min-width: 600px) {
     .community-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -236,7 +235,6 @@ body {
     perspective: 1500px;
     height: 360px;
     position: relative;
-    /* Removed cursor:pointer as the whole card is not a single click target anymore */
     transition: transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 .community-card:hover {
@@ -252,7 +250,6 @@ body {
     transform-style: preserve-3d;
 }
 
-/* Updated to use :hover instead of .flipped class */
 .community-card:hover .card-inner { 
     transform: rotateY(180deg); 
 }
@@ -401,13 +398,10 @@ body {
     text-align: left;
 }
 
-.criteria-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 3rem;
-    align-items: center;
+.criteria-list {
+    max-width: 800px;
+    margin: 3rem auto 0;
     text-align: left;
-    margin-top: 3rem;
 }
 .criteria-list .criteria-item {
     background-color: transparent;
@@ -432,6 +426,22 @@ body {
     padding: 2rem;
     text-align: center;
 }
+
+.cta-section {
+    background-color: rgba(var(--card-color-rgb), 0.2);
+    padding: 100px 2rem !important;
+}
+.cta-section h3 {
+    font-size: 2rem;
+    font-weight: 300;
+    margin-bottom: 1rem;
+}
+.cta-section p {
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+    color: var(--primary-light);
+}
+
 
 /* Modal Styles */
 .modal-overlay {
@@ -488,40 +498,107 @@ body {
 }
 .modal-content {
     padding: 2rem;
+    position: relative;
+    overflow: hidden;
 }
 
-.form-group.nomination-type {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    border: 1px solid var(--border-color);
-    padding: 1rem;
-    border-radius: 4px;
+.form-step {
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.form-step.exit-left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    transform: translateX(-50px);
+    padding: 2rem; /* Add padding to match modal-content */
+}
+.form-step.enter-right {
+    opacity: 0;
+    transform: translateX(50px);
+}
+
+.step-question {
+    font-size: 1.2rem;
+    font-weight: 300;
+    text-align: center;
     margin-bottom: 2rem;
 }
-.nomination-type label {
-    margin-bottom: 0;
-    cursor: pointer;
+
+.choice-container {
     display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.choice-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    font-size: 1rem;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
-.nomination-type input[type="radio"] {
-    margin-right: 0.75rem;
-    accent-color: var(--klein-blue);
+
+.choice-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--klein-blue);
+    transform: translateY(-5px);
 }
-.nominator-details {
-    display: none;  
-    border-left: 2px solid var(--border-color);
-    padding-left: 1.5rem;
-    margin-top: 2rem;
-    animation: fadeIn 0.5s ease-in-out;
+
+.choice-btn svg {
+    width: 32px;
+    height: 32px;
+    stroke: var(--primary-light);
 }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--primary-light);
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    padding: 0;
 }
+.back-btn:hover {
+    color: var(--primary-color);
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 2rem;
+}
+fieldset legend {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--klein-blue);
+    padding: 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    width: 100%;
+}
+
 .form-group {
     margin-bottom: 1.5rem;
     text-align: left;
@@ -550,15 +627,16 @@ body {
     border-color: var(--klein-blue);
     box-shadow: 0 0 0 2px rgba(0, 47, 167, 0.2);
 }
-#form-message {
+.form-message {
     margin-top: 1.5rem;
     padding: 1rem;
     border-radius: 4px;
     text-align: center;
     display: none;
 }
-#form-message.success { background-color: #28a74520; border: 1px solid #28a745; color: #28a745; }
-#form-message.error { background-color: #dc354520; border: 1px solid #dc3545; color: #dc3545; }
+.form-message.success { background-color: rgba(40, 167, 69, 0.125); border: 1px solid #28a745; color: #28a745; }
+.form-message.error { background-color: rgba(220, 53, 69, 0.125); border: 1px solid #dc3545; color: #dc3545; }
+
 
 .footer {
     background-color: transparent;
@@ -575,7 +653,7 @@ body {
 }
 
 @media (max-width: 992px) {
-     .criteria-content { grid-template-columns: 1fr; }
+    /* No rule needed here anymore for criteria-content */
 }
 
 @media (max-width: 768px) {
