@@ -116,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const headerHeight = 80;
     navDots.forEach(dot => {
         dot.addEventListener('click', function(e) {
-            // ✅ IMPROVEMENT: Prevent default anchor behavior
             e.preventDefault();
             const targetId = this.getAttribute('data-target');
             const targetSection = document.getElementById(targetId);
@@ -138,10 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.3, rootMargin: `-${headerHeight}px 0px -40% 0px` });
     sections.forEach(section => navObserver.observe(section));
     
-    // Card Flip
-    document.querySelectorAll('.community-card').forEach(card => {
-        card.addEventListener('click', () => { card.classList.toggle('flipped'); });
-    });
+    // NOTE: The Card Flip JavaScript has been removed as per the new hover interaction.
 
     // Modal Logic
     const modalOverlay = document.getElementById('nomination-modal');
@@ -150,7 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModalBtn = document.querySelector('.close-modal');
     let lastFocusedElement; // For accessibility
 
-    // ✅ IMPROVEMENT: Focus trap logic for modal accessibility
     const focusableElementsSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     let focusableElements;
     
@@ -174,11 +169,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     const openModal = (e) => {
-        lastFocusedElement = document.activeElement; // Save the element that opened the modal
+        lastFocusedElement = document.activeElement; 
         modalOverlay.classList.add('active');
         document.addEventListener('keydown', handleFocusTrap);
         
-        // Find focusable elements and focus the close button
         focusableElements = modalContainer.querySelectorAll(focusableElementsSelector);
         closeModalBtn.focus();
     };
@@ -187,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modalOverlay.classList.remove('active');
         document.removeEventListener('keydown', handleFocusTrap);
         if (lastFocusedElement) {
-            lastFocusedElement.focus(); // Return focus to the original element
+            lastFocusedElement.focus();
         }
     };
     
@@ -200,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form Submission
     const form = document.getElementById('membership-form');
     if(form) {
-        // ... (The rest of your form logic remains the same)
         const nominationRadios = form.querySelectorAll('input[name="nominationType"]');
         const nominatorDetails = form.querySelector('#nominator-details');
         const nominatorFields = nominatorDetails.querySelectorAll('input');
