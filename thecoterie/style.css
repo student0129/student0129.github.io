@@ -1,7 +1,7 @@
 :root {
     --primary-color: #ffffff;
     --primary-dark: #cccccc;
-    --primary-light: #cccccc; 
+    --primary-light: #cccccc;  
     --text-color: #f8f9fa;
     --klein-blue: #002FA7;
     --bg-color: #050505;
@@ -165,7 +165,7 @@ body {
     margin-top: 1rem;
 }
 
-.btn:hover { 
+.btn:hover {  
     background-color: var(--primary-dark);
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(255, 255, 255, 0.15);
@@ -214,9 +214,16 @@ body {
 
 .community-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: 1fr; /* Default to 1 column */
     gap: 2rem;
     margin-top: 2rem;
+}
+
+/* New media query for 2x2 grid layout */
+@media (min-width: 600px) {
+    .community-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .community-card {
@@ -229,7 +236,7 @@ body {
     perspective: 1500px;
     height: 360px;
     position: relative;
-    cursor: pointer;
+    /* Removed cursor:pointer as the whole card is not a single click target anymore */
     transition: transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 .community-card:hover {
@@ -245,7 +252,10 @@ body {
     transform-style: preserve-3d;
 }
 
-.community-card.flipped .card-inner { transform: rotateY(180deg); }
+/* Updated to use :hover instead of .flipped class */
+.community-card:hover .card-inner { 
+    transform: rotateY(180deg); 
+}
 
 .card-front, .card-back {
     position: absolute;
@@ -277,11 +287,11 @@ body {
 }
 .card-back p { 
     font-size: 0.85rem;
-    margin-bottom: 0.75rem; 
+    margin-bottom: 0.75rem;  
     line-height: 1.5;
 }
-.card-back ul { 
-    list-style: none; 
+.card-back ul {  
+    list-style: none;  
     padding-left: 0;
 }
 .card-back li {
@@ -377,19 +387,17 @@ body {
     align-items: center;
     transition: border-color var(--transition-speed) ease;
 }
-
 .dimension-item:hover .dimension-title {
     border-color: var(--klein-blue);
 }
-
 .dimension-content h4 {
     font-size: 1.3rem;
     font-weight: 300;
     margin-bottom: 0.75rem;
     text-align: left;
 }
-.dimension-content p { 
-    color: var(--primary-light); 
+.dimension-content p {  
+    color: var(--primary-light);  
     text-align: left;
 }
 
@@ -504,7 +512,7 @@ body {
     accent-color: var(--klein-blue);
 }
 .nominator-details {
-    display: none; 
+    display: none;  
     border-left: 2px solid var(--border-color);
     padding-left: 1.5rem;
     margin-top: 2rem;
