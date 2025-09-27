@@ -137,21 +137,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.3, rootMargin: `-${headerHeight}px 0px -40% 0px` });
     sections.forEach(section => navObserver.observe(section));
     
-    // Modal Logic
+    // --- MODAL LOGIC (REVISED) ---
     const modalOverlay = document.getElementById('nomination-modal');
     const modalContainer = document.querySelector('.modal-container');
+    const modalContent = document.querySelector('.modal-content');
+    const modalTitle = document.getElementById('modal-title');
     const openModalBtns = document.querySelectorAll('.open-modal-btn');
     const closeModalBtn = document.querySelector('.close-modal');
-    let lastFocusedElement; 
-
-    const focusableElementsSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-    let focusableElements;
     
-    const handleFocusTrap = (e) => {
-        if (e.key !== 'Tab' || !focusableElements) return;
+    let lastFocusedElement; 
+    let focusableElements;
+    const focusableElementsSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
-        const firstFocusable = focusableElements[0];
-        const lastFocusable = focusableElements[focusableElements.length - 1];
+    const handleFocusTrap = (e) => {
+        if (e.key !== 'Tab') return;
+        
+        const currentFocusable = Array.from(modalContainer.querySelectorAll(focusableElementsSelector));
+        if (currentFocusable.length === 0) return;
+
+        const firstFocusable = currentFocusable[0];
+        const lastFocusable = currentFocusable[currentFocusable.length - 1];
 
         if (e.shiftKey) { 
             if (document.activeElement === firstFocusable) {
@@ -166,12 +171,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    let openModal = (e) => {
+    const openModal = (e) => {
+        // Reset modal to its initial state
+        modalContent.querySelectorAll('.form-step').forEach(step => step.classList.remove('active', 'slide-in', 'slide-out'));
+        modalContent.querySelector('.form-step[data-step="1"]').classList.add('active');
+        modalTitle.textContent = "Nominate a Leader";
+        
+        // Reset any forms within the modal
+        modalContent.querySelectorAll('.nomination-form').forEach(form => {
+            form.reset();
+            const formMessage = form.querySelector('.form-message');
+            if (formMessage) formMessage.style.display = 'none';
+        });
+
         lastFocusedElement = document.activeElement; 
         modalOverlay.classList.add('active');
         document.addEventListener('keydown', handleFocusTrap);
         
-        focusableElements = modalContainer.querySelectorAll(focusableElementsSelector);
+        // Focus the first element in the active step
+        const activeStep = modalContent.querySelector('.form-step.active');
+        focusableElements = activeStep.querySelectorAll(focusableElementsSelector);
         if (focusableElements.length > 0) {
             focusableElements[0].focus();
         }
@@ -185,57 +204,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    openModalBtns.forEach(btn => btn.addEventListener('click', openModal));
     closeModalBtn.addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) closeModal();
     });
 
-    // --- Modal Step Logic & Form Submission ---
-    const modalContent = document.querySelector('.modal-content');
-    const modalTitle = document.getElementById('modal-title');
-
-    const goToStep = (step) => {
+    const goToStep = (stepName) => {
         const currentStep = modalContent.querySelector('.form-step.active');
-        const nextStep = modalContent.querySelector(`.form-step[data-step="${step}"]`);
-        
-        if (currentStep && nextStep) {
-            currentStep.classList.add('exit-left');
+        const nextStep = modalContent.querySelector(`.form-step[data-step="${stepName}"]`);
+
+        if (!currentStep || !nextStep) return;
+
+        currentStep.classList.add('slide-out');
+
+        currentStep.addEventListener('animationend', () => {
+            currentStep.classList.remove('active', 'slide-out');
+            nextStep.classList.add('active', 'slide-in');
             
-            currentStep.addEventListener('transitionend', () => {
-                currentStep.classList.remove('active', 'exit-left');
-                
-                nextStep.classList.add('active', 'enter-right');
-                requestAnimationFrame(() => {
-                    nextStep.classList.remove('enter-right');
-                });
+            // Update modal title
+            if (stepName === '2-self') modalTitle.textContent = "Your Nomination";
+            else if (stepName === '2-peer') modalTitle.textContent = "Peer Nomination";
+            else modalTitle.textContent = "Nominate a Leader";
+            
+            // Focus first element of the new step
+            const nextFocusable = nextStep.querySelectorAll(focusableElementsSelector);
+            if(nextFocusable.length > 0) nextFocusable[0].focus();
 
-                if (step === '2-self') {
-                    modalTitle.textContent = "Your Nomination";
-                } else if (step === '2-peer') {
-                    modalTitle.textContent = "Peer Nomination";
-                } else {
-                    modalTitle.textContent = "Nominate a Leader";
-                }
-
-                focusableElements = nextStep.querySelectorAll(focusableElementsSelector);
-                if(focusableElements.length > 0) {
-                    focusableElements[0].focus();
-                }
-
+            nextStep.addEventListener('animationend', () => {
+                nextStep.classList.remove('slide-in');
             }, { once: true });
-        }
+
+        }, { once: true });
     };
 
     modalContent.querySelectorAll('.choice-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            goToStep(btn.dataset.nextStep);
-        });
+        btn.addEventListener('click', () => goToStep(btn.dataset.nextStep));
     });
 
     modalContent.querySelectorAll('.back-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            goToStep('1');
-        });
+        btn.addEventListener('click', () => goToStep('1'));
     });
 
     document.querySelectorAll('.nomination-form').forEach(form => {
@@ -271,7 +279,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 setTimeout(() => {
                     goToStep('1');
-                    formMessage.style.display = 'none';
                 }, 4000);
 
             } catch (error) {
@@ -284,20 +291,5 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton.disabled = false;
             }
         });
-    });
-
-    const originalOpenModal = openModal;
-    openModal = (e) => {
-        modalContent.querySelectorAll('.form-step').forEach(step => {
-            step.classList.remove('active', 'exit-left', 'enter-right');
-        });
-        modalContent.querySelector('.form-step[data-step="1"]').classList.add('active');
-        modalTitle.textContent = "Nominate a Leader";
-
-        originalOpenModal(e); 
-    };
-
-    openModalBtns.forEach(btn => {
-        btn.addEventListener('click', openModal);
     });
 });
