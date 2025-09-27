@@ -137,7 +137,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.3, rootMargin: `-${headerHeight}px 0px -40% 0px` });
     sections.forEach(section => navObserver.observe(section));
     
-    // --- MODAL LOGIC (REVISED) ---
+
+    // =================================================================
+    // --- MODAL & FORM LOGIC (COMPLETELY REWRITTEN FOR STABILITY) ---
+    // =================================================================
     const modalOverlay = document.getElementById('nomination-modal');
     const modalContainer = document.querySelector('.modal-container');
     const modalContent = document.querySelector('.modal-content');
@@ -146,13 +149,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModalBtn = document.querySelector('.close-modal');
     
     let lastFocusedElement; 
-    let focusableElements;
     const focusableElementsSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
     const handleFocusTrap = (e) => {
         if (e.key !== 'Tab') return;
         
-        const currentFocusable = Array.from(modalContainer.querySelectorAll(focusableElementsSelector));
+        const activeStep = modalContent.querySelector('.form-step.active');
+        if (!activeStep) return;
+
+        const currentFocusable = Array.from(activeStep.querySelectorAll(focusableElementsSelector));
         if (currentFocusable.length === 0) return;
 
         const firstFocusable = currentFocusable[0];
@@ -171,26 +176,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    const openModal = (e) => {
-        // Reset modal to its initial state
-        modalContent.querySelectorAll('.form-step').forEach(step => step.classList.remove('active', 'slide-in', 'slide-out'));
+    const openModal = () => {
+        // 1. Reset all steps to their initial hidden state
+        modalContent.querySelectorAll('.form-step').forEach(step => {
+            step.classList.remove('active', 'slide-in', 'slide-out');
+        });
+        
+        // 2. Activate only the first step
         modalContent.querySelector('.form-step[data-step="1"]').classList.add('active');
         modalTitle.textContent = "Nominate a Leader";
         
-        // Reset any forms within the modal
+        // 3. Reset any forms within the modal
         modalContent.querySelectorAll('.nomination-form').forEach(form => {
             form.reset();
             const formMessage = form.querySelector('.form-message');
             if (formMessage) formMessage.style.display = 'none';
         });
 
-        lastFocusedElement = document.activeElement; 
+        // 4. Show the modal and set up focus trap
+        lastFocusedElement = document.activeElement;
         modalOverlay.classList.add('active');
         document.addEventListener('keydown', handleFocusTrap);
         
-        // Focus the first element in the active step
+        // 5. Focus the first element in the now-visible active step
         const activeStep = modalContent.querySelector('.form-step.active');
-        focusableElements = activeStep.querySelectorAll(focusableElementsSelector);
+        const focusableElements = activeStep.querySelectorAll(focusableElementsSelector);
         if (focusableElements.length > 0) {
             focusableElements[0].focus();
         }
@@ -204,22 +214,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    openModalBtns.forEach(btn => btn.addEventListener('click', openModal));
-    closeModalBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) closeModal();
-    });
-
     const goToStep = (stepName) => {
         const currentStep = modalContent.querySelector('.form-step.active');
         const nextStep = modalContent.querySelector(`.form-step[data-step="${stepName}"]`);
 
-        if (!currentStep || !nextStep) return;
+        if (!currentStep || !nextStep || currentStep === nextStep) return;
 
+        // Animate out the current step
         currentStep.classList.add('slide-out');
 
         currentStep.addEventListener('animationend', () => {
             currentStep.classList.remove('active', 'slide-out');
+            
+            // Animate in the next step
             nextStep.classList.add('active', 'slide-in');
             
             // Update modal title
@@ -237,6 +244,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         }, { once: true });
     };
+
+    // --- Event Listeners ---
+    openModalBtns.forEach(btn => btn.addEventListener('click', openModal));
+    closeModalBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
 
     modalContent.querySelectorAll('.choice-btn').forEach(btn => {
         btn.addEventListener('click', () => goToStep(btn.dataset.nextStep));
