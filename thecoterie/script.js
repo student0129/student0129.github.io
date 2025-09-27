@@ -137,30 +137,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.3, rootMargin: `-${headerHeight}px 0px -40% 0px` });
     sections.forEach(section => navObserver.observe(section));
     
-    // NOTE: The Card Flip JavaScript has been removed as per the new hover interaction.
-
     // Modal Logic
     const modalOverlay = document.getElementById('nomination-modal');
     const modalContainer = document.querySelector('.modal-container');
     const openModalBtns = document.querySelectorAll('.open-modal-btn');
     const closeModalBtn = document.querySelector('.close-modal');
-    let lastFocusedElement; // For accessibility
+    let lastFocusedElement; 
 
     const focusableElementsSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     let focusableElements;
     
     const handleFocusTrap = (e) => {
-        if (e.key !== 'Tab') return;
+        if (e.key !== 'Tab' || !focusableElements) return;
 
         const firstFocusable = focusableElements[0];
         const lastFocusable = focusableElements[focusableElements.length - 1];
 
-        if (e.shiftKey) { // Shift + Tab
+        if (e.shiftKey) { 
             if (document.activeElement === firstFocusable) {
                 e.preventDefault();
                 lastFocusable.focus();
             }
-        } else { // Tab
+        } else { 
             if (document.activeElement === lastFocusable) {
                 e.preventDefault();
                 firstFocusable.focus();
@@ -168,13 +166,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    const openModal = (e) => {
+    let openModal = (e) => {
         lastFocusedElement = document.activeElement; 
         modalOverlay.classList.add('active');
         document.addEventListener('keydown', handleFocusTrap);
         
         focusableElements = modalContainer.querySelectorAll(focusableElementsSelector);
-        closeModalBtn.focus();
+        if (focusableElements.length > 0) {
+            focusableElements[0].focus();
+        }
     };
 
     const closeModal = () => {
@@ -185,51 +185,68 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    openModalBtns.forEach(btn => btn.addEventListener('click', openModal));
     closeModalBtn.addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) closeModal();
     });
 
-    // Form Submission
-    const form = document.getElementById('membership-form');
-    if(form) {
-        const nominationRadios = form.querySelectorAll('input[name="nominationType"]');
-        const nominatorDetails = form.querySelector('#nominator-details');
-        const nominatorFields = nominatorDetails.querySelectorAll('input');
-        nominationRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'peer') {
-                    nominatorDetails.style.display = 'block';
-                    nominatorFields.forEach(field => field.required = true);
+    // --- Modal Step Logic & Form Submission ---
+    const modalContent = document.querySelector('.modal-content');
+    const modalTitle = document.getElementById('modal-title');
+
+    const goToStep = (step) => {
+        const currentStep = modalContent.querySelector('.form-step.active');
+        const nextStep = modalContent.querySelector(`.form-step[data-step="${step}"]`);
+        
+        if (currentStep && nextStep) {
+            currentStep.classList.add('exit-left');
+            
+            currentStep.addEventListener('transitionend', () => {
+                currentStep.classList.remove('active', 'exit-left');
+                
+                nextStep.classList.add('active', 'enter-right');
+                requestAnimationFrame(() => {
+                    nextStep.classList.remove('enter-right');
+                });
+
+                if (step === '2-self') {
+                    modalTitle.textContent = "Your Nomination";
+                } else if (step === '2-peer') {
+                    modalTitle.textContent = "Peer Nomination";
                 } else {
-                    nominatorDetails.style.display = 'none';
-                    nominatorFields.forEach(field => field.required = false);
+                    modalTitle.textContent = "Nominate a Leader";
                 }
-            });
+
+                focusableElements = nextStep.querySelectorAll(focusableElementsSelector);
+                if(focusableElements.length > 0) {
+                    focusableElements[0].focus();
+                }
+
+            }, { once: true });
+        }
+    };
+
+    modalContent.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            goToStep(btn.dataset.nextStep);
         });
+    });
+
+    modalContent.querySelectorAll('.back-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            goToStep('1');
+        });
+    });
+
+    document.querySelectorAll('.nomination-form').forEach(form => {
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const submitButton = this.querySelector('.btn');
-            const formMessage = this.querySelector('#form-message');
-            formMessage.style.display = 'none';
-            let isValid = true;
-            this.querySelectorAll('[required]').forEach(input => {
-                if (!input.value.trim()) {
-                    isValid = false;
-                    input.style.borderColor = '#dc3545';
-                } else {
-                    input.style.borderColor = 'var(--border-color)';
-                }
-            });
+            const submitButton = this.querySelector('button[type="submit"]');
+            const formMessage = this.querySelector('.form-message');
             
-            if (!isValid) {
-                formMessage.textContent = 'Please fill in all required fields.';
-                formMessage.className = 'error';
-                formMessage.style.display = 'block';
-                return;
-            }
-
+            formMessage.style.display = 'none';
+            formMessage.textContent = '';
+            
             submitButton.textContent = 'Submitting...';
             submitButton.disabled = true;
 
@@ -244,26 +261,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Network response was not ok.');
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Network response was not ok.');
                 }
                 
-                const result = await response.json();
-                
-                formMessage.innerHTML = 'Thank you for your nomination. We are excited about the possibility of welcoming this leader to the circle. Our team will review the submission and be in touch within two weeks with the next steps.';
-                formMessage.className = 'success';
+                formMessage.innerHTML = 'Thank you! Your nomination has been received. Our team will review it and be in touch within two weeks with the next steps.';
+                formMessage.className = 'form-message success';
                 this.reset();
-                nominatorDetails.style.display = 'none';
-                nominatorFields.forEach(field => field.required = false);
+                
+                setTimeout(() => {
+                    goToStep('1');
+                    formMessage.style.display = 'none';
+                }, 4000);
 
             } catch (error) {
                 console.error('Submission error:', error);
                 formMessage.textContent = 'An error occurred. Please try again later.';
-                formMessage.className = 'error';
+                formMessage.className = 'form-message error';
             } finally {
                 formMessage.style.display = 'block';
                 submitButton.textContent = 'Submit Nomination';
                 submitButton.disabled = false;
             }
         });
-    }
+    });
+
+    const originalOpenModal = openModal;
+    openModal = (e) => {
+        modalContent.querySelectorAll('.form-step').forEach(step => {
+            step.classList.remove('active', 'exit-left', 'enter-right');
+        });
+        modalContent.querySelector('.form-step[data-step="1"]').classList.add('active');
+        modalTitle.textContent = "Nominate a Leader";
+
+        originalOpenModal(e); 
+    };
+
+    openModalBtns.forEach(btn => {
+        btn.addEventListener('click', openModal);
+    });
 });
