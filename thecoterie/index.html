@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="The Coterie by Promontory AI: An exclusive, invite-only peer community for senior Data, Analytics, and AI leaders in the Washington D.C. Metro Area.">
-    <title>The Coterie | Where AI Strategy Meets Executive Excellence</title>
+    <title>The Coterie | Where analytics and AI leaders navigate what's next</title>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
     
     <!-- Structured Data for SEO -->
@@ -141,7 +141,7 @@
         .nav-dot:hover::after { opacity: 1; }
         
         .section {
-            min-height: 100vh;
+            min-height: calc(var(--vh, 1vh) * 100); /* FIX: Use JS-calculated viewport height */
             padding: 100px 2rem;
             display: flex;
             flex-direction: column;
@@ -587,8 +587,8 @@
         <section id="hero" class="section hero">
             <div class="content-wrapper">
                 <h1 class="event-title">The Coterie</h1>
-                <p class="hero-subtitle animate-on-scroll">An exclusive peer community for Data, Analytics, and AI leaders.</p>
-                <p class="hero-description animate-on-scroll" style="--stagger-index: 1;">A private, high-trust environment for executives in the Washington D.C. Metro Area to interrogate complex challenges, gain critical perspective, and chart a clearer path forward.</p>
+                <p class="hero-subtitle animate-on-scroll">An exclusive peer circle for AI, analytics, and data leaders shaping what's next.</p>
+                <p class="hero-description animate-on-scroll" style="--stagger-index: 1;">Senior executives across Washington, D.C. gather quarterly to evolve as leaders, advance their technical mastery, and expand their impact. Through candid dialogue and shared experience, members transform individual challenges into collective wisdom.</p>
                 <a href="#apply" class="btn animate-on-scroll" style="--stagger-index: 2;">Nominate a Leader</a>
             </div>
         </section>
@@ -741,7 +741,7 @@
         <section id="dimensions" class="section">
             <div class="content-wrapper">
                 <div class="section-header animate-on-scroll">
-                    <h2>Core, Craft & Cause</h2>
+                    <h2>Core, Craft, & Cause</h2>
                     <p>The Coterie gathers quarterly in the Washington D.C. area for immersive sessions where data, analytics, and AI leaders evolve across three essential dimensions.</p>
                 </div>
                 <div class="dimensions-grid stagger-children">
@@ -873,6 +873,18 @@
     </footer>
     
     <script>
+    // --- Mobile Viewport Height Fix ---
+    // This script calculates the actual inner window height and sets it as a CSS variable.
+    // This prevents the "jump" on mobile browsers when the address bar shrinks on scroll.
+    const setVhVariable = () => {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    window.addEventListener('resize', setVhVariable);
+    window.addEventListener('load', setVhVariable); // Set on initial load
+    setVhVariable(); // Call it once right away
+
     // --- Award-Winning Background: Dynamic Proximity Connections ---
     class GlowingConstellation {
         constructor(canvasId) {
