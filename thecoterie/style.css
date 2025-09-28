@@ -322,7 +322,6 @@ main {
 
 .dimensions-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
 
-/* UPDATED: Definitive Transparent Style */
 .dimension-item { 
     display: flex; 
     align-items: flex-start; 
@@ -355,7 +354,13 @@ main {
 .criteria-item.is-active { 
     border-left-color: var(--klein-blue); 
 }
-.criteria-item h4 { font-weight: 300; margin-bottom: 0.5rem; }
+
+/* UPDATED: Matching font style for criteria titles */
+.criteria-item h4 { 
+    font-size: 1.3rem;
+    font-weight: 300; 
+    margin-bottom: 0.75rem;
+}
 
 .cta-section { background-color: rgba(var(--card-color-rgb), 0.2); padding: 100px 2rem !important; }
 
