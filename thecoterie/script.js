@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const mainElement = document.querySelector('main');
+
     // --- Mobile Viewport Height Fix ---
     const setVhVariable = () => {
         let vh = window.innerHeight * 0.01;
@@ -81,64 +83,69 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const SERVER_URL = 'https://coterie-nomination-server.onrender.com';
-
     fetch(`${SERVER_URL}/wake-up`).catch(err => console.error('Server wake-up call failed:', err));
 
     if (document.getElementById('gradient-canvas')) {
         new GlowingConstellation('gradient-canvas');
     }
 
-    // --- Animate on Scroll ---
-    const mainElement = document.querySelector('main');
-    const animateOnScrollObserver = new IntersectionObserver((entries) => {
+    // =========================================================================
+    // --- NEW: Consolidated Intersection Observer for ALL scroll effects ---
+    // =========================================================================
+    const scrollObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+            const target = entry.target;
+
+            // Logic for simple fade-in animations
+            if (target.matches('.animate-on-scroll')) {
+                if (entry.isIntersecting) {
+                    target.classList.add('visible');
+                }
+            }
+
+            // Logic for automatic highlighting
+            if (target.matches('.dimension-item, .criteria-item')) {
+                if (entry.isIntersecting) {
+                    target.classList.add('is-active');
+                } else {
+                    target.classList.remove('is-active');
+                }
+            }
+
+            // Logic for side-nav highlighting
+            if (target.matches('.section')) {
+                if (entry.isIntersecting) {
+                    const currentId = target.getAttribute('id');
+                    document.querySelectorAll('.nav-dot').forEach(dot => {
+                        dot.classList.toggle('active', dot.getAttribute('data-target') === currentId);
+                    });
+                }
             }
         });
-    }, { root: null, threshold: 0.2 });
-    document.querySelectorAll('.animate-on-scroll').forEach(el => animateOnScrollObserver.observe(el));
+    }, { 
+        root: mainElement,
+        rootMargin: "-45% 0px -45% 0px", // UPDATED: Narrower activation zone
+        threshold: 0 
+    });
 
-    // --- Side Navigation ---
-    const navDots = document.querySelectorAll('.nav-dot');
-    const sections = document.querySelectorAll('.section');
-    navDots.forEach(dot => {
+    // Observe all relevant elements
+    document.querySelectorAll('.animate-on-scroll, .dimension-item, .criteria-item, .section').forEach(el => {
+        scrollObserver.observe(el);
+    });
+
+    // --- Side Navigation Scrolling ---
+    document.querySelectorAll('.nav-dot').forEach(dot => {
         dot.addEventListener('click', function(e) {
             e.preventDefault();
             const targetId = this.getAttribute('data-target');
             const targetSection = document.getElementById(targetId);
             if (targetSection && mainElement) {
-                mainElement.scrollTo({ top: targetSection.offsetTop, behavior: 'smooth' });
+                const headerHeight = 80;
+                mainElement.scrollTo({ top: targetSection.offsetTop - headerHeight, behavior: 'smooth' });
             }
         });
     });
 
-    const navObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const currentId = entry.target.getAttribute('id');
-                navDots.forEach(dot => {
-                    dot.classList.toggle('active', dot.getAttribute('data-target') === currentId);
-                });
-            }
-        });
-    }, { root: mainElement, threshold: 0.3, rootMargin: `-40% 0px -40% 0px` });
-    sections.forEach(section => navObserver.observe(section));
-
-    // =========================================================================
-    // --- NEW: Auto-Highlight "Dimension" Cards on Scroll ---
-    // =========================================================================
-    const highlightObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('is-active');
-            } else {
-                entry.target.classList.remove('is-active');
-            }
-        });
-    }, { root: mainElement, threshold: 0.6 }); // Triggers when 60% of the item is visible
-    document.querySelectorAll('.dimension-item').forEach(el => highlightObserver.observe(el));
-    
     // =========================================================================
     // --- Touch Device Interactivity for Click-to-Flip Cards ---
     // =========================================================================
@@ -148,55 +155,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
         elements.forEach(element => {
             element.addEventListener('click', function(event) {
-                event.stopPropagation(); 
-                const isAlreadyActive = this.classList.contains(activeClass);
+                event.stopPropagation();
+                this.classList.toggle(activeClass);
                 
-                // Deactivate all other elements first
+                // Deactivate all other elements when a new one is clicked
                 elements.forEach(el => {
                     if (el !== this) el.classList.remove(activeClass);
                 });
-                
-                // Toggle the clicked element
-                if (!isAlreadyActive) {
-                    this.classList.add(activeClass);
-                } else {
-                    this.classList.remove(activeClass);
-                }
             });
         });
 
-        // Add a global click listener to close any active card when clicking outside
         document.addEventListener('click', function() {
             elements.forEach(el => el.classList.remove(activeClass));
         });
     };
-
     handleInteractiveTouch('.community-card', 'is-flipped');
 
     // =================================================================
-    // --- MODAL & FORM LOGIC ---
+    // --- MODAL & FORM LOGIC (Remains the same) ---
     // =================================================================
     const modalOverlay = document.getElementById('nomination-modal');
     const openModalBtns = document.querySelectorAll('.open-modal-btn');
     const closeModalBtn = document.querySelector('.close-modal');
     
-    const openModal = () => {
-        modalOverlay.classList.add('active');
-        // Logic to handle focus, etc.
-    };
+    const openModal = () => modalOverlay.classList.add('active');
+    const closeModal = () => modalOverlay.classList.remove('active');
 
-    const closeModal = () => {
-        modalOverlay.classList.remove('active');
-    };
-    
-    openModalBtns.forEach(btn => btn.addEventListener('click', openModal));
-    closeModalBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) closeModal();
-    });
-
-    // Full modal logic from previous steps
-    // (This part remains the same, it is included here for completeness)
     const modalContent = document.querySelector('.modal-content');
     const modalTitle = document.getElementById('modal-title');
     let lastFocusedElement; 
@@ -211,23 +195,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const firstFocusable = currentFocusable[0];
         const lastFocusable = currentFocusable[currentFocusable.length - 1];
         if (e.shiftKey) { 
-            if (document.activeElement === firstFocusable) {
-                e.preventDefault();
-                lastFocusable.focus();
-            }
+            if (document.activeElement === firstFocusable) { e.preventDefault(); lastFocusable.focus(); }
         } else { 
-            if (document.activeElement === lastFocusable) {
-                e.preventDefault();
-                firstFocusable.focus();
-            }
+            if (document.activeElement === lastFocusable) { e.preventDefault(); firstFocusable.focus(); }
         }
     };
     
-    const originalOpenModal = openModal; // Keep original reference
     const fullOpenModal = () => {
-        modalContent.querySelectorAll('.form-step').forEach(step => {
-            step.classList.remove('active', 'slide-in', 'slide-out');
-        });
+        modalContent.querySelectorAll('.form-step').forEach(step => step.classList.remove('active', 'slide-in', 'slide-out'));
         modalContent.querySelector('.form-step[data-step="1"]').classList.add('active');
         modalTitle.textContent = "Nominate a Leader";
         modalContent.querySelectorAll('.nomination-form').forEach(form => {
@@ -239,37 +214,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         lastFocusedElement = document.activeElement;
-        originalOpenModal(); // Call the simple version
+        openModal();
         document.addEventListener('keydown', handleFocusTrap);
         const activeStep = modalContent.querySelector('.form-step.active');
         const focusableElements = activeStep.querySelectorAll(focusableElementsSelector);
-        if (focusableElements.length > 0) {
-            focusableElements[0].focus();
-        }
+        if (focusableElements.length > 0) focusableElements[0].focus();
     };
     
-    const originalCloseModal = closeModal; // Keep original reference
     const fullCloseModal = () => {
-        originalCloseModal();
+        closeModal();
         document.removeEventListener('keydown', handleFocusTrap);
-        if (lastFocusedElement) {
-            lastFocusedElement.focus();
-        }
+        if (lastFocusedElement) lastFocusedElement.focus();
     };
     
-    // Re-assign listeners to the full functions
-    openModalBtns.forEach(btn => {
-        btn.removeEventListener('click', openModal);
-        btn.addEventListener('click', fullOpenModal);
-    });
-    closeModalBtn.removeEventListener('click', closeModal);
+    openModalBtns.forEach(btn => btn.addEventListener('click', fullOpenModal));
     closeModalBtn.addEventListener('click', fullCloseModal);
-    modalOverlay.removeEventListener('click', (e) => {
-        if (e.target === modalOverlay) closeModal();
-    });
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) fullCloseModal();
-    });
+    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) fullCloseModal(); });
 
     const goToStep = (stepName) => {
         const currentStep = modalContent.querySelector('.form-step.active');
@@ -284,18 +244,12 @@ document.addEventListener('DOMContentLoaded', function() {
             else modalTitle.textContent = "Nominate a Leader";
             const nextFocusable = nextStep.querySelectorAll(focusableElementsSelector);
             if(nextFocusable.length > 0) nextFocusable[0].focus();
-            nextStep.addEventListener('animationend', () => {
-                nextStep.classList.remove('slide-in');
-            }, { once: true });
+            nextStep.addEventListener('animationend', () => nextStep.classList.remove('slide-in'), { once: true });
         }, { once: true });
     };
 
-    modalContent.querySelectorAll('.choice-btn').forEach(btn => {
-        btn.addEventListener('click', () => goToStep(btn.dataset.nextStep));
-    });
-    modalContent.querySelectorAll('.back-btn').forEach(btn => {
-        btn.addEventListener('click', () => goToStep('1'));
-    });
+    modalContent.querySelectorAll('.choice-btn').forEach(btn => btn.addEventListener('click', () => goToStep(btn.dataset.nextStep)));
+    modalContent.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', () => goToStep('1')));
 
     document.querySelectorAll('.nomination-form').forEach(form => {
         form.addEventListener('submit', async function(e) {
