@@ -248,7 +248,7 @@ body {
     transform-style: preserve-3d;
 }
 
-.community-card:hover .card-inner,
+/* UPDATED: Flip is now ONLY triggered by the .is-flipped class (via click) */
 .community-card.is-flipped .card-inner {  
     transform: rotateY(180deg);  
 }
@@ -306,15 +306,27 @@ body {
 .ethos-item p { color: var(--primary-light); }
 
 .dimensions-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
-.dimension-item { display: flex; align-items: flex-start; gap: 2rem; padding: 2.5rem; background-color: rgba(var(--card-color-rgb), 0.55); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 12px; border: 1px solid var(--border-color); transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease; cursor: pointer; }
 
-.dimension-item:hover,
-.dimension-item.is-active { 
+/* UPDATED: Removed cursor: pointer as these are not clickable */
+.dimension-item { 
+    display: flex; 
+    align-items: flex-start; 
+    gap: 2rem; 
+    padding: 2.5rem; 
+    background-color: rgba(var(--card-color-rgb), 0.55); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px); 
+    border-radius: 12px; 
+    border: 1px solid var(--border-color); 
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+/* UPDATED: Kept hover for desktop, but active state (via click) is removed */
+.dimension-item:hover { 
     transform: translateY(-5px); 
     box-shadow: 0 8px 20px rgba(0, 47, 167, 0.1); 
 }
-.dimension-item:hover .dimension-title,
-.dimension-item.is-active .dimension-title { 
+.dimension-item:hover .dimension-title { 
     border-color: var(--klein-blue); 
 }
 
