@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // !! IMPORTANT !!: Replace with your actual Render server URL
-    const SERVER_URL = 'https://your-render-app-name.onrender.com';
+    const SERVER_URL = 'https://nomination-server.onrender.com';
 
     // --- Pre-warm the server on page load ---
     fetch(`${SERVER_URL}/wake-up`)
