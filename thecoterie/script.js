@@ -90,47 +90,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =========================================================================
-    // --- NEW: Consolidated Intersection Observer for ALL scroll effects ---
+    // --- UPDATED: Scroll Observer for Animations (More Responsive) ---
     // =========================================================================
-    const scrollObserver = new IntersectionObserver((entries) => {
+    const animationObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const target = entry.target;
-
-            // Logic for simple fade-in animations
-            if (target.matches('.animate-on-scroll')) {
-                if (entry.isIntersecting) {
-                    target.classList.add('visible');
-                }
-            }
-
-            // Logic for automatic highlighting
-            if (target.matches('.dimension-item, .criteria-item')) {
-                if (entry.isIntersecting) {
-                    target.classList.add('is-active');
-                } else {
+            if (entry.isIntersecting) {
+                target.classList.add('visible', 'is-active');
+            } else {
+                // Keep .visible but remove .is-active for elements that should deactivate
+                if (target.matches('.dimension-item, .criteria-item')) {
                     target.classList.remove('is-active');
                 }
             }
+        });
+    }, {
+        root: mainElement,
+        rootMargin: "0px 0px -25% 0px" // Triggers when element is 25% from bottom
+    });
 
-            // Logic for side-nav highlighting
-            if (target.matches('.section')) {
-                if (entry.isIntersecting) {
-                    const currentId = target.getAttribute('id');
-                    document.querySelectorAll('.nav-dot').forEach(dot => {
-                        dot.classList.toggle('active', dot.getAttribute('data-target') === currentId);
-                    });
-                }
+    document.querySelectorAll('.animate-on-scroll, .dimension-item, .criteria-item').forEach(el => {
+        animationObserver.observe(el);
+    });
+
+    // =========================================================================
+    // --- UPDATED: Dedicated Scroll Observer for Side Navigation ---
+    // =========================================================================
+    const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const currentId = entry.target.getAttribute('id');
+                document.querySelectorAll('.nav-dot').forEach(dot => {
+                    dot.classList.toggle('active', dot.getAttribute('data-target') === currentId);
+                });
             }
         });
     }, { 
         root: mainElement,
-        rootMargin: "-45% 0px -45% 0px", // UPDATED: Narrower activation zone
-        threshold: 0 
+        rootMargin: "-40% 0px -40% 0px", // Uses the central part of the screen
+        threshold: 0
     });
 
-    // Observe all relevant elements
-    document.querySelectorAll('.animate-on-scroll, .dimension-item, .criteria-item, .section').forEach(el => {
-        scrollObserver.observe(el);
+    document.querySelectorAll('.section').forEach(section => {
+        navObserver.observe(section);
     });
 
     // --- Side Navigation Scrolling ---
@@ -157,8 +159,6 @@ document.addEventListener('DOMContentLoaded', function() {
             element.addEventListener('click', function(event) {
                 event.stopPropagation();
                 this.classList.toggle(activeClass);
-                
-                // Deactivate all other elements when a new one is clicked
                 elements.forEach(el => {
                     if (el !== this) el.classList.remove(activeClass);
                 });
