@@ -23,11 +23,11 @@ html {
     scroll-behavior: smooth; 
 }
 
-/* UPDATED: Scrolling Fix */
 html, body {
     height: 100%;
-    overflow: hidden; /* Prevent body from scrolling */
-    background-color: var(--bg-color);
+    overflow: hidden;
+    background-color: transparent; /* UPDATED: Body must be transparent to see canvas */
+    position: relative;
 }
 
 body {
@@ -36,12 +36,12 @@ body {
     width: 100%;
 }
 
-/* UPDATED: Main element is now the scroll container */
 main {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+    background-color: var(--bg-color); /* UPDATED: Main content gets the background color */
 }
 
 #gradient-canvas {
@@ -51,6 +51,7 @@ main {
     top: 0;
     left: 0;
     z-index: -1;
+    will-change: transform;
 }
 
 .header {
@@ -318,23 +319,23 @@ main {
 
 .dimensions-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
 
-/* UPDATED: Visual Redesign for Transparency and Auto-Highlight */
+/* REVERTED: Back to original semi-transparent card design */
 .dimension-item { 
     display: flex; 
     align-items: flex-start; 
     gap: 2rem; 
     padding: 2.5rem; 
-    background-color: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border-color); /* Subtle separator */
-    border-radius: 0;
-    transition: border-color var(--transition-speed) ease;
+    background-color: rgba(var(--card-color-rgb), 0.55); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px); 
+    border-radius: 12px; 
+    border: 1px solid var(--border-color); 
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
-.dimension-item:last-child {
-    border-bottom: none;
-}
+
+/* Highlight is now controlled by .is-active class from JS */
 .dimension-item.is-active {
-    border-bottom-color: var(--klein-blue);
+    box-shadow: 0 8px 20px rgba(0, 47, 167, 0.1);
 }
 .dimension-item.is-active .dimension-title { 
     border-color: var(--klein-blue); 
@@ -350,8 +351,6 @@ main {
 .criteria-item h4 { font-weight: 300; margin-bottom: 0.5rem; }
 
 .cta-section { background-color: rgba(var(--card-color-rgb), 0.2); padding: 100px 2rem !important; }
-.cta-section h3 { font-size: 2rem; font-weight: 300; margin-bottom: 1rem; }
-.cta-section p { max-width: 600px; margin: 0 auto 2rem auto; color: var(--primary-light); }
 
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 .modal-overlay.active { opacity: 1; pointer-events: auto; }
