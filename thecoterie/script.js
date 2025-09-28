@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // !! IMPORTANT !!: Replace with your actual Render server URL
-    const SERVER_URL = 'https://nomination-server.onrender.com';
+    const SERVER_URL = 'https://coterie-nomination-server.onrender.com'; // Example URL
 
     // --- Pre-warm the server on page load ---
     fetch(`${SERVER_URL}/wake-up`)
@@ -138,29 +138,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.3, rootMargin: `-${headerHeight}px 0px -40% 0px` });
     sections.forEach(section => navObserver.observe(section));
     
-    // --- Touch Device Interactivity ---
-    // For Flipping Community Cards
-    document.querySelectorAll('.community-card').forEach(card => {
-        card.addEventListener('click', function() {
-            this.classList.toggle('is-flipped');
-        });
-    });
+    // =========================================================================
+    // --- Touch Device Interactivity for Click-to-Flip Cards ---
+    // =========================================================================
+    const handleInteractiveTouch = (selector, activeClass) => {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length === 0) return;
 
-    // For Highlighting Dimension Items
-    document.querySelectorAll('.dimension-item').forEach(item => {
-        item.addEventListener('click', function() {
-            // Allow only one to be active at a time
-            document.querySelectorAll('.dimension-item').forEach(el => el.classList.remove('is-active'));
-            this.classList.add('is-active');
-        });
-    });
+        elements.forEach(element => {
+            element.addEventListener('click', function(event) {
+                event.stopPropagation(); 
+                
+                const isAlreadyActive = this.classList.contains(activeClass);
 
+                elements.forEach(el => {
+                    if (el !== this) {
+                        el.classList.remove(activeClass);
+                    }
+                });
+                
+                if (!isAlreadyActive) {
+                    this.classList.add(activeClass);
+                } else {
+                    this.classList.remove(activeClass);
+                }
+            });
+        });
+
+        document.addEventListener('click', function() {
+            elements.forEach(el => el.classList.remove(activeClass));
+        });
+    };
+
+    // Apply the logic ONLY to the flippable community cards
+    handleInteractiveTouch('.community-card', 'is-flipped');
 
     // =================================================================
     // --- MODAL & FORM LOGIC ---
     // =================================================================
     const modalOverlay = document.getElementById('nomination-modal');
-    const modalContainer = document.querySelector('.modal-container');
     const modalContent = document.querySelector('.modal-content');
     const modalTitle = document.getElementById('modal-title');
     const openModalBtns = document.querySelectorAll('.open-modal-btn');
