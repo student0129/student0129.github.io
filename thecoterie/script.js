@@ -80,52 +80,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // !! IMPORTANT !!: Replace with your actual Render server URL
-    const SERVER_URL = 'https://coterie-nomination-server.onrender.com'; // Example URL
+    const SERVER_URL = 'https://coterie-nomination-server.onrender.com';
 
-    // --- Pre-warm the server on page load ---
-    fetch(`${SERVER_URL}/wake-up`)
-        .then(res => res.json())
-        .then(data => console.log(data.message))
-        .catch(err => console.error('Server wake-up call failed:', err));
+    fetch(`${SERVER_URL}/wake-up`).catch(err => console.error('Server wake-up call failed:', err));
 
-    // Background Animation
     if (document.getElementById('gradient-canvas')) {
         new GlowingConstellation('gradient-canvas');
     }
 
-    // Animate on Scroll
-    const observerOptions = { threshold: 0.2, rootMargin: '0px 0px -50px 0px' };
-    const observer = new IntersectionObserver((entries) => {
+    // --- Animate on Scroll ---
+    const mainElement = document.querySelector('main');
+    const animateOnScrollObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                if (entry.target.classList.contains('stagger-children')) {
-                    const children = entry.target.querySelectorAll('.animate-on-scroll');
-                    children.forEach((child, index) => {
-                        child.style.setProperty('--stagger-index', index);
-                    });
-                }
             }
         });
-    }, observerOptions);
-    document.querySelectorAll('.animate-on-scroll, .stagger-children').forEach(el => observer.observe(el));
+    }, { root: null, threshold: 0.2 });
+    document.querySelectorAll('.animate-on-scroll').forEach(el => animateOnScrollObserver.observe(el));
 
-    // Side Navigation
+    // --- Side Navigation ---
     const navDots = document.querySelectorAll('.nav-dot');
     const sections = document.querySelectorAll('.section');
-    const headerHeight = 80;
     navDots.forEach(dot => {
         dot.addEventListener('click', function(e) {
             e.preventDefault();
             const targetId = this.getAttribute('data-target');
             const targetSection = document.getElementById(targetId);
-            if (targetSection) {
-                const targetPosition = targetSection.offsetTop - headerHeight + 5;
-                window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+            if (targetSection && mainElement) {
+                mainElement.scrollTo({ top: targetSection.offsetTop, behavior: 'smooth' });
             }
         });
     });
+
     const navObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -135,8 +122,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         });
-    }, { threshold: 0.3, rootMargin: `-${headerHeight}px 0px -40% 0px` });
+    }, { root: mainElement, threshold: 0.3, rootMargin: `-40% 0px -40% 0px` });
     sections.forEach(section => navObserver.observe(section));
+
+    // =========================================================================
+    // --- NEW: Auto-Highlight "Dimension" Cards on Scroll ---
+    // =========================================================================
+    const highlightObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-active');
+            } else {
+                entry.target.classList.remove('is-active');
+            }
+        });
+    }, { root: mainElement, threshold: 0.6 }); // Triggers when 60% of the item is visible
+    document.querySelectorAll('.dimension-item').forEach(el => highlightObserver.observe(el));
     
     // =========================================================================
     // --- Touch Device Interactivity for Click-to-Flip Cards ---
@@ -148,15 +149,14 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.forEach(element => {
             element.addEventListener('click', function(event) {
                 event.stopPropagation(); 
-                
                 const isAlreadyActive = this.classList.contains(activeClass);
-
+                
+                // Deactivate all other elements first
                 elements.forEach(el => {
-                    if (el !== this) {
-                        el.classList.remove(activeClass);
-                    }
+                    if (el !== this) el.classList.remove(activeClass);
                 });
                 
+                // Toggle the clicked element
                 if (!isAlreadyActive) {
                     this.classList.add(activeClass);
                 } else {
@@ -165,38 +165,51 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
+        // Add a global click listener to close any active card when clicking outside
         document.addEventListener('click', function() {
             elements.forEach(el => el.classList.remove(activeClass));
         });
     };
 
-    // Apply the logic ONLY to the flippable community cards
     handleInteractiveTouch('.community-card', 'is-flipped');
 
     // =================================================================
     // --- MODAL & FORM LOGIC ---
     // =================================================================
     const modalOverlay = document.getElementById('nomination-modal');
-    const modalContent = document.querySelector('.modal-content');
-    const modalTitle = document.getElementById('modal-title');
     const openModalBtns = document.querySelectorAll('.open-modal-btn');
     const closeModalBtn = document.querySelector('.close-modal');
     
+    const openModal = () => {
+        modalOverlay.classList.add('active');
+        // Logic to handle focus, etc.
+    };
+
+    const closeModal = () => {
+        modalOverlay.classList.remove('active');
+    };
+    
+    openModalBtns.forEach(btn => btn.addEventListener('click', openModal));
+    closeModalBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+
+    // Full modal logic from previous steps
+    // (This part remains the same, it is included here for completeness)
+    const modalContent = document.querySelector('.modal-content');
+    const modalTitle = document.getElementById('modal-title');
     let lastFocusedElement; 
     const focusableElementsSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
     const handleFocusTrap = (e) => {
         if (e.key !== 'Tab') return;
-        
         const activeStep = modalContent.querySelector('.form-step.active');
         if (!activeStep) return;
-
         const currentFocusable = Array.from(activeStep.querySelectorAll(focusableElementsSelector));
         if (currentFocusable.length === 0) return;
-
         const firstFocusable = currentFocusable[0];
         const lastFocusable = currentFocusable[currentFocusable.length - 1];
-
         if (e.shiftKey) { 
             if (document.activeElement === firstFocusable) {
                 e.preventDefault();
@@ -210,14 +223,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    const openModal = () => {
+    const originalOpenModal = openModal; // Keep original reference
+    const fullOpenModal = () => {
         modalContent.querySelectorAll('.form-step').forEach(step => {
             step.classList.remove('active', 'slide-in', 'slide-out');
         });
-        
         modalContent.querySelector('.form-step[data-step="1"]').classList.add('active');
         modalTitle.textContent = "Nominate a Leader";
-        
         modalContent.querySelectorAll('.nomination-form').forEach(form => {
             form.reset();
             const formMessage = form.querySelector('.form-message');
@@ -226,64 +238,61 @@ document.addEventListener('DOMContentLoaded', function() {
                 formMessage.className = 'form-message';
             }
         });
-
         lastFocusedElement = document.activeElement;
-        modalOverlay.classList.add('active');
+        originalOpenModal(); // Call the simple version
         document.addEventListener('keydown', handleFocusTrap);
-        
         const activeStep = modalContent.querySelector('.form-step.active');
         const focusableElements = activeStep.querySelectorAll(focusableElementsSelector);
         if (focusableElements.length > 0) {
             focusableElements[0].focus();
         }
     };
-
-    const closeModal = () => {
-        modalOverlay.classList.remove('active');
+    
+    const originalCloseModal = closeModal; // Keep original reference
+    const fullCloseModal = () => {
+        originalCloseModal();
         document.removeEventListener('keydown', handleFocusTrap);
         if (lastFocusedElement) {
             lastFocusedElement.focus();
         }
     };
     
+    // Re-assign listeners to the full functions
+    openModalBtns.forEach(btn => {
+        btn.removeEventListener('click', openModal);
+        btn.addEventListener('click', fullOpenModal);
+    });
+    closeModalBtn.removeEventListener('click', closeModal);
+    closeModalBtn.addEventListener('click', fullCloseModal);
+    modalOverlay.removeEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) fullCloseModal();
+    });
+
     const goToStep = (stepName) => {
         const currentStep = modalContent.querySelector('.form-step.active');
         const nextStep = modalContent.querySelector(`.form-step[data-step="${stepName}"]`);
-
         if (!currentStep || !nextStep || currentStep === nextStep) return;
-
         currentStep.classList.add('slide-out');
-
         currentStep.addEventListener('animationend', () => {
             currentStep.classList.remove('active', 'slide-out');
-            
             nextStep.classList.add('active', 'slide-in');
-            
             if (stepName === '2-self') modalTitle.textContent = "Your Nomination";
             else if (stepName === '2-peer') modalTitle.textContent = "Peer Nomination";
             else modalTitle.textContent = "Nominate a Leader";
-            
             const nextFocusable = nextStep.querySelectorAll(focusableElementsSelector);
             if(nextFocusable.length > 0) nextFocusable[0].focus();
-
             nextStep.addEventListener('animationend', () => {
                 nextStep.classList.remove('slide-in');
             }, { once: true });
-
         }, { once: true });
     };
-
-    // --- Event Listeners ---
-    openModalBtns.forEach(btn => btn.addEventListener('click', openModal));
-    closeModalBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) closeModal();
-    });
 
     modalContent.querySelectorAll('.choice-btn').forEach(btn => {
         btn.addEventListener('click', () => goToStep(btn.dataset.nextStep));
     });
-
     modalContent.querySelectorAll('.back-btn').forEach(btn => {
         btn.addEventListener('click', () => goToStep('1'));
     });
@@ -293,32 +302,25 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const submitButton = this.querySelector('button[type="submit"]');
             const formMessage = this.querySelector('.form-message');
-            
             formMessage.style.display = 'none';
             formMessage.textContent = '';
-            
             submitButton.textContent = 'Submitting...';
             submitButton.disabled = true;
-
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
-
             try {
                 const response = await fetch(`${SERVER_URL}/submit`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.message || 'Network response was not ok.');
                 }
-                
                 formMessage.innerHTML = 'Thank you! Your nomination has been received. Our team will review it and be in touch.';
                 formMessage.className = 'form-message success';
                 this.reset();
-                
             } catch (error) {
                 console.error('Submission error:', error);
                 formMessage.textContent = 'An error occurred. Please try again later.';
