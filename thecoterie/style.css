@@ -248,7 +248,6 @@ body {
     transform-style: preserve-3d;
 }
 
-/* UPDATED: Flip is now ONLY triggered by the .is-flipped class (via click) */
 .community-card.is-flipped .card-inner {  
     transform: rotateY(180deg);  
 }
@@ -273,21 +272,18 @@ body {
 .card-front-content {
     text-align: center;
     width: 100%;
-    position: relative;
-    padding-bottom: 30px;
 }
 
 .card-icon {
     position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 1rem;
+    right: 1.5rem;
     opacity: 0.4;
-    transition: opacity 0.3s ease;
+    width: 24px;
+    height: 24px;
 }
 
-.community-card:hover .card-icon,
-.community-card.is-flipped .card-icon {
+.community-card:hover .card-icon {
     opacity: 0.7;
 }
 
@@ -307,7 +303,6 @@ body {
 
 .dimensions-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
 
-/* UPDATED: Removed cursor: pointer as these are not clickable */
 .dimension-item { 
     display: flex; 
     align-items: flex-start; 
@@ -321,7 +316,6 @@ body {
     transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 
-/* UPDATED: Kept hover for desktop, but active state (via click) is removed */
 .dimension-item:hover { 
     transform: translateY(-5px); 
     box-shadow: 0 8px 20px rgba(0, 47, 167, 0.1); 
