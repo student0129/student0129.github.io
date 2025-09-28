@@ -279,7 +279,7 @@ main {
     justify-content: center;
     text-align: left;
     padding: 2rem;
-    border-radius: 12px; 
+    border-radius: 12px;
 }
 
 .card-back {
@@ -322,17 +322,17 @@ main {
 
 .dimensions-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
 
-/* UPDATED: Transparent and Borderless Style */
+/* UPDATED: Definitive Transparent Style */
 .dimension-item { 
     display: flex; 
     align-items: flex-start; 
     gap: 2rem; 
     padding: 2.5rem; 
-    background: transparent;
-    backdrop-filter: none;
-    border: none;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
     border-radius: 0; 
-    box-shadow: none;
+    box-shadow: none !important;
 }
 .dimension-item.is-active .dimension-title { 
     border-color: var(--klein-blue); 
@@ -342,7 +342,6 @@ main {
 .dimension-content h4 { font-size: 1.3rem; font-weight: 300; margin-bottom: 0.75rem; text-align: left; }
 .dimension-content p { color: var(--primary-light); text-align: left; }
 
-/* UPDATED: Consistent Transparent Styling */
 .criteria-list { max-width: 800px; margin: 3rem auto 0; text-align: left; }
 .criteria-item { 
     background: transparent; 
