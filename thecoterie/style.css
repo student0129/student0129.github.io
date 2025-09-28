@@ -23,11 +23,11 @@ html {
     scroll-behavior: smooth; 
 }
 
+/* UPDATED: Removed position: relative from body to fix background visibility */
 html, body {
     height: 100%;
     overflow: hidden;
-    background-color: transparent; /* UPDATED: Body must be transparent to see canvas */
-    position: relative;
+    background-color: transparent; 
 }
 
 body {
@@ -41,7 +41,7 @@ main {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    background-color: var(--bg-color); /* UPDATED: Main content gets the background color */
+    background-color: var(--bg-color); 
 }
 
 #gradient-canvas {
