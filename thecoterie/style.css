@@ -55,7 +55,7 @@ body {
 
 .logo-text {
     font-weight: 200;
-    font-size: 1.5rem; /* Match previous h1 appearance */
+    font-size: 1.5rem;
 }
 
 .event-title {
@@ -231,7 +231,7 @@ body {
     box-shadow: var(--shadow);
     perspective: 1500px;
     position: relative;
-    min-height: 320px; /* ADDED for robust height */
+    min-height: 320px;
     transition: transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
     cursor: pointer;
 }
@@ -248,7 +248,6 @@ body {
     transform-style: preserve-3d;
 }
 
-/* UPDATED: Added .is-flipped for touch support */
 .community-card:hover .card-inner,
 .community-card.is-flipped .card-inner {  
     transform: rotateY(180deg);  
@@ -259,7 +258,7 @@ body {
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
-    -webkit-backface-visibility: hidden; /* For Safari */
+    -webkit-backface-visibility: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -274,6 +273,22 @@ body {
 .card-front-content {
     text-align: center;
     width: 100%;
+    position: relative;
+    padding-bottom: 30px;
+}
+
+.card-icon {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
+
+.community-card:hover .card-icon,
+.community-card.is-flipped .card-icon {
+    opacity: 0.7;
 }
 
 .card-back h3 { font-size: 1.4rem; margin-bottom: 1rem; font-weight: 300; }
@@ -293,7 +308,6 @@ body {
 .dimensions-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
 .dimension-item { display: flex; align-items: flex-start; gap: 2rem; padding: 2.5rem; background-color: rgba(var(--card-color-rgb), 0.55); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 12px; border: 1px solid var(--border-color); transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease; cursor: pointer; }
 
-/* UPDATED: Added .is-active for touch support */
 .dimension-item:hover,
 .dimension-item.is-active { 
     transform: translateY(-5px); 
@@ -364,7 +378,6 @@ fieldset legend { font-size: 1.1rem; font-weight: 400; color: var(--klein-blue);
 
 @media (max-width: 768px) {
     #gradient-canvas {
-        /* ADDED: This helps prevent repaint "jumps" on mobile scroll */
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
     }
