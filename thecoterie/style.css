@@ -23,11 +23,10 @@ html {
     scroll-behavior: smooth; 
 }
 
-/* UPDATED: Correct layering for background visibility */
 html, body {
     height: 100%;
     overflow: hidden;
-    background-color: var(--bg-color); /* Set the fallback background here */
+    background-color: var(--bg-color);
 }
 
 body {
@@ -41,9 +40,8 @@ main {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    /* Main needs to be transparent so the canvas behind it is visible */
     background-color: transparent;
-    position: relative; /* Establish stacking context for its children */
+    position: relative;
     z-index: 2;
 }
 
@@ -53,7 +51,7 @@ main {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1; /* Canvas is now the base layer */
+    z-index: 1;
     will-change: transform;
 }
 
@@ -281,12 +279,11 @@ main {
     justify-content: center;
     text-align: left;
     padding: 2rem;
-    border-radius: 12px; /* Ensure back also has border radius */
+    border-radius: 12px; 
 }
 
 .card-back {
     transform: rotateY(180deg);
-    /* UPDATED: Solid background to prevent see-through text */
     background-color: var(--bg-color);
 }
 
@@ -325,21 +322,17 @@ main {
 
 .dimensions-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
 
+/* UPDATED: Transparent and Borderless Style */
 .dimension-item { 
     display: flex; 
     align-items: flex-start; 
     gap: 2rem; 
     padding: 2.5rem; 
-    background-color: rgba(var(--card-color-rgb), 0.55); 
-    backdrop-filter: blur(20px); 
-    -webkit-backdrop-filter: blur(20px); 
-    border-radius: 12px; 
-    border: 1px solid var(--border-color); 
-    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-}
-
-.dimension-item.is-active {
-    box-shadow: 0 8px 20px rgba(0, 47, 167, 0.1);
+    background: transparent;
+    backdrop-filter: none;
+    border: none;
+    border-radius: 0; 
+    box-shadow: none;
 }
 .dimension-item.is-active .dimension-title { 
     border-color: var(--klein-blue); 
@@ -349,9 +342,20 @@ main {
 .dimension-content h4 { font-size: 1.3rem; font-weight: 300; margin-bottom: 0.75rem; text-align: left; }
 .dimension-content p { color: var(--primary-light); text-align: left; }
 
+/* UPDATED: Consistent Transparent Styling */
 .criteria-list { max-width: 800px; margin: 3rem auto 0; text-align: left; }
-.criteria-list .criteria-item { background-color: transparent; border: none; border-left: 2px solid var(--border-color); border-radius: 0; padding: 1rem 1.5rem; margin-bottom: 1.5rem; transition: border-color var(--transition-speed) ease; }
-.criteria-list .criteria-item:hover { border-color: var(--klein-blue); }
+.criteria-item { 
+    background: transparent; 
+    border: none;
+    border-left: 2px solid var(--border-color); 
+    border-radius: 0; 
+    padding: 1rem 1.5rem; 
+    margin-bottom: 1.5rem; 
+    transition: border-left-color var(--transition-speed) ease;
+}
+.criteria-item.is-active { 
+    border-left-color: var(--klein-blue); 
+}
 .criteria-item h4 { font-weight: 300; margin-bottom: 0.5rem; }
 
 .cta-section { background-color: rgba(var(--card-color-rgb), 0.2); padding: 100px 2rem !important; }
