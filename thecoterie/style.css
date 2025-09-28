@@ -23,11 +23,10 @@ html {
     scroll-behavior: smooth; 
 }
 
-/* UPDATED: Removed position: relative from body to fix background visibility */
 html, body {
     height: 100%;
     overflow: hidden;
-    background-color: transparent; 
+    background-color: var(--bg-color); /* Set the fallback background here */
 }
 
 body {
@@ -41,7 +40,10 @@ main {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    background-color: var(--bg-color); 
+    /* Main needs to be transparent so the canvas behind it is visible */
+    background-color: transparent;
+    position: relative; /* Establish stacking context for its children */
+    z-index: 2;
 }
 
 #gradient-canvas {
@@ -50,7 +52,7 @@ main {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: -1;
+    z-index: 1; /* UPDATED: Canvas is now the base layer */
     will-change: transform;
 }
 
@@ -282,6 +284,8 @@ main {
 
 .card-back {
     transform: rotateY(180deg);
+    /* UPDATED: Solid background to prevent see-through text */
+    background-color: var(--bg-color);
 }
 
 .card-front-content {
@@ -319,7 +323,6 @@ main {
 
 .dimensions-grid { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
 
-/* REVERTED: Back to original semi-transparent card design */
 .dimension-item { 
     display: flex; 
     align-items: flex-start; 
@@ -333,7 +336,6 @@ main {
     transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 
-/* Highlight is now controlled by .is-active class from JS */
 .dimension-item.is-active {
     box-shadow: 0 8px 20px rgba(0, 47, 167, 0.1);
 }
