@@ -23,6 +23,7 @@ html {
     scroll-behavior: smooth; 
 }
 
+/* UPDATED: Correct layering for background visibility */
 html, body {
     height: 100%;
     overflow: hidden;
@@ -52,7 +53,7 @@ main {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1; /* UPDATED: Canvas is now the base layer */
+    z-index: 1; /* Canvas is now the base layer */
     will-change: transform;
 }
 
@@ -280,6 +281,7 @@ main {
     justify-content: center;
     text-align: left;
     padding: 2rem;
+    border-radius: 12px; /* Ensure back also has border radius */
 }
 
 .card-back {
