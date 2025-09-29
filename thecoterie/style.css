@@ -401,7 +401,18 @@ fieldset legend { font-size: 1.1rem; font-weight: 400; color: var(--klein-blue);
 .form-message.success { background-color: rgba(40, 167, 69, 0.125); border: 1px solid #28a745; color: #28a745; }
 .form-message.error { background-color: rgba(220, 53, 69, 0.125); border: 1px solid #dc3545; color: #dc3545; }
 
-.footer { background-color: transparent; color: white; text-align: center; padding: 2rem; font-size: 1.2rem; font-weight: 200; position: relative; z-index: 1000; }
+.footer {
+    text-align: center;
+    font-size: 1.5vw;        /* Responsive font size based on viewport width */
+    font-weight: 200;
+    color: white;            /* Explicitly set color */
+    /* --- Key Positioning Rules --- */
+    position: fixed;         /* Fixes it to the browser window */
+    z-index: 1000;           /* Ensures it stays on top of other content */
+    bottom: 2vh;             /* 2% from the bottom of the viewport height */
+    left: 50%;               /* Puts the left edge at the center */
+    transform: translateX(-50%); /* Shifts it left by half its own width to center it */
+}
 
 @media (min-width: 601px) and (max-width: 1024px) {
     .community-grid {
