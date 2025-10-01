@@ -82,6 +82,7 @@
         .stroke-opportunity { stroke: var(--opportunity); }
         
         .text-wellness { color: var(--wellness); }
+        .bg-wellness { background-color: var(--wellness); }
         .bg-wellness-tint { background-color: var(--wellness-bg); }
         .stroke-wellness { stroke: var(--wellness); }
         .fill-wellness { fill: var(--wellness); }
@@ -121,6 +122,30 @@
         /* Phosphor icon sizing */
         i.ph {
             font-size: inherit; /* default */
+        }
+        
+        /* AI Typing animation */
+        .typing-cursor::after {
+            content: '▋';
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        #user-marker {
+            offset-path: path('M 210 85 Q 150 95 90 45');
+            offset-distance: 0%;
+            transition: offset-distance 2.5s ease-out;
+        }
+
+        #user-marker-path {
+            /* Path is drawn by animating dashoffset from its length to 0 */
+            stroke-dashoffset: 145;
+            /* Path is initially completely invisible */
+            stroke-opacity: 0;
+            /* Transition both drawing and fading in */
+            transition: stroke-dashoffset 2.5s cubic-bezier(0.25, 1, 0.5, 1), stroke-opacity 0.5s ease-in;
         }
     </style>
 </head>
@@ -227,20 +252,20 @@
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 <!-- AI Insights -->
-                <div class="card p-8 col-span-1 lg:col-span-2">
+                <div id="ai-insights-card" class="card p-8 col-span-1 lg:col-span-2">
                     <div class="grid md:grid-cols-2 gap-8 items-center">
                         <div>
                             <span class="text-sm font-bold text-accent">AI INSIGHTS</span>
                             <h3 class="text-2xl font-bold mt-2">Ask questions in plain language. Get clear, personalized answers.</h3>
                             <p class="text-secondary mt-4">A conversational assistant to answer questions like “How is my risk score calculated?” or “How can I grow my emergency fund?” providing relevant, localized responses and helpful next steps.</p>
                         </div>
-                        <div class="bg-surface p-4 rounded-lg">
+                        <div class="bg-surface p-4 rounded-lg min-h-[160px]">
                             <div class="space-y-4">
                                 <div class="flex justify-end">
-                                    <p class="bg-accent text-white p-3 rounded-t-lg rounded-l-lg max-w-xs">How can I grow my emergency fund?</p>
+                                    <p id="ai-question" class="bg-accent text-white p-3 rounded-t-lg rounded-l-lg max-w-xs"></p>
                                 </div>
                                 <div class="flex justify-start">
-                                    <p class="bg-disclaimer text-primary p-3 rounded-t-lg rounded-r-lg max-w-xs">Based on your savings rate, you could reach your 6-month goal in 11 months by automating a transfer of $450 each month.</p>
+                                    <p id="ai-answer" class="bg-disclaimer text-primary p-3 rounded-t-lg rounded-r-lg max-w-xs"></p>
                                 </div>
                             </div>
                         </div>
@@ -248,7 +273,7 @@
                 </div>
 
                 <!-- Risk Analysis -->
-                <div class="card p-8 text-center flex flex-col justify-between">
+                <div id="risk-analysis-card" class="card p-8 text-center flex flex-col justify-between">
                     <div>
                         <span class="text-sm font-bold text-risk">RISK ANALYSIS</span>
                         <h3 class="text-2xl font-bold mt-2">Know your blind spots.</h3>
@@ -269,7 +294,7 @@
                 </div>
                 
                 <!-- Opportunity Areas -->
-                <div class="card p-8 text-center flex flex-col justify-between">
+                <div id="opportunity-areas-card" class="card p-8 text-center flex flex-col justify-between">
                     <div>
                         <span class="text-sm font-bold text-opportunity">OPPORTUNITY AREAS</span>
                         <h3 class="text-2xl font-bold mt-2">Spot what's possible.</h3>
@@ -290,7 +315,7 @@
                 </div>
 
                 <!-- Wellness & Peer Comparison -->
-                <div class="card p-8 col-span-1 lg:col-span-2">
+                <div id="wellness-card" class="card p-8 col-span-1 lg:col-span-2">
                     <span class="text-sm font-bold text-wellness">WELLNESS & PEER COMPARISON</span>
                     <h3 class="text-2xl font-bold mt-2">See where you stand—and how small changes can shift your position.</h3>
                     <div class="mt-6 grid md:grid-cols-2 gap-8 items-center">
@@ -316,9 +341,14 @@
                                 <circle cx="180" cy="105" r="3" fill="var(--text-secondary)" opacity="0.3"/>
                                 <circle cx="210" cy="85" r="3" fill="var(--text-secondary)" opacity="0.3"/>
 
+                                <!-- User Marker Path -->
+                                <path id="user-marker-path" d="M 210 85 Q 150 95 90 45" stroke="var(--accent)" stroke-width="1.5" fill="none" />
+
                                 <!-- User Marker -->
-                                <circle cx="90" cy="45" r="12" fill="var(--accent)" opacity="0.3"/>
-                                <circle cx="90" cy="45" r="6" fill="var(--accent)"/>
+                                <g id="user-marker">
+                                    <circle cx="0" cy="0" r="12" fill="var(--accent)" opacity="0.3"/>
+                                    <circle cx="0" cy="0" r="6" fill="var(--accent)"/>
+                                </g>
                             </svg>
                         </div>
                         <div class="bg-disclaimer p-6 rounded-lg h-full flex flex-col justify-center">
@@ -336,37 +366,37 @@
                 </div>
                  <!-- Emergency Fund & Debt Analyzer -->
                 <div class="grid grid-cols-1 md:grid-cols-2 col-span-1 lg:col-span-2 gap-8">
-                    <div class="card p-8">
+                    <div id="emergency-fund-card" class="card p-8">
                         <span class="text-sm font-bold text-wellness">EMERGENCY FUND</span>
                         <h3 class="text-2xl font-bold mt-2">Build resilience.</h3>
                         <p class="text-secondary mt-4">Track progress to your 6-month safety net.</p>
                         <div class="mt-6">
                             <div class="flex justify-between text-sm text-secondary font-medium">
-                                <span>$1,750</span>
+                                <span id="emergency-fund-amount" class="font-bold text-lg text-primary">$0</span>
                                 <span>Goal: $15,000</span>
                             </div>
                             <div class="w-full bg-wellness-tint rounded-full h-4 mt-2 overflow-hidden">
-                                <div id="emergency-fund-bar" class="bg-wellness h-4" style="width: 0%; transition: width 1.5s ease-out;"></div>
+                                <div id="emergency-fund-bar" class="bg-wellness h-4" style="width: 0%; transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);"></div>
                             </div>
                             <p class="text-right text-sm text-secondary mt-2 font-semibold">11.6% Complete</p>
                         </div>
                     </div>
-                    <div class="card p-8">
+                    <div id="debt-analyzer-card" class="card p-8">
                         <span class="text-sm font-bold text-risk">DEBT ANALYZER</span>
                         <h3 class="text-2xl font-bold mt-2">Tackle debt strategically.</h3>
                         <p class="text-secondary mt-4">See the mix, track improvement on your DTI ratio.</p>
                         <div class="mt-6 space-y-4">
                             <div>
                                 <p class="text-sm text-secondary">DEBT-TO-INCOME (DTI)</p>
-                                <p class="text-2xl font-bold text-risk">42%</p>
+                                <p id="dti-value" class="text-2xl font-bold text-risk">0%</p>
                             </div>
                              <div>
                                 <p class="text-sm text-secondary">DEBT MIX</p>
                                 <div class="w-full flex h-4 rounded-full overflow-hidden mt-1">
-                                    <div class="bg-blue-400" style="width: 45%" title="Mortgage"></div>
-                                    <div class="bg-purple-400" style="width: 30%" title="Student Loans"></div>
-                                    <div class="bg-pink-400" style="width: 15%" title="Auto Loan"></div>
-                                    <div class="bg-yellow-400" style="width: 10%" title="Credit Cards"></div>
+                                    <div id="debt-mix-mortgage" class="bg-blue-400" style="width: 0%; transition: width 1.2s ease-out;"></div>
+                                    <div id="debt-mix-student" class="bg-purple-400" style="width: 0%; transition: width 1.2s ease-out 0.2s;"></div>
+                                    <div id="debt-mix-auto" class="bg-pink-400" style="width: 0%; transition: width 1.2s ease-out 0.4s;"></div>
+                                    <div id="debt-mix-credit" class="bg-yellow-400" style="width: 0%; transition: width 1.2s ease-out 0.6s;"></div>
                                 </div>
                                 <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-secondary">
                                     <div class="flex items-center gap-2">
@@ -481,90 +511,169 @@
             const mobileMenu = document.getElementById('mobile-menu');
             const heroProgressRing = document.getElementById('hero-progress-ring');
             const navLinks = document.querySelectorAll('.nav-link');
-            const mobileNavLinks = document.querySelectorAll('.nav-link-mobile');
-            const sections = document.querySelectorAll('section');
+            const sections = document.querySelectorAll('main section');
 
-            // Header shadow on scroll
+            // --- HEADER & MENU ---
             window.addEventListener('scroll', () => {
-                if (window.scrollY > 10) {
-                    header.classList.add('shadow-md');
-                } else {
-                    header.classList.remove('shadow-md');
-                }
+                header.classList.toggle('shadow-md', window.scrollY > 10);
             });
             
-            // Mobile Menu Toggle
             mobileMenuButton.addEventListener('click', () => {
                 mobileMenu.classList.toggle('translate-x-full');
             });
             
-            // Close mobile menu on link click
-             const allNavLinks = [...navLinks, ...mobileNavLinks];
-             allNavLinks.forEach(link => {
+            document.querySelectorAll('.nav-link-mobile').forEach(link => {
                 link.addEventListener('click', () => {
-                    if (!mobileMenu.classList.contains('translate-x-full')) {
-                        mobileMenu.classList.add('translate-x-full');
-                    }
+                    mobileMenu.classList.add('translate-x-full');
                 });
             });
 
-            // Hero Animation
+            // --- HERO ANIMATION ---
             setTimeout(() => {
-                // Animate to 85%
                 const circumference = 2 * Math.PI * 45;
-                const offset = circumference - (85 / 100) * circumference;
-                heroProgressRing.style.strokeDashoffset = offset;
+                heroProgressRing.style.strokeDashoffset = circumference - (85 / 100) * circumference;
             }, 100);
 
-            // Intersection Observer for animations and active nav links
-            const observerOptions = {
-                root: null,
-                rootMargin: '-40% 0px -40% 0px',
-                threshold: 0
+            // --- ANIMATION HELPERS ---
+            const animateCountUp = (el, end, duration = 1500, isCurrency = false, suffix = '') => {
+                let start = 0;
+                let startTime = null;
+
+                const step = (timestamp) => {
+                    if (!startTime) startTime = timestamp;
+                    const progress = Math.min((timestamp - startTime) / duration, 1);
+                    const current = Math.floor(progress * end);
+                    
+                    if (isCurrency) {
+                        el.textContent = current.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                    } else {
+                        el.textContent = current + suffix;
+                    }
+                    
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
             };
 
-            const observer = new IntersectionObserver((entries) => {
+            const typeAnimation = (el, text, callback) => {
+                let i = 0;
+                el.innerHTML = '';
+                el.classList.add('typing-cursor');
+                const timer = setInterval(() => {
+                    if (i < text.length) {
+                        el.innerHTML += text.charAt(i);
+                        i++;
+                    } else {
+                        clearInterval(timer);
+                        el.classList.remove('typing-cursor');
+                        if (callback) callback();
+                    }
+                }, 50);
+            };
+
+            // --- AI INSIGHTS ANIMATION ---
+            const aiQuestionEl = document.getElementById('ai-question');
+            const aiAnswerEl = document.getElementById('ai-answer');
+            const qaPairs = [
+                { q: "How can I grow my emergency fund?", a: "By automating a transfer of $450 each month, you could reach your goal in 11 months." },
+                { q: "Why is my risk score high?", a: "It's mainly influenced by your Debt-to-Income ratio. Focusing on paying down credit card debt could improve it significantly." },
+                { q: "What's my biggest opportunity?", a: "Increasing your retirement contributions to get the full employer match would have the largest impact." }
+            ];
+            let qaIndex = 0;
+            let aiAnimationInterval;
+
+            function cycleQA() {
+                const currentPair = qaPairs[qaIndex];
+                aiAnswerEl.innerHTML = '';
+                aiQuestionEl.innerHTML = '';
+                
+                typeAnimation(aiQuestionEl, currentPair.q, () => {
+                    setTimeout(() => {
+                        typeAnimation(aiAnswerEl, currentPair.a);
+                    }, 500);
+                });
+                qaIndex = (qaIndex + 1) % qaPairs.length;
+            }
+            
+            // --- SCROLL-BASED ANIMATIONS ---
+            const animationObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const el = entry.target;
+                        
+                        // AI Insights Animation
+                        if (el.id === 'ai-insights-card' && !aiAnimationInterval) {
+                           cycleQA();
+                           aiAnimationInterval = setInterval(cycleQA, 8000);
+                        }
+                        
+                        // Gauge Animations
+                        if (el.id === 'risk-analysis-card' || el.id === 'opportunity-areas-card') {
+                            const gauge = el.querySelector('.gauge-ring-fg');
+                            const value = gauge.dataset.value;
+                            const circumference = 2 * Math.PI * 45;
+                            gauge.style.strokeDashoffset = circumference - (value / 100) * circumference;
+                        }
+
+                        // Wellness Chart Animation
+                        if (el.id === 'wellness-card') {
+                            const marker = document.getElementById('user-marker');
+                            const path = document.getElementById('user-marker-path');
+                            // Pause for a moment so the user sees the initial state
+                            setTimeout(() => {
+                                marker.style.offsetDistance = '100%';
+                                path.style.strokeDashoffset = '0';
+                                path.style.strokeOpacity = '0.6'; // Fade the path in
+                            }, 500); // 500ms delay
+                        }
+                        
+                        // Emergency Fund Animation
+                        if (el.id === 'emergency-fund-card') {
+                            document.getElementById('emergency-fund-bar').style.width = '11.6%';
+                            animateCountUp(document.getElementById('emergency-fund-amount'), 1750, 1500, true);
+                        }
+
+                        // Debt Analyzer Animation
+                        if (el.id === 'debt-analyzer-card') {
+                           animateCountUp(document.getElementById('dti-value'), 42, 1500, false, '%');
+                           document.getElementById('debt-mix-mortgage').style.width = '45%';
+                           document.getElementById('debt-mix-student').style.width = '30%';
+                           document.getElementById('debt-mix-auto').style.width = '15%';
+                           document.getElementById('debt-mix-credit').style.width = '10%';
+                        }
+
+                        observer.unobserve(el); // Animate only once
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('#ai-insights-card, #risk-analysis-card, #opportunity-areas-card, #wellness-card, #emergency-fund-card, #debt-analyzer-card').forEach(el => {
+                animationObserver.observe(el);
+            });
+            
+            // --- NAV LINK HIGHLIGHTING ---
+             const navObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('id');
                     const navLink = document.querySelector(`.nav-link[href="#${id}"]`);
-                    
                     if (entry.isIntersecting) {
-                        if (navLink) {
-                            navLinks.forEach(link => link.classList.remove('active'));
-                            navLink.classList.add('active');
-                        }
-                        
-                        entry.target.querySelectorAll('.gauge-ring-fg').forEach(gauge => {
-                             const value = gauge.dataset.value;
-                             const circumference = 2 * Math.PI * 45; // r=45
-                             const offset = circumference - (value / 100) * circumference;
-                             gauge.style.strokeDashoffset = offset;
-                        });
-
-                        const emergencyBar = entry.target.querySelector('#emergency-fund-bar');
-                        if (emergencyBar) {
-                           emergencyBar.style.width = '11.6%';
-                        }
+                        navLinks.forEach(link => link.classList.remove('active'));
+                        if (navLink) navLink.classList.add('active');
                     }
                 });
-            }, observerOptions);
+            }, { rootMargin: '-40% 0px -60% 0px', threshold: 0 });
 
             sections.forEach(section => {
-                observer.observe(section);
+                navObserver.observe(section);
             });
             
-             // Initial gauge setup
+             // Initial gauge setup to 0
             document.querySelectorAll('.gauge-ring-fg').forEach(gauge => {
                  const circumference = 2 * Math.PI * 45;
                  gauge.style.strokeDasharray = circumference;
                  gauge.style.strokeDashoffset = circumference;
-            });
-            
-            // FAQ accordion icon rotation - now handled with CSS group-open
-            document.querySelectorAll('details').forEach(detail => {
-                detail.addEventListener('toggle', event => {
-                    // JS logic no longer needed for icon rotation
-                });
             });
         });
     </script>
