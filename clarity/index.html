@@ -130,7 +130,7 @@
     <header id="header" class="bg-surface/80 backdrop-blur-lg fixed top-0 left-0 right-0 z-50 transition-all duration-300 shadow-sm">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#home" class="text-xl font-bold flex items-center gap-2">
-                <i class="ph-fill ph-info text-accent" style="font-size: 28px;"></i>
+                <div class="w-7 h-7 bg-accent text-white rounded-full flex items-center justify-center text-lg font-bold">C</div>
                 <span>Clarity</span>
             </a>
             <div class="hidden md:flex space-x-6 text-sm font-medium text-secondary">
@@ -256,9 +256,9 @@
                     </div>
                     <div class="mt-8">
                         <div class="relative w-48 h-48 mx-auto">
-                            <svg class="w-full h-full" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--risk)" stroke-opacity="0.2" stroke-width="12"/>
-                                <circle class="gauge-ring-fg stroke-risk" cx="50" cy="50" r="45" fill="none" stroke-width="12" stroke-linecap="round" data-value="75" />
+                            <svg class="w-full h-full" viewBox="0 0 110 110">
+                                <circle cx="55" cy="55" r="45" fill="none" stroke="var(--risk)" stroke-opacity="0.2" stroke-width="12"/>
+                                <circle class="gauge-ring-fg stroke-risk" cx="55" cy="55" r="45" fill="none" stroke-width="12" stroke-linecap="round" data-value="75" />
                             </svg>
                             <div class="absolute inset-0 flex flex-col justify-center items-center">
                                 <span class="text-4xl font-bold text-risk">75</span>
@@ -277,9 +277,9 @@
                     </div>
                     <div class="mt-8">
                         <div class="relative w-48 h-48 mx-auto">
-                            <svg class="w-full h-full" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--opportunity)" stroke-opacity="0.2" stroke-width="12"/>
-                                <circle class="gauge-ring-fg stroke-opportunity" cx="50" cy="50" r="45" fill="none" stroke-width="12" stroke-linecap="round" data-value="42" />
+                            <svg class="w-full h-full" viewBox="0 0 110 110">
+                                <circle cx="55" cy="55" r="45" fill="none" stroke="var(--opportunity)" stroke-opacity="0.2" stroke-width="12"/>
+                                <circle class="gauge-ring-fg stroke-opportunity" cx="55" cy="55" r="45" fill="none" stroke-width="12" stroke-linecap="round" data-value="42" />
                             </svg>
                             <div class="absolute inset-0 flex flex-col justify-center items-center">
                                 <span class="text-4xl font-bold text-opportunity">42</span>
@@ -295,30 +295,30 @@
                     <h3 class="text-2xl font-bold mt-2">See where you stand—and how small changes can shift your position.</h3>
                     <div class="mt-6 grid md:grid-cols-2 gap-8 items-center">
                         <div class="bg-surface rounded-lg p-4 border border-[var(--surface)]">
-                            <svg class="w-full h-64" viewBox="0 0 300 150">
+                            <svg class="w-full h-64" viewBox="0 0 300 160">
                                 <!-- Axes Labels -->
-                                <text x="30" y="145" text-anchor="start" font-size="10" fill="var(--text-secondary)">← Lower Risk</text>
-                                <text x="270" y="145" text-anchor="end" font-size="10" fill="var(--text-secondary)">Higher Risk →</text>
-                                <text x="15" y="20" text-anchor="middle" transform="rotate(-90 15 75)" font-size="10" fill="var(--text-secondary)">Higher Opportunity ↑</text>
+                                <text x="30" y="155" text-anchor="start" font-size="10" fill="var(--text-secondary)">← Lower Risk</text>
+                                <text x="270" y="155" text-anchor="end" font-size="10" fill="var(--text-secondary)">Higher Risk →</text>
+                                <text x="10" y="80" text-anchor="middle" transform="rotate(-90 10 80)" font-size="10" fill="var(--text-secondary)">Higher Opportunity ↑</text>
                                 
                                 <!-- Optimal Frontier Curve -->
-                                <path d="M 30 110 Q 150 110 270 30" stroke="var(--wellness)" stroke-width="2" stroke-dasharray="4" fill="none"/>
+                                <path d="M 30 120 Q 150 120 270 40" stroke="var(--wellness)" stroke-width="2" stroke-dasharray="4" fill="none"/>
                                 
                                 <!-- Peer dots -->
-                                <circle cx="50" cy="100" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="80" cy="80" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="120" cy="110" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="150" cy="50" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="200" cy="60" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="230" cy="40" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="260" cy="90" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="100" cy="45" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="180" cy="95" r="3" fill="var(--text-secondary)" opacity="0.3"/>
-                                <circle cx="210" cy="75" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="50" cy="110" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="80" cy="90" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="120" cy="120" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="150" cy="60" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="200" cy="70" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="230" cy="50" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="260" cy="100" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="100" cy="55" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="180" cy="105" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                                <circle cx="210" cy="85" r="3" fill="var(--text-secondary)" opacity="0.3"/>
 
                                 <!-- User Marker -->
-                                <circle cx="90" cy="35" r="12" fill="var(--accent)" opacity="0.3"/>
-                                <circle cx="90" cy="35" r="6" fill="var(--accent)"/>
+                                <circle cx="90" cy="45" r="12" fill="var(--accent)" opacity="0.3"/>
+                                <circle cx="90" cy="45" r="6" fill="var(--accent)"/>
                             </svg>
                         </div>
                         <div class="bg-disclaimer p-6 rounded-lg h-full flex flex-col justify-center">
@@ -345,8 +345,8 @@
                                 <span>$1,750</span>
                                 <span>Goal: $15,000</span>
                             </div>
-                            <div class="w-full bg-wellness-tint rounded-full h-4 mt-2">
-                                <div id="emergency-fund-bar" class="bg-wellness h-4 rounded-full" style="width: 0%; transition: width 1.5s ease-out;"></div>
+                            <div class="w-full bg-wellness-tint rounded-full h-4 mt-2 overflow-hidden">
+                                <div id="emergency-fund-bar" class="bg-wellness h-4" style="width: 0%; transition: width 1.5s ease-out;"></div>
                             </div>
                             <p class="text-right text-sm text-secondary mt-2 font-semibold">11.6% Complete</p>
                         </div>
@@ -363,10 +363,28 @@
                              <div>
                                 <p class="text-sm text-secondary">DEBT MIX</p>
                                 <div class="w-full flex h-4 rounded-full overflow-hidden mt-1">
-                                    <div class="bg-blue-400" style="width: 45%"></div>
-                                    <div class="bg-purple-400" style="width: 30%"></div>
-                                    <div class="bg-pink-400" style="width: 15%"></div>
-                                    <div class="bg-yellow-400" style="width: 10%"></div>
+                                    <div class="bg-blue-400" style="width: 45%" title="Mortgage"></div>
+                                    <div class="bg-purple-400" style="width: 30%" title="Student Loans"></div>
+                                    <div class="bg-pink-400" style="width: 15%" title="Auto Loan"></div>
+                                    <div class="bg-yellow-400" style="width: 10%" title="Credit Cards"></div>
+                                </div>
+                                <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-secondary">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-blue-400"></span>
+                                        <span>Mortgage</span>
+                                    </div>
+                                     <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-purple-400"></span>
+                                        <span>Student Loans</span>
+                                    </div>
+                                     <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-pink-400"></span>
+                                        <span>Auto Loan</span>
+                                    </div>
+                                     <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                                        <span>Credit Cards</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
