@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarity — Understand Your Financial Health</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/phosphor-icons"></script>
+    <style>
+        /* Base Design System Tokens from Prompt */
+        :root {
+            /* Surfaces */
+            --bg: #F2F2F7;
+            --surface: #FFFFFF;
+
+            /* Text */
+            --text-primary: #000000;
+            --text-secondary: rgba(60, 60, 67, 0.6);
+
+            /* Accent */
+            --accent: #0A84FF;
+
+            /* Semantic (base) */
+            --risk: #FF3B30;
+            --opportunity: #FFB300;
+            --wellness: #34C759;
+
+            /* Semantic tints (light) */
+            --risk-bg: rgba(255, 59, 48, 0.10);
+            --opportunity-bg: rgba(255, 179, 0, 0.15);
+            --wellness-bg: rgba(52, 199, 89, 0.10);
+
+            /* Specials */
+            --disclaimer-bg: rgba(255, 214, 10, 0.20);
+
+            /* Elevation */
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.07);
+
+            /* Radii */
+            --radius-lg: 20px;
+
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000;
+                --surface: #1C1C1E;
+                --text-primary: #FFFFFF;
+                --text-secondary: rgba(235, 235, 245, 0.6);
+                --risk-bg: rgba(255, 59, 48, 0.30);
+                --opportunity-bg: rgba(255, 179, 0, 0.30);
+                --wellness-bg: rgba(52, 199, 89, 0.30);
+                --disclaimer-bg: rgba(255, 214, 10, 0.30);
+                --shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+                --shadow-lg: 0 10px 25px rgba(0,0,0,0.2);
+            }
+        }
+        
+        /* Apply tokens via Tailwind CSS */
+        .tailwind-body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+        }
+        
+        .text-primary { color: var(--text-primary); }
+        .text-secondary { color: var(--text-secondary); }
+        .text-accent { color: var(--accent); }
+        .bg-accent { background-color: var(--accent); }
+        .border-accent { border-color: var(--accent); }
+        
+        .text-risk { color: var(--risk); }
+        .bg-risk-tint { background-color: var(--risk-bg); }
+        .stroke-risk { stroke: var(--risk); }
+
+        .text-opportunity { color: var(--opportunity); }
+        .bg-opportunity-tint { background-color: var(--opportunity-bg); }
+        .stroke-opportunity { stroke: var(--opportunity); }
+        
+        .text-wellness { color: var(--wellness); }
+        .bg-wellness-tint { background-color: var(--wellness-bg); }
+        .stroke-wellness { stroke: var(--wellness); }
+        .fill-wellness { fill: var(--wellness); }
+
+        .bg-surface { background-color: var(--surface); }
+        .bg-disclaimer { background-color: var(--disclaimer-bg); }
+        
+        .card {
+            background-color: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Gauge animation */
+        .gauge-ring-fg {
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Section active link styling */
+        .nav-link.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        /* Mobile Nav */
+        #mobile-menu {
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="tailwind-body antialiased overflow-x-hidden">
+
+    <!-- Header -->
+    <header id="header" class="bg-surface/80 backdrop-blur-lg fixed top-0 left-0 right-0 z-50 transition-all duration-300 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#home" class="text-xl font-bold flex items-center gap-2">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-accent">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Clarity</span>
+            </a>
+            <div class="hidden md:flex space-x-6 text-sm font-medium text-secondary">
+                <a href="#home" class="nav-link hover:text-primary transition-colors">Home</a>
+                <a href="#how-it-works" class="nav-link hover:text-primary transition-colors">How it works</a>
+                <a href="#features" class="nav-link hover:text-primary transition-colors">Features</a>
+                <a href="#privacy" class="nav-link hover:text-primary transition-colors">Privacy</a>
+                <a href="#faq" class="nav-link hover:text-primary transition-colors">FAQ</a>
+                <a href="#support" class="nav-link hover:text-primary transition-colors">Support</a>
+            </div>
+            <a href="#download" class="hidden md:block bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">Download</a>
+            <button id="mobile-menu-button" class="md:hidden p-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="fixed top-0 right-0 h-full w-full bg-surface/95 backdrop-blur-lg z-40 transform translate-x-full md:hidden pt-20">
+        <div class="flex flex-col items-center justify-center h-full space-y-8 text-xl">
+            <a href="#home" class="nav-link-mobile hover:text-accent transition-colors">Home</a>
+            <a href="#how-it-works" class="nav-link-mobile hover:text-accent transition-colors">How it works</a>
+            <a href="#features" class="nav-link-mobile hover:text-accent transition-colors">Features</a>
+            <a href="#privacy" class="nav-link-mobile hover:text-accent transition-colors">Privacy</a>
+            <a href="#faq" class="nav-link-mobile hover:text-accent transition-colors">FAQ</a>
+            <a href="#support" class="nav-link-mobile hover:text-accent transition-colors">Support</a>
+            <a href="#download" class="mt-8 bg-accent text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">Download Now</a>
+        </div>
+    </div>
+
+    <main class="container mx-auto px-6 pt-24 md:pt-32">
+        <!-- Home (Hero) Section -->
+        <section id="home" class="text-center py-16 md:py-24">
+            <h1 class="text-5xl md:text-7xl font-bold leading-tight">Clarity for your finances.</h1>
+            <p class="text-secondary text-lg md:text-xl mt-6 max-w-2xl mx-auto">Understand your risks, uncover opportunities, and get simple, personalized guidance.</p>
+            <div class="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+                <a href="#download" class="bg-accent text-white px-8 py-4 rounded-lg font-semibold hover:opacity-90 transition-opacity w-full sm:w-auto flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M208,24H48A24,24,0,0,0,24,48V208a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V48A24,24,0,0,0,208,24Zm0,184H48V48H208V208ZM178,82.2a6,6,0,0,1,0,8.5l-40.8,40.8a6,6,0,0,1-8.5,0L88,90.7a6,6,0,0,1,8.5-8.5L128,113.8l31.5-31.6A6,6,0,0,1,178,82.2Zm-50,65.8a6,6,0,0,1-8.5-8.5l22.3-22.3a6,6,0,0,1,8.5,8.5Z"></path></svg>
+                    Download on the App Store
+                </a>
+                <a href="#how-it-works" class="text-secondary font-semibold px-6 py-4 rounded-lg hover:text-primary transition-colors w-full sm:w-auto">See how it works</a>
+            </div>
+            <div class="mt-16 md:mt-24 relative flex justify-center items-center">
+                <div class="absolute w-48 h-48 md:w-64 md:h-64">
+                    <svg class="w-full h-full" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-opacity="0.2" stroke-width="10"/>
+                        <circle id="hero-progress-ring" cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="283" stroke-dashoffset="283"
+                            style="transition: stroke-dashoffset 2s ease-out;" />
+                    </svg>
+                    <div class="absolute inset-0 flex justify-center items-center text-accent">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="md:w-20 md:h-20" viewBox="0 0 256 256"><path d="M148,80a20,20,0,1,1-20-20A20,20,0,0,1,148,80Zm-20,28a12,12,0,1,0-12,12A12,12,0,0,0,128,108Zm0,84a68,68,0,1,1,68-68A68.1,68.1,0,0,1,128,192Zm0-120a52,52,0,1,0,52,52A52.1,52.1,0,0,0,128,72Zm0,160a100,100,0,1,0-100-100A100.2,100.2,0,0,0,128,232Zm0-184a84,84,0,1,1-84,84A84.1,84.1,0,0,1,128,48Z"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-16 md:py-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">How it works</h2>
+                <p class="text-secondary mt-4 max-w-2xl mx-auto">Get personalized insights in three simple steps.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="flex flex-col items-center">
+                    <div class="bg-accent/10 text-accent p-4 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M230.9,74.8,181.2,25.1a12,12,0,0,0-17,0L25.1,164.3a12.2,12.2,0,0,0-3.5,8.5V224a12,12,0,0,0,12,12H83.8a12.2,12.2,0,0,0,8.5-3.5L230.9,91.8a12,12,0,0,0,0-17ZM80,220H36V176l88-88,44,44Zm92.2-92.2L128,83.6l44-44L216.2,84Z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold">1. Tell us about yourself</h3>
+                    <p class="text-secondary mt-2">Provide income, expenses, savings, debt, and your primary financial goal.</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-accent/10 text-accent p-4 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M244.2,143.2l-23.9,41.4a19.9,19.9,0,0,1-34.6,0l-23.9-41.4a19.9,19.9,0,0,1,0-20.4l23.9-41.4a19.9,19.9,0,0,1,34.6,0l23.9,41.4A19.9,19.9,0,0,1,244.2,143.2Zm-146.4-80,23.9,41.4a19.9,19.9,0,0,1,0,20.4L97.8,166.4a19.9,19.9,0,0,1-34.6,0L39.3,125a19.9,19.9,0,0,1,0-20.4L63.2,63.2a19.9,19.9,0,0,1,34.6,0ZM192,81.4,168.1,39.9a19.9,19.9,0,0,0-34.6,0L109.6,81.4a19.9,19.9,0,0,0,0,20.4l23.9,41.4a19.9,19.9,0,0,0,34.6,0l23.9-41.4A19.9,19.9,0,0,0,192,81.4Z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold">2. We analyze</h3>
+                    <p class="text-secondary mt-2">Clarity computes Risk and Opportunity scores and prepares a personalized insight.</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-accent/10 text-accent p-4 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M224,115.5V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h92.5a12,12,0,0,1,8.5,3.5l55.5,55.5a12,12,0,0,1,3.5,8.5Zm-64.5-42L115,118.1,93.5,96.5a12,12,0,0,0-17,17l28,28a12,12,0,0,0,17,0l52-52a12,12,0,0,0-17-17Z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold">3. Take action</h3>
+                    <p class="text-secondary mt-2">Use the AI assistant, track your emergency fund, and explore your debt.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-16 md:py-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">Features designed for you</h2>
+                <p class="text-secondary mt-4 max-w-2xl mx-auto">Everything you need to build financial resilience and spot new opportunities.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- AI Insights -->
+                <div class="card p-8 col-span-1 lg:col-span-2">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <span class="text-sm font-bold text-accent">AI INSIGHTS</span>
+                            <h3 class="text-2xl font-bold mt-2">Ask questions in plain language. Get clear, personalized answers.</h3>
+                            <p class="text-secondary mt-4">A conversational assistant to answer questions like “How is my risk score calculated?” or “How can I grow my emergency fund?” providing relevant, localized responses and helpful next steps.</p>
+                        </div>
+                        <div class="bg-surface p-4 rounded-lg">
+                            <div class="space-y-4">
+                                <div class="flex justify-end">
+                                    <p class="bg-accent text-white p-3 rounded-t-lg rounded-l-lg max-w-xs">How can I grow my emergency fund?</p>
+                                </div>
+                                <div class="flex justify-start">
+                                    <p class="bg-disclaimer text-primary p-3 rounded-t-lg rounded-r-lg max-w-xs">Based on your savings rate, you could reach your 6-month goal in 11 months by automating a transfer of $450 each month.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Analysis -->
+                <div class="card p-8 text-center flex flex-col justify-between">
+                    <div>
+                        <span class="text-sm font-bold text-risk">RISK ANALYSIS</span>
+                        <h3 class="text-2xl font-bold mt-2">Know your blind spots.</h3>
+                        <p class="text-secondary mt-4">A score that reflects your short‑term financial vulnerability based on your emergency fund, employment, debt, and household factors.</p>
+                    </div>
+                    <div class="mt-8">
+                        <div class="relative w-48 h-48 mx-auto">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--risk)" stroke-opacity="0.2" stroke-width="12"/>
+                                <circle class="gauge-ring-fg stroke-risk" cx="50" cy="50" r="45" fill="none" stroke-width="12" stroke-linecap="round" data-value="75" />
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col justify-center items-center">
+                                <span class="text-4xl font-bold text-risk">75</span>
+                                <span class="text-sm font-bold text-secondary tracking-wider">HIGH</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Opportunity Areas -->
+                <div class="card p-8 text-center flex flex-col justify-between">
+                    <div>
+                        <span class="text-sm font-bold text-opportunity">OPPORTUNITY AREAS</span>
+                        <h3 class="text-2xl font-bold mt-2">Spot what's possible.</h3>
+                        <p class="text-secondary mt-4">A score that highlights your potential to improve and grow based on savings rate, credit strength, and retirement savings.</p>
+                    </div>
+                    <div class="mt-8">
+                        <div class="relative w-48 h-48 mx-auto">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--opportunity)" stroke-opacity="0.2" stroke-width="12"/>
+                                <circle class="gauge-ring-fg stroke-opportunity" cx="50" cy="50" r="45" fill="none" stroke-width="12" stroke-linecap="round" data-value="42" />
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col justify-center items-center">
+                                <span class="text-4xl font-bold text-opportunity">42</span>
+                                 <span class="text-sm font-bold text-secondary tracking-wider">MODERATE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wellness & Peer Comparison -->
+                <div class="card p-8 col-span-1 lg:col-span-2">
+                    <span class="text-sm font-bold text-wellness">WELLNESS & PEER COMPARISON</span>
+                    <h3 class="text-2xl font-bold mt-2">See where you stand—and how small changes can shift your position.</h3>
+                    <div class="mt-6 p-4 bg-surface rounded-lg">
+                        <svg class="w-full h-64" viewBox="0 0 300 150">
+                            <!-- Axes -->
+                            <line x1="20" y1="130" x2="280" y2="130" stroke="var(--text-secondary)" stroke-width="1"/>
+                            <line x1="20" y1="130" x2="20" y2="10" stroke="var(--text-secondary)" stroke-width="1"/>
+                            <text x="150" y="145" text-anchor="middle" font-size="10" fill="var(--text-secondary)">Opportunity →</text>
+                            <text x="10" y="70" text-anchor="middle" transform="rotate(-90 10 70)" font-size="10" fill="var(--text-secondary)">Risk →</text>
+                            <!-- Threshold line -->
+                            <line x1="20" y1="70" x2="280" y2="70" stroke="var(--text-secondary)" stroke-width="1" stroke-dasharray="5"/>
+                            <!-- Peer dots -->
+                            <circle cx="50" cy="100" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                            <circle cx="80" cy="80" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                            <circle cx="120" cy="110" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                            <circle cx="150" cy="50" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                            <circle cx="200" cy="60" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                            <circle cx="230" cy="40" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                            <circle cx="260" cy="90" r="3" fill="var(--text-secondary)" opacity="0.3"/>
+                            <!-- User Marker -->
+                            <circle cx="180" cy="85" r="10" fill="var(--accent)" opacity="0.3"/>
+                            <circle cx="180" cy="85" r="5" fill="var(--accent)"/>
+                        </svg>
+                    </div>
+                </div>
+                 <!-- Emergency Fund & Debt Analyzer -->
+                <div class="grid grid-cols-1 md:grid-cols-2 col-span-1 lg:col-span-2 gap-8">
+                    <div class="card p-8">
+                        <span class="text-sm font-bold text-wellness">EMERGENCY FUND</span>
+                        <h3 class="text-2xl font-bold mt-2">Build resilience.</h3>
+                        <p class="text-secondary mt-4">Track progress to your 6-month safety net.</p>
+                        <div class="mt-6">
+                            <div class="flex justify-between text-sm text-secondary font-medium">
+                                <span>$1,750</span>
+                                <span>Goal: $15,000</span>
+                            </div>
+                            <div class="w-full bg-wellness-tint rounded-full h-4 mt-2">
+                                <div id="emergency-fund-bar" class="bg-wellness h-4 rounded-full" style="width: 0%; transition: width 1.5s ease-out;"></div>
+                            </div>
+                            <p class="text-right text-sm text-secondary mt-2 font-semibold">11.6% Complete</p>
+                        </div>
+                    </div>
+                    <div class="card p-8">
+                        <span class="text-sm font-bold text-risk">DEBT ANALYZER</span>
+                        <h3 class="text-2xl font-bold mt-2">Tackle debt strategically.</h3>
+                        <p class="text-secondary mt-4">See the mix, track improvement on your DTI ratio.</p>
+                        <div class="mt-6 space-y-4">
+                            <div>
+                                <p class="text-sm text-secondary">DEBT-TO-INCOME (DTI)</p>
+                                <p class="text-2xl font-bold text-risk">42%</p>
+                            </div>
+                             <div>
+                                <p class="text-sm text-secondary">DEBT MIX</p>
+                                <div class="w-full flex h-4 rounded-full overflow-hidden mt-1">
+                                    <div class="bg-blue-400" style="width: 45%"></div>
+                                    <div class="bg-purple-400" style="width: 30%"></div>
+                                    <div class="bg-pink-400" style="width: 15%"></div>
+                                    <div class="bg-yellow-400" style="width: 10%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Privacy Section -->
+        <section id="privacy" class="py-16 md:py-24 text-center">
+            <div class="max-w-3xl mx-auto">
+                <div class="inline-block bg-accent/10 text-accent p-4 rounded-full mb-4">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.2,104.2,0,0,0,128,24Zm45.2,93.2-56,56a12,12,0,0,1-17,0l-24-24a12,12,0,0,1,17-17L112,143,165.2,90a12,12,0,0,1,17,17Z"></path></svg>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold">Your privacy comes first.</h2>
+                <p class="text-secondary mt-4 text-lg">Your financial profile is stored on your device. We do not upload your personal data to servers. Clarity is built with a local-first data approach, meaning the core features work offline, and your sensitive information stays with you.</p>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="py-16 md:py-24 max-w-4xl mx-auto">
+             <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">Frequently Asked Questions</h2>
+            </div>
+            <div class="space-y-4">
+                <details class="bg-surface p-6 rounded-lg cursor-pointer">
+                    <summary class="font-semibold text-lg flex justify-between items-center">
+                        How are the scores calculated?
+                        <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </summary>
+                    <p class="text-secondary mt-4">Risk considers emergency fund coverage, employment status, dependents, and DTI. Opportunity considers savings rate, DTI, retirement savings relative to income, and employer match utilization. The calculations are designed to give you a directional sense of your financial health, not a precise financial statement.</p>
+                </details>
+                <details class="bg-surface p-6 rounded-lg cursor-pointer">
+                    <summary class="font-semibold text-lg flex justify-between items-center">
+                        Can I use the app in my language?
+                        <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </summary>
+                    <p class="text-secondary mt-4">Yes. Clarity is designed for a global audience. UI strings, numbers, and dates are localized. The app also supports right-to-left (RTL) layouts for languages that require it.</p>
+                </details>
+                <details class="bg-surface p-6 rounded-lg cursor-pointer">
+                    <summary class="font-semibold text-lg flex justify-between items-center">
+                        Does it work offline?
+                        <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </summary>
+                    <p class="text-secondary mt-4">Yes, the core features of the app work without an internet connection. Your data is stored locally on your device, so you can access your scores and insights anytime, anywhere.</p>
+                </details>
+                <details class="bg-surface p-6 rounded-lg cursor-pointer">
+                    <summary class="font-semibold text-lg flex justify-between items-center">
+                        Is my data private?
+                        <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </summary>
+                    <p class="text-secondary mt-4">Absolutely. As stated in our privacy section, your data is stored locally on your device per the current implementation. We don't have access to your personal financial information.</p>
+                </details>
+            </div>
+        </section>
+
+        <!-- Download Section -->
+        <section id="download" class="py-16 md:py-24 bg-surface -mx-6 px-6 md:rounded-lg">
+             <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold">Get started with Clarity today.</h2>
+                <p class="text-secondary mt-4 text-lg">Download the app and get your personalized financial scores in minutes. Requires iOS 16 or later.</p>
+                <div class="mt-8 flex justify-center">
+                     <a href="#" class="inline-block">
+                        <img src="https://placehold.co/240x80/0A84FF/FFFFFF?text=App+Store" alt="Download on the App Store" class="h-16 md:h-20">
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Support Section -->
+        <section id="support" class="py-16 md:py-24 text-center">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold">Need help?</h2>
+                <p class="text-secondary mt-4 text-lg">Our team is here to assist you. Reach out with any questions or feedback.</p>
+                <div class="mt-8">
+                     <a href="mailto:support@clarityapp.com" class="bg-accent text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">Contact Support</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[var(--surface)] mt-16">
+        <div class="container mx-auto px-6 py-8 text-center text-secondary text-sm">
+            <p>&copy; 2025 Clarity Inc. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const header = document.getElementById('header');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const heroProgressRing = document.getElementById('hero-progress-ring');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileNavLinks = document.querySelectorAll('.nav-link-mobile');
+            const sections = document.querySelectorAll('section');
+
+            // Header shadow on scroll
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 10) {
+                    header.classList.add('shadow-md');
+                } else {
+                    header.classList.remove('shadow-md');
+                }
+            });
+            
+            // Mobile Menu Toggle
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('translate-x-full');
+            });
+            
+            // Close mobile menu on link click
+             const allNavLinks = [...navLinks, ...mobileNavLinks];
+             allNavLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (!mobileMenu.classList.contains('translate-x-full')) {
+                        mobileMenu.classList.add('translate-x-full');
+                    }
+                });
+            });
+
+            // Hero Animation
+            setTimeout(() => {
+                // Animate to 85%
+                const circumference = 2 * Math.PI * 45;
+                const offset = circumference - (85 / 100) * circumference;
+                heroProgressRing.style.strokeDashoffset = offset;
+            }, 100);
+
+            // Intersection Observer for animations and active nav links
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.3
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Animate elements in view
+                        entry.target.querySelectorAll('.gauge-ring-fg').forEach(gauge => {
+                             const value = gauge.dataset.value;
+                             const circumference = 2 * Math.PI * 45; // r=45
+                             const offset = circumference - (value / 100) * circumference;
+                             gauge.style.strokeDashoffset = offset;
+                        });
+
+                        const emergencyBar = entry.target.querySelector('#emergency-fund-bar');
+                        if (emergencyBar) {
+                           emergencyBar.style.width = '11.6%';
+                        }
+
+                        // Update active nav link
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(link => {
+                           link.classList.remove('active');
+                           if (link.getAttribute('href') === `#${id}`) {
+                               link.classList.add('active');
+                           }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+             // Initial gauge setup
+            document.querySelectorAll('.gauge-ring-fg').forEach(gauge => {
+                 const circumference = 2 * Math.PI * 45;
+                 gauge.style.strokeDasharray = circumference;
+                 gauge.style.strokeDashoffset = circumference;
+            });
+            
+            // FAQ accordion icon rotation
+            document.querySelectorAll('details').forEach(detail => {
+                detail.addEventListener('toggle', event => {
+                    const summary = event.target.querySelector('summary');
+                    const icon = summary.querySelector('svg');
+                    if (event.target.open) {
+                        icon.style.transform = 'rotate(180deg)';
+                    } else {
+                        icon.style.transform = 'rotate(0deg)';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
