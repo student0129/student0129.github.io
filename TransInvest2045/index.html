@@ -298,9 +298,9 @@
         .nav-tooltip {
             position: absolute;
             top: 50%;
-            left: 100%;
+            right: 100%;
             transform: translateY(-50%);
-            margin-left: 1.5rem;
+            margin-right: 1.5rem;
             padding: 0.5rem 1rem;
             background: rgba(15, 23, 42, 0.95);
             border: 1px solid rgba(148, 163, 184, 0.2);
@@ -324,7 +324,7 @@
         .side-nav a:hover + .nav-tooltip {
             opacity: 1;
             visibility: visible;
-            margin-left: 2rem;
+            margin-right: 2rem;
         }
 
         /* ============================================
@@ -367,6 +367,24 @@
         .horizon-content-section {
             scroll-margin-top: 6rem;
         }
+
+        /* Horizon bullet point animations */
+        .horizon-content-section ul li {
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .horizon-content-section.is-visible ul li {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .horizon-content-section.is-visible ul li:nth-child(1) { transition-delay: 0.1s; }
+        .horizon-content-section.is-visible ul li:nth-child(2) { transition-delay: 0.2s; }
+        .horizon-content-section.is-visible ul li:nth-child(3) { transition-delay: 0.3s; }
+        .horizon-content-section.is-visible ul li:nth-child(4) { transition-delay: 0.4s; }
 
         /* ============================================
            TIMELINE STYLES
@@ -939,7 +957,7 @@
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
                                         <strong class="text-white font-medium">Intelligent Nervous System:</strong>
-                                        <span class="font-light"> An <strong class="text-cyan-400">optional</strong>, opt-in intelligence layer respecting your flat hierarchy philosophy. Companies choose what to share and what insights to access.</span>
+                                        <span class="font-light"> An <strong class="text-white">optional</strong>, opt-in intelligence layer respecting your flat hierarchy philosophy. Companies choose what to share and what insights to access.</span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
@@ -1163,7 +1181,7 @@
             <div class="reveal">
                 <div class="text-center mb-16">
                     <h3 class="text-white mb-6 section-header">Why Promontory</h3>
-                    <p class="text-lg text-slate-400 font-light max-w-3xl mx-auto">We're not McKinsey. We're not Accenture. We're a boutique team that combines Big Four strategy experience with hands-on technical execution from leading tech companies.</p>
+                    <p class="text-lg text-slate-400 font-light max-w-3xl mx-auto">We're a boutique team that combines Big Four strategy experience with hands-on technical execution from leading tech companies.</p>
                 </div>
                 <div class="grid md:grid-cols-2 gap-8 stagger-children">
                     <div class="premium-card">
@@ -1300,17 +1318,17 @@
     <!-- Isolated Quote Section -->
     <section class="min-h-screen w-full flex flex-col justify-center items-center text-center p-6">
         <div class="max-w-4xl mx-auto reveal">
-            <p class="text-5xl md:text-6xl text-white mb-12 font-light leading-relaxed section-header">
+            <p class="text-5xl md:text-6xl text-white mb-20 font-light leading-relaxed section-header">
                 "The best time to plant a tree was 20 years ago.<br/>The second best time is now."
             </p>
-            <p class="text-2xl md:text-3xl gradient-text font-light leading-relaxed">
+            <p class="text-xl md:text-2xl gradient-text font-light leading-relaxed">
                 You built TransInvest over 140 years of strategic bets. This is that kind of moment.
             </p>
         </div>
     </section>
     
     <!-- Footer / CTA -->
-    <footer class="py-32 text-center">
+    <footer class="py-48 text-center">
         <div class="max-w-5xl mx-auto px-6 reveal">
             <h3 class="text-white mb-16 font-light leading-relaxed">
                 AI is not a technology decision.<br/>
@@ -1364,11 +1382,13 @@
                 staggerObserver.observe(el);
             });
 
-            // Timeline items observer
+            // Timeline items observer - animates both ways
             const timelineObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible');
+                    } else {
+                        entry.target.classList.remove('is-visible');
                     }
                 });
             }, {
@@ -1480,6 +1500,26 @@
 
             horizonSections.forEach(section => {
                 horizonObserver.observe(section);
+            });
+
+            // ============================================
+            // HORIZON BULLET POINT ANIMATIONS
+            // ============================================
+            const horizonAnimationObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    } else {
+                        entry.target.classList.remove('is-visible');
+                    }
+                });
+            }, {
+                threshold: 0.3,
+                rootMargin: '0px 0px -100px 0px'
+            });
+
+            horizonSections.forEach(section => {
+                horizonAnimationObserver.observe(section);
             });
 
             // ============================================
