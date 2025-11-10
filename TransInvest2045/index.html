@@ -70,6 +70,15 @@
             line-height: 1.2;
         }
 
+        /* Typography Hierarchy:
+           H1: Hero titles only (Playfair Display via .section-header)
+           H2: Major section titles + strategic statements (Playfair Display via .section-header)
+           H3: Subsection titles within sections (Playfair Display via .section-header)
+           H4: Card titles, feature titles, scenario titles (DM Sans, light weight)
+           Body: Inter font-light (300 weight)
+           Emphasis: font-medium (500 weight) for inline emphasis
+        */
+        
         h1 { font-size: clamp(3rem, 8vw, 6rem); }
         h2 { font-size: clamp(2.5rem, 6vw, 5rem); }
         h3 { font-size: clamp(2rem, 5vw, 3.5rem); }
@@ -79,11 +88,33 @@
             font-weight: 500;
         }
         
-        /* Section headers use serif font with increased size */
+        em {
+            font-style: italic;
+            font-weight: 300;
+        }
+        
+        /* Section headers use serif font - applied to H1, H2, H3 section titles */
         .section-header {
             font-family: 'Playfair Display', serif;
             font-weight: 400;
             font-size: clamp(2.25rem, 5.5vw, 4rem) !important;
+        }
+        
+        /* Card titles - consistent H4 styling for all premium cards */
+        .card-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+            font-weight: 300;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+        
+        /* Subsection emphasis titles - for "Strategic Partnership" style labels */
+        .subsection-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 500;
+            line-height: 1.4;
         }
 
         /* ============================================
@@ -653,17 +684,17 @@
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-globe-asia"></i></div>
-                        <h4 class="text-white mb-4 font-light">The Eurasian Century</h4>
+                        <h4 class="card-title text-white">The Eurasian Century</h4>
                         <p class="text-slate-300 font-light">The Europe-Asia corridors where TransInvest operates are now the world's center of gravity. Your footprint spans the fastest-growing trade routes, positioning you at the intersection of trillions in annual flows.</p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-brain"></i></div>
-                        <h4 class="text-white mb-4 font-light">The Intelligence Revolution</h4>
+                        <h4 class="card-title text-white">The Intelligence Revolution</h4>
                         <p class="text-slate-300 font-light">AI is moving from experiment to mission-critical infrastructure, with early adopters seeing 40-60% productivity gains.</p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-sitemap"></i></div>
-                        <h4 class="text-white mb-4 font-light">The Holding Co. Renaissance</h4>
+                        <h4 class="card-title text-white">The Holding Co. Renaissance</h4>
                         <p class="text-slate-300 font-light">With the right platform, multi-business enterprises are winning. Data and AI are the new connective tissue for capital and knowledge.</p>
                     </div>
                 </div>
@@ -676,7 +707,7 @@
                 </div>
                 <div class="comparison-grid stagger-children">
                     <div class="comparison-card">
-                        <h4 class="text-slate-400 mb-6 font-light">TransInvest Today</h4>
+                        <h4 class="card-title text-slate-400">TransInvest Today</h4>
                         <ul class="space-y-3 text-slate-400 font-light">
                             <li class="flex items-start">
                                 <span class="text-cyan-500 mr-3">•</span>
@@ -698,7 +729,7 @@
                         <p class="mt-8 text-slate-300 font-light italic">100+ companies learning <strong class="font-medium">independently.</strong></p>
                     </div>
                     <div class="comparison-card highlighted">
-                        <h4 class="gradient-text mb-6 font-light">The Intelligent Ecosystem</h4>
+                        <h4 class="card-title gradient-text">The Intelligent Ecosystem</h4>
                         <ul class="space-y-3 text-white font-light">
                             <li class="flex items-start">
                                 <span class="text-cyan-400 mr-3">•</span>
@@ -734,17 +765,17 @@
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-microchip"></i></div>
-                        <h4 class="text-white mb-4 font-light">Technology Inflection Point</h4>
+                        <h4 class="card-title text-white">Technology Inflection Point</h4>
                         <p class="text-slate-300 font-light">AI can finally handle multi-language, multi-document complexity. <strong class="text-white">It's ready for your corridors.</strong></p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
-                        <h4 class="text-white mb-4 font-light">Your Inflection Point</h4>
+                        <h4 class="card-title text-white">Your Inflection Point</h4>
                         <p class="text-slate-300 font-light">You're operating across logistics, financial services, real estate, and consulting. Your data footprint is exploding. With AI, diversity becomes your advantage. <strong class="text-white">Without it, it's complexity.</strong></p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-door-open"></i></div>
-                        <h4 class="text-white mb-4 font-light">The Market Window</h4>
+                        <h4 class="card-title text-white">The Market Window</h4>
                         <p class="text-slate-300 font-light">A 2-3 year head start is available. After that, AI is table stakes. <strong class="text-white">Lead or be left behind.</strong></p>
                     </div>
                 </div>
@@ -770,17 +801,17 @@
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
-                        <h4 class="text-white mb-4 font-light">Pattern Recognition at Scale</h4>
+                        <h4 class="card-title text-white">Pattern Recognition at Scale</h4>
                         <p class="text-slate-300 font-light">Humans see patterns in 10 shipments. AI sees them across 10 million. <strong class="text-white">"Every time X + Y happens, border Z slows 14 days later."</strong></p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-dice"></i></div>
-                        <h4 class="text-white mb-4 font-light">Prediction with Uncertainty</h4>
+                        <h4 class="card-title text-white">Prediction with Uncertainty</h4>
                         <p class="text-slate-300 font-light">Probabilistic forecasting that learns from outcomes. <strong class="text-white">"78% probability of delay, here are the top 3 factors."</strong></p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-route"></i></div>
-                        <h4 class="text-white mb-4 font-light">Optimization in Complex Systems</h4>
+                        <h4 class="card-title text-white">Optimization in Complex Systems</h4>
                         <p class="text-slate-300 font-light">Finding the optimal solution from billions of combinations. <strong class="text-white">"Optimal routing for 240 trucks across 37 countries in real-time."</strong></p>
                     </div>
                 </div>
@@ -793,15 +824,15 @@
                 </div>
                 <div class="comparison-grid stagger-children">
                     <div class="comparison-card">
-                        <h4 class="text-slate-400 mb-6 font-light">Traditional Software</h4>
+                        <h4 class="card-title text-slate-400">Traditional Software</h4>
                         <p class="text-slate-300 font-light mb-6">"If this exact scenario, then execute that exact action." It's brittle and breaks with novelty.</p>
-                        <h5 class="text-lg text-white mt-8 mb-4 font-light">Logistics Example:</h5>
+                        <p class="text-white font-medium mt-8 mb-4">Logistics Example:</p>
                         <p class="text-slate-300 font-light">Alert: "Border delay detected."<br/>A human analyzes, decides, and implements a reroute.<br/><span class="text-slate-400">(6-12 hours)</span></p>
                     </div>
                     <div class="comparison-card highlighted">
-                        <h4 class="gradient-text mb-6 font-light">AI Agents</h4>
+                        <h4 class="card-title gradient-text">AI Agents</h4>
                         <p class="text-slate-100 font-light mb-6">Autonomous systems that <strong class="gradient-text">perceive, reason, decide, and act.</strong> They handle novelty and improve with experience.</p>
-                        <h5 class="text-lg text-white mt-8 mb-4 font-light">Logistics Example:</h5>
+                        <p class="text-white font-medium mt-8 mb-4">Logistics Example:</p>
                         <p class="text-slate-100 font-light">An Agent predicts the delay 48 hours in advance, evaluates 1,000 alternatives, and implements the optimal solution.<br/><span class="gradient-text font-medium">(3 minutes)</span></p>
                     </div>
                 </div>
@@ -855,7 +886,7 @@
                     <!-- Horizon 1 -->
                     <div id="h1" class="horizon-content-section">
                         <div class="premium-card">
-                            <h4 class="text-white mb-4 font-light">Horizon 1: Operational Excellence</h4>
+                            <h4 class="card-title text-white">Horizon 1: Operational Excellence</h4>
                             <p class="text-lg text-slate-300 mb-8 font-light">Enabling your 100+ companies to operate as an intelligent network—across logistics, financial services, real estate, and consulting.</p>
                             <ul class="space-y-4">
                                 <li class="flex items-start text-slate-300">
@@ -893,7 +924,7 @@
                     <!-- Horizon 2 -->
                     <div id="h2" class="horizon-content-section">
                         <div class="premium-card">
-                            <h4 class="text-white mb-4 font-light">Horizon 2: Strategic Enhancement</h4>
+                            <h4 class="card-title text-white">Horizon 2: Strategic Enhancement</h4>
                             <p class="text-lg text-slate-300 mb-8 font-light">Capabilities your competitors cannot match.</p>
                             <ul class="space-y-4">
                                 <li class="flex items-start text-slate-300">
@@ -931,7 +962,7 @@
                     <!-- Horizon 3 -->
                     <div id="h3" class="horizon-content-section">
                         <div class="premium-card">
-                            <h4 class="text-white mb-4 font-light">Horizon 3: Business Model Innovation</h4>
+                            <h4 class="card-title text-white">Horizon 3: Business Model Innovation</h4>
                             <p class="text-lg text-slate-300 mb-8 font-light">Creating new businesses from your AI capabilities.</p>
                             <ul class="space-y-4">
                                 <li class="flex items-start text-slate-300">
@@ -969,7 +1000,7 @@
                     <!-- Horizon 4 -->
                     <div id="h4" class="horizon-content-section">
                         <div class="premium-card">
-                            <h4 class="text-white mb-4 font-light">Horizon 4: Blue Ocean Ventures</h4>
+                            <h4 class="card-title text-white">Horizon 4: Blue Ocean Ventures</h4>
                             <p class="text-lg text-slate-300 mb-8 font-light">Bold moves into adjacent spaces.</p>
                             <ul class="space-y-4">
                                 <li class="flex items-start text-slate-300">
@@ -1024,19 +1055,19 @@
             <div class="reveal">
                 <div class="grid md:grid-cols-2 gap-16 items-center stagger-children">
                     <div>
-                        <h4 class="text-white mb-6 font-light text-3xl">Our Approach</h4>
+                        <h4 class="card-title text-white mb-6">Our Approach</h4>
                         <p class="mb-8 text-slate-300 font-light">We operate across the full spectrum—from boardroom strategy to technical implementation. Whether you need strategic advisory, use case discovery, or full development capabilities, we adapt to where TransInvest needs us most. Everything measured with an obsessive focus on ROI.</p>
                         <div class="space-y-6">
                             <div>
-                                <div class="text-xl gradient-text font-medium mb-2">Strategic Partnership</div>
+                                <div class="subsection-title gradient-text mb-2">Strategic Partnership</div>
                                 <p class="text-slate-300 font-light">We align deeply with your executive vision and long-term goals.</p>
                             </div>
                             <div>
-                                <div class="text-xl gradient-text font-medium mb-2">Technical Excellence</div>
+                                <div class="subsection-title gradient-text mb-2">Technical Excellence</div>
                                 <p class="text-slate-300 font-light">We are hands-on builders who deliver robust, scalable AI systems.</p>
                             </div>
                             <div>
-                                <div class="text-xl gradient-text font-medium mb-2">Value-Driven Results</div>
+                                <div class="subsection-title gradient-text mb-2">Value-Driven Results</div>
                                 <p class="text-slate-300 font-light">We measure our success by your ROI and business impact.</p>
                             </div>
                         </div>
@@ -1060,22 +1091,22 @@
                     <div class="timeline-container">
                         <div class="timeline-item">
                             <div class="timeline-dot"></div>
-                            <h4 class="gradient-text mb-2 text-2xl font-light">Align</h4>
+                            <h4 class="subsection-title gradient-text mb-2 text-2xl">Align</h4>
                             <p class="text-slate-300 font-light">Executive visioning, ambition setting, and stakeholder alignment to define a shared vision of success.</p>
                         </div>
                         <div class="timeline-item">
                             <div class="timeline-dot"></div>
-                            <h4 class="gradient-text mb-2 text-2xl font-light">Discover</h4>
+                            <h4 class="subsection-title gradient-text mb-2 text-2xl">Discover</h4>
                             <p class="text-slate-300 font-light">Deep-dive into operations, data assessment, opportunity identification, and ROI modeling to build the strategic roadmap.</p>
                         </div>
                         <div class="timeline-item">
                             <div class="timeline-dot"></div>
-                            <h4 class="gradient-text mb-2 text-2xl font-light">Pilot</h4>
+                            <h4 class="subsection-title gradient-text mb-2 text-2xl">Pilot</h4>
                             <p class="text-slate-300 font-light">Launch 2-4 high-impact pilots. We rapidly prototype, measure, learn, and refine to prove value and create an implementation playbook.</p>
                         </div>
                         <div class="timeline-item">
                             <div class="timeline-dot"></div>
-                            <h4 class="gradient-text mb-2 text-2xl font-light">Scale</h4>
+                            <h4 class="subsection-title gradient-text mb-2 text-2xl">Scale</h4>
                             <p class="text-slate-300 font-light">Roll out successful pilots across the network, launch new initiatives, and establish your internal AI Center of Excellence.</p>
                         </div>
                     </div>
@@ -1085,32 +1116,37 @@
             <!-- What Makes Us Different -->
             <div class="reveal">
                 <div class="text-center mb-16">
-                    <h3 class="text-white mb-6 section-header">What Makes Us Different</h3>
+                    <h3 class="text-white mb-6 section-header">Why Promontory</h3>
+                    <p class="text-lg text-slate-400 font-light max-w-3xl mx-auto">We're not McKinsey. We're not Accenture. We're a boutique team that combines Big Four strategy experience with hands-on technical execution from leading tech companies.</p>
                 </div>
-                <div class="grid md:grid-cols-3 gap-6 stagger-children">
-                    <div class="premium-card text-center">
-                        <h5 class="text-lg text-white mb-2 font-medium">Strategic + Tactical</h5>
-                        <p class="text-slate-300 font-light text-sm">Not just PowerPoints. Not just code. We deliver both.</p>
+                <div class="grid md:grid-cols-2 gap-8 stagger-children">
+                    <div class="premium-card">
+                        <div class="mb-4">
+                            <span class="text-cyan-400 text-4xl font-light">01</span>
+                        </div>
+                        <h4 class="subsection-title text-white mb-3">Senior-Level Expertise, Direct Access</h4>
+                        <p class="text-slate-300 font-light">You work directly with partners who have led transformations at Big Four firms and built AI systems at tech giants. No junior consultants learning on your dime.</p>
                     </div>
-                    <div class="premium-card text-center">
-                        <h5 class="text-lg text-white mb-2 font-medium">Holding Co. Mindset</h5>
-                        <p class="text-slate-300 font-light text-sm">We understand portfolio dynamics and the autonomy/coordination balance.</p>
+                    <div class="premium-card">
+                        <div class="mb-4">
+                            <span class="text-cyan-400 text-4xl font-light">02</span>
+                        </div>
+                        <h4 class="subsection-title text-white mb-3">Strategy + Execution in One Team</h4>
+                        <p class="text-slate-300 font-light">We don't hand you a 200-page deck and disappear. We architect the strategy, then build it with you. PowerPoints and Python in the same conversation.</p>
                     </div>
-                    <div class="premium-card text-center">
-                        <h5 class="text-lg text-white mb-2 font-medium">Multi-Sector Intelligence</h5>
-                        <p class="text-slate-300 font-light text-sm">We understand that TransInvest isn't just logistics—it's financial services, real estate, and consulting. AI opportunities exist across all domains.</p>
+                    <div class="premium-card">
+                        <div class="mb-4">
+                            <span class="text-cyan-400 text-4xl font-light">03</span>
+                        </div>
+                        <h4 class="subsection-title text-white mb-3">Embedded Partnership Model</h4>
+                        <p class="text-slate-300 font-light">We become an extension of your team—not external advisors. We work alongside your people, transfer knowledge continuously, and build your internal capability from day one.</p>
                     </div>
-                    <div class="premium-card text-center">
-                        <h5 class="text-lg text-white mb-2 font-medium">Business Model Focus</h5>
-                        <p class="text-slate-300 font-light text-sm">We go beyond operations to help you create entirely new businesses.</p>
-                    </div>
-                    <div class="premium-card text-center">
-                        <h5 class="text-lg text-white mb-2 font-medium">Risk Sharing</h5>
-                        <p class="text-slate-300 font-light text-sm">We offer performance-based models and co-investment opportunities.</p>
-                    </div>
-                    <div class="premium-card text-center">
-                        <h5 class="text-lg text-white mb-2 font-medium">Knowledge Transfer</h5>
-                        <p class="text-slate-300 font-light text-sm">Our goal is to build your capabilities, not create dependency.</p>
+                    <div class="premium-card">
+                        <div class="mb-4">
+                            <span class="text-cyan-400 text-4xl font-light">04</span>
+                        </div>
+                        <h4 class="subsection-title text-white mb-3">Tailored, Not Templated</h4>
+                        <p class="text-slate-300 font-light">No cookie-cutter frameworks. We design solutions for TransInvest's unique structure—100+ autonomous companies with flat hierarchies. Your complexity is our specialty.</p>
                     </div>
                 </div>
             </div>
@@ -1162,15 +1198,15 @@
                 </div>
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
-                        <h4 class="text-slate-400 mb-6 font-light">Scenario A: Status Quo</h4>
+                        <h4 class="card-title text-slate-400">Scenario A: Status Quo</h4>
                         <p class="text-slate-300 font-light">Watch competitors adopt AI. <strong class="text-white">2027 Outcome:</strong> Margins compressed, playing catch-up, defending market share.</p>
                     </div>
                     <div class="premium-card">
-                        <h4 class="text-slate-300 mb-6 font-light">Scenario B: Operational AI</h4>
+                        <h4 class="card-title text-slate-300">Scenario B: Operational AI</h4>
                         <p class="text-slate-300 font-light">Implement AI within individual companies for efficiency. <strong class="text-white">2027 Outcome:</strong> Better margins at Militzer & Münch and others, but portfolio synergies remain untapped.</p>
                     </div>
                     <div class="premium-card highlighted">
-                        <h4 class="gradient-text mb-6 font-light">Scenario C: TransInvest as Intelligent Ecosystem</h4>
+                        <h4 class="card-title gradient-text">Scenario C: TransInvest as Intelligent Ecosystem</h4>
                         <p class="text-slate-100 font-light">Full four-horizon approach across the portfolio. <strong class="text-white">2027 Outcome:</strong> The network effect kicks in—each new company or expansion multiplies value. New €100M+ revenue streams. Competitors can't replicate your portfolio intelligence.</p>
                     </div>
                 </div>
@@ -1192,17 +1228,17 @@
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-handshake"></i></div>
-                        <h4 class="text-white mb-4 font-light">Step 1: Alignment Workshop</h4>
+                        <h4 class="card-title text-white">Step 1: Alignment Workshop</h4>
                         <p class="text-slate-300 font-light">A complimentary half-day intensive session for leadership to align on a shared vision. (Corresponds to <strong class="text-white">Align</strong>)</p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-clipboard-check"></i></div>
-                        <h4 class="text-white mb-4 font-light">Step 2: Discovery & Strategy</h4>
+                        <h4 class="card-title text-white">Step 2: Discovery & Strategy</h4>
                         <p class="text-slate-300 font-light">A 30-45 day focused assessment to build the business cases and roadmap for the top 5 initiatives. (Corresponds to <strong class="text-white">Discover</strong>)</p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-vial"></i></div>
-                        <h4 class="text-white mb-4 font-light">Step 3: Pilot & Prove</h4>
+                        <h4 class="card-title text-white">Step 3: Pilot & Prove</h4>
                         <p class="text-slate-300 font-light">A 90-120 day engagement to finalize the 3-year plan and launch 2-3 pilots to prove value. (Corresponds to <strong class="text-white">Pilot</strong>)</p>
                     </div>
                 </div>
@@ -1224,7 +1260,7 @@
         </div>
         
         <div class="max-w-5xl mx-auto px-6 reveal">
-            <h3 class="text-2xl md:text-3xl text-white mb-16 font-light leading-relaxed">
+            <h3 class="text-white mb-16 font-light leading-relaxed">
                 AI is not a technology decision.<br/>
                 <span class="gradient-text">It's a strategic decision about TransInvest's next 20 years.</span>
             </h3>
@@ -1301,58 +1337,73 @@
             const sections = document.querySelectorAll('header[id], section[id]');
             const navLinks = document.querySelectorAll('.side-nav a');
             
-            let currentActiveSection = 'hero'; // Track current section
-
-            // Track which section is most visible with debouncing
-            const scrollspyObserver = new IntersectionObserver((entries) => {
-                // Find all currently intersecting sections
-                const intersectingSections = entries.filter(entry => entry.isIntersecting);
+            // Simple and reliable scrollspy using scroll position
+            function updateScrollspy() {
+                const scrollPosition = window.scrollY;
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
                 
-                if (intersectingSections.length === 0) return;
-                
-                // If multiple sections are visible, pick the one with highest ratio
-                // OR the one that's scrolling into view (top of viewport)
-                let targetSection = intersectingSections.reduce((best, entry) => {
-                    // Prefer sections in the upper half of viewport
-                    const rect = entry.target.getBoundingClientRect();
-                    const isInUpperHalf = rect.top < window.innerHeight / 2;
-                    
-                    if (!best) return entry;
-                    
-                    const bestRect = best.target.getBoundingClientRect();
-                    const bestInUpperHalf = bestRect.top < window.innerHeight / 2;
-                    
-                    // Prioritize upper half sections
-                    if (isInUpperHalf && !bestInUpperHalf) return entry;
-                    if (!isInUpperHalf && bestInUpperHalf) return best;
-                    
-                    // If both in same half, pick higher intersection ratio
-                    return entry.intersectionRatio > best.intersectionRatio ? entry : best;
-                }, null);
-                
-                if (targetSection) {
-                    const id = targetSection.target.id;
-                    
-                    // Only update if the section has actually changed
-                    if (id !== currentActiveSection) {
-                        currentActiveSection = id;
-                        navLinks.forEach(link => {
-                            if (link.dataset.target === id) {
-                                link.classList.add('active');
-                            } else {
-                                link.classList.remove('active');
-                            }
-                        });
-                    }
+                // If near bottom of page, activate last section
+                if (scrollPosition + windowHeight >= documentHeight - 100) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    navLinks[navLinks.length - 1]?.classList.add('active');
+                    return;
                 }
-            }, {
-                threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5],
-                rootMargin: '-15% 0px -50% 0px'
-            });
-
-            sections.forEach(section => {
-                scrollspyObserver.observe(section);
-            });
+                
+                // Find which section we're currently viewing
+                let currentSection = null;
+                let closestDistance = Infinity;
+                
+                sections.forEach(section => {
+                    const rect = section.getBoundingClientRect();
+                    const sectionTop = rect.top;
+                    const sectionBottom = rect.bottom;
+                    const sectionMiddle = (sectionTop + sectionBottom) / 2;
+                    
+                    // Consider section active if its middle is in the viewport
+                    // or if viewport is within the section
+                    const viewportMiddle = windowHeight / 2;
+                    
+                    // Section is active if:
+                    // 1. Section middle is near viewport middle, OR
+                    // 2. Viewport middle is within the section bounds
+                    const isInView = (sectionTop <= viewportMiddle && sectionBottom >= viewportMiddle);
+                    
+                    if (isInView) {
+                        const distanceFromViewportMiddle = Math.abs(sectionMiddle - viewportMiddle);
+                        
+                        if (distanceFromViewportMiddle < closestDistance) {
+                            closestDistance = distanceFromViewportMiddle;
+                            currentSection = section.id;
+                        }
+                    }
+                });
+                
+                // Update active state
+                if (currentSection) {
+                    navLinks.forEach(link => {
+                        if (link.dataset.target === currentSection) {
+                            link.classList.add('active');
+                        } else {
+                            link.classList.remove('active');
+                        }
+                    });
+                }
+            }
+            
+            // Throttle scroll events for performance
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                if (scrollTimeout) {
+                    window.cancelAnimationFrame(scrollTimeout);
+                }
+                scrollTimeout = window.requestAnimationFrame(updateScrollspy);
+            }, { passive: true });
+            
+            // Initial call
+            updateScrollspy();
 
             // ============================================
             // HORIZON SCROLLSPY
