@@ -354,73 +354,114 @@
         }
 
         /* ============================================
-           QUOTE STYLING
+           STRATEGIC STATEMENT STYLING
            ============================================ */
-        .premium-quote {
+        .strategic-statement {
             position: relative;
-            padding: 3rem 2rem;
+            padding: 4rem 2rem;
             text-align: center;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(14, 165, 233, 0.03) 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(6, 182, 212, 0.1);
+            margin-bottom: 3rem;
         }
 
-        .premium-quote::before {
-            content: '"';
-            position: absolute;
-            top: -1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 12rem;
-            font-weight: 300;
-            color: rgba(6, 182, 212, 0.1);
-            line-height: 1;
-            font-family: 'Playfair Display', serif;
-        }
-
-        .premium-quote h2 {
+        .strategic-statement h2 {
             position: relative;
             z-index: 1;
-            font-weight: 400;
-            font-style: italic;
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(2rem, 5vw, 3.5rem) !important;
-            line-height: 1.4;
+            font-weight: 300;
+            font-family: 'DM Sans', sans-serif;
+            font-size: clamp(2.25rem, 5vw, 4rem) !important;
+            line-height: 1.25;
+            color: #ffffff;
+            margin-bottom: 0;
+        }
+        
+        .strategic-statement .statement-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(6, 182, 212, 0.8);
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            font-family: 'DM Sans', sans-serif;
         }
 
         /* ============================================
-           QUESTION ANIMATION EFFECT
+           QUESTION CARDS - MODERN DESIGN
            ============================================ */
-        .question-item {
-            margin-bottom: 3rem;
+        .question-cards-grid {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: 1fr;
         }
         
-        .question-label {
-            opacity: 0.4;
-            transition: opacity 0.6s ease;
+        @media (min-width: 768px) {
+            .question-cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
-        .question-label.active {
+        .question-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 20px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #06b6d4 0%, #0ea5e9 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .question-card:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(6, 182, 212, 0.15);
+        }
+        
+        .question-card:hover::before {
             opacity: 1;
         }
         
-        .question-text-container {
-            min-height: 80px;
-            position: relative;
-        }
-
-        .question-text {
-            opacity: 0;
-            transform: translateX(-20px);
-            font-weight: 200 !important;
-            font-size: clamp(1.25rem, 3vw, 1.75rem);
-        }
-        
-        .question-text.visible {
-            animation: fadeInSlide 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        .question-number {
+            display: inline-block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(6, 182, 212, 0.7);
+            font-weight: 500;
+            margin-bottom: 1rem;
+            font-family: 'DM Sans', sans-serif;
         }
         
-        @keyframes fadeInSlide {
-            to {
-                opacity: 1;
-                transform: translateX(0);
+        .question-title {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 300;
+            line-height: 1.3;
+            color: #ffffff;
+            margin-bottom: 0;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .question-card.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        @media (max-width: 767px) {
+            .question-card.full-width {
+                grid-column: 1;
             }
         }
 
@@ -592,13 +633,14 @@
 
             <!-- Strategic Question -->
             <div class="reveal max-w-5xl mx-auto">
-                <div class="premium-quote">
-                    <h2 class="text-white mb-12">
+                <div class="strategic-statement">
+                    <span class="statement-label">The Strategic Question</span>
+                    <h2>
                         How does a 140-year-old business prepare for the next 140?
                     </h2>
                 </div>
                 <p class="text-lg text-slate-300 font-light leading-relaxed text-center max-w-4xl mx-auto">
-                    You've built an empire across 45 countries. You've navigated collapse, crisis, and unprecedented change. But today, coordination complexity is growing exponentially. Knowledge is trapped in silos. The opportunity is not just to optimize, but to transform TransInvest from a collection of companies into an <strong class="gradient-text">intelligent ecosystem.</strong>
+                    You've built a unique enterprise: over 100 independent companies operating with flat hierarchies across Europe and Asia. You've mastered autonomy. But today, as companies like Militzer & Münch expand into Singapore, Taiwan, and Belgium, coordination complexity is growing exponentially. Knowledge is trapped in silos. The opportunity is not just to optimize, but to transform TransInvest from a collection of companies into an <strong class="gradient-text">intelligent ecosystem</strong>—while preserving the independence that makes you strong.
                 </p>
             </div>
             
@@ -612,7 +654,7 @@
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-globe-asia"></i></div>
                         <h4 class="text-white mb-4 font-light">The Eurasian Century</h4>
-                        <p class="text-slate-300 font-light">The trade corridors you pioneered are now the world's center of gravity. You stand at the intersection of $4.5 trillion in annual trade flows.</p>
+                        <p class="text-slate-300 font-light">The Europe-Asia corridors where TransInvest operates are now the world's center of gravity. Your footprint spans the fastest-growing trade routes, positioning you at the intersection of trillions in annual flows.</p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-brain"></i></div>
@@ -634,7 +676,7 @@
                 </div>
                 <div class="comparison-grid stagger-children">
                     <div class="comparison-card">
-                        <h4 class="text-slate-400 mb-6 font-light">Traditional Holding Company</h4>
+                        <h4 class="text-slate-400 mb-6 font-light">TransInvest Today</h4>
                         <ul class="space-y-3 text-slate-400 font-light">
                             <li class="flex items-start">
                                 <span class="text-cyan-500 mr-3">•</span>
@@ -650,10 +692,10 @@
                             </li>
                             <li class="flex items-start">
                                 <span class="text-cyan-500 mr-3">•</span>
-                                <span>Annual Strategy Reviews</span>
+                                <span>Flat hierarchies, high autonomy</span>
                             </li>
                         </ul>
-                        <p class="mt-8 text-slate-300 font-light italic">100 companies learning <strong class="font-medium">independently.</strong></p>
+                        <p class="mt-8 text-slate-300 font-light italic">100+ companies learning <strong class="font-medium">independently.</strong></p>
                     </div>
                     <div class="comparison-card highlighted">
                         <h4 class="gradient-text mb-6 font-light">The Intelligent Ecosystem</h4>
@@ -679,7 +721,7 @@
                                 <strong class="gradient-text">AI-enabled new business creation</strong>
                             </li>
                         </ul>
-                        <p class="mt-8 text-slate-300 font-light italic">100 companies learning <strong class="font-medium">from each other.</strong></p>
+                        <p class="mt-8 text-slate-300 font-light italic">100+ companies <strong class="font-medium">keeping their autonomy</strong> while learning from each other.</p>
                     </div>
                 </div>
             </div>
@@ -698,7 +740,7 @@
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
                         <h4 class="text-white mb-4 font-light">Your Inflection Point</h4>
-                        <p class="text-slate-300 font-light">Your data is exploding. With AI, this is an advantage. <strong class="text-white">Without it, it's a liability.</strong></p>
+                        <p class="text-slate-300 font-light">You're operating across logistics, financial services, real estate, and consulting. Your data footprint is exploding. With AI, diversity becomes your advantage. <strong class="text-white">Without it, it's complexity.</strong></p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-door-open"></i></div>
@@ -814,13 +856,13 @@
                     <div id="h1" class="horizon-content-section">
                         <div class="premium-card">
                             <h4 class="text-white mb-4 font-light">Horizon 1: Operational Excellence</h4>
-                            <p class="text-lg text-slate-300 mb-8 font-light">Enabling your 100 companies to operate as an intelligent network.</p>
+                            <p class="text-lg text-slate-300 mb-8 font-light">Enabling your 100+ companies to operate as an intelligent network—across logistics, financial services, real estate, and consulting.</p>
                             <ul class="space-y-4">
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
                                         <strong class="text-white font-medium">Intelligent Nervous System:</strong>
-                                        <span class="font-light"> An optional, real-time intelligence layer to share insights.</span>
+                                        <span class="font-light"> An <strong class="text-cyan-400">optional</strong>, opt-in intelligence layer respecting your flat hierarchy philosophy. Companies choose what to share and what insights to access.</span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
@@ -833,8 +875,8 @@
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
-                                        <strong class="text-white font-medium">Customer Intelligence Engine:</strong>
-                                        <span class="font-light"> 360° view for churn prediction and upsell identification.</span>
+                                        <strong class="text-white font-medium">Cross-Portfolio Intelligence:</strong>
+                                        <span class="font-light"> When your real estate unit identifies a new warehouse opportunity, your logistics companies know instantly. When financial services sees trade patterns shifting, operations can adapt. Turn portfolio diversity into competitive intelligence.</span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
@@ -857,15 +899,15 @@
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
-                                        <strong class="text-white font-medium">Intelligence-as-a-Service (TIaaS):</strong>
-                                        <span class="font-light"> Sell your proprietary market intelligence to customers.</span>
+                                        <strong class="text-white font-medium">Market Intelligence Platform:</strong>
+                                        <span class="font-light"> Package your unique Europe-Asia corridor insights as a premium data product. Shippers pay for visibility you already have. <em class="text-slate-400">Turn your operational data into recurring revenue.</em></span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
                                         <strong class="text-white font-medium">Guaranteed Transit Times:</strong>
-                                        <span class="font-light"> Use AI prediction to offer premium, guaranteed products.</span>
+                                        <span class="font-light"> Use AI prediction to offer premium products. <em class="text-slate-400">Example: Militzer & Münch could guarantee 14-day Europe-Singapore routes with 98% confidence.</em></span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
@@ -878,8 +920,8 @@
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
-                                        <strong class="text-white font-medium">AI Compliance Advisory:</strong>
-                                        <span class="font-light"> Offer automated customs/compliance advice for 45 countries.</span>
+                                        <strong class="text-white font-medium">AI-Powered Corridor Advisory:</strong>
+                                        <span class="font-light"> Offer automated customs, compliance, and route optimization advice for Europe-Asia corridors. Your experience becomes a premium consulting product.</span>
                                     </div>
                                 </li>
                             </ul>
@@ -896,21 +938,21 @@
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
                                         <strong class="text-white font-medium">Digital Freight Platform:</strong>
-                                        <span class="font-light"> The "Booking.com" for complex Eurasian corridors, built on your data.</span>
+                                        <span class="font-light"> The "Booking.com" for Europe-Asia corridors, powered by TransInvest's network intelligence. Your 100+ companies become the platform.</span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
-                                        <strong class="text-white font-medium">Rolling Stock-as-a-Service (RaaS):</strong>
-                                        <span class="font-light"> The "AWS of Eurasian rail wagons" using predictive demand AI.</span>
+                                        <strong class="text-white font-medium">Asset Intelligence Platform:</strong>
+                                        <span class="font-light"> Turn capacity across trucks, containers, warehouses, and real estate into a dynamic marketplace. Predictive AI matches supply and demand across your entire portfolio—and opens it to third parties.</span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
                                         <strong class="text-white font-medium">Trade Finance Intelligence:</strong>
-                                        <span class="font-light"> Sell AI-powered trade risk assessments to banks and insurers.</span>
+                                        <span class="font-light"> Leverage your financial services expertise and logistics data to offer AI-powered trade risk assessments, working capital optimization, and corridor-specific financing products to banks, insurers, and enterprise clients.</span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
@@ -933,8 +975,8 @@
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
-                                        <strong class="text-white font-medium">Autonomous Logistics:</strong>
-                                        <span class="font-light"> Own the AI orchestration layer for autonomous fleets on your test corridors.</span>
+                                        <strong class="text-white font-medium">AI Orchestration Layer:</strong>
+                                        <span class="font-light"> Build the intelligent coordination platform that sits above logistics providers across Europe-Asia. As autonomous vehicles emerge, you own the decision-making layer—not just the assets.</span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
@@ -947,15 +989,15 @@
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
-                                        <strong class="text-white font-medium">AI Logistics Academy:</strong>
-                                        <span class="font-light"> Codify your 140 years of knowledge into a training & talent platform.</span>
+                                        <strong class="text-white font-medium">TransInvest Academy:</strong>
+                                        <span class="font-light"> Codify your decades of Europe-Asia corridor expertise into an AI-powered training and talent development platform. Sell access to corporations and governments entering these markets.</span>
                                     </div>
                                 </li>
                                 <li class="flex items-start text-slate-300">
                                     <span class="text-cyan-400 mr-4 mt-1">→</span>
                                     <div>
-                                        <strong class="text-white font-medium">TransInvest Ventures:</strong>
-                                        <span class="font-light"> A dedicated fund to invest in the next generation of logistics tech.</span>
+                                        <strong class="text-white font-medium">Strategic Tech Ventures:</strong>
+                                        <span class="font-light"> Your portfolio intelligence reveals emerging opportunities early. Consider a dedicated vehicle to invest in or incubate the next generation of corridor technologies—capturing upside while staying close to innovation.</span>
                                     </div>
                                 </li>
                             </ul>
@@ -974,7 +1016,7 @@
                     About Promontory AI
                 </h2>
                 <p class="text-lg text-slate-300 font-light leading-relaxed">
-                    We are strategic transformation partners for complex enterprises. We don't just implement AI—we reimagine business models.
+                    We are strategic transformation partners for complex, multi-company enterprises like TransInvest. We work at every level: from executive strategy to use case identification to hands-on consulting and development. We don't just implement AI—we reimagine what's possible while respecting your culture of autonomy.
                 </p>
             </div>
             
@@ -983,7 +1025,7 @@
                 <div class="grid md:grid-cols-2 gap-16 items-center stagger-children">
                     <div>
                         <h4 class="text-white mb-6 font-light text-3xl">Our Approach</h4>
-                        <p class="mb-8 text-slate-300 font-light">We combine strategic perspective with hands-on technical delivery, all measured with an obsessive focus on ROI.</p>
+                        <p class="mb-8 text-slate-300 font-light">We operate across the full spectrum—from boardroom strategy to technical implementation. Whether you need strategic advisory, use case discovery, or full development capabilities, we adapt to where TransInvest needs us most. Everything measured with an obsessive focus on ROI.</p>
                         <div class="space-y-6">
                             <div>
                                 <div class="text-xl gradient-text font-medium mb-2">Strategic Partnership</div>
@@ -1055,8 +1097,8 @@
                         <p class="text-slate-300 font-light text-sm">We understand portfolio dynamics and the autonomy/coordination balance.</p>
                     </div>
                     <div class="premium-card text-center">
-                        <h5 class="text-lg text-white mb-2 font-medium">Emerging Markets DNA</h5>
-                        <p class="text-slate-300 font-light text-sm">We understand CIS, Central Asia, and how things actually get done.</p>
+                        <h5 class="text-lg text-white mb-2 font-medium">Multi-Sector Intelligence</h5>
+                        <p class="text-slate-300 font-light text-sm">We understand that TransInvest isn't just logistics—it's financial services, real estate, and consulting. AI opportunities exist across all domains.</p>
                     </div>
                     <div class="premium-card text-center">
                         <h5 class="text-lg text-white mb-2 font-medium">Business Model Focus</h5>
@@ -1084,50 +1126,31 @@
             </div>
 
             <!-- Critical Questions -->
-            <div class="reveal max-w-5xl mx-auto">
-                <div class="text-center mb-24">
+            <div class="reveal max-w-6xl mx-auto">
+                <div class="text-center mb-16">
                     <h3 class="text-white mb-6 section-header">Five Questions for Leadership</h3>
+                    <p class="text-lg text-slate-400 font-light">These aren't rhetorical. They're the questions that will define TransInvest's next decade.</p>
                 </div>
-                <div class="space-y-20">
-                    <div class="question-item">
-                        <div class="grid md:grid-cols-3 gap-8 items-start">
-                            <h4 class="gradient-text font-light text-2xl question-label">The Knowledge Question</h4>
-                            <div class="md:col-span-2 question-text-container">
-                                <p class="text-white font-light italic question-text" data-text="If you could instantly share what your best manager knows with all 100 companies, what would that be worth?">If you could instantly share what your best manager knows with all 100 companies, what would that be worth?</p>
-                            </div>
-                        </div>
+                <div class="question-cards-grid stagger-children">
+                    <div class="question-card">
+                        <span class="question-number">Question 1</span>
+                        <h4 class="question-title">What's the cost of not knowing what you already know?</h4>
                     </div>
-                    <div class="question-item">
-                        <div class="grid md:grid-cols-3 gap-8 items-start">
-                            <h4 class="gradient-text font-light text-2xl question-label">The Speed Question</h4>
-                            <div class="md:col-span-2 question-text-container">
-                                <p class="text-white font-light italic question-text" data-text="What decisions take weeks today that should take hours?">What decisions take weeks today that should take hours?</p>
-                            </div>
-                        </div>
+                    <div class="question-card">
+                        <span class="question-number">Question 2</span>
+                        <h4 class="question-title">If Taiwan learns something today, when does Belgium know?</h4>
                     </div>
-                    <div class="question-item">
-                        <div class="grid md:grid-cols-3 gap-8 items-start">
-                            <h4 class="gradient-text font-light text-2xl question-label">The Growth Question</h4>
-                            <div class="md:col-span-2 question-text-container">
-                                <p class="text-white font-light italic question-text" data-text="If you could eliminate coordination complexity, how fast could you expand?">If you could eliminate coordination complexity, how fast could you expand?</p>
-                            </div>
-                        </div>
+                    <div class="question-card">
+                        <span class="question-number">Question 3</span>
+                        <h4 class="question-title">How many expansion opportunities are you missing because coordination is too slow?</h4>
                     </div>
-                    <div class="question-item">
-                        <div class="grid md:grid-cols-3 gap-8 items-start">
-                            <h4 class="gradient-text font-light text-2xl question-label">The Innovation Question</h4>
-                            <div class="md:col-span-2 question-text-container">
-                                <p class="text-white font-light italic question-text" data-text="What business would you start if you had perfect information about your corridors?">What business would you start if you had perfect information about your corridors?</p>
-                            </div>
-                        </div>
+                    <div class="question-card">
+                        <span class="question-number">Question 4</span>
+                        <h4 class="question-title">What new business could you build if your 100+ companies shared intelligence in real-time?</h4>
                     </div>
-                    <div class="question-item">
-                        <div class="grid md:grid-cols-3 gap-8 items-start">
-                            <h4 class="gradient-text font-light text-2xl question-label">The Legacy Question</h4>
-                            <div class="md:col-span-2 question-text-container">
-                                <p class="text-white font-light italic question-text" data-text="What does TransInvest need to be in 2045 to honor the 160 years that came before?">What does TransInvest need to be in 2045 to honor the 160 years that came before?</p>
-                            </div>
-                        </div>
+                    <div class="question-card full-width">
+                        <span class="question-number">Question 5 — The Only One That Matters</span>
+                        <h4 class="question-title">In 2030, when AI is commoditized, what will be TransInvest's unfair advantage?</h4>
                     </div>
                 </div>
             </div>
@@ -1144,11 +1167,11 @@
                     </div>
                     <div class="premium-card">
                         <h4 class="text-slate-300 mb-6 font-light">Scenario B: Operational AI</h4>
-                        <p class="text-slate-300 font-light">Implement AI for current operations. <strong class="text-white">2027 Outcome:</strong> Better margins, but still vulnerable to business model disruption.</p>
+                        <p class="text-slate-300 font-light">Implement AI within individual companies for efficiency. <strong class="text-white">2027 Outcome:</strong> Better margins at Militzer & Münch and others, but portfolio synergies remain untapped.</p>
                     </div>
                     <div class="premium-card highlighted">
-                        <h4 class="gradient-text mb-6 font-light">Scenario C: Strategic AI</h4>
-                        <p class="text-slate-100 font-light">Full four-horizon approach. <strong class="text-white">2027 Outcome:</strong> Market leadership, new €100M+ revenue streams, and a defensible moat.</p>
+                        <h4 class="gradient-text mb-6 font-light">Scenario C: TransInvest as Intelligent Ecosystem</h4>
+                        <p class="text-slate-100 font-light">Full four-horizon approach across the portfolio. <strong class="text-white">2027 Outcome:</strong> The network effect kicks in—each new company or expansion multiplies value. New €100M+ revenue streams. Competitors can't replicate your portfolio intelligence.</p>
                     </div>
                 </div>
             </div>
@@ -1192,11 +1215,9 @@
     <!-- Footer / CTA -->
     <footer class="py-32 text-center">
         <div class="max-w-5xl mx-auto px-6 reveal">
-            <div class="premium-quote mb-16">
-                <h2 class="text-white mb-8 font-light section-header">
-                    The best time to plant a tree was 20 years ago. The second best time is now.
-                </h2>
-            </div>
+            <p class="text-3xl md:text-4xl text-slate-300 mb-8 font-light leading-relaxed italic">
+                "The best time to plant a tree was 20 years ago.<br/>The second best time is now."
+            </p>
             <p class="text-xl text-slate-300 mb-24 font-light leading-relaxed">
                 You built TransInvest over 140 years of strategic bets. This is that kind of moment.
             </p>
@@ -1359,62 +1380,6 @@
 
             horizonSections.forEach(section => {
                 horizonObserver.observe(section);
-            });
-
-            // ============================================
-            // FADE-IN ANIMATION FOR QUESTIONS
-            // ============================================
-            const questionItems = document.querySelectorAll('.question-item');
-            let questionQueue = [];
-            let isAnimating = false;
-
-            async function animateNextQuestion() {
-                if (isAnimating || questionQueue.length === 0) return;
-                
-                isAnimating = true;
-                const { label, textElement } = questionQueue.shift();
-                
-                // Activate label (increase opacity)
-                label.classList.add('active');
-                
-                // Wait 300ms before showing text
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                // Show text with fade-in animation
-                textElement.classList.add('visible');
-                
-                // Wait for animation to complete plus delay
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                isAnimating = false;
-                
-                // Process next question
-                animateNextQuestion();
-            }
-
-            const questionObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const item = entry.target;
-                        const label = item.querySelector('.question-label');
-                        const textElement = item.querySelector('.question-text');
-                        
-                        if (!textElement.dataset.queued) {
-                            textElement.dataset.queued = 'true';
-                            questionQueue.push({ label, textElement });
-                            animateNextQuestion();
-                        }
-                        
-                        questionObserver.unobserve(item);
-                    }
-                });
-            }, {
-                threshold: 0.6,
-                rootMargin: '0px 0px -20% 0px'
-            });
-
-            questionItems.forEach(item => {
-                questionObserver.observe(item);
             });
 
             // ============================================
