@@ -118,6 +118,39 @@
         }
 
         /* ============================================
+           SECTION DIVIDER - MODERN DESIGN
+           ============================================ */
+        .section-divider {
+            position: relative;
+            padding-top: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .section-divider::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.6) 50%, transparent 100%);
+        }
+
+        .section-divider::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #06b6d4;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+        }
+
+        /* ============================================
            ENHANCED SCROLL REVEAL SYSTEM
            ============================================ */
         .reveal {
@@ -341,7 +374,7 @@
         .timeline-container::before {
             content: '';
             position: absolute;
-            left: 8px; /* Center align with 16px dot (8px = half of 16px) */
+            left: 5px; /* Center align with 16px dot accounting for 3px border (16/2 - 3 = 5px) */
             top: 0.5rem; /* Start at first dot position */
             bottom: 3rem; /* End before last item */
             width: 2px;
@@ -786,7 +819,7 @@
         <!-- Section 2: Understanding AI -->
         <section id="understanding-ai" class="py-32 space-y-48">
 
-            <div class="reveal text-center max-w-4xl mx-auto">
+            <div class="reveal text-center max-w-4xl mx-auto section-divider">
                 <p class="section-label">Section 2</p>
                 <h2 class="text-white mb-8 font-light section-header">
                     Understanding AI
@@ -844,7 +877,7 @@
 
         <!-- Section 3: The Four Horizons Framework -->
         <section id="framework" class="py-32 space-y-48">
-            <div class="reveal text-center max-w-4xl mx-auto">
+            <div class="reveal text-center max-w-4xl mx-auto section-divider">
                 <p class="section-label">Section 3</p>
                 <h2 class="text-white mb-8 font-light section-header">
                     The Four Horizons of AI Opportunity
@@ -1041,7 +1074,7 @@
 
         <!-- Section 4: About Promontory AI -->
         <section id="about" class="py-32 space-y-48">
-            <div class="reveal text-center max-w-4xl mx-auto">
+            <div class="reveal text-center max-w-4xl mx-auto section-divider">
                 <p class="section-label">Section 4</p>
                 <h2 class="text-white mb-8 font-light section-header">
                     About Promontory AI
@@ -1154,11 +1187,14 @@
 
         <!-- Section 5: The Journey Ahead -->
         <section id="journey" class="py-32 space-y-48">
-            <div class="reveal text-center max-w-4xl mx-auto">
+            <div class="reveal text-center max-w-4xl mx-auto section-divider">
                 <p class="section-label">Section 5</p>
                 <h2 class="text-white mb-8 font-light section-header">
                     The Journey Ahead
                 </h2>
+                <p class="text-lg text-slate-300 font-light leading-relaxed mt-8">
+                    We've shown you the opportunity. We've laid out the framework. Now comes the most important part: <strong class="text-white">deciding what TransInvest becomes.</strong> The questions below aren't about technology—they're about <span class="gradient-text">strategic intent, competitive positioning, and the legacy you're building.</span> Your answers will determine not just how you adopt AI, but whether TransInvest leads or follows in the next era of global commerce.
+                </p>
             </div>
 
             <!-- Critical Questions -->
