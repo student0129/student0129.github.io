@@ -298,9 +298,9 @@
         .nav-tooltip {
             position: absolute;
             top: 50%;
-            right: 100%;
+            left: 100%;
             transform: translateY(-50%);
-            margin-right: 1.5rem;
+            margin-left: 1.5rem;
             padding: 0.5rem 1rem;
             background: rgba(15, 23, 42, 0.95);
             border: 1px solid rgba(148, 163, 184, 0.2);
@@ -314,12 +314,17 @@
             transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             pointer-events: none;
             backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .side-nav li {
+            position: relative;
         }
 
         .side-nav a:hover + .nav-tooltip {
             opacity: 1;
             visibility: visible;
-            margin-right: 2rem;
+            margin-left: 2rem;
         }
 
         /* ============================================
@@ -649,7 +654,7 @@
             </li>
             <li>
                 <a href="#context" data-target="context"></a>
-                <span class="nav-tooltip">The Context</span>
+                <span class="nav-tooltip">Strategic Context</span>
             </li>
             <li>
                 <a href="#understanding-ai" data-target="understanding-ai"></a>
@@ -657,15 +662,15 @@
             </li>
             <li>
                 <a href="#framework" data-target="framework"></a>
-                <span class="nav-tooltip">The Framework</span>
+                <span class="nav-tooltip">Four Horizons Framework</span>
             </li>
             <li>
                 <a href="#about" data-target="about"></a>
-                <span class="nav-tooltip">About Us</span>
+                <span class="nav-tooltip">About Promontory AI</span>
             </li>
             <li>
                 <a href="#journey" data-target="journey"></a>
-                <span class="nav-tooltip">The Journey</span>
+                <span class="nav-tooltip">The Journey Ahead</span>
             </li>
         </ul>
     </nav>
@@ -694,6 +699,14 @@
         
         <!-- Section 1: The Strategic Context -->
         <section id="context" class="py-32 space-y-48">
+
+            <!-- Section Header -->
+            <div class="reveal text-center max-w-4xl mx-auto section-divider">
+                <p class="section-label">Section 1</p>
+                <h2 class="text-white mb-8 font-light section-header">
+                    The Strategic Context
+                </h2>
+            </div>
 
             <!-- Strategic Question -->
             <div class="reveal max-w-5xl mx-auto">
@@ -1265,17 +1278,17 @@
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-handshake"></i></div>
                         <h4 class="card-title text-white">Step 1: Alignment Workshop</h4>
-                        <p class="text-slate-300 font-light">A complimentary half-day intensive session for leadership to align on a shared vision. (Corresponds to <strong class="text-white">Align</strong>)</p>
+                        <p class="text-slate-300 font-light">A complimentary half-day intensive session for leadership to align on a shared vision.</p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-clipboard-check"></i></div>
                         <h4 class="card-title text-white">Step 2: Discovery & Strategy</h4>
-                        <p class="text-slate-300 font-light">A 30-45 day focused assessment to build the business cases and roadmap for the top 5 initiatives. (Corresponds to <strong class="text-white">Discover</strong>)</p>
+                        <p class="text-slate-300 font-light">A 30-45 day focused assessment to build the business cases and roadmap for the top 5 initiatives.</p>
                     </div>
                     <div class="premium-card">
                         <div class="icon"><i class="fa-solid fa-vial"></i></div>
                         <h4 class="card-title text-white">Step 3: Pilot & Prove</h4>
-                        <p class="text-slate-300 font-light">A 90-120 day engagement to finalize the 3-year plan and launch 2-3 pilots to prove value. (Corresponds to <strong class="text-white">Pilot</strong>)</p>
+                        <p class="text-slate-300 font-light">A 90-120 day engagement to finalize the 3-year plan and launch 2-3 pilots to prove value.</p>
                     </div>
                 </div>
             </div>
@@ -1284,17 +1297,20 @@
         
     </main>
     
-    <!-- Footer / CTA -->
-    <footer class="py-32 text-center">
-        <div class="max-w-5xl mx-auto px-6 reveal">
-            <p class="text-3xl md:text-4xl text-slate-300 mb-8 font-light leading-relaxed italic">
+    <!-- Isolated Quote Section -->
+    <section class="min-h-screen w-full flex flex-col justify-center items-center text-center p-6">
+        <div class="max-w-4xl mx-auto reveal">
+            <p class="text-5xl md:text-6xl text-white mb-12 font-light leading-relaxed section-header">
                 "The best time to plant a tree was 20 years ago.<br/>The second best time is now."
             </p>
-            <p class="text-xl text-slate-300 mb-24 font-light leading-relaxed">
+            <p class="text-2xl md:text-3xl gradient-text font-light leading-relaxed">
                 You built TransInvest over 140 years of strategic bets. This is that kind of moment.
             </p>
         </div>
-        
+    </section>
+    
+    <!-- Footer / CTA -->
+    <footer class="py-32 text-center">
         <div class="max-w-5xl mx-auto px-6 reveal">
             <h3 class="text-white mb-16 font-light leading-relaxed">
                 AI is not a technology decision.<br/>
@@ -1304,17 +1320,14 @@
             <h2 class="gradient-text mb-8 font-light section-header">
                 Let's Start the Conversation
             </h2>
-            <p class="text-xl mb-12 text-slate-300 font-light">
-                We look forward to exploring this together.
-            </p>
             <p class="text-2xl text-white font-light">
-                Promontory AI | <a href="/cdn-cgi/l/email-protection#9effedf5deeeecf1f3f1f0eaf1ece7fff7b0fdf1f3" class="gradient-text hover:underline"><span class="__cf_email__" data-cfemail="2a4b59416a5a58454745445e4558534b4304494547">[email&#160;protected]</span></a>
+                Promontory AI | <a href="mailto:ask@promontoryai.com" class="gradient-text hover:underline">ask@promontoryai.com</a>
             </p>
         </div>
     </footer>
 
     <!-- JavaScript -->
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script>
         document.addEventListener("DOMContentLoaded", () => {
             
             // ============================================
