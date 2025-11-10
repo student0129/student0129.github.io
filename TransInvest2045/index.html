@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransInvest 2045: The AI-Enabled Ecosystem</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load Premium Fonts: Inter for body, DM Sans for headings, Playfair Display for quotes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&family=DM+Sans:wght@200;300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+
+    <!-- Load Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* ============================================
+           FOUNDATIONAL STYLES
+           ============================================ */
+        * {
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-weight: 300;
+            color: #e2e8f0; /* slate-200 */
+            overflow-x: hidden;
+            background: linear-gradient(180deg, #000000 0%, #0a0a0f 50%, #000000 100%);
+            line-height: 1.7;
+            position: relative;
+        }
+
+        /* Sophisticated animated gradient overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: gradientShift 20s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Typography System */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 200;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        h1 { font-size: clamp(3rem, 8vw, 6rem); }
+        h2 { font-size: clamp(2.5rem, 6vw, 5rem); }
+        h3 { font-size: clamp(2rem, 5vw, 3.5rem); }
+        h4 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+
+        strong {
+            font-weight: 500;
+        }
+        
+        /* Section headers use serif font with increased size */
+        .section-header {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+            font-size: clamp(2.25rem, 5.5vw, 4rem) !important;
+        }
+
+        /* ============================================
+           ENHANCED SCROLL REVEAL SYSTEM
+           ============================================ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(60px);
+            transition: opacity 1s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Staggered children with improved timing */
+        .stagger-children > * {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .stagger-children.is-visible > *:nth-child(1) { transition-delay: 0.1s; }
+        .stagger-children.is-visible > *:nth-child(2) { transition-delay: 0.2s; }
+        .stagger-children.is-visible > *:nth-child(3) { transition-delay: 0.3s; }
+        .stagger-children.is-visible > *:nth-child(4) { transition-delay: 0.4s; }
+        .stagger-children.is-visible > *:nth-child(5) { transition-delay: 0.5s; }
+        .stagger-children.is-visible > *:nth-child(6) { transition-delay: 0.6s; }
+
+        .stagger-children.is-visible > * {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           PREMIUM CARD COMPONENT
+           ============================================ */
+        .premium-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .premium-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .premium-card:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(6, 182, 212, 0.15);
+        }
+
+        .premium-card:hover::before {
+            opacity: 1;
+        }
+
+        .premium-card .icon {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        /* ============================================
+           SIDE NAVIGATION (SCROLLSPY)
+           ============================================ */
+        .side-nav {
+            position: fixed;
+            top: 50%;
+            right: 2rem;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+
+        @media (max-width: 1024px) {
+            .side-nav {
+                display: none;
+            }
+        }
+
+        .side-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .side-nav a {
+            display: block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(148, 163, 184, 0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+        }
+
+        .side-nav a::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(6, 182, 212, 0);
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .side-nav a.active {
+            background: #06b6d4;
+            width: 12px;
+            height: 12px;
+        }
+
+        .side-nav a.active::after {
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        .side-nav a:hover {
+            background: #06b6d4;
+        }
+
+        .nav-tooltip {
+            position: absolute;
+            top: 50%;
+            right: 100%;
+            transform: translateY(-50%);
+            margin-right: 1.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #f1f5f9;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 300;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+        }
+
+        .side-nav a:hover + .nav-tooltip {
+            opacity: 1;
+            visibility: visible;
+            margin-right: 2rem;
+        }
+
+        /* ============================================
+           HORIZON FRAMEWORK STYLES
+           ============================================ */
+        .horizon-nav-container {
+            position: sticky;
+            top: 2rem;
+            align-self: flex-start;
+        }
+
+        .horizon-nav-item {
+            display: block;
+            padding: 0.75rem 0;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            color: rgba(148, 163, 184, 0.5);
+            border-left: 2px solid transparent;
+            padding-left: 1.5rem;
+            margin-left: -1.5rem;
+        }
+
+        .horizon-nav-item span {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.25rem;
+            font-weight: 300;
+        }
+
+        .horizon-nav-item.active {
+            color: #06b6d4;
+            border-left-color: #06b6d4;
+        }
+
+        .horizon-nav-item:hover {
+            color: rgba(6, 182, 212, 0.8);
+        }
+
+        .horizon-content-section {
+            scroll-margin-top: 6rem;
+        }
+
+        /* ============================================
+           TIMELINE STYLES
+           ============================================ */
+        .timeline-container {
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 8px; /* Center align with 16px dot (8px = half of 16px) */
+            top: 0.5rem; /* Start at first dot position */
+            bottom: 3rem; /* End before last item */
+            width: 2px;
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.5) 0%, rgba(6, 182, 212, 0.2) 100%);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 3rem;
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .timeline-item.is-visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .timeline-item:nth-child(1) { transition-delay: 0.1s; }
+        .timeline-item:nth-child(2) { transition-delay: 0.2s; }
+        .timeline-item:nth-child(3) { transition-delay: 0.3s; }
+        .timeline-item:nth-child(4) { transition-delay: 0.4s; }
+
+        .timeline-dot {
+            position: absolute;
+            left: -3rem; /* Position from left edge */
+            top: 0.5rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #000000;
+            border: 3px solid #06b6d4;
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .timeline-item.is-visible .timeline-dot {
+            box-shadow: 0 0 0 8px rgba(6, 182, 212, 0.2);
+        }
+
+        /* ============================================
+           QUOTE STYLING
+           ============================================ */
+        .premium-quote {
+            position: relative;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .premium-quote::before {
+            content: '"';
+            position: absolute;
+            top: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12rem;
+            font-weight: 300;
+            color: rgba(6, 182, 212, 0.1);
+            line-height: 1;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .premium-quote h2 {
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+            font-style: italic;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem) !important;
+            line-height: 1.4;
+        }
+
+        /* ============================================
+           QUESTION ANIMATION EFFECT
+           ============================================ */
+        .question-item {
+            margin-bottom: 3rem;
+        }
+        
+        .question-label {
+            opacity: 0.4;
+            transition: opacity 0.6s ease;
+        }
+        
+        .question-label.active {
+            opacity: 1;
+        }
+        
+        .question-text-container {
+            min-height: 80px;
+            position: relative;
+        }
+
+        .question-text {
+            opacity: 0;
+            transform: translateX(-20px);
+            font-weight: 200 !important;
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+        }
+        
+        .question-text.visible {
+            animation: fadeInSlide 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+        @keyframes fadeInSlide {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ============================================
+           COMPARISON TABLE STYLES
+           ============================================ */
+        .comparison-grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .comparison-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .comparison-card.highlighted {
+            border-color: rgba(6, 182, 212, 0.5);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%);
+        }
+
+        /* ============================================
+           SCROLL INDICATOR
+           ============================================ */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(148, 163, 184, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .scroll-indicator:hover {
+            color: #06b6d4;
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.8) 0%, transparent 100%);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { transform: translateY(0); opacity: 1; }
+            50% { transform: translateY(10px); opacity: 0.5; }
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+        .gradient-text {
+            background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 400;
+            color: rgba(6, 182, 212, 0.8);
+            margin-bottom: 1rem;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .section-header {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+        }
+
+        /* ============================================
+           RESPONSIVE ADJUSTMENTS
+           ============================================ */
+        @media (max-width: 768px) {
+            .premium-card {
+                padding: 2rem;
+            }
+
+            .horizon-nav-container {
+                position: relative;
+                top: 0;
+            }
+
+            .timeline-container {
+                padding-left: 2rem;
+            }
+
+            .timeline-dot {
+                left: -2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Side Navigation -->
+    <nav class="side-nav">
+        <ul>
+            <li>
+                <a href="#hero" data-target="hero"></a>
+                <span class="nav-tooltip">Home</span>
+            </li>
+            <li>
+                <a href="#context" data-target="context"></a>
+                <span class="nav-tooltip">The Context</span>
+            </li>
+            <li>
+                <a href="#understanding-ai" data-target="understanding-ai"></a>
+                <span class="nav-tooltip">Understanding AI</span>
+            </li>
+            <li>
+                <a href="#framework" data-target="framework"></a>
+                <span class="nav-tooltip">The Framework</span>
+            </li>
+            <li>
+                <a href="#about" data-target="about"></a>
+                <span class="nav-tooltip">About Us</span>
+            </li>
+            <li>
+                <a href="#journey" data-target="journey"></a>
+                <span class="nav-tooltip">The Journey</span>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="hero" class="min-h-screen w-full flex flex-col justify-center items-center text-center p-6 relative">
+        <div class="max-w-5xl mx-auto reveal">
+            <h1 class="text-white mb-8 font-extralight section-header">
+                TransInvest 2045
+            </h1>
+            <h2 class="gradient-text mb-12 font-light section-header">
+                Creating the AI-Enabled Ecosystem
+            </h2>
+            <p class="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto font-light leading-relaxed">
+                A Strategic Framework for Portfolio-Wide Growth
+            </p>
+        </div>
+        
+        <a href="#context" class="scroll-indicator">
+            <span class="text-sm font-light">Scroll</span>
+            <div class="scroll-line"></div>
+        </a>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6">
+        
+        <!-- Section 1: The Strategic Context -->
+        <section id="context" class="py-32 space-y-48">
+
+            <!-- Strategic Question -->
+            <div class="reveal max-w-5xl mx-auto">
+                <div class="premium-quote">
+                    <h2 class="text-white mb-12">
+                        How does a 140-year-old business prepare for the next 140?
+                    </h2>
+                </div>
+                <p class="text-lg text-slate-300 font-light leading-relaxed text-center max-w-4xl mx-auto">
+                    You've built an empire across 45 countries. You've navigated collapse, crisis, and unprecedented change. But today, coordination complexity is growing exponentially. Knowledge is trapped in silos. The opportunity is not just to optimize, but to transform TransInvest from a collection of companies into an <strong class="gradient-text">intelligent ecosystem.</strong>
+                </p>
+            </div>
+            
+            <!-- Three Converging Forces -->
+            <div class="reveal">
+                <div class="text-center mb-16">
+                    <p class="section-label">The Context</p>
+                    <h3 class="text-white mb-6 section-header">Three Converging Forces Reshaping Commerce</h3>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 stagger-children">
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-globe-asia"></i></div>
+                        <h4 class="text-white mb-4 font-light">The Eurasian Century</h4>
+                        <p class="text-slate-300 font-light">The trade corridors you pioneered are now the world's center of gravity. You stand at the intersection of $4.5 trillion in annual trade flows.</p>
+                    </div>
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-brain"></i></div>
+                        <h4 class="text-white mb-4 font-light">The Intelligence Revolution</h4>
+                        <p class="text-slate-300 font-light">AI is moving from experiment to mission-critical infrastructure, with early adopters seeing 40-60% productivity gains.</p>
+                    </div>
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-sitemap"></i></div>
+                        <h4 class="text-white mb-4 font-light">The Holding Co. Renaissance</h4>
+                        <p class="text-slate-300 font-light">With the right platform, multi-business enterprises are winning. Data and AI are the new connective tissue for capital and knowledge.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Organizational Model -->
+            <div class="reveal">
+                <div class="text-center mb-16">
+                    <h3 class="text-white mb-6 section-header">A New Organizational Model</h3>
+                </div>
+                <div class="comparison-grid stagger-children">
+                    <div class="comparison-card">
+                        <h4 class="text-slate-400 mb-6 font-light">Traditional Holding Company</h4>
+                        <ul class="space-y-3 text-slate-400 font-light">
+                            <li class="flex items-start">
+                                <span class="text-cyan-500 mr-3">•</span>
+                                <span>Capital Allocation</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-500 mr-3">•</span>
+                                <span>Governance Oversight</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-500 mr-3">•</span>
+                                <span>Shared Services (Legal, Finance)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-500 mr-3">•</span>
+                                <span>Annual Strategy Reviews</span>
+                            </li>
+                        </ul>
+                        <p class="mt-8 text-slate-300 font-light italic">100 companies learning <strong class="font-medium">independently.</strong></p>
+                    </div>
+                    <div class="comparison-card highlighted">
+                        <h4 class="gradient-text mb-6 font-light">The Intelligent Ecosystem</h4>
+                        <ul class="space-y-3 text-white font-light">
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">•</span>
+                                <span>All traditional functions, <strong class="gradient-text">PLUS:</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">•</span>
+                                <strong class="gradient-text">Real-time intelligence layer</strong>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">•</span>
+                                <strong class="gradient-text">Automated knowledge synthesis</strong>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">•</span>
+                                <strong class="gradient-text">Predictive insights & decisions</strong>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">•</span>
+                                <strong class="gradient-text">AI-enabled new business creation</strong>
+                            </li>
+                        </ul>
+                        <p class="mt-8 text-slate-300 font-light italic">100 companies learning <strong class="font-medium">from each other.</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Why This Moment Matters -->
+            <div class="reveal">
+                <div class="text-center mb-16">
+                    <h3 class="text-white mb-6 section-header">Why This Moment Matters</h3>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 stagger-children">
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-microchip"></i></div>
+                        <h4 class="text-white mb-4 font-light">Technology Inflection Point</h4>
+                        <p class="text-slate-300 font-light">AI can finally handle multi-language, multi-document complexity. <strong class="text-white">It's ready for your corridors.</strong></p>
+                    </div>
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
+                        <h4 class="text-white mb-4 font-light">Your Inflection Point</h4>
+                        <p class="text-slate-300 font-light">Your data is exploding. With AI, this is an advantage. <strong class="text-white">Without it, it's a liability.</strong></p>
+                    </div>
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-door-open"></i></div>
+                        <h4 class="text-white mb-4 font-light">The Market Window</h4>
+                        <p class="text-slate-300 font-light">A 2-3 year head start is available. After that, AI is table stakes. <strong class="text-white">Lead or be left behind.</strong></p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Section 2: Understanding AI -->
+        <section id="understanding-ai" class="py-32 space-y-48">
+
+            <div class="reveal text-center max-w-4xl mx-auto">
+                <p class="section-label">Section 2</p>
+                <h2 class="text-white mb-8 font-light section-header">
+                    Understanding AI
+                </h2>
+                <p class="text-lg text-slate-300 font-light leading-relaxed">
+                    AI isn't magic. It's a new layer of infrastructure. For TransInvest, it's three distinct capabilities.
+                </p>
+            </div>
+
+            <!-- AI Demystified -->
+            <div class="reveal">
+                <div class="grid md:grid-cols-3 gap-8 stagger-children">
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                        <h4 class="text-white mb-4 font-light">Pattern Recognition at Scale</h4>
+                        <p class="text-slate-300 font-light">Humans see patterns in 10 shipments. AI sees them across 10 million. <strong class="text-white">"Every time X + Y happens, border Z slows 14 days later."</strong></p>
+                    </div>
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-dice"></i></div>
+                        <h4 class="text-white mb-4 font-light">Prediction with Uncertainty</h4>
+                        <p class="text-slate-300 font-light">Probabilistic forecasting that learns from outcomes. <strong class="text-white">"78% probability of delay, here are the top 3 factors."</strong></p>
+                    </div>
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-route"></i></div>
+                        <h4 class="text-white mb-4 font-light">Optimization in Complex Systems</h4>
+                        <p class="text-slate-300 font-light">Finding the optimal solution from billions of combinations. <strong class="text-white">"Optimal routing for 240 trucks across 37 countries in real-time."</strong></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Agents -->
+            <div class="reveal">
+                <div class="text-center mb-16">
+                    <h3 class="text-white mb-6 section-header">The Game-Changer: AI Agents</h3>
+                </div>
+                <div class="comparison-grid stagger-children">
+                    <div class="comparison-card">
+                        <h4 class="text-slate-400 mb-6 font-light">Traditional Software</h4>
+                        <p class="text-slate-300 font-light mb-6">"If this exact scenario, then execute that exact action." It's brittle and breaks with novelty.</p>
+                        <h5 class="text-lg text-white mt-8 mb-4 font-light">Logistics Example:</h5>
+                        <p class="text-slate-300 font-light">Alert: "Border delay detected."<br/>A human analyzes, decides, and implements a reroute.<br/><span class="text-slate-400">(6-12 hours)</span></p>
+                    </div>
+                    <div class="comparison-card highlighted">
+                        <h4 class="gradient-text mb-6 font-light">AI Agents</h4>
+                        <p class="text-slate-100 font-light mb-6">Autonomous systems that <strong class="gradient-text">perceive, reason, decide, and act.</strong> They handle novelty and improve with experience.</p>
+                        <h5 class="text-lg text-white mt-8 mb-4 font-light">Logistics Example:</h5>
+                        <p class="text-slate-100 font-light">An Agent predicts the delay 48 hours in advance, evaluates 1,000 alternatives, and implements the optimal solution.<br/><span class="gradient-text font-medium">(3 minutes)</span></p>
+                    </div>
+                </div>
+                <h3 class="text-center mt-16 text-white font-light text-3xl md:text-4xl">
+                    From <span class="text-slate-500">Reactive Firefighting</span> to <span class="gradient-text">Proactive Orchestration.</span>
+                </h3>
+            </div>
+        </section>
+
+        <!-- Section 3: The Four Horizons Framework -->
+        <section id="framework" class="py-32 space-y-48">
+            <div class="reveal text-center max-w-4xl mx-auto">
+                <p class="section-label">Section 3</p>
+                <h2 class="text-white mb-8 font-light section-header">
+                    The Four Horizons of AI Opportunity
+                </h2>
+                <p class="text-lg text-slate-300 font-light leading-relaxed">
+                    We will pursue all four horizons simultaneously, balancing short-term wins with long-term transformation.
+                </p>
+            </div>
+            
+            <!-- Horizons Layout -->
+            <div class="grid lg:grid-cols-4 gap-12">
+                <!-- Sticky Navigation -->
+                <div class="lg:col-span-1">
+                    <div class="horizon-nav-container">
+                        <nav class="space-y-6">
+                            <a href="#h1" data-horizon="h1" class="horizon-nav-item active">
+                                <span>Horizon 1</span>
+                                <div class="text-2xl md:text-3xl font-light">Operational Excellence</div>
+                            </a>
+                            <a href="#h2" data-horizon="h2" class="horizon-nav-item">
+                                <span>Horizon 2</span>
+                                <div class="text-2xl md:text-3xl font-light">Strategic Enhancement</div>
+                            </a>
+                            <a href="#h3" data-horizon="h3" class="horizon-nav-item">
+                                <span>Horizon 3</span>
+                                <div class="text-2xl md:text-3xl font-light">Business Model Innovation</div>
+                            </a>
+                            <a href="#h4" data-horizon="h4" class="horizon-nav-item">
+                                <span>Horizon 4</span>
+                                <div class="text-2xl md:text-3xl font-light">Blue Ocean Ventures</div>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Scrolling Content -->
+                <div class="lg:col-span-3 space-y-32">
+                    
+                    <!-- Horizon 1 -->
+                    <div id="h1" class="horizon-content-section">
+                        <div class="premium-card">
+                            <h4 class="text-white mb-4 font-light">Horizon 1: Operational Excellence</h4>
+                            <p class="text-lg text-slate-300 mb-8 font-light">Enabling your 100 companies to operate as an intelligent network.</p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Intelligent Nervous System:</strong>
+                                        <span class="font-light"> An optional, real-time intelligence layer to share insights.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Portfolio Command Center:</strong>
+                                        <span class="font-light"> AI-dashboard for leadership to make data-driven capital allocations.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Customer Intelligence Engine:</strong>
+                                        <span class="font-light"> 360° view for churn prediction and upsell identification.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Operational AI Apps:</strong>
+                                        <span class="font-light"> Dynamic routing, predictive maintenance, and document automation.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Horizon 2 -->
+                    <div id="h2" class="horizon-content-section">
+                        <div class="premium-card">
+                            <h4 class="text-white mb-4 font-light">Horizon 2: Strategic Enhancement</h4>
+                            <p class="text-lg text-slate-300 mb-8 font-light">Capabilities your competitors cannot match.</p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Intelligence-as-a-Service (TIaaS):</strong>
+                                        <span class="font-light"> Sell your proprietary market intelligence to customers.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Guaranteed Transit Times:</strong>
+                                        <span class="font-light"> Use AI prediction to offer premium, guaranteed products.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Predictive Capacity Marketplace:</strong>
+                                        <span class="font-light"> Maximize asset utilization and sell excess capacity at optimal prices.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">AI Compliance Advisory:</strong>
+                                        <span class="font-light"> Offer automated customs/compliance advice for 45 countries.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Horizon 3 -->
+                    <div id="h3" class="horizon-content-section">
+                        <div class="premium-card">
+                            <h4 class="text-white mb-4 font-light">Horizon 3: Business Model Innovation</h4>
+                            <p class="text-lg text-slate-300 mb-8 font-light">Creating new businesses from your AI capabilities.</p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Digital Freight Platform:</strong>
+                                        <span class="font-light"> The "Booking.com" for complex Eurasian corridors, built on your data.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Rolling Stock-as-a-Service (RaaS):</strong>
+                                        <span class="font-light"> The "AWS of Eurasian rail wagons" using predictive demand AI.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Trade Finance Intelligence:</strong>
+                                        <span class="font-light"> Sell AI-powered trade risk assessments to banks and insurers.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Control Tower SaaS:</strong>
+                                        <span class="font-light"> White-label your internal control tower for your customers.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Horizon 4 -->
+                    <div id="h4" class="horizon-content-section">
+                        <div class="premium-card">
+                            <h4 class="text-white mb-4 font-light">Horizon 4: Blue Ocean Ventures</h4>
+                            <p class="text-lg text-slate-300 mb-8 font-light">Bold moves into adjacent spaces.</p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Autonomous Logistics:</strong>
+                                        <span class="font-light"> Own the AI orchestration layer for autonomous fleets on your test corridors.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Data Marketplace:</strong>
+                                        <span class="font-light"> Sell anonymized, aggregated trade flow data (the "Bloomberg of Logistics").</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">AI Logistics Academy:</strong>
+                                        <span class="font-light"> Codify your 140 years of knowledge into a training & talent platform.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">TransInvest Ventures:</strong>
+                                        <span class="font-light"> A dedicated fund to invest in the next generation of logistics tech.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: About Promontory AI -->
+        <section id="about" class="py-32 space-y-48">
+            <div class="reveal text-center max-w-4xl mx-auto">
+                <p class="section-label">Section 4</p>
+                <h2 class="text-white mb-8 font-light section-header">
+                    About Promontory AI
+                </h2>
+                <p class="text-lg text-slate-300 font-light leading-relaxed">
+                    We are strategic transformation partners for complex enterprises. We don't just implement AI—we reimagine business models.
+                </p>
+            </div>
+            
+            <!-- Our Approach -->
+            <div class="reveal">
+                <div class="grid md:grid-cols-2 gap-16 items-center stagger-children">
+                    <div>
+                        <h4 class="text-white mb-6 font-light text-3xl">Our Approach</h4>
+                        <p class="mb-8 text-slate-300 font-light">We combine strategic perspective with hands-on technical delivery, all measured with an obsessive focus on ROI.</p>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="text-xl gradient-text font-medium mb-2">Strategic Partnership</div>
+                                <p class="text-slate-300 font-light">We align deeply with your executive vision and long-term goals.</p>
+                            </div>
+                            <div>
+                                <div class="text-xl gradient-text font-medium mb-2">Technical Excellence</div>
+                                <p class="text-slate-300 font-light">We are hands-on builders who deliver robust, scalable AI systems.</p>
+                            </div>
+                            <div>
+                                <div class="text-xl gradient-text font-medium mb-2">Value-Driven Results</div>
+                                <p class="text-slate-300 font-light">We measure our success by your ROI and business impact.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="premium-card p-8">
+                            <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex items-center justify-center">
+                                <i class="fa-solid fa-users text-6xl text-cyan-500 opacity-30"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Our Methodology -->
+            <div class="reveal">
+                <div class="text-center mb-16">
+                    <h3 class="text-white mb-6 section-header">Our Framework: The Promontory Way</h3>
+                </div>
+                <div class="max-w-3xl mx-auto">
+                    <div class="timeline-container">
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <h4 class="gradient-text mb-2 text-2xl font-light">Align</h4>
+                            <p class="text-slate-300 font-light">Executive visioning, ambition setting, and stakeholder alignment to define a shared vision of success.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <h4 class="gradient-text mb-2 text-2xl font-light">Discover</h4>
+                            <p class="text-slate-300 font-light">Deep-dive into operations, data assessment, opportunity identification, and ROI modeling to build the strategic roadmap.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <h4 class="gradient-text mb-2 text-2xl font-light">Pilot</h4>
+                            <p class="text-slate-300 font-light">Launch 2-4 high-impact pilots. We rapidly prototype, measure, learn, and refine to prove value and create an implementation playbook.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <h4 class="gradient-text mb-2 text-2xl font-light">Scale</h4>
+                            <p class="text-slate-300 font-light">Roll out successful pilots across the network, launch new initiatives, and establish your internal AI Center of Excellence.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What Makes Us Different -->
+            <div class="reveal">
+                <div class="text-center mb-16">
+                    <h3 class="text-white mb-6 section-header">What Makes Us Different</h3>
+                </div>
+                <div class="grid md:grid-cols-3 gap-6 stagger-children">
+                    <div class="premium-card text-center">
+                        <h5 class="text-lg text-white mb-2 font-medium">Strategic + Tactical</h5>
+                        <p class="text-slate-300 font-light text-sm">Not just PowerPoints. Not just code. We deliver both.</p>
+                    </div>
+                    <div class="premium-card text-center">
+                        <h5 class="text-lg text-white mb-2 font-medium">Holding Co. Mindset</h5>
+                        <p class="text-slate-300 font-light text-sm">We understand portfolio dynamics and the autonomy/coordination balance.</p>
+                    </div>
+                    <div class="premium-card text-center">
+                        <h5 class="text-lg text-white mb-2 font-medium">Emerging Markets DNA</h5>
+                        <p class="text-slate-300 font-light text-sm">We understand CIS, Central Asia, and how things actually get done.</p>
+                    </div>
+                    <div class="premium-card text-center">
+                        <h5 class="text-lg text-white mb-2 font-medium">Business Model Focus</h5>
+                        <p class="text-slate-300 font-light text-sm">We go beyond operations to help you create entirely new businesses.</p>
+                    </div>
+                    <div class="premium-card text-center">
+                        <h5 class="text-lg text-white mb-2 font-medium">Risk Sharing</h5>
+                        <p class="text-slate-300 font-light text-sm">We offer performance-based models and co-investment opportunities.</p>
+                    </div>
+                    <div class="premium-card text-center">
+                        <h5 class="text-lg text-white mb-2 font-medium">Knowledge Transfer</h5>
+                        <p class="text-slate-300 font-light text-sm">Our goal is to build your capabilities, not create dependency.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: The Journey Ahead -->
+        <section id="journey" class="py-32 space-y-48">
+            <div class="reveal text-center max-w-4xl mx-auto">
+                <p class="section-label">Section 5</p>
+                <h2 class="text-white mb-8 font-light section-header">
+                    The Journey Ahead
+                </h2>
+            </div>
+
+            <!-- Critical Questions -->
+            <div class="reveal max-w-5xl mx-auto">
+                <div class="text-center mb-24">
+                    <h3 class="text-white mb-6 section-header">Five Questions for Leadership</h3>
+                </div>
+                <div class="space-y-20">
+                    <div class="question-item">
+                        <div class="grid md:grid-cols-3 gap-8 items-start">
+                            <h4 class="gradient-text font-light text-2xl question-label">The Knowledge Question</h4>
+                            <div class="md:col-span-2 question-text-container">
+                                <p class="text-white font-light italic question-text" data-text="If you could instantly share what your best manager knows with all 100 companies, what would that be worth?">If you could instantly share what your best manager knows with all 100 companies, what would that be worth?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="question-item">
+                        <div class="grid md:grid-cols-3 gap-8 items-start">
+                            <h4 class="gradient-text font-light text-2xl question-label">The Speed Question</h4>
+                            <div class="md:col-span-2 question-text-container">
+                                <p class="text-white font-light italic question-text" data-text="What decisions take weeks today that should take hours?">What decisions take weeks today that should take hours?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="question-item">
+                        <div class="grid md:grid-cols-3 gap-8 items-start">
+                            <h4 class="gradient-text font-light text-2xl question-label">The Growth Question</h4>
+                            <div class="md:col-span-2 question-text-container">
+                                <p class="text-white font-light italic question-text" data-text="If you could eliminate coordination complexity, how fast could you expand?">If you could eliminate coordination complexity, how fast could you expand?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="question-item">
+                        <div class="grid md:grid-cols-3 gap-8 items-start">
+                            <h4 class="gradient-text font-light text-2xl question-label">The Innovation Question</h4>
+                            <div class="md:col-span-2 question-text-container">
+                                <p class="text-white font-light italic question-text" data-text="What business would you start if you had perfect information about your corridors?">What business would you start if you had perfect information about your corridors?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="question-item">
+                        <div class="grid md:grid-cols-3 gap-8 items-start">
+                            <h4 class="gradient-text font-light text-2xl question-label">The Legacy Question</h4>
+                            <div class="md:col-span-2 question-text-container">
+                                <p class="text-white font-light italic question-text" data-text="What does TransInvest need to be in 2045 to honor the 160 years that came before?">What does TransInvest need to be in 2045 to honor the 160 years that came before?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Three Scenarios -->
+            <div class="reveal">
+                <div class="text-center mb-16">
+                    <h3 class="text-white mb-6 section-header">The Future is Not Fixed—It's Chosen</h3>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 stagger-children">
+                    <div class="premium-card">
+                        <h4 class="text-slate-400 mb-6 font-light">Scenario A: Status Quo</h4>
+                        <p class="text-slate-300 font-light">Watch competitors adopt AI. <strong class="text-white">2027 Outcome:</strong> Margins compressed, playing catch-up, defending market share.</p>
+                    </div>
+                    <div class="premium-card">
+                        <h4 class="text-slate-300 mb-6 font-light">Scenario B: Operational AI</h4>
+                        <p class="text-slate-300 font-light">Implement AI for current operations. <strong class="text-white">2027 Outcome:</strong> Better margins, but still vulnerable to business model disruption.</p>
+                    </div>
+                    <div class="premium-card highlighted">
+                        <h4 class="gradient-text mb-6 font-light">Scenario C: Strategic AI</h4>
+                        <p class="text-slate-100 font-light">Full four-horizon approach. <strong class="text-white">2027 Outcome:</strong> Market leadership, new €100M+ revenue streams, and a defensible moat.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transition -->
+            <div class="reveal text-center max-w-4xl mx-auto">
+                <h3 class="text-white mb-8 font-light text-3xl md:text-4xl">This Is How We Start</h3>
+                <p class="text-lg text-slate-300 font-light leading-relaxed">
+                    Our 4-part framework is the long-term plan. This is Day One. "Applying the Framework" is how we activate the first steps to build momentum and deliver value immediately.
+                </p>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="reveal">
+                <div class="text-center mb-16">
+                    <h3 class="text-white mb-6 section-header">Applying the Framework</h3>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 stagger-children">
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-handshake"></i></div>
+                        <h4 class="text-white mb-4 font-light">Step 1: Alignment Workshop</h4>
+                        <p class="text-slate-300 font-light">A complimentary half-day intensive session for leadership to align on a shared vision. (Corresponds to <strong class="text-white">Align</strong>)</p>
+                    </div>
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-clipboard-check"></i></div>
+                        <h4 class="text-white mb-4 font-light">Step 2: Discovery & Strategy</h4>
+                        <p class="text-slate-300 font-light">A 30-45 day focused assessment to build the business cases and roadmap for the top 5 initiatives. (Corresponds to <strong class="text-white">Discover</strong>)</p>
+                    </div>
+                    <div class="premium-card">
+                        <div class="icon"><i class="fa-solid fa-vial"></i></div>
+                        <h4 class="text-white mb-4 font-light">Step 3: Pilot & Prove</h4>
+                        <p class="text-slate-300 font-light">A 90-120 day engagement to finalize the 3-year plan and launch 2-3 pilots to prove value. (Corresponds to <strong class="text-white">Pilot</strong>)</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        
+    </main>
+    
+    <!-- Footer / CTA -->
+    <footer class="py-32 text-center">
+        <div class="max-w-5xl mx-auto px-6 reveal">
+            <div class="premium-quote mb-16">
+                <h2 class="text-white mb-8 font-light section-header">
+                    The best time to plant a tree was 20 years ago. The second best time is now.
+                </h2>
+            </div>
+            <p class="text-xl text-slate-300 mb-24 font-light leading-relaxed">
+                You built TransInvest over 140 years of strategic bets. This is that kind of moment.
+            </p>
+        </div>
+        
+        <div class="max-w-5xl mx-auto px-6 reveal">
+            <h3 class="text-2xl md:text-3xl text-white mb-16 font-light leading-relaxed">
+                AI is not a technology decision.<br/>
+                <span class="gradient-text">It's a strategic decision about TransInvest's next 20 years.</span>
+            </h3>
+
+            <h2 class="gradient-text mb-8 font-light section-header">
+                Let's Start the Conversation
+            </h2>
+            <p class="text-xl mb-12 text-slate-300 font-light">
+                We look forward to exploring this together.
+            </p>
+            <p class="text-2xl text-white font-light">
+                Promontory AI | <a href="/cdn-cgi/l/email-protection#9effedf5deeeecf1f3f1f0eaf1ece7fff7b0fdf1f3" class="gradient-text hover:underline"><span class="__cf_email__" data-cfemail="2a4b59416a5a58454745445e4558534b4304494547">[email&#160;protected]</span></a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // ============================================
+            // INTERSECTION OBSERVER FOR REVEAL ANIMATIONS
+            // ============================================
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, {
+                threshold: 0.15,
+                rootMargin: '0px 0px -100px 0px'
+            });
+
+            document.querySelectorAll('.reveal').forEach(el => {
+                revealObserver.observe(el);
+            });
+
+            // Stagger children observer
+            const staggerObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, {
+                threshold: 0.15,
+                rootMargin: '0px 0px -100px 0px'
+            });
+
+            document.querySelectorAll('.stagger-children').forEach(el => {
+                staggerObserver.observe(el);
+            });
+
+            // Timeline items observer
+            const timelineObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, {
+                threshold: 0.3,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            document.querySelectorAll('.timeline-item').forEach(el => {
+                timelineObserver.observe(el);
+            });
+
+            // ============================================
+            // SCROLLSPY FOR SIDE NAVIGATION
+            // ============================================
+            const sections = document.querySelectorAll('header[id], section[id]');
+            const navLinks = document.querySelectorAll('.side-nav a');
+            
+            let currentActiveSection = 'hero'; // Track current section
+
+            // Track which section is most visible with debouncing
+            const scrollspyObserver = new IntersectionObserver((entries) => {
+                // Find all currently intersecting sections
+                const intersectingSections = entries.filter(entry => entry.isIntersecting);
+                
+                if (intersectingSections.length === 0) return;
+                
+                // If multiple sections are visible, pick the one with highest ratio
+                // OR the one that's scrolling into view (top of viewport)
+                let targetSection = intersectingSections.reduce((best, entry) => {
+                    // Prefer sections in the upper half of viewport
+                    const rect = entry.target.getBoundingClientRect();
+                    const isInUpperHalf = rect.top < window.innerHeight / 2;
+                    
+                    if (!best) return entry;
+                    
+                    const bestRect = best.target.getBoundingClientRect();
+                    const bestInUpperHalf = bestRect.top < window.innerHeight / 2;
+                    
+                    // Prioritize upper half sections
+                    if (isInUpperHalf && !bestInUpperHalf) return entry;
+                    if (!isInUpperHalf && bestInUpperHalf) return best;
+                    
+                    // If both in same half, pick higher intersection ratio
+                    return entry.intersectionRatio > best.intersectionRatio ? entry : best;
+                }, null);
+                
+                if (targetSection) {
+                    const id = targetSection.target.id;
+                    
+                    // Only update if the section has actually changed
+                    if (id !== currentActiveSection) {
+                        currentActiveSection = id;
+                        navLinks.forEach(link => {
+                            if (link.dataset.target === id) {
+                                link.classList.add('active');
+                            } else {
+                                link.classList.remove('active');
+                            }
+                        });
+                    }
+                }
+            }, {
+                threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5],
+                rootMargin: '-15% 0px -50% 0px'
+            });
+
+            sections.forEach(section => {
+                scrollspyObserver.observe(section);
+            });
+
+            // ============================================
+            // HORIZON SCROLLSPY
+            // ============================================
+            const horizonSections = document.querySelectorAll('.horizon-content-section');
+            const horizonLinks = document.querySelectorAll('.horizon-nav-item');
+
+            const horizonObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        horizonLinks.forEach(link => {
+                            if (link.dataset.horizon === id) {
+                                link.classList.add('active');
+                            } else {
+                                link.classList.remove('active');
+                            }
+                        });
+                    }
+                });
+            }, {
+                threshold: 0.5,
+                rootMargin: '-20% 0px -30% 0px'
+            });
+
+            horizonSections.forEach(section => {
+                horizonObserver.observe(section);
+            });
+
+            // ============================================
+            // FADE-IN ANIMATION FOR QUESTIONS
+            // ============================================
+            const questionItems = document.querySelectorAll('.question-item');
+            let questionQueue = [];
+            let isAnimating = false;
+
+            async function animateNextQuestion() {
+                if (isAnimating || questionQueue.length === 0) return;
+                
+                isAnimating = true;
+                const { label, textElement } = questionQueue.shift();
+                
+                // Activate label (increase opacity)
+                label.classList.add('active');
+                
+                // Wait 300ms before showing text
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Show text with fade-in animation
+                textElement.classList.add('visible');
+                
+                // Wait for animation to complete plus delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                isAnimating = false;
+                
+                // Process next question
+                animateNextQuestion();
+            }
+
+            const questionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const item = entry.target;
+                        const label = item.querySelector('.question-label');
+                        const textElement = item.querySelector('.question-text');
+                        
+                        if (!textElement.dataset.queued) {
+                            textElement.dataset.queued = 'true';
+                            questionQueue.push({ label, textElement });
+                            animateNextQuestion();
+                        }
+                        
+                        questionObserver.unobserve(item);
+                    }
+                });
+            }, {
+                threshold: 0.6,
+                rootMargin: '0px 0px -20% 0px'
+            });
+
+            questionItems.forEach(item => {
+                questionObserver.observe(item);
+            });
+
+            // ============================================
+            // SMOOTH SCROLL FOR ANCHOR LINKS
+            // ============================================
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                                               target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+        });
+    </script>
+
+</body>
+</html>
