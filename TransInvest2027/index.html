@@ -78,7 +78,7 @@
             background-size: cover;
             background-position: center top;
             opacity: 0.3;
-            z-index: -2;
+            z-index: 0;
             mask-image: linear-gradient(to bottom, 
                 rgba(0,0,0,1) 0%, 
                 rgba(0,0,0,0.8) 30%,
@@ -105,7 +105,7 @@
                 rgba(0, 43, 122, 0.85) 50%,
                 rgba(0, 26, 77, 0.95) 100%
             );
-            z-index: -1;
+            z-index: 1;
         }
         
         /* Footer background with fade */
@@ -124,7 +124,7 @@
             background-size: cover;
             background-position: center bottom;
             opacity: 0.25;
-            z-index: -2;
+            z-index: 0;
             mask-image: linear-gradient(to top, 
                 rgba(0,0,0,0.9) 0%, 
                 rgba(0,0,0,0.6) 40%,
@@ -151,7 +151,7 @@
                 rgba(0, 26, 77, 0.8) 50%,
                 rgba(0, 43, 122, 0.7) 100%
             );
-            z-index: -1;
+            z-index: 1;
         }
 
         /* Typography System */
@@ -829,7 +829,7 @@
 
     <!-- Hero Section -->
     <header id="hero" class="min-h-screen w-full flex flex-col justify-center items-center text-center p-6 relative">
-        <div class="max-w-5xl mx-auto reveal">
+        <div class="max-w-5xl mx-auto reveal" style="position: relative; z-index: 2;">
             <h1 class="text-white mb-8 font-extralight section-header">
                 TransInvest 2027
             </h1>
@@ -1595,7 +1595,7 @@
     
     <!-- Footer / CTA -->
     <footer class="py-48 text-center">
-        <div class="max-w-5xl mx-auto px-6 reveal">
+        <div class="max-w-5xl mx-auto px-6 reveal" style="position: relative; z-index: 2;">
             <h3 class="text-white mb-16 font-light leading-relaxed">
                 AI is not a technology decision.<br/>
                 <span class="gradient-text">It's a strategic decision about what TransInvest becomes by 2027.</span>
