@@ -35,7 +35,7 @@
             font-weight: 300;
             color: #e2e8f0; /* slate-200 */
             overflow-x: hidden;
-            background: linear-gradient(180deg, #000000 0%, #0a1628 30%, #0f1729 50%, #0a1628 70%, #000000 100%);
+            background: linear-gradient(180deg, #000000 0%, #001a4d 30%, #002b7a 50%, #001a4d 70%, #000000 100%);
             line-height: 1.7;
             position: relative;
         }
@@ -60,43 +60,6 @@
         @keyframes gradientShift {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.8; }
-        }
-        
-        /* Footer background image styling */
-        .footer-background {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .footer-background::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            opacity: 0.15;
-            z-index: -1;
-        }
-        
-        .footer-background::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(180deg, 
-                #0a1628 0%, 
-                rgba(10, 22, 40, 0.95) 10%,
-                rgba(10, 22, 40, 0.85) 50%,
-                rgba(0, 0, 0, 0.95) 100%
-            );
-            z-index: -1;
         }
 
         /* Typography System */
@@ -1273,17 +1236,18 @@
                         </div>
                     </div>
                     <div>
-                        <div class="premium-card p-10 border border-cyan-500/20">
-                            <div class="text-center space-y-8">
-                                <div class="text-6xl font-light text-white">
-                                    <span class="gradient-text">140</span>
+                        <div class="premium-card p-12 border border-cyan-500/20 bg-gradient-to-br from-slate-900/50 to-slate-800/30">
+                            <div class="text-center space-y-6">
+                                <div class="mb-8">
+                                    <i class="fa-regular fa-lightbulb text-5xl text-cyan-400"></i>
                                 </div>
-                                <p class="text-slate-300 font-light text-lg">
-                                    Years of building autonomous, profitable businesses across Europe and Asia
-                                </p>
-                                <div class="pt-6 border-t border-slate-700/30">
-                                    <p class="text-sm text-slate-400 font-light">
-                                        Strategy + Technical Excellence + Proven Methodologies
+                                <h3 class="text-3xl md:text-4xl text-white font-light leading-tight">
+                                    We do the <span class="gradient-text font-medium">hard AI</span>,<br/>
+                                    so life is <span class="gradient-text font-medium">easy</span> for you.
+                                </h3>
+                                <div class="pt-6 mt-6 border-t border-slate-700/30">
+                                    <p class="text-sm text-slate-400 font-light italic">
+                                        Our motto. Our commitment.
                                     </p>
                                 </div>
                             </div>
@@ -1526,7 +1490,7 @@
     </main>
     
     <!-- Isolated Quote Section -->
-    <section class="min-h-screen w-full flex flex-col justify-center items-center text-center p-6 footer-background">
+    <section class="min-h-screen w-full flex flex-col justify-center items-center text-center p-6">
         <div class="max-w-4xl mx-auto reveal">
             <p class="text-5xl md:text-6xl text-white mb-20 font-light leading-relaxed section-header">
                 "The best time to plant a tree was 20 years ago.<br/>The second best time is now."
@@ -1538,7 +1502,7 @@
     </section>
     
     <!-- Footer / CTA -->
-    <footer class="py-48 text-center footer-background">
+    <footer class="py-48 text-center">
         <div class="max-w-5xl mx-auto px-6 reveal">
             <h3 class="text-white mb-16 font-light leading-relaxed">
                 AI is not a technology decision.<br/>
