@@ -35,7 +35,7 @@
             font-weight: 300;
             color: #e2e8f0; /* slate-200 */
             overflow-x: hidden;
-            background: linear-gradient(180deg, #000000 0%, #0a0a0f 50%, #000000 100%);
+            background: linear-gradient(180deg, #000000 0%, #0a1628 30%, #0f1729 50%, #0a1628 70%, #000000 100%);
             line-height: 1.7;
             position: relative;
         }
@@ -49,9 +49,9 @@
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(ellipse 80% 50% at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
-                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
+                radial-gradient(ellipse 80% 50% at 50% 0%, rgba(6, 182, 212, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 50%, rgba(14, 165, 233, 0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 70% 50% at 20% 80%, rgba(6, 182, 212, 0.10) 0%, transparent 60%);
             pointer-events: none;
             z-index: -1;
             animation: gradientShift 20s ease infinite;
@@ -60,6 +60,43 @@
         @keyframes gradientShift {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.8; }
+        }
+        
+        /* Footer background image styling */
+        .footer-background {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer-background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            opacity: 0.15;
+            z-index: -1;
+        }
+        
+        .footer-background::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, 
+                #0a1628 0%, 
+                rgba(10, 22, 40, 0.95) 10%,
+                rgba(10, 22, 40, 0.85) 50%,
+                rgba(0, 0, 0, 0.95) 100%
+            );
+            z-index: -1;
         }
 
         /* Typography System */
@@ -789,17 +826,17 @@
                 </div>
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-globe-asia"></i></div>
+                        <div class="icon"><i class="fa-regular fa-globe-asia"></i></div>
                         <h4 class="card-title text-white">The Eurasian Century</h4>
                         <p class="text-slate-300 font-light">The Europe-Asia corridors where TransInvest operates are now the world's center of gravity. Your footprint spans the fastest-growing trade routes, positioning you at the intersection of trillions in annual flows.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-brain"></i></div>
+                        <div class="icon"><i class="fa-regular fa-brain"></i></div>
                         <h4 class="card-title text-white">The Intelligence Revolution</h4>
                         <p class="text-slate-300 font-light">AI is moving from experiment to mission-critical infrastructure, with early adopters seeing 40-60% productivity gains.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-sitemap"></i></div>
+                        <div class="icon"><i class="fa-regular fa-sitemap"></i></div>
                         <h4 class="card-title text-white">The Holding Co. Renaissance</h4>
                         <p class="text-slate-300 font-light">With the right platform, multi-business enterprises are winning. Data and AI are the new connective tissue for capital and knowledge.</p>
                     </div>
@@ -866,17 +903,17 @@
                 </div>
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-microchip"></i></div>
+                        <div class="icon"><i class="fa-regular fa-microchip"></i></div>
                         <h4 class="card-title text-white">Technology Inflection Point</h4>
                         <p class="text-slate-300 font-light">AI can finally handle multi-language, multi-document complexity. <strong class="text-white">It's ready for your corridors.</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="icon"><i class="fa-regular fa-chart-line"></i></div>
                         <h4 class="card-title text-white">Your Inflection Point</h4>
                         <p class="text-slate-300 font-light">You're operating across logistics, financial services, real estate, and consulting. Your data footprint is exploding. With AI, diversity becomes your advantage. <strong class="text-white">Without it, it's complexity.</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-door-open"></i></div>
+                        <div class="icon"><i class="fa-regular fa-door-open"></i></div>
                         <h4 class="card-title text-white">The Market Window</h4>
                         <p class="text-slate-300 font-light">A 2-3 year head start is available. After that, AI is table stakes. <strong class="text-white">Lead or be left behind.</strong></p>
                     </div>
@@ -902,17 +939,17 @@
             <div class="reveal">
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                        <div class="icon"><i class="fa-regular fa-magnifying-glass-chart"></i></div>
                         <h4 class="card-title text-white">Pattern Recognition at Scale</h4>
                         <p class="text-slate-300 font-light">Humans see patterns in 10 shipments. AI sees them across 10 million—and across your three businesses. <strong class="text-white">"Every time M&M volumes spike +30%, warehouse utilization follows 8 weeks later, financing demand peaks 12 weeks after."</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-dice"></i></div>
+                        <div class="icon"><i class="fa-regular fa-dice"></i></div>
                         <h4 class="card-title text-white">Prediction with Uncertainty</h4>
                         <p class="text-slate-300 font-light">Probabilistic forecasting across corridors and business lines. <strong class="text-white">"Vietnam corridor demand: 82% probability of 25% growth in 6 months. Recommend: Pre-position warehouses + financing packages now."</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-route"></i></div>
+                        <div class="icon"><i class="fa-regular fa-route"></i></div>
                         <h4 class="card-title text-white">Optimization in Complex Systems</h4>
                         <p class="text-slate-300 font-light">Finding the optimal solution across multiple business constraints. <strong class="text-white">"Route 240 trucks + allocate warehouse capacity + structure financing terms—all optimized together for margin, speed, and customer satisfaction."</strong></p>
                     </div>
@@ -943,17 +980,17 @@
                 <!-- What Makes Agents Powerful -->
                 <div class="mt-16 grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-database"></i></div>
+                        <div class="icon"><i class="fa-regular fa-database"></i></div>
                         <h4 class="card-title text-white">Access Internal Knowledge</h4>
                         <p class="text-slate-300 font-light">Agents connect to your ERP, TMS, WMS, financial systems, contracts, and historical data. <strong class="text-white">They reason with your organization's full context.</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-brain"></i></div>
+                        <div class="icon"><i class="fa-regular fa-brain"></i></div>
                         <h4 class="card-title text-white">Learn and Adapt</h4>
                         <p class="text-slate-300 font-light">Every decision, every outcome feeds back. <strong class="text-white">Agents get better at understanding your business</strong> with each corridor shipment, each financing deal, each warehouse allocation.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-gears"></i></div>
+                        <div class="icon"><i class="fa-regular fa-gears"></i></div>
                         <h4 class="card-title text-white">Act Autonomously</h4>
                         <p class="text-slate-300 font-light">With proper guardrails, Agents can execute decisions: trigger reroutes, allocate capacity, flag financing opportunities. <strong class="text-white">Human oversight remains, but at exception-level only.</strong></p>
                     </div>
@@ -972,7 +1009,7 @@
                 </div>
                 <div class="grid md:grid-cols-2 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="icon"><i class="fa-regular fa-shield-halved"></i></div>
                         <h4 class="card-title text-white">Data Privacy & Security</h4>
                         <ul class="space-y-3 mt-4">
                             <li class="flex items-start text-slate-300">
@@ -990,7 +1027,7 @@
                         </ul>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-sliders"></i></div>
+                        <div class="icon"><i class="fa-regular fa-sliders"></i></div>
                         <h4 class="card-title text-white">Human Control & Transparency</h4>
                         <ul class="space-y-3 mt-4">
                             <li class="flex items-start text-slate-300">
@@ -1008,7 +1045,7 @@
                         </ul>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                        <div class="icon"><i class="fa-regular fa-scale-balanced"></i></div>
                         <h4 class="card-title text-white">Ethical AI Framework</h4>
                         <ul class="space-y-3 mt-4">
                             <li class="flex items-start text-slate-300">
@@ -1026,7 +1063,7 @@
                         </ul>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-file-contract"></i></div>
+                        <div class="icon"><i class="fa-regular fa-file-contract"></i></div>
                         <h4 class="card-title text-white">Regulatory Compliance</h4>
                         <ul class="space-y-3 mt-4">
                             <li class="flex items-start text-slate-300">
@@ -1236,9 +1273,19 @@
                         </div>
                     </div>
                     <div>
-                        <div class="premium-card p-8">
-                            <div class="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex items-center justify-center">
-                                <i class="fa-solid fa-users text-6xl text-cyan-500 opacity-30"></i>
+                        <div class="premium-card p-10 border border-cyan-500/20">
+                            <div class="text-center space-y-8">
+                                <div class="text-6xl font-light text-white">
+                                    <span class="gradient-text">140</span>
+                                </div>
+                                <p class="text-slate-300 font-light text-lg">
+                                    Years of building autonomous, profitable businesses across Europe and Asia
+                                </p>
+                                <div class="pt-6 border-t border-slate-700/30">
+                                    <p class="text-sm text-slate-400 font-light">
+                                        Strategy + Technical Excellence + Proven Methodologies
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1252,17 +1299,17 @@
                 </div>
                 <div class="grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-flask"></i></div>
+                        <div class="icon"><i class="fa-regular fa-flask"></i></div>
                         <h4 class="card-title text-white">Innovation Labs & Discovery</h4>
                         <p class="text-slate-300 font-light">We run structured innovation labs using proven techniques from design thinking, lean startup, and agile methodologies. Rapid use case identification, prototyping, and validation—all grounded in business outcomes.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+                        <div class="icon"><i class="fa-regular fa-chalkboard-user"></i></div>
                         <h4 class="card-title text-white">Strategic Workshops</h4>
                         <p class="text-slate-300 font-light">Executive alignment workshops that combine design thinking with strategic planning. We facilitate cross-functional collaboration to surface opportunities, align stakeholders, and build shared vision—techniques honed at leading consultancies.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-code"></i></div>
+                        <div class="icon"><i class="fa-regular fa-code"></i></div>
                         <h4 class="card-title text-white">Technical Delivery</h4>
                         <p class="text-slate-300 font-light">We don't just strategize—we build. Our team has shipped AI systems at tech giants and delivered enterprise transformations at Big Four firms. Strategy and execution, under one roof.</p>
                     </div>
@@ -1418,25 +1465,25 @@
                 </div>
                 <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-compass"></i></div>
+                        <div class="icon"><i class="fa-regular fa-compass"></i></div>
                         <h4 class="card-title text-white">1. Craft AI Strategy</h4>
                         <p class="text-slate-300 font-light mb-6">Strategic workshop to craft a comprehensive AI strategy for your holding company and set strategic direction for subsidiaries. We align leadership on vision, define governance frameworks, assess readiness, and identify where AI creates value across logistics, real estate, and financing. Can be conducted at holding or subsidiary level.</p>
                         <p class="text-sm text-slate-400 font-light italic">Best for: Organizations beginning their AI journey or needing executive alignment. Timeline: 1-2 weeks.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-lightbulb"></i></div>
+                        <div class="icon"><i class="fa-regular fa-lightbulb"></i></div>
                         <h4 class="card-title text-white">2. Run Discovery Labs</h4>
                         <p class="text-slate-300 font-light mb-6">Structured innovation labs using design thinking and rapid prototyping. We work with your teams to identify 5-10 high-impact use cases, validate with stakeholders, and prioritize by ROI and feasibility. Can be run at holding company or subsidiary level to surface opportunities specific to each business.</p>
                         <p class="text-sm text-slate-400 font-light italic">Best for: Organizations ready to move but unsure where to focus. Timeline: 3-6 weeks.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-gauge-high"></i></div>
+                        <div class="icon"><i class="fa-regular fa-gauge-high"></i></div>
                         <h4 class="card-title text-white">3. Improve Operations</h4>
                         <p class="text-slate-300 font-light mb-6">Deploy AI for immediate operational efficiency gains. AI agents for automation, process optimization, predictive analytics, intelligent document processing—practical applications that reduce costs and improve margins quickly. Works at holding or subsidiary level.</p>
                         <p class="text-sm text-slate-400 font-light italic">Best for: Organizations needing quick operational wins to build momentum. Timeline: 2-4 months.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon"><i class="fa-solid fa-rocket"></i></div>
+                        <div class="icon"><i class="fa-regular fa-rocket"></i></div>
                         <h4 class="card-title text-white">4. Solve a Bottleneck</h4>
                         <p class="text-slate-300 font-light mb-6">You've already identified a specific problem or opportunity—let's build it. Fast-track pilot development for a use case you know needs solving. Prove value quickly, then expand.</p>
                         <p class="text-sm text-slate-400 font-light italic">Best for: Organizations with a clear pain point ready to pilot. Timeline: 2-4 months.</p>
@@ -1479,7 +1526,7 @@
     </main>
     
     <!-- Isolated Quote Section -->
-    <section class="min-h-screen w-full flex flex-col justify-center items-center text-center p-6">
+    <section class="min-h-screen w-full flex flex-col justify-center items-center text-center p-6 footer-background">
         <div class="max-w-4xl mx-auto reveal">
             <p class="text-5xl md:text-6xl text-white mb-20 font-light leading-relaxed section-header">
                 "The best time to plant a tree was 20 years ago.<br/>The second best time is now."
@@ -1491,7 +1538,7 @@
     </section>
     
     <!-- Footer / CTA -->
-    <footer class="py-48 text-center">
+    <footer class="py-48 text-center footer-background">
         <div class="max-w-5xl mx-auto px-6 reveal">
             <h3 class="text-white mb-16 font-light leading-relaxed">
                 AI is not a technology decision.<br/>
@@ -1643,27 +1690,53 @@
             const horizonSections = document.querySelectorAll('.horizon-content-section');
             const horizonLinks = document.querySelectorAll('.horizon-nav-item');
 
-            const horizonObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const id = entry.target.id;
-                        horizonLinks.forEach(link => {
-                            if (link.dataset.horizon === id) {
-                                link.classList.add('active');
-                            } else {
-                                link.classList.remove('active');
-                            }
-                        });
+            function updateHorizonNav() {
+                const viewportMiddle = window.scrollY + window.innerHeight / 2;
+                let currentHorizon = null;
+                let closestDistance = Infinity;
+
+                horizonSections.forEach(section => {
+                    const rect = section.getBoundingClientRect();
+                    const sectionTop = rect.top + window.scrollY;
+                    const sectionBottom = rect.bottom + window.scrollY;
+                    const sectionMiddle = sectionTop + (rect.height / 2);
+                    
+                    // Check if viewport middle is within or near this section
+                    const isInView = (sectionTop <= viewportMiddle && sectionBottom >= viewportMiddle);
+                    
+                    if (isInView) {
+                        const distanceFromViewportMiddle = Math.abs(sectionMiddle - viewportMiddle);
+                        
+                        if (distanceFromViewportMiddle < closestDistance) {
+                            closestDistance = distanceFromViewportMiddle;
+                            currentHorizon = section.id;
+                        }
                     }
                 });
-            }, {
-                threshold: 0.5,
-                rootMargin: '-20% 0px -30% 0px'
-            });
+                
+                // Update active state
+                if (currentHorizon) {
+                    horizonLinks.forEach(link => {
+                        if (link.dataset.horizon === currentHorizon) {
+                            link.classList.add('active');
+                        } else {
+                            link.classList.remove('active');
+                        }
+                    });
+                }
+            }
 
-            horizonSections.forEach(section => {
-                horizonObserver.observe(section);
-            });
+            // Throttle scroll events for horizon nav
+            let horizonScrollTimeout;
+            window.addEventListener('scroll', () => {
+                if (horizonScrollTimeout) {
+                    window.cancelAnimationFrame(horizonScrollTimeout);
+                }
+                horizonScrollTimeout = window.requestAnimationFrame(updateHorizonNav);
+            }, { passive: true });
+
+            // Initial call
+            updateHorizonNav();
 
             // ============================================
             // HORIZON BULLET POINT ANIMATIONS
