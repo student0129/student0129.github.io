@@ -2263,11 +2263,25 @@
                             button.classList.add('active');
                             
                             // Hide all tab contents in this container
-                            contents.forEach(content => content.classList.remove('active'));
+                            contents.forEach(content => {
+                                content.classList.remove('active');
+                                // Reset animation states when hiding
+                                const items = content.querySelectorAll('.reveal');
+                                items.forEach(item => item.classList.remove('is-visible'));
+                            });
+                            
                             // Show target tab content
                             const targetContent = container.querySelector(`[data-tab-content="${targetTab}"]`);
                             if (targetContent) {
                                 targetContent.classList.add('active');
+                                
+                                // Trigger staggered animation for items in the new tab
+                                const items = targetContent.querySelectorAll('.reveal');
+                                items.forEach((item, index) => {
+                                    setTimeout(() => {
+                                        item.classList.add('is-visible');
+                                    }, index * 100); // 100ms delay between each item
+                                });
                             }
                         });
                     });
