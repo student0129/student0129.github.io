@@ -334,15 +334,18 @@
         
         @media (max-width: 768px) {
             .merge-arrow {
-                opacity: 1;
-                transform: none;
-                margin: 1.5rem auto;
+                opacity: 1 !important;
+                transform: none !important;
+                margin: 1rem auto !important;
                 text-align: center;
+                padding: 0;
             }
             
             .merge-arrow-icon {
                 font-size: 2rem;
                 display: block;
+                line-height: 1;
+                animation: pulse-glow 2s ease-in-out infinite;
             }
         }
 
@@ -392,20 +395,17 @@
         
         @media (max-width: 768px) {
             .merge-plus {
-                position: relative;
-                transform: none;
-                opacity: 1;
+                position: static !important;
+                transform: none !important;
+                opacity: 1 !important;
                 text-align: center;
-                margin: 1rem auto;
+                margin: -0.5rem auto 0.5rem auto;
                 display: block;
                 font-size: 2.5rem;
                 width: 100%;
                 left: auto;
                 top: auto;
-            }
-            
-            .merge-container.is-visible .merge-plus {
-                transform: none;
+                line-height: 1;
             }
         }
 
@@ -438,19 +438,22 @@
             @media (max-width: 768px) {
             .merge-dual-columns {
                 grid-template-columns: 1fr;
-                gap: 1rem;
-                position: static;
+                gap: 0;
+                position: relative;
+                margin-bottom: 0;
             }
             
             .merge-layer.foundation,
             .merge-layer.breakthrough {
                 transform: translateY(0);
                 opacity: 1;
+                margin-bottom: 1rem;
             }
             
             .merge-layer.result {
                 transform: translateY(0);
                 opacity: 1;
+                margin-top: 1rem;
             }
         }        /* ============================================
            PREMIUM CARD COMPONENT
@@ -1364,8 +1367,14 @@
                 transform: translateX(-100%);
                 opacity: 0;
                 transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1), 
-                            opacity 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+                            opacity 0.5s cubic-bezier(0.4, 0.0, 0.2, 1),
+                            background 0.2s ease;
                 pointer-events: none;
+                cursor: pointer;
+            }
+            
+            .mobile-horizon-sticky-header:active {
+                background: linear-gradient(180deg, rgba(6, 182, 212, 0.1) 0%, rgba(10, 10, 15, 0.98) 100%);
             }
             
             .mobile-horizon-sticky-header.active {
@@ -1398,7 +1407,7 @@
             /* Mobile scroll-through layout */
             .mobile-horizon-layout .horizon-content-section {
                 margin-bottom: 4rem;
-                padding-top: 2rem;
+                padding-top: 6rem;
                 min-height: 100vh;
             }
             
@@ -2147,9 +2156,9 @@
                 <div class="lg:hidden mt-8 p-4 rounded-lg bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/30">
                     <p class="text-sm text-cyan-300 font-light">
                         <svg class="inline-block w-4 h-4 mr-2 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                         </svg>
-                        Tap each horizon below to explore the details
+                        Scroll down to explore each horizon
                     </p>
                 </div>
             </div>
@@ -2561,13 +2570,10 @@
                     </div>
                     <div>
                         <div class="premium-card p-12 border border-cyan-500/20 bg-gradient-to-br from-slate-900/50 to-slate-800/30">
-                            <div class="text-center space-y-6">
-                                <div class="mb-8">
-                                    <i data-lucide="lightbulb" class="text-5xl text-cyan-400"></i>
-                                </div>
-                                <h3 class="text-3xl md:text-4xl text-white font-light leading-tight">
-                                    We do the <span class="gradient-text font-medium">hard AI</span>,<br/>
-                                    so life is <span class="gradient-text font-medium">easy</span> for you.
+                            <div class="text-right space-y-6">
+                                <h3 class="text-3xl md:text-4xl text-white leading-tight" style="font-family: 'DM Sans', sans-serif; font-weight: 300;">
+                                    We do the <span class="gradient-text" style="font-weight: 400;">hard AI</span>,<br/>
+                                    so life is <span class="gradient-text" style="font-weight: 400;">easy</span> for you.
                                 </h3>
                                 <div class="pt-6 mt-6 border-t border-slate-700/30">
                                     <p class="text-sm text-slate-400 font-light italic">
@@ -3294,13 +3300,14 @@
                 
                 const scrollY = window.scrollY;
                 const triggerPoint = 150; // Distance from top to trigger
+                const previewOffset = 200; // Show header this many pixels before section content
                 
-                const h1Top = h1Section.offsetTop;
-                const h1Bottom = h1Top + h1Section.offsetHeight;
-                const h2Top = h2Section.offsetTop;
-                const h2Bottom = h2Top + h2Section.offsetHeight;
-                const h3Top = h3Section.offsetTop;
-                const h3Bottom = h3Top + h3Section.offsetHeight;
+                const h1Top = h1Section.offsetTop - previewOffset;
+                const h1Bottom = h1Section.offsetTop + h1Section.offsetHeight;
+                const h2Top = h2Section.offsetTop - previewOffset;
+                const h2Bottom = h2Section.offsetTop + h2Section.offsetHeight;
+                const h3Top = h3Section.offsetTop - previewOffset;
+                const h3Bottom = h3Section.offsetTop + h3Section.offsetHeight;
                 
                 // Reset all
                 stickyH1.classList.remove('active', 'exiting');
