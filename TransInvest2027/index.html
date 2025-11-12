@@ -336,15 +336,21 @@
             .merge-arrow {
                 opacity: 1 !important;
                 transform: none !important;
-                margin: 1rem auto !important;
+                margin: 1.5rem auto !important;
                 text-align: center;
-                padding: 0;
+                padding: 0.75rem 0;
+                width: 100%;
+                display: block;
+                clear: both;
             }
             
             .merge-arrow-icon {
-                font-size: 2rem;
+                font-size: 3rem !important;
                 display: block;
-                line-height: 1;
+                line-height: 1.2;
+                margin: 0 auto;
+                color: #06b6d4;
+                font-weight: 100;
                 animation: pulse-glow 2s ease-in-out infinite;
             }
         }
@@ -399,13 +405,20 @@
                 transform: none !important;
                 opacity: 1 !important;
                 text-align: center;
-                margin: -0.5rem auto 0.5rem auto;
-                display: block;
-                font-size: 2.5rem;
+                display: block !important;
+                font-size: 3rem !important;
                 width: 100%;
                 left: auto;
                 top: auto;
-                line-height: 1;
+                line-height: 1.2;
+                order: 2;
+                margin: 1rem auto;
+                padding: 0.75rem 0;
+                background: transparent;
+                z-index: 10;
+                color: #06b6d4;
+                font-weight: 100;
+                text-shadow: 0 0 20px rgba(6, 182, 212, 0.6);
             }
         }
 
@@ -437,23 +450,27 @@
 
             @media (max-width: 768px) {
             .merge-dual-columns {
-                grid-template-columns: 1fr;
+                display: flex !important;
+                flex-direction: column;
                 gap: 0;
                 position: relative;
                 margin-bottom: 0;
             }
             
-            .merge-layer.foundation,
+            .merge-layer.foundation {
+                order: 1;
+                margin-bottom: 0;
+            }
+            
             .merge-layer.breakthrough {
-                transform: translateY(0);
-                opacity: 1;
-                margin-bottom: 1rem;
+                order: 3;
+                margin-bottom: 0;
             }
             
             .merge-layer.result {
                 transform: translateY(0);
                 opacity: 1;
-                margin-top: 1rem;
+                margin-top: 0;
             }
         }        /* ============================================
            PREMIUM CARD COMPONENT
@@ -610,8 +627,10 @@
             transform-origin: center center;
         }
 
-        .capability-flip-card:hover .capability-flip-inner {
-            transform: rotateY(180deg);
+        @media (hover: hover) and (pointer: fine) {
+            .capability-flip-card:hover .capability-flip-inner {
+                transform: rotateY(180deg);
+            }
         }
 
         .capability-front,
@@ -689,9 +708,12 @@
             .capability-back {
                 padding: 1.25rem 1.25rem 3rem 1.25rem;
                 overflow-y: auto;
+                overflow-x: hidden;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: thin;
                 scrollbar-color: rgba(6, 182, 212, 0.3) rgba(15, 23, 42, 0.3);
+                touch-action: pan-y;
+                pointer-events: auto;
             }
             
             .capability-back::-webkit-scrollbar {
@@ -1352,72 +1374,65 @@
                 display: none;
             }
             
-            /* Mobile horizon sticky header system */
+            /* Mobile horizon sticky header system - DEPRECATED, using inline sticky ribbons instead */
             .mobile-horizon-sticky-header {
-                position: fixed;
+                display: none;
+            }
+            
+            /* Mobile scroll-through layout */
+            .mobile-horizon-layout .horizon-content-section {
+                margin-bottom: 3rem;
+                padding-top: 0;
+                min-height: 100vh;
+                position: relative;
+            }
+            
+            .mobile-horizon-layout .horizon-header {
+                display: block !important;
+                position: sticky;
                 top: 0;
-                left: 0;
-                right: 0;
-                z-index: 100;
+                z-index: 50;
                 background: linear-gradient(180deg, #000000 0%, rgba(10, 10, 15, 0.98) 100%);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
                 padding: 1rem 1.5rem;
-                border-bottom: 1px solid rgba(6, 182, 212, 0.2);
-                transform: translateX(-100%);
-                opacity: 0;
-                transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1), 
-                            opacity 0.5s cubic-bezier(0.4, 0.0, 0.2, 1),
-                            background 0.2s ease;
-                pointer-events: none;
-                cursor: pointer;
+                margin: 0 0 1.5rem 0;
+                border-bottom: 2px solid rgba(6, 182, 212, 0.3);
+                cursor: auto;
+                width: 100vw;
+                margin-left: calc(-50vw + 50%);
+                box-sizing: border-box;
             }
             
-            .mobile-horizon-sticky-header:active {
-                background: linear-gradient(180deg, rgba(6, 182, 212, 0.1) 0%, rgba(10, 10, 15, 0.98) 100%);
+            .mobile-horizon-layout .horizon-header .horizon-header-content {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
             }
             
-            .mobile-horizon-sticky-header.active {
-                transform: translateX(0);
-                opacity: 1;
-                pointer-events: auto;
-            }
-            
-            .mobile-horizon-sticky-header.exiting {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-            
-            .mobile-horizon-sticky-number {
+            .mobile-horizon-layout .horizon-header .horizon-number {
                 font-size: 0.75rem;
                 text-transform: uppercase;
                 letter-spacing: 0.15em;
                 color: rgba(6, 182, 212, 0.8);
-                margin-bottom: 0.25rem;
                 font-weight: 500;
             }
             
-            .mobile-horizon-sticky-title {
+            .mobile-horizon-layout .horizon-header .horizon-title {
                 font-size: 1.125rem;
                 color: #ffffff;
                 font-weight: 300;
                 line-height: 1.3;
             }
             
-            /* Mobile scroll-through layout */
-            .mobile-horizon-layout .horizon-content-section {
-                margin-bottom: 4rem;
-                padding-top: 6rem;
-                min-height: 100vh;
-            }
-            
-            .mobile-horizon-layout .horizon-header {
+            .mobile-horizon-layout .horizon-header .horizon-chevron {
                 display: none;
             }
             
             .mobile-horizon-layout .horizon-body {
                 max-height: none;
                 overflow: visible;
+                padding: 0;
             }
             
             .mobile-horizon-layout .horizon-body-inner {
@@ -1431,7 +1446,7 @@
                 padding: 2rem;
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
-                margin-bottom: 2rem;
+                margin: 0 0 2rem 0;
             }
 
             .timeline-container {
@@ -3157,51 +3172,66 @@
                 });
                 
                 // Add click/tap functionality for mobile devices
+                let touchStartY = 0;
+                let touchEndY = 0;
+                
+                card.addEventListener('touchstart', function(e) {
+                    touchStartY = e.touches[0].clientY;
+                }, { passive: true });
+                
+                card.addEventListener('touchend', function(e) {
+                    touchEndY = e.changedTouches[0].clientY;
+                }, { passive: true });
+                
                 card.addEventListener('click', function(e) {
-                    // Don't flip if clicking on the scrollable back content
-                    if (e.target.closest('.capability-back') && this.querySelector('.capability-flip-inner').style.transform === 'rotateY(180deg)') {
-                        return;
-                    }
-                    
                     // Check if this is a touch device or small screen
                     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
                     const isSmallScreen = window.innerWidth <= 768;
                     
                     if (isTouchDevice || isSmallScreen) {
+                        const inner = this.querySelector('.capability-flip-inner');
+                        if (!inner) return;
+                        
+                        const isCurrentlyFlipped = inner.style.transform === 'rotateY(180deg)';
+                        
+                        // Check if user was scrolling
+                        const wasScrolling = Math.abs(touchEndY - touchStartY) > 10;
+                        
+                        // If on back side and was scrolling, don't flip
+                        if (isCurrentlyFlipped && wasScrolling) {
+                            return;
+                        }
+                        
+                        e.preventDefault();
                         e.stopPropagation();
                         
                         // Toggle flipped state
-                        const inner = this.querySelector('.capability-flip-inner');
                         const arrowIcon = this.querySelector('.flip-arrow-icon');
                         
-                        if (inner) {
-                            const isCurrentlyFlipped = inner.style.transform === 'rotateY(180deg)';
-                            
-                            // Toggle transform
-                            inner.style.transform = isCurrentlyFlipped 
-                                ? 'rotateY(0deg)' 
-                                : 'rotateY(180deg)';
-                            
-                            // Store flipped state
-                            this.dataset.flipped = isCurrentlyFlipped ? 'false' : 'true';
-                            
-                            // Update arrow icon
-                            if (arrowIcon) {
-                                const iconSvg = arrowIcon.querySelector('svg');
-                                if (iconSvg) {
-                                    if (isCurrentlyFlipped) {
-                                        // Going back to front - show right arrow
-                                        iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
-                                    } else {
-                                        // Going to back - show left arrow
-                                        iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
-                                    }
+                        // Toggle transform
+                        inner.style.transform = isCurrentlyFlipped 
+                            ? 'rotateY(0deg)' 
+                            : 'rotateY(180deg)';
+                        
+                        // Store flipped state
+                        this.dataset.flipped = isCurrentlyFlipped ? 'false' : 'true';
+                        
+                        // Update arrow icon
+                        if (arrowIcon) {
+                            const iconSvg = arrowIcon.querySelector('svg');
+                            if (iconSvg) {
+                                if (isCurrentlyFlipped) {
+                                    // Going back to front - show right arrow
+                                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                                } else {
+                                    // Going to back - show left arrow
+                                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
                                 }
                             }
-                            
-                            // Reinitialize other icons after flip
-                            setTimeout(() => lucide.createIcons(), 400);
                         }
+                        
+                        // Reinitialize other icons after flip
+                        setTimeout(() => lucide.createIcons(), 400);
                     }
                 });
             });
