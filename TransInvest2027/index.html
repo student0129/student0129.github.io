@@ -335,12 +335,14 @@
         @media (max-width: 768px) {
             .merge-arrow {
                 opacity: 1;
-                transform: scale(1);
-                margin: 1.5rem 0;
+                transform: none;
+                margin: 1.5rem auto;
+                text-align: center;
             }
             
             .merge-arrow-icon {
                 font-size: 2rem;
+                display: block;
             }
         }
 
@@ -390,17 +392,20 @@
         
         @media (max-width: 768px) {
             .merge-plus {
-                position: static;
-                transform: scale(1);
+                position: relative;
+                transform: none;
                 opacity: 1;
                 text-align: center;
-                margin: 0 auto;
+                margin: 1rem auto;
                 display: block;
-                font-size: 3rem;
+                font-size: 2.5rem;
+                width: 100%;
+                left: auto;
+                top: auto;
             }
             
             .merge-container.is-visible .merge-plus {
-                transform: scale(1);
+                transform: none;
             }
         }
 
@@ -3147,6 +3152,11 @@
                 
                 // Add click/tap functionality for mobile devices
                 card.addEventListener('click', function(e) {
+                    // Don't flip if clicking on the scrollable back content
+                    if (e.target.closest('.capability-back') && this.querySelector('.capability-flip-inner').style.transform === 'rotateY(180deg)') {
+                        return;
+                    }
+                    
                     // Check if this is a touch device or small screen
                     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
                     const isSmallScreen = window.innerWidth <= 768;
@@ -3165,6 +3175,9 @@
                             inner.style.transform = isCurrentlyFlipped 
                                 ? 'rotateY(0deg)' 
                                 : 'rotateY(180deg)';
+                            
+                            // Store flipped state
+                            this.dataset.flipped = isCurrentlyFlipped ? 'false' : 'true';
                             
                             // Update arrow icon
                             if (arrowIcon) {
@@ -3194,24 +3207,64 @@
                 
                 if (isTouchDevice || isSmallScreen) {
                     if (!e.target.closest('.capability-flip-card')) {
-                        document.querySelectorAll('.capability-flip-card').forEach(card => {
-                            const inner = card.querySelector('.capability-flip-inner');
-                            const arrowIcon = card.querySelector('.flip-arrow-icon');
-                            
-                            if (inner) {
-                                inner.style.transform = 'rotateY(0deg)';
-                            }
-                            
-                            // Reset arrow to right-pointing
-                            if (arrowIcon) {
-                                const iconSvg = arrowIcon.querySelector('svg');
-                                if (iconSvg) {
-                                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
-                                }
-                            }
-                        });
+                        resetAllFlipCards();
                     }
                 }
+            });
+            
+            // Reset flip cards when scrolling away from them
+            function resetAllFlipCards() {
+                document.querySelectorAll('.capability-flip-card').forEach(card => {
+                    const inner = card.querySelector('.capability-flip-inner');
+                    const arrowIcon = card.querySelector('.flip-arrow-icon');
+                    
+                    if (inner) {
+                        inner.style.transform = 'rotateY(0deg)';
+                    }
+                    
+                    card.dataset.flipped = 'false';
+                    
+                    // Reset arrow to right-pointing
+                    if (arrowIcon) {
+                        const iconSvg = arrowIcon.querySelector('svg');
+                        if (iconSvg) {
+                            iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                        }
+                    }
+                });
+            }
+            
+            // Reset flipped cards when scrolling out of view
+            const flipCardObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting && entry.target.dataset.flipped === 'true') {
+                        const inner = entry.target.querySelector('.capability-flip-inner');
+                        const arrowIcon = entry.target.querySelector('.flip-arrow-icon');
+                        
+                        if (inner) {
+                            inner.style.transform = 'rotateY(0deg)';
+                        }
+                        
+                        entry.target.dataset.flipped = 'false';
+                        
+                        // Reset arrow to right-pointing
+                        if (arrowIcon) {
+                            const iconSvg = arrowIcon.querySelector('svg');
+                            if (iconSvg) {
+                                iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                            }
+                        }
+                    }
+                });
+            }, {
+                threshold: 0,
+                rootMargin: '-100px'
+            });
+            
+            // Observe all flip cards
+            document.querySelectorAll('.capability-flip-card').forEach(card => {
+                flipCardObserver.observe(card);
+                card.dataset.flipped = 'false';
             });
             
             // ============================================
