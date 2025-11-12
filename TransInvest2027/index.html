@@ -405,12 +405,25 @@
         @media (max-width: 768px) {
             .merge-dual-columns {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: 2rem;
+                position: static;
             }
             
             .merge-layer.foundation,
             .merge-layer.breakthrough {
-                transform: translateY(-20px);
+                transform: translateY(0);
+            }
+            
+            .merge-plus {
+                position: static;
+                transform: none;
+                text-align: center;
+                margin: -1rem 0;
+                z-index: 1;
+            }
+            
+            .merge-arrow {
+                margin: 1rem 0;
             }
         }
 
@@ -601,7 +614,7 @@
         .capability-back {
             transform: rotateY(180deg);
             padding: 1.75rem;
-            overflow: hidden;
+            overflow-y: auto;
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
             border: 1px solid rgba(148, 163, 184, 0.2);
             backdrop-filter: blur(20px);
@@ -642,6 +655,43 @@
             font-size: 0.75rem;
             margin-bottom: 0.5rem;
             margin-top: 0.625rem;
+        }
+        
+        @media (max-width: 768px) {
+            .capability-back {
+                padding: 1.5rem;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .capability-back h4 {
+                font-size: 1rem;
+                margin-bottom: 0.625rem;
+            }
+            
+            .capability-back p {
+                font-size: 0.875rem;
+                line-height: 1.6;
+                margin-bottom: 0.75rem;
+            }
+            
+            .capability-back ul li {
+                font-size: 0.8125rem;
+                line-height: 1.5;
+                margin-bottom: 0.5rem;
+            }
+            
+            .capability-back .text-white.font-medium {
+                font-size: 0.875rem;
+                margin-bottom: 0.625rem;
+                margin-top: 0.75rem;
+            }
+            
+            .capability-back .text-cyan-400.font-medium {
+                font-size: 0.8125rem;
+                margin-bottom: 0.625rem;
+                margin-top: 0.75rem;
+            }
         }
 
         .flip-arrow-icon {
@@ -710,11 +760,19 @@
 
         @media (max-width: 767px) {
             .capability-flip-card {
-                min-height: 480px;
+                min-height: 600px;
             }
             
             .capability-flip-inner {
-                min-height: 480px;
+                min-height: 600px;
+            }
+            
+            .capability-flip-card.two-cols {
+                min-height: 650px;
+            }
+            
+            .capability-flip-card.two-cols .capability-flip-inner {
+                min-height: 650px;
             }
         }
 
@@ -1795,7 +1853,7 @@
                 </div>
                 <div class="capability-cards-grid two-cols stagger-children">
                     <!-- Large Language Models -->
-                    <div class="capability-flip-card">
+                    <div class="capability-flip-card two-cols">
                         <div class="capability-flip-inner">
                             <!-- Front -->
                             <div class="capability-front">
@@ -1856,7 +1914,7 @@
                     </div>
                     
                     <!-- AI Agents -->
-                    <div class="capability-flip-card">
+                    <div class="capability-flip-card two-cols">
                         <div class="capability-flip-inner">
                             <!-- Front -->
                             <div class="capability-front">
@@ -3117,12 +3175,31 @@
                         
                         // Toggle flipped state
                         const inner = this.querySelector('.capability-flip-inner');
+                        const arrowIcon = this.querySelector('.flip-arrow-icon');
+                        
                         if (inner) {
-                            inner.style.transform = inner.style.transform === 'rotateY(180deg)' 
+                            const isCurrentlyFlipped = inner.style.transform === 'rotateY(180deg)';
+                            
+                            // Toggle transform
+                            inner.style.transform = isCurrentlyFlipped 
                                 ? 'rotateY(0deg)' 
                                 : 'rotateY(180deg)';
                             
-                            // Reinitialize icons after flip
+                            // Update arrow icon
+                            if (arrowIcon) {
+                                const iconSvg = arrowIcon.querySelector('svg');
+                                if (iconSvg) {
+                                    if (isCurrentlyFlipped) {
+                                        // Going back to front - show right arrow
+                                        iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                                    } else {
+                                        // Going to back - show left arrow
+                                        iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
+                                    }
+                                }
+                            }
+                            
+                            // Reinitialize other icons after flip
                             setTimeout(() => lucide.createIcons(), 400);
                         }
                     }
@@ -3136,8 +3213,21 @@
                 
                 if (isTouchDevice || isSmallScreen) {
                     if (!e.target.closest('.capability-flip-card')) {
-                        document.querySelectorAll('.capability-flip-inner').forEach(inner => {
-                            inner.style.transform = 'rotateY(0deg)';
+                        document.querySelectorAll('.capability-flip-card').forEach(card => {
+                            const inner = card.querySelector('.capability-flip-inner');
+                            const arrowIcon = card.querySelector('.flip-arrow-icon');
+                            
+                            if (inner) {
+                                inner.style.transform = 'rotateY(0deg)';
+                            }
+                            
+                            // Reset arrow to right-pointing
+                            if (arrowIcon) {
+                                const iconSvg = arrowIcon.querySelector('svg');
+                                if (iconSvg) {
+                                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                                }
+                            }
                         });
                     }
                 }
