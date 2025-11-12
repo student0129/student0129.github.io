@@ -1779,9 +1779,15 @@
         }
 
         /* ============================================
-           PRINT STYLES - PDF EXPORT OPTIMIZATION
+           PRINT STYLES - LANDSCAPE PDF EXPORT
            ============================================ */
         @media print {
+            /* Page setup - Landscape, full bleed, no margins */
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            
             /* Reset background colors for better printing */
             * {
                 -webkit-print-color-adjust: exact !important;
@@ -1790,7 +1796,11 @@
             }
             
             /* Keep page background */
-            body {
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
                 background: linear-gradient(180deg, #000000 0%, #001a4d 30%, #002b7a 50%, #001a4d 70%, #000000 100%) !important;
             }
             
@@ -1798,73 +1808,219 @@
                 display: none; /* Remove animated overlay for print */
             }
             
+            /* Main content scaling for landscape */
+            main {
+                max-width: 100%;
+                padding-left: 2rem !important;
+                padding-right: 2rem !important;
+            }
+            
             /* Hide interactive navigation elements */
             .side-nav,
             .scroll-indicator,
-            .horizon-nav-container,
             .nav-tooltip {
                 display: none !important;
             }
             
-            /* Hide flip card arrows and interactive hints */
-            .flip-arrow-icon,
-            .flip-btn {
+            /* Hide flip card arrows but keep all content */
+            .flip-arrow-icon {
                 display: none !important;
             }
             
-            /* Show all flip card content (front side only for cleaner print) */
+            /* FLIP CARDS - Show both front AND back side by side */
             .capability-flip-card {
                 page-break-inside: avoid;
                 break-inside: avoid;
+                margin-bottom: 2rem;
+                height: auto !important;
+                min-height: auto !important;
             }
             
             .capability-flip-inner {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
                 transform: none !important;
+                height: auto !important;
+                min-height: auto !important;
+            }
+            
+            .capability-front,
+            .capability-back {
+                position: relative !important;
+                transform: none !important;
+                backface-visibility: visible !important;
+                height: auto !important;
+                width: 100% !important;
+                display: block !important;
             }
             
             .capability-back {
-                display: none !important; /* Hide back of cards in print */
+                display: block !important;
+                padding: 1.75rem;
+                border-radius: 24px;
+                background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%) !important;
+                border: 1px solid rgba(148, 163, 184, 0.2);
             }
             
-            .capability-front {
-                position: relative !important;
-                transform: none !important;
+            /* Add labels to front and back */
+            .capability-front::before {
+                content: "Overview";
+                display: block;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: #06b6d4;
+                margin-bottom: 0.75rem;
+                font-weight: 400;
             }
             
-            /* Ensure tab content is all visible in print */
-            .tab-buttons {
-                display: none !important; /* Hide tab navigation */
+            .capability-back::before {
+                content: "Details" !important;
+                display: block !important;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: #06b6d4;
+                margin-bottom: 0.75rem;
+                font-weight: 400;
             }
             
-            .tab-content {
-                display: block !important; /* Show all tab content */
-                page-break-inside: avoid;
-                break-inside: avoid;
+            /* Three-column grid for capability cards */
+            .capability-cards-grid.three-cols {
+                display: block !important;
+            }
+            
+            .capability-cards-grid.three-cols .capability-flip-card {
                 margin-bottom: 2rem;
             }
             
-            .tab-content::before {
-                content: attr(data-tab-content);
-                display: block;
-                font-weight: 600;
-                color: #06b6d4;
-                margin-bottom: 1rem;
-                text-transform: capitalize;
+            /* Two-column grid for other capability cards */
+            .capability-cards-grid.two-cols {
+                display: block !important;
             }
             
-            /* Ensure all tabs show for each horizon */
-            .horizon-tabs .tab-content {
+            /* HORIZON FRAMEWORK - Show all tabs for each horizon */
+            .horizon-nav-container {
+                display: none !important;
+            }
+            
+            /* Horizon sections - each on its own page */
+            .horizon-content-section {
+                page-break-before: always;
+                page-break-after: always;
+                break-before: always;
+                break-after: always;
+                padding-top: 2rem !important;
+                padding-bottom: 2rem !important;
+            }
+            
+            .horizon-content-section:first-child {
+                page-break-before: auto;
+                break-before: auto;
+            }
+            
+            /* Show horizon header prominently */
+            .horizon-header {
+                display: block !important;
+                position: static !important;
+                background: linear-gradient(135deg, rgba(30, 58, 138, 0.8) 0%, rgba(29, 78, 216, 0.7) 100%) !important;
+                padding: 1.5rem 2rem !important;
+                margin: 0 0 2rem 0 !important;
+                border-radius: 16px;
+                border: 1px solid rgba(6, 182, 212, 0.3);
+            }
+            
+            .horizon-header .horizon-chevron {
+                display: none !important;
+            }
+            
+            .horizon-body {
+                max-height: none !important;
+                overflow: visible !important;
+                display: block !important;
+            }
+            
+            .horizon-body-inner {
+                display: block !important;
+            }
+            
+            /* Show ALL tabs - each with a header */
+            .tab-buttons {
+                display: none !important;
+            }
+            
+            .tab-content {
+                display: block !important;
                 opacity: 1 !important;
                 visibility: visible !important;
                 max-height: none !important;
-            }
-            
-            /* Page break management */
-            section {
                 page-break-inside: avoid;
                 break-inside: avoid;
+                margin-bottom: 3rem;
+                padding: 1.5rem;
+                background: rgba(15, 23, 42, 0.3) !important;
+                border-radius: 16px;
+                border: 1px solid rgba(148, 163, 184, 0.1);
             }
             
+            /* Add tab category headers */
+            .tab-content[data-tab-content*="logistics"]::before {
+                content: "🚛 Transport & Logistics";
+                display: block !important;
+                font-size: 1.25rem;
+                font-weight: 400;
+                color: #06b6d4;
+                margin-bottom: 1rem;
+                padding-bottom: 0.75rem;
+                border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+            }
+            
+            .tab-content[data-tab-content*="realestate"]::before {
+                content: "🏢 Real Estate & Warehousing";
+                display: block !important;
+                font-size: 1.25rem;
+                font-weight: 400;
+                color: #06b6d4;
+                margin-bottom: 1rem;
+                padding-bottom: 0.75rem;
+                border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+            }
+            
+            .tab-content[data-tab-content*="financing"]::before {
+                content: "💰 Financing Services";
+                display: block !important;
+                font-size: 1.25rem;
+                font-weight: 400;
+                color: #06b6d4;
+                margin-bottom: 1rem;
+                padding-bottom: 0.75rem;
+                border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+            }
+            
+            /* Section breaks - keep sections together when possible */
+            section {
+                page-break-inside: auto;
+                break-inside: auto;
+            }
+            
+            /* Major sections get their own page */
+            section#context,
+            section#understanding-ai,
+            section#framework,
+            section#about,
+            section#journey {
+                page-break-before: always;
+                break-before: always;
+                padding-top: 2rem !important;
+            }
+            
+            section#context {
+                page-break-before: auto;
+                break-before: auto;
+            }
+            
+            /* Keep cards together */
             .premium-card,
             .question-card,
             .qa-card,
@@ -1872,6 +2028,16 @@
                 page-break-inside: avoid;
                 break-inside: avoid;
                 margin-bottom: 1.5rem;
+            }
+            
+            /* Section headers */
+            .section-divider {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                page-break-after: avoid;
+                break-after: avoid;
+                margin-bottom: 2rem !important;
+                padding-top: 1rem !important;
             }
             
             h1, h2, h3, h4, h5, h6 {
@@ -1886,34 +2052,32 @@
             }
             
             /* Show all reveal elements */
-            .reveal {
-                opacity: 1 !important;
-                transform: none !important;
-            }
-            
-            .stagger-children > * {
-                opacity: 1 !important;
-                transform: none !important;
-            }
-            
-            /* Timeline adjustments for print */
+            .reveal,
+            .stagger-children > *,
             .timeline-item {
                 opacity: 1 !important;
                 transform: none !important;
-                page-break-inside: avoid;
-                break-inside: avoid;
             }
             
-            /* Merge visualization - show simplified version */
-            .merge-container .merge-layer {
-                opacity: 1 !important;
-                transform: none !important;
+            /* Merge visualization - show all layers side by side */
+            .merge-dual-columns {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 2rem !important;
+                position: relative;
             }
             
             .merge-plus {
-                position: static !important;
-                display: block !important;
-                text-align: center !important;
+                position: absolute !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                font-size: 3rem !important;
+                opacity: 1 !important;
+                z-index: 10;
+            }
+            
+            .merge-layer {
                 opacity: 1 !important;
                 transform: none !important;
             }
@@ -1921,54 +2085,100 @@
             .merge-arrow {
                 opacity: 1 !important;
                 transform: none !important;
+                text-align: center;
+                margin: 1rem 0;
             }
             
-            /* Grid adjustments for better print layout */
+            /* Grid layouts - maintain desktop layout */
             .grid {
-                grid-template-columns: 1fr 1fr !important;
+                display: grid !important;
             }
             
-            .capability-cards-grid.three-cols {
-                grid-template-columns: 1fr 1fr !important;
+            /* Three-column grids */
+            .grid.md\\:grid-cols-3,
+            [class*="grid-cols-3"] {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+            
+            /* Two-column grids */
+            .grid.md\\:grid-cols-2,
+            [class*="grid-cols-2"] {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+            
+            /* Four-column grids */
+            .grid.lg\\:grid-cols-4,
+            [class*="grid-cols-4"] {
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+            
+            /* Timeline adjustments */
+            .timeline-container {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .timeline-item {
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             
             /* Footer adjustments */
+            footer {
+                page-break-before: always;
+                break-before: always;
+            }
+            
             footer::before {
-                opacity: 0.5 !important; /* Lighter background for footer in print */
+                opacity: 0.5 !important;
             }
             
-            /* Ensure links are visible */
-            a {
-                color: #06b6d4 !important;
-                text-decoration: underline;
-            }
-            
+            /* Links - show URLs */
             a[href^="mailto:"]::after {
                 content: " (" attr(href) ")";
-                font-size: 0.9em;
+                font-size: 0.85em;
                 color: #64748b;
             }
             
             a[href^="http"]::after {
                 content: " (" attr(href) ")";
-                font-size: 0.8em;
+                font-size: 0.75em;
                 color: #64748b;
                 word-break: break-all;
             }
             
-            /* Optimize spacing for print */
+            /* Compact spacing for print while maintaining hierarchy */
             .py-32 {
-                padding-top: 3rem !important;
-                padding-bottom: 3rem !important;
+                padding-top: 2rem !important;
+                padding-bottom: 2rem !important;
             }
             
             .py-48 {
-                padding-top: 3rem !important;
-                padding-bottom: 3rem !important;
+                padding-top: 2rem !important;
+                padding-bottom: 2rem !important;
             }
             
             .space-y-48 > * + * {
-                margin-top: 3rem !important;
+                margin-top: 2rem !important;
+            }
+            
+            .space-y-32 > * + * {
+                margin-top: 2rem !important;
+            }
+            
+            .min-h-screen {
+                min-height: auto !important;
+                height: auto !important;
+            }
+            
+            /* Hero section */
+            header#hero {
+                min-height: auto !important;
+                height: auto !important;
+                padding: 3rem 2rem !important;
             }
             
             /* Ensure icons are visible */
@@ -1977,30 +2187,31 @@
                 opacity: 1 !important;
             }
             
-            /* Mobile-specific print adjustments */
-            @page {
-                margin: 1.5cm;
-                size: A4;
-            }
-            
-            /* Horizon sections - show all content */
-            .horizon-content-section .horizon-header {
-                position: static !important;
-                background: rgba(30, 58, 138, 0.3) !important;
-                padding: 1rem !important;
-                margin-bottom: 1rem !important;
-            }
-            
-            .horizon-body {
-                max-height: none !important;
-                overflow: visible !important;
-            }
-            
-            /* Remove sticky behavior for print */
+            /* Remove sticky/fixed positioning */
             .sticky,
             [style*="position: sticky"],
             [style*="position: fixed"] {
                 position: static !important;
+            }
+            
+            /* Isolated quote section */
+            section.min-h-screen {
+                padding: 3rem 2rem !important;
+            }
+            
+            /* Remove excess vertical spacing */
+            .mb-48,
+            .mt-48,
+            .my-48 {
+                margin-top: 2rem !important;
+                margin-bottom: 2rem !important;
+            }
+            
+            .mb-32,
+            .mt-32,
+            .my-32 {
+                margin-top: 1.5rem !important;
+                margin-bottom: 1.5rem !important;
             }
         }
     </style>
