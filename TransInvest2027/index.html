@@ -828,7 +828,8 @@
             margin-bottom: 1.5rem;
         }
 
-        @media (max-width: 767px) {
+        /* Mobile flip card sizing */
+        @media (max-width: 768px) {
             .capability-flip-card {
                 height: 450px;
                 min-height: 450px;
@@ -2178,22 +2179,6 @@
                 </div>
             </div>
             
-            <!-- Mobile Sticky Headers -->
-            <div class="lg:hidden">
-                <div id="mobile-sticky-h1" class="mobile-horizon-sticky-header">
-                    <div class="mobile-horizon-sticky-number">Horizon 1</div>
-                    <div class="mobile-horizon-sticky-title">Mitigate Risk & Build Foundation</div>
-                </div>
-                <div id="mobile-sticky-h2" class="mobile-horizon-sticky-header">
-                    <div class="mobile-horizon-sticky-number">Horizon 2</div>
-                    <div class="mobile-horizon-sticky-title">Capture Opportunities & Differentiate</div>
-                </div>
-                <div id="mobile-sticky-h3" class="mobile-horizon-sticky-header">
-                    <div class="mobile-horizon-sticky-number">Horizon 3</div>
-                    <div class="mobile-horizon-sticky-title">Anticipate the Future & Lead</div>
-                </div>
-            </div>
-            
             <!-- Horizons Layout -->
             <div class="grid lg:grid-cols-4 gap-12">
                 <!-- Sticky Navigation (Desktop Only) -->
@@ -3302,88 +3287,7 @@
                 flipCardObserver.observe(card);
                 card.dataset.flipped = 'false';
             });
-            
-            // ============================================
-            // MOBILE HORIZON STICKY HEADER SYSTEM
-            // ============================================
-            function updateMobileStickyHeaders() {
-                if (window.innerWidth > 768) {
-                    // Hide all headers on desktop
-                    document.querySelectorAll('.mobile-horizon-sticky-header').forEach(h => {
-                        h.classList.remove('active', 'exiting');
-                    });
-                    return;
-                }
-                
-                const stickyH1 = document.getElementById('mobile-sticky-h1');
-                const stickyH2 = document.getElementById('mobile-sticky-h2');
-                const stickyH3 = document.getElementById('mobile-sticky-h3');
-                
-                if (!stickyH1 || !stickyH2 || !stickyH3) return;
-                
-                // Get section positions
-                const h1Section = document.getElementById('h1');
-                const h2Section = document.getElementById('h2');
-                const h3Section = document.getElementById('h3');
-                
-                if (!h1Section || !h2Section || !h3Section) return;
-                
-                const scrollY = window.scrollY;
-                const triggerPoint = 150; // Distance from top to trigger
-                const previewOffset = 200; // Show header this many pixels before section content
-                
-                const h1Top = h1Section.offsetTop - previewOffset;
-                const h1Bottom = h1Section.offsetTop + h1Section.offsetHeight;
-                const h2Top = h2Section.offsetTop - previewOffset;
-                const h2Bottom = h2Section.offsetTop + h2Section.offsetHeight;
-                const h3Top = h3Section.offsetTop - previewOffset;
-                const h3Bottom = h3Section.offsetTop + h3Section.offsetHeight;
-                
-                // Reset all
-                stickyH1.classList.remove('active', 'exiting');
-                stickyH2.classList.remove('active', 'exiting');
-                stickyH3.classList.remove('active', 'exiting');
-                
-                // Determine which header should be active
-                if (scrollY + triggerPoint >= h1Top && scrollY + triggerPoint < h2Top - 100) {
-                    // In Horizon 1 zone
-                    stickyH1.classList.add('active');
-                } else if (scrollY + triggerPoint >= h2Top - 100 && scrollY + triggerPoint < h2Top) {
-                    // Transitioning from H1 to H2
-                    stickyH1.classList.add('exiting');
-                } else if (scrollY + triggerPoint >= h2Top && scrollY + triggerPoint < h3Top - 100) {
-                    // In Horizon 2 zone
-                    stickyH2.classList.add('active');
-                } else if (scrollY + triggerPoint >= h3Top - 100 && scrollY + triggerPoint < h3Top) {
-                    // Transitioning from H2 to H3
-                    stickyH2.classList.add('exiting');
-                } else if (scrollY + triggerPoint >= h3Top && scrollY + triggerPoint < h3Bottom) {
-                    // In Horizon 3 zone
-                    stickyH3.classList.add('active');
-                } else if (scrollY + triggerPoint >= h3Bottom) {
-                    // Past H3 - exit
-                    stickyH3.classList.add('exiting');
-                }
-            }
-            
-            // Track scroll for mobile sticky headers
-            let mobileStickyTimeout;
-            window.addEventListener('scroll', () => {
-                if (mobileStickyTimeout) {
-                    window.cancelAnimationFrame(mobileStickyTimeout);
-                }
-                mobileStickyTimeout = window.requestAnimationFrame(updateMobileStickyHeaders);
-            }, { passive: true });
-            
-            // Initial update after DOM is fully ready
-            setTimeout(updateMobileStickyHeaders, 100);
-            
-            // Update on resize
-            let resizeTimeout;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(updateMobileStickyHeaders, 200);
-            });
+
     </script>
 
 </body>
