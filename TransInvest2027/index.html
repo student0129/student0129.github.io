@@ -331,6 +331,18 @@
             color: #06b6d4;
             animation: pulse-glow 2s ease-in-out infinite;
         }
+        
+        @media (max-width: 768px) {
+            .merge-arrow {
+                opacity: 1;
+                transform: scale(1);
+                margin: 1.5rem 0;
+            }
+            
+            .merge-arrow-icon {
+                font-size: 2rem;
+            }
+        }
 
         @keyframes pulse-glow {
             0%, 100% {
@@ -375,6 +387,22 @@
             opacity: 1;
             transition-delay: 0.6s;
         }
+        
+        @media (max-width: 768px) {
+            .merge-plus {
+                position: static;
+                transform: scale(1);
+                opacity: 1;
+                text-align: center;
+                margin: 0 auto;
+                display: block;
+                font-size: 3rem;
+            }
+            
+            .merge-container.is-visible .merge-plus {
+                transform: scale(1);
+            }
+        }
 
         /* Two-column layout for foundation and breakthrough */
         .merge-dual-columns {
@@ -402,32 +430,24 @@
             flex-direction: column;
         }
 
-        @media (max-width: 768px) {
+            @media (max-width: 768px) {
             .merge-dual-columns {
                 grid-template-columns: 1fr;
-                gap: 2rem;
+                gap: 1rem;
                 position: static;
             }
             
             .merge-layer.foundation,
             .merge-layer.breakthrough {
                 transform: translateY(0);
+                opacity: 1;
             }
             
-            .merge-plus {
-                position: static;
-                transform: none;
-                text-align: center;
-                margin: -1rem 0;
-                z-index: 1;
+            .merge-layer.result {
+                transform: translateY(0);
+                opacity: 1;
             }
-            
-            .merge-arrow {
-                margin: 1rem 0;
-            }
-        }
-
-        /* ============================================
+        }        /* ============================================
            PREMIUM CARD COMPONENT
            ============================================ */
         .premium-card {
@@ -659,38 +679,58 @@
         
         @media (max-width: 768px) {
             .capability-back {
-                padding: 1.5rem;
+                padding: 1.25rem 1.25rem 3rem 1.25rem;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(6, 182, 212, 0.3) rgba(15, 23, 42, 0.3);
+            }
+            
+            .capability-back::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .capability-back::-webkit-scrollbar-track {
+                background: rgba(15, 23, 42, 0.3);
+                border-radius: 3px;
+            }
+            
+            .capability-back::-webkit-scrollbar-thumb {
+                background: rgba(6, 182, 212, 0.3);
+                border-radius: 3px;
+            }
+            
+            .capability-back::-webkit-scrollbar-thumb:hover {
+                background: rgba(6, 182, 212, 0.5);
             }
             
             .capability-back h4 {
-                font-size: 1rem;
-                margin-bottom: 0.625rem;
-            }
-            
-            .capability-back p {
-                font-size: 0.875rem;
-                line-height: 1.6;
-                margin-bottom: 0.75rem;
-            }
-            
-            .capability-back ul li {
-                font-size: 0.8125rem;
-                line-height: 1.5;
+                font-size: 0.9375rem;
                 margin-bottom: 0.5rem;
             }
             
-            .capability-back .text-white.font-medium {
-                font-size: 0.875rem;
+            .capability-back p {
+                font-size: 0.8125rem;
+                line-height: 1.5;
                 margin-bottom: 0.625rem;
-                margin-top: 0.75rem;
+            }
+            
+            .capability-back ul li {
+                font-size: 0.75rem;
+                line-height: 1.45;
+                margin-bottom: 0.4rem;
+            }
+            
+            .capability-back .text-white.font-medium {
+                font-size: 0.8125rem;
+                margin-bottom: 0.5rem;
+                margin-top: 0.625rem;
             }
             
             .capability-back .text-cyan-400.font-medium {
-                font-size: 0.8125rem;
-                margin-bottom: 0.625rem;
-                margin-top: 0.75rem;
+                font-size: 0.75rem;
+                margin-bottom: 0.5rem;
+                margin-top: 0.625rem;
             }
         }
 
@@ -760,19 +800,33 @@
 
         @media (max-width: 767px) {
             .capability-flip-card {
-                min-height: 600px;
+                height: 450px;
+                min-height: 450px;
             }
             
             .capability-flip-inner {
-                min-height: 600px;
+                height: 450px;
+                min-height: 450px;
             }
             
-            .capability-flip-card.two-cols {
-                min-height: 650px;
+            .capability-front,
+            .capability-back {
+                height: 100%;
+                overflow: hidden;
             }
             
-            .capability-flip-card.two-cols .capability-flip-inner {
-                min-height: 650px;
+            .capability-back {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 4rem;
+            }
+            
+            .capability-front .premium-card {
+                height: 100%;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                display: flex;
+                flex-direction: column;
             }
         }
 
@@ -1290,153 +1344,80 @@
                 display: none;
             }
             
-            /* Mobile horizon progress indicator */
-            .mobile-horizon-progress {
+            /* Mobile horizon sticky header system */
+            .mobile-horizon-sticky-header {
                 position: fixed;
+                top: 0;
                 left: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                z-index: 50;
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1rem 0.5rem;
-            }
-            
-            .mobile-horizon-indicator {
-                position: relative;
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-            }
-            
-            .mobile-horizon-dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background: rgba(148, 163, 184, 0.3);
-                transition: all 0.3s ease;
-                position: relative;
-            }
-            
-            .mobile-horizon-indicator.active .mobile-horizon-dot {
-                background: #06b6d4;
-                width: 10px;
-                height: 10px;
-                box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
-            }
-            
-            .mobile-horizon-label {
-                position: absolute;
-                left: 20px;
-                white-space: nowrap;
-                font-size: 0.65rem;
-                color: rgba(148, 163, 184, 0.5);
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                font-weight: 400;
+                right: 0;
+                z-index: 100;
+                background: linear-gradient(180deg, #000000 0%, rgba(10, 10, 15, 0.98) 100%);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                padding: 1rem 1.5rem;
+                border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+                transform: translateX(-100%);
                 opacity: 0;
-                transition: all 0.3s ease;
+                transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1), 
+                            opacity 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
                 pointer-events: none;
             }
             
-            .mobile-horizon-indicator.active .mobile-horizon-label {
+            .mobile-horizon-sticky-header.active {
+                transform: translateX(0);
                 opacity: 1;
-                color: rgba(6, 182, 212, 0.9);
-                left: 24px;
+                pointer-events: auto;
             }
             
-            /* Mobile accordion layout */
-            .mobile-horizon-layout .horizon-content-section {
-                margin-bottom: 1.5rem;
-                border: 1px solid rgba(148, 163, 184, 0.15);
-                border-radius: 16px;
-                overflow: hidden;
-                background: linear-gradient(135deg, rgba(15, 23, 42, 0.4) 0%, rgba(30, 41, 59, 0.3) 100%);
+            .mobile-horizon-sticky-header.exiting {
+                transform: translateX(-100%);
+                opacity: 0;
             }
             
-            .mobile-horizon-layout .horizon-header {
-                padding: 1.5rem;
-                cursor: pointer;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%);
-                transition: all 0.3s ease;
-                -webkit-tap-highlight-color: transparent;
-                position: relative;
-                border: 2px solid rgba(6, 182, 212, 0.3);
-            }
-            
-            .mobile-horizon-layout .horizon-header:active {
-                background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%);
-                border-color: rgba(6, 182, 212, 0.5);
-            }
-            
-            .mobile-horizon-layout .horizon-header-content {
-                flex: 1;
-            }
-            
-            .mobile-horizon-layout .horizon-number {
+            .mobile-horizon-sticky-number {
                 font-size: 0.75rem;
                 text-transform: uppercase;
-                letter-spacing: 0.1em;
-                color: rgba(6, 182, 212, 0.7);
-                margin-bottom: 0.5rem;
+                letter-spacing: 0.15em;
+                color: rgba(6, 182, 212, 0.8);
+                margin-bottom: 0.25rem;
                 font-weight: 500;
             }
             
-            .mobile-horizon-layout .horizon-title {
-                font-size: 1.25rem;
+            .mobile-horizon-sticky-title {
+                font-size: 1.125rem;
                 color: #ffffff;
                 font-weight: 300;
                 line-height: 1.3;
             }
             
-            .mobile-horizon-layout .horizon-chevron {
-                width: 28px;
-                height: 28px;
-                color: #06b6d4;
-                transition: transform 0.3s ease;
-                flex-shrink: 0;
-                margin-left: 1rem;
-                filter: drop-shadow(0 0 6px rgba(6, 182, 212, 0.5));
-                animation: bounce-hint 2s ease-in-out infinite;
+            /* Mobile scroll-through layout */
+            .mobile-horizon-layout .horizon-content-section {
+                margin-bottom: 4rem;
+                padding-top: 2rem;
+                min-height: 100vh;
             }
             
-            .mobile-horizon-layout .horizon-content-section.expanded .horizon-chevron {
-                transform: rotate(180deg);
-                animation: none;
-            }
-            
-            @keyframes bounce-hint {
-                0%, 100% {
-                    transform: translateY(0);
-                }
-                50% {
-                    transform: translateY(-4px);
-                }
+            .mobile-horizon-layout .horizon-header {
+                display: none;
             }
             
             .mobile-horizon-layout .horizon-body {
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.4s ease-out;
-            }
-            
-            .mobile-horizon-layout .horizon-content-section.expanded .horizon-body {
-                max-height: 5000px;
-                transition: max-height 0.6s ease-in;
+                max-height: none;
+                overflow: visible;
             }
             
             .mobile-horizon-layout .horizon-body-inner {
-                padding: 0 1.5rem 1.5rem 1.5rem;
+                padding: 0;
             }
             
             .mobile-horizon-layout .premium-card {
-                background: transparent;
-                border: none;
-                padding: 1rem 0;
+                background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%);
+                border: 1px solid rgba(148, 163, 184, 0.1);
+                border-radius: 24px;
+                padding: 2rem;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                margin-bottom: 2rem;
             }
 
             .timeline-container {
@@ -2168,19 +2149,19 @@
                 </div>
             </div>
             
-            <!-- Mobile Progress Indicator -->
-            <div class="mobile-horizon-progress lg:hidden">
-                <div class="mobile-horizon-indicator" data-horizon-target="h1">
-                    <div class="mobile-horizon-dot"></div>
-                    <span class="mobile-horizon-label">H1: Mitigate</span>
+            <!-- Mobile Sticky Headers -->
+            <div class="lg:hidden">
+                <div id="mobile-sticky-h1" class="mobile-horizon-sticky-header">
+                    <div class="mobile-horizon-sticky-number">Horizon 1</div>
+                    <div class="mobile-horizon-sticky-title">Mitigate Risk & Build Foundation</div>
                 </div>
-                <div class="mobile-horizon-indicator" data-horizon-target="h2">
-                    <div class="mobile-horizon-dot"></div>
-                    <span class="mobile-horizon-label">H2: Capture</span>
+                <div id="mobile-sticky-h2" class="mobile-horizon-sticky-header">
+                    <div class="mobile-horizon-sticky-number">Horizon 2</div>
+                    <div class="mobile-horizon-sticky-title">Capture Opportunities & Differentiate</div>
                 </div>
-                <div class="mobile-horizon-indicator" data-horizon-target="h3">
-                    <div class="mobile-horizon-dot"></div>
-                    <span class="mobile-horizon-label">H3: Anticipate</span>
+                <div id="mobile-sticky-h3" class="mobile-horizon-sticky-header">
+                    <div class="mobile-horizon-sticky-number">Horizon 3</div>
+                    <div class="mobile-horizon-sticky-title">Anticipate the Future & Lead</div>
                 </div>
             </div>
             
@@ -3234,115 +3215,85 @@
             });
             
             // ============================================
-            // MOBILE HORIZON ACCORDION
+            // MOBILE HORIZON STICKY HEADER SYSTEM
             // ============================================
-            function initializeMobileHorizonAccordion() {
-                // Only run on mobile devices
-                if (window.innerWidth > 768) return;
-                
-                const horizonHeaders = document.querySelectorAll('.horizon-header');
-                
-                horizonHeaders.forEach(header => {
-                    header.addEventListener('click', function() {
-                        const section = this.closest('.horizon-content-section');
-                        const isExpanded = section.classList.contains('expanded');
-                        
-                        // Toggle current section
-                        if (isExpanded) {
-                            section.classList.remove('expanded');
-                        } else {
-                            // Close all other sections
-                            document.querySelectorAll('.horizon-content-section').forEach(s => {
-                                s.classList.remove('expanded');
-                            });
-                            // Open clicked section
-                            section.classList.add('expanded');
-                            
-                            // Update mobile progress indicator
-                            updateMobileHorizonProgress();
-                        }
+            function updateMobileStickyHeaders() {
+                if (window.innerWidth > 768) {
+                    // Hide all headers on desktop
+                    document.querySelectorAll('.mobile-horizon-sticky-header').forEach(h => {
+                        h.classList.remove('active', 'exiting');
                     });
-                });
+                    return;
+                }
+                
+                const stickyH1 = document.getElementById('mobile-sticky-h1');
+                const stickyH2 = document.getElementById('mobile-sticky-h2');
+                const stickyH3 = document.getElementById('mobile-sticky-h3');
+                
+                if (!stickyH1 || !stickyH2 || !stickyH3) return;
+                
+                // Get section positions
+                const h1Section = document.getElementById('h1');
+                const h2Section = document.getElementById('h2');
+                const h3Section = document.getElementById('h3');
+                
+                if (!h1Section || !h2Section || !h3Section) return;
+                
+                const scrollY = window.scrollY;
+                const triggerPoint = 150; // Distance from top to trigger
+                
+                const h1Top = h1Section.offsetTop;
+                const h1Bottom = h1Top + h1Section.offsetHeight;
+                const h2Top = h2Section.offsetTop;
+                const h2Bottom = h2Top + h2Section.offsetHeight;
+                const h3Top = h3Section.offsetTop;
+                const h3Bottom = h3Top + h3Section.offsetHeight;
+                
+                // Reset all
+                stickyH1.classList.remove('active', 'exiting');
+                stickyH2.classList.remove('active', 'exiting');
+                stickyH3.classList.remove('active', 'exiting');
+                
+                // Determine which header should be active
+                if (scrollY + triggerPoint >= h1Top && scrollY + triggerPoint < h2Top - 100) {
+                    // In Horizon 1 zone
+                    stickyH1.classList.add('active');
+                } else if (scrollY + triggerPoint >= h2Top - 100 && scrollY + triggerPoint < h2Top) {
+                    // Transitioning from H1 to H2
+                    stickyH1.classList.add('exiting');
+                } else if (scrollY + triggerPoint >= h2Top && scrollY + triggerPoint < h3Top - 100) {
+                    // In Horizon 2 zone
+                    stickyH2.classList.add('active');
+                } else if (scrollY + triggerPoint >= h3Top - 100 && scrollY + triggerPoint < h3Top) {
+                    // Transitioning from H2 to H3
+                    stickyH2.classList.add('exiting');
+                } else if (scrollY + triggerPoint >= h3Top && scrollY + triggerPoint < h3Bottom) {
+                    // In Horizon 3 zone
+                    stickyH3.classList.add('active');
+                } else if (scrollY + triggerPoint >= h3Bottom) {
+                    // Past H3 - exit
+                    stickyH3.classList.add('exiting');
+                }
             }
             
-            // Initialize on load
-            initializeMobileHorizonAccordion();
+            // Track scroll for mobile sticky headers
+            let mobileStickyTimeout;
+            window.addEventListener('scroll', () => {
+                if (mobileStickyTimeout) {
+                    window.cancelAnimationFrame(mobileStickyTimeout);
+                }
+                mobileStickyTimeout = window.requestAnimationFrame(updateMobileStickyHeaders);
+            }, { passive: true });
             
-            // Reinitialize on window resize
+            // Initial update after DOM is fully ready
+            setTimeout(updateMobileStickyHeaders, 100);
+            
+            // Update on resize
             let resizeTimeout;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(initializeMobileHorizonAccordion, 200);
+                resizeTimeout = setTimeout(updateMobileStickyHeaders, 200);
             });
-            
-            // ============================================
-            // MOBILE HORIZON PROGRESS INDICATOR
-            // ============================================
-            function updateMobileHorizonProgress() {
-                if (window.innerWidth > 768) return;
-                
-                const horizonSections = document.querySelectorAll('.mobile-horizon-layout .horizon-content-section');
-                const progressIndicators = document.querySelectorAll('.mobile-horizon-indicator');
-                
-                let activeHorizon = null;
-                const viewportMiddle = window.scrollY + window.innerHeight / 2;
-                
-                // Find which horizon is currently in view
-                horizonSections.forEach(section => {
-                    const rect = section.getBoundingClientRect();
-                    const sectionTop = rect.top + window.scrollY;
-                    const sectionBottom = rect.bottom + window.scrollY;
-                    
-                    if (sectionTop <= viewportMiddle && sectionBottom >= viewportMiddle) {
-                        activeHorizon = section.id;
-                    }
-                });
-                
-                // Update indicator states
-                progressIndicators.forEach(indicator => {
-                    if (indicator.dataset.horizonTarget === activeHorizon) {
-                        indicator.classList.add('active');
-                    } else {
-                        indicator.classList.remove('active');
-                    }
-                });
-            }
-            
-            // Click handler for mobile progress indicators
-            document.querySelectorAll('.mobile-horizon-indicator').forEach(indicator => {
-                indicator.addEventListener('click', function() {
-                    const targetId = this.dataset.horizonTarget;
-                    const targetSection = document.getElementById(targetId);
-                    
-                    if (targetSection) {
-                        // Scroll to section
-                        targetSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
-                        // Expand the section
-                        document.querySelectorAll('.horizon-content-section').forEach(s => {
-                            s.classList.remove('expanded');
-                        });
-                        targetSection.classList.add('expanded');
-                        
-                        // Update progress after a short delay
-                        setTimeout(updateMobileHorizonProgress, 500);
-                    }
-                });
-            });
-            
-            // Track scroll for mobile progress
-            let mobileProgressTimeout;
-            window.addEventListener('scroll', () => {
-                if (window.innerWidth <= 768) {
-                    if (mobileProgressTimeout) {
-                        window.cancelAnimationFrame(mobileProgressTimeout);
-                    }
-                    mobileProgressTimeout = window.requestAnimationFrame(updateMobileHorizonProgress);
-                }
-            }, { passive: true });
-            
-            // Initial update
-            updateMobileHorizonProgress();
     </script>
 
 </body>
