@@ -545,6 +545,141 @@
         }
 
         /* ============================================
+           CAPABILITY FLIP CARDS (Core & Frontier)
+           ============================================ */
+        .capability-flip-card {
+            perspective: 1500px;
+            height: 100%;
+        }
+
+        .capability-flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .capability-flip-card:hover .capability-flip-inner {
+            transform: rotateY(180deg);
+        }
+
+        .capability-front,
+        .capability-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .capability-front {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .capability-back {
+            transform: rotateY(180deg);
+            padding: 2.5rem;
+            overflow-y: auto;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .capability-back::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .capability-back::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 3px;
+        }
+
+        .capability-back::-webkit-scrollbar-thumb {
+            background: rgba(6, 182, 212, 0.5);
+            border-radius: 3px;
+        }
+
+        .capability-back::-webkit-scrollbar-thumb:hover {
+            background: rgba(6, 182, 212, 0.7);
+        }
+
+        .flip-arrow-icon {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(6, 182, 212, 0.15);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 50%;
+            color: #06b6d4;
+            transition: all 0.3s ease;
+        }
+
+        .capability-flip-card:hover .flip-arrow-icon {
+            background: rgba(6, 182, 212, 0.3);
+            border-color: rgba(6, 182, 212, 0.5);
+            transform: rotate(180deg);
+        }
+
+        .flip-arrow-icon svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            stroke-width: 2;
+        }
+
+        /* Equal height cards in grid */
+        .capability-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            align-items: stretch;
+        }
+
+        @media (min-width: 768px) {
+            .capability-cards-grid.three-cols {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .capability-cards-grid.two-cols {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .capability-flip-card {
+            min-height: 450px;
+        }
+
+        .capability-flip-card .premium-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .capability-front-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .capability-front-minimal {
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 767px) {
+            .capability-flip-card {
+                min-height: 400px;
+            }
+        }
+
+        /* ============================================
            SIDE NAVIGATION (SCROLLSPY)
            ============================================ */
         .side-nav {
@@ -1375,77 +1510,133 @@
             <div class="reveal">
                 <div class="text-center mb-16">
                     <h3 class="text-white mb-6 section-header">Three Core Capabilities of AI & Analytics</h3>
-                    <p class="text-slate-300 font-light max-w-3xl mx-auto">Click to learn more about each capability and how it transforms your operations.</p>
+                    <p class="text-slate-300 font-light max-w-3xl mx-auto">Hover over each card to learn more about the capability and its business impact.</p>
                 </div>
-                <div class="grid md:grid-cols-3 gap-8 stagger-children">
-                    <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="bar-chart-3"></i></div>
-                        <h4 class="card-title text-white">Descriptive Analytics</h4>
-                        <p class="text-white font-medium mb-3">Understanding What Happened</p>
-                        <p class="text-slate-300 font-light mb-4"><strong class="text-white">What it does:</strong> Analyzes historical data to understand patterns, trends, and anomalies. Answers: "What happened? Why did it happen? Where are the patterns?"</p>
-                        <p class="text-white font-medium mb-2">Example:</p>
-                        <p class="text-slate-300 font-light mb-4">Across M&M's 240 trucks and InterRail's China-Europe corridors, descriptive analytics identifies: Which routes had highest delays last quarter? Which customs checkpoints create bottlenecks? Which corridors have seasonal demand spikes? Where are margin opportunities hidden in your operational data?</p>
-                        <p class="text-cyan-400 font-medium text-sm">Business Impact:</p>
-                        <ul class="space-y-2 mt-2 text-sm">
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Visibility across 100+ autonomous businesses without forcing integration</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Identify inefficiencies and opportunities buried in operational data</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Leadership gets unified intelligence while businesses maintain independence</span>
-                            </li>
-                        </ul>
+                <div class="capability-cards-grid three-cols stagger-children">
+                    <!-- Descriptive Analytics -->
+                    <div class="capability-flip-card">
+                        <div class="capability-flip-inner">
+                            <!-- Front -->
+                            <div class="capability-front">
+                                <div class="premium-card">
+                                    <div class="capability-front-content">
+                                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="bar-chart-3"></i></div>
+                                        <h4 class="card-title text-white">Descriptive Analytics</h4>
+                                        <p class="text-white font-medium mb-3 capability-front-minimal">Understanding What Happened</p>
+                                        <p class="text-slate-300 font-light">Analyzes historical data to understand patterns, trends, and anomalies across your operations.</p>
+                                    </div>
+                                    <div class="flip-arrow-icon">
+                                        <i data-lucide="arrow-right"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back -->
+                            <div class="capability-back">
+                                <h4 class="text-white font-medium mb-4 text-xl">Descriptive Analytics</h4>
+                                <p class="text-slate-300 font-light mb-4"><strong class="text-white">What it does:</strong> Analyzes historical data to understand patterns, trends, and anomalies. Answers: "What happened? Why did it happen? Where are the patterns?"</p>
+                                <p class="text-white font-medium mb-2">Example:</p>
+                                <p class="text-slate-300 font-light mb-4">Across M&M's 240 trucks and InterRail's China-Europe corridors, descriptive analytics identifies: Which routes had highest delays last quarter? Which customs checkpoints create bottlenecks? Which corridors have seasonal demand spikes? Where are margin opportunities hidden in your operational data?</p>
+                                <p class="text-cyan-400 font-medium text-sm mb-3">Business Impact:</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Visibility across 100+ autonomous businesses without forcing integration</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Identify inefficiencies and opportunities buried in operational data</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Leadership gets unified intelligence while businesses maintain independence</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="trending-up"></i></div>
-                        <h4 class="card-title text-white">Predictive Analytics</h4>
-                        <p class="text-white font-medium mb-3">Forecasting What Will Happen</p>
-                        <p class="text-slate-300 font-light mb-4"><strong class="text-white">What it does:</strong> Uses historical patterns + current signals to forecast future scenarios with confidence levels. Answers: "What will happen next? How likely? What are the risks?"</p>
-                        <p class="text-white font-medium mb-2">Example:</p>
-                        <p class="text-slate-300 font-light mb-4"><em>"Vietnam corridor demand: 82% probability of 25% growth in next 6 months. Early indicators: M&M volume spikes, warehouse inquiries up 20%, financing requests increasing. Recommend: Pre-position warehouses + financing packages now."</em></p>
-                        <p class="text-cyan-400 font-medium text-sm">Business Impact:</p>
-                        <ul class="space-y-2 mt-2 text-sm">
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Anticipate opportunities and risks 6-12 months before competitors</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Shift from reactive firefighting to proactive positioning</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Leadership makes strategic bets with confidence levels, not gut instinct</span>
-                            </li>
-                        </ul>
+                    
+                    <!-- Predictive Analytics -->
+                    <div class="capability-flip-card">
+                        <div class="capability-flip-inner">
+                            <!-- Front -->
+                            <div class="capability-front">
+                                <div class="premium-card">
+                                    <div class="capability-front-content">
+                                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="trending-up"></i></div>
+                                        <h4 class="card-title text-white">Predictive Analytics</h4>
+                                        <p class="text-white font-medium mb-3 capability-front-minimal">Forecasting What Will Happen</p>
+                                        <p class="text-slate-300 font-light">Uses historical patterns and current signals to forecast future scenarios with confidence levels.</p>
+                                    </div>
+                                    <div class="flip-arrow-icon">
+                                        <i data-lucide="arrow-right"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back -->
+                            <div class="capability-back">
+                                <h4 class="text-white font-medium mb-4 text-xl">Predictive Analytics</h4>
+                                <p class="text-slate-300 font-light mb-4"><strong class="text-white">What it does:</strong> Uses historical patterns + current signals to forecast future scenarios with confidence levels. Answers: "What will happen next? How likely? What are the risks?"</p>
+                                <p class="text-white font-medium mb-2">Example:</p>
+                                <p class="text-slate-300 font-light mb-4"><em>"Vietnam corridor demand: 82% probability of 25% growth in next 6 months. Early indicators: M&M volume spikes, warehouse inquiries up 20%, financing requests increasing. Recommend: Pre-position warehouses + financing packages now."</em></p>
+                                <p class="text-cyan-400 font-medium text-sm mb-3">Business Impact:</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Anticipate opportunities and risks 6-12 months before competitors</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Shift from reactive firefighting to proactive positioning</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Leadership makes strategic bets with confidence levels, not gut instinct</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="route"></i></div>
-                        <h4 class="card-title text-white">Prescriptive Analytics</h4>
-                        <p class="text-white font-medium mb-3">Optimizing What to Do</p>
-                        <p class="text-slate-300 font-light mb-4"><strong class="text-white">What it does:</strong> Recommends optimal actions by evaluating thousands of scenarios simultaneously. Answers: "What should we do? What's the best decision given our constraints?"</p>
-                        <p class="text-white font-medium mb-2">Example:</p>
-                        <p class="text-slate-300 font-light mb-4"><em>"Route 240 trucks through alternative corridors + allocate warehouse capacity across 3 hubs + structure financing terms for 15 customers—all optimized together for maximum margin, speed, and customer satisfaction across competing business constraints."</em></p>
-                        <p class="text-cyan-400 font-medium text-sm">Business Impact:</p>
-                        <ul class="space-y-2 mt-2 text-sm">
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Coordinate complex decisions across autonomous businesses without forcing centralization</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Find optimal solutions humans can't calculate across multi-dimensional constraints</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Turn operational complexity into competitive advantage</span>
-                            </li>
-                        </ul>
+                    
+                    <!-- Prescriptive Analytics -->
+                    <div class="capability-flip-card">
+                        <div class="capability-flip-inner">
+                            <!-- Front -->
+                            <div class="capability-front">
+                                <div class="premium-card">
+                                    <div class="capability-front-content">
+                                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="route"></i></div>
+                                        <h4 class="card-title text-white">Prescriptive Analytics</h4>
+                                        <p class="text-white font-medium mb-3 capability-front-minimal">Optimizing What to Do</p>
+                                        <p class="text-slate-300 font-light">Recommends optimal actions by evaluating thousands of scenarios simultaneously.</p>
+                                    </div>
+                                    <div class="flip-arrow-icon">
+                                        <i data-lucide="arrow-right"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back -->
+                            <div class="capability-back">
+                                <h4 class="text-white font-medium mb-4 text-xl">Prescriptive Analytics</h4>
+                                <p class="text-slate-300 font-light mb-4"><strong class="text-white">What it does:</strong> Recommends optimal actions by evaluating thousands of scenarios simultaneously. Answers: "What should we do? What's the best decision given our constraints?"</p>
+                                <p class="text-white font-medium mb-2">Example:</p>
+                                <p class="text-slate-300 font-light mb-4"><em>"Route 240 trucks through alternative corridors + allocate warehouse capacity across 3 hubs + structure financing terms for 15 customers—all optimized together for maximum margin, speed, and customer satisfaction across competing business constraints."</em></p>
+                                <p class="text-cyan-400 font-medium text-sm mb-3">Business Impact:</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Coordinate complex decisions across autonomous businesses without forcing centralization</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Find optimal solutions humans can't calculate across multi-dimensional constraints</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Turn operational complexity into competitive advantage</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1454,75 +1645,112 @@
             <div class="reveal">
                 <div class="text-center mb-16">
                     <h3 class="text-white mb-6 section-header">The New Frontier: Recent Breakthroughs</h3>
-                    <p class="text-slate-300 font-light max-w-3xl mx-auto">Two breakthroughs in the last 3 years are transforming what's possible—perfectly suited to your Eurasian corridor complexity. Click to explore.</p>
+                    <p class="text-slate-300 font-light max-w-3xl mx-auto">Two breakthroughs in the last 3 years are transforming what's possible—perfectly suited to your Eurasian corridor complexity. Hover to explore.</p>
                 </div>
-                <div class="grid md:grid-cols-2 gap-8 stagger-children">
-                    <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="languages"></i></div>
-                        <h4 class="card-title text-white">Large Language Models (LLMs)</h4>
-                        <p class="text-white font-medium mb-3">Handle Linguistic & Regulatory Complexity</p>
-                        <p class="text-slate-300 font-light mb-4"><strong class="text-white">What changed:</strong> In 2022-2023, AI systems learned to understand and generate human language at expert-level quality—in 100+ languages, across any domain.</p>
-                        <p class="text-white font-medium mb-2">What They Do:</p>
-                        <ul class="space-y-2 mb-4 text-sm">
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Read and interpret documents, regulations, contracts (in any language)</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Generate compliant documentation automatically</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Translate and explain complex requirements across jurisdictions</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Answer questions about your operations in plain language</span>
-                            </li>
-                        </ul>
-                        <p class="text-white font-medium mb-2">Example:</p>
-                        <p class="text-slate-300 font-light mb-4"><em>"Generate compliant customs declaration for 20-ton textile shipment from Istanbul to Almaty via Baku, including HS code classification, Russian and Kazakh translations, and CIS customs union protocols."</em> LLM produces complete documentation in seconds—work that takes a human expert 2-3 hours.</p>
-                        <p class="text-cyan-400 font-medium text-sm">Business Impact:</p>
-                        <ul class="space-y-2 mt-2 text-sm">
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">45 countries = Russian, Chinese, Persian, Turkish, German, Kazakh, Uzbek languages</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Thousands of customs rules, trade protocols, compliance requirements</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Different documentation formats, stamp requirements, HS codes per jurisdiction</span>
-                            </li>
-                        </ul>
+                <div class="capability-cards-grid two-cols stagger-children">
+                    <!-- Large Language Models -->
+                    <div class="capability-flip-card">
+                        <div class="capability-flip-inner">
+                            <!-- Front -->
+                            <div class="capability-front">
+                                <div class="premium-card">
+                                    <div class="capability-front-content">
+                                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="languages"></i></div>
+                                        <h4 class="card-title text-white">Large Language Models (LLMs)</h4>
+                                        <p class="text-white font-medium mb-3 capability-front-minimal">Handle Linguistic & Regulatory Complexity</p>
+                                        <p class="text-slate-300 font-light">AI systems that understand and generate human language at expert-level quality—in 100+ languages, across any domain.</p>
+                                    </div>
+                                    <div class="flip-arrow-icon">
+                                        <i data-lucide="arrow-right"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back -->
+                            <div class="capability-back">
+                                <h4 class="text-white font-medium mb-4 text-xl">Large Language Models (LLMs)</h4>
+                                <p class="text-slate-300 font-light mb-4"><strong class="text-white">What changed:</strong> In 2022-2023, AI systems learned to understand and generate human language at expert-level quality—in 100+ languages, across any domain.</p>
+                                <p class="text-white font-medium mb-2">What They Do:</p>
+                                <ul class="space-y-2 mb-4 text-sm">
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Read and interpret documents, regulations, contracts (in any language)</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Generate compliant documentation automatically</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Translate and explain complex requirements across jurisdictions</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Answer questions about your operations in plain language</span>
+                                    </li>
+                                </ul>
+                                <p class="text-white font-medium mb-2">Example:</p>
+                                <p class="text-slate-300 font-light mb-4 text-sm"><em>"Generate compliant customs declaration for 20-ton textile shipment from Istanbul to Almaty via Baku, including HS code classification, Russian and Kazakh translations, and CIS customs union protocols."</em> LLM produces complete documentation in seconds—work that takes a human expert 2-3 hours.</p>
+                                <p class="text-cyan-400 font-medium text-sm mb-3">Business Impact:</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">45 countries = Russian, Chinese, Persian, Turkish, German, Kazakh, Uzbek languages</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Thousands of customs rules, trade protocols, compliance requirements</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Different documentation formats, stamp requirements, HS codes per jurisdiction</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="bot"></i></div>
-                        <h4 class="card-title text-white">AI Agents</h4>
-                        <p class="text-white font-medium mb-3">Coordinate Intelligence & Actions Autonomously</p>
-                        <p class="text-slate-300 font-light mb-4"><strong class="text-white">What changed:</strong> In 2023-2024, AI systems learned to take actions autonomously—accessing internal data, using tools, making decisions, and executing tasks with minimal human oversight.</p>
-                        <p class="text-white font-medium mb-2">What They Are:</p>
-                        <p class="text-slate-300 font-light mb-4"><strong class="text-white">AI Agents = LLMs + Autonomy + Tools + Memory</strong><br/>Think of them as digital employees that access your systems, use tools, reason with full context, decide within guardrails, act autonomously, remember outcomes, learn continuously, and collaborate with humans.</p>
-                        <p class="text-white font-medium mb-2">Example:</p>
-                        <p class="text-slate-300 font-light mb-4"><em>Trade policy shift in Central Asia.</em> An Agent monitoring geopolitical signals detects early indicators from trade publications, customs data patterns, corridor volume shifts. Evaluates 3 alternative corridors using decades of TransInvest's proprietary data—gauge changes, border efficiency, seasonal capacity. Coordinates intelligence across M&M + InterRail + warehousing (respecting autonomy). Alerts leadership: <em>"15% volume shift likely, 6-month opportunity window. Here are 3 optimized scenarios."</em></p>
-                        <p class="text-cyan-400 font-medium text-sm">Business Impact:</p>
-                        <ul class="space-y-2 mt-2 text-sm">
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">From 48-72 hours (fragmented) to 2 hours (strategic intelligence)</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">Perceive, reason, decide, and act—handling novel situations autonomously</span>
-                            </li>
-                            <li class="flex items-start text-slate-300">
-                                <span class="text-cyan-400 mr-2">•</span>
-                                <span class="font-light">From reactive firefighting to proactive orchestration</span>
-                            </li>
-                        </ul>
+                    
+                    <!-- AI Agents -->
+                    <div class="capability-flip-card">
+                        <div class="capability-flip-inner">
+                            <!-- Front -->
+                            <div class="capability-front">
+                                <div class="premium-card">
+                                    <div class="capability-front-content">
+                                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="bot"></i></div>
+                                        <h4 class="card-title text-white">AI Agents</h4>
+                                        <p class="text-white font-medium mb-3 capability-front-minimal">Coordinate Intelligence & Actions Autonomously</p>
+                                        <p class="text-slate-300 font-light">AI systems that take actions autonomously—accessing data, using tools, making decisions, and executing tasks with minimal oversight.</p>
+                                    </div>
+                                    <div class="flip-arrow-icon">
+                                        <i data-lucide="arrow-right"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back -->
+                            <div class="capability-back">
+                                <h4 class="text-white font-medium mb-4 text-xl">AI Agents</h4>
+                                <p class="text-slate-300 font-light mb-4"><strong class="text-white">What changed:</strong> In 2023-2024, AI systems learned to take actions autonomously—accessing internal data, using tools, making decisions, and executing tasks with minimal human oversight.</p>
+                                <p class="text-white font-medium mb-2">What They Are:</p>
+                                <p class="text-slate-300 font-light mb-4 text-sm"><strong class="text-white">AI Agents = LLMs + Autonomy + Tools + Memory</strong><br/>Think of them as digital employees that access your systems, use tools, reason with full context, decide within guardrails, act autonomously, remember outcomes, learn continuously, and collaborate with humans.</p>
+                                <p class="text-white font-medium mb-2">Example:</p>
+                                <p class="text-slate-300 font-light mb-4 text-sm"><em>Trade policy shift in Central Asia.</em> An Agent monitoring geopolitical signals detects early indicators from trade publications, customs data patterns, corridor volume shifts. Evaluates 3 alternative corridors using decades of TransInvest's proprietary data—gauge changes, border efficiency, seasonal capacity. Coordinates intelligence across M&M + InterRail + warehousing (respecting autonomy). Alerts leadership: <em>"15% volume shift likely, 6-month opportunity window. Here are 3 optimized scenarios."</em></p>
+                                <p class="text-cyan-400 font-medium text-sm mb-3">Business Impact:</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">From 48-72 hours (fragmented) to 2 hours (strategic intelligence)</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">Perceive, reason, decide, and act—handling novel situations autonomously</span>
+                                    </li>
+                                    <li class="flex items-start text-slate-300">
+                                        <span class="text-cyan-400 mr-2">•</span>
+                                        <span class="font-light">From reactive firefighting to proactive orchestration</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2647,6 +2875,16 @@
             document.querySelectorAll('.flip-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     setTimeout(() => lucide.createIcons(), 100);
+                });
+            });
+
+            // ============================================
+            // CAPABILITY FLIP CARDS - HOVER HANDLING
+            // ============================================
+            // Reinitialize icons when capability cards are hovered
+            document.querySelectorAll('.capability-flip-card').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    setTimeout(() => lucide.createIcons(), 400);
                 });
             });
     </script>
