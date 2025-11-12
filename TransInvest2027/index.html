@@ -707,13 +707,14 @@
         @media (max-width: 768px) {
             .capability-back {
                 padding: 1.25rem 1.25rem 3rem 1.25rem;
-                overflow-y: auto;
-                overflow-x: hidden;
-                -webkit-overflow-scrolling: touch;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                -webkit-overflow-scrolling: touch !important;
                 scrollbar-width: thin;
                 scrollbar-color: rgba(6, 182, 212, 0.3) rgba(15, 23, 42, 0.3);
-                touch-action: pan-y;
-                pointer-events: auto;
+                touch-action: pan-y !important;
+                pointer-events: auto !important;
+                z-index: 10 !important;
             }
             
             .capability-back::-webkit-scrollbar {
@@ -833,23 +834,31 @@
             .capability-flip-card {
                 height: 450px;
                 min-height: 450px;
+                overflow: visible;
             }
             
             .capability-flip-inner {
                 height: 450px;
                 min-height: 450px;
+                overflow: visible;
             }
             
             .capability-front,
             .capability-back {
                 height: 100%;
+            }
+            
+            .capability-front {
                 overflow: hidden;
             }
             
-            .capability-back {
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                padding-bottom: 4rem;
+            /* When flipped, disable pointer events on front so back can be interacted with */
+            .capability-flip-card[data-flipped="true"] .capability-front {
+                pointer-events: none;
+            }
+            
+            .capability-flip-card[data-flipped="true"] .capability-back {
+                pointer-events: auto;
             }
             
             .capability-front .premium-card {
@@ -1322,18 +1331,27 @@
         @media (max-width: 768px) {
             .tab-buttons {
                 flex-direction: column;
-                gap: 0;
+                gap: 0.5rem;
+                border-bottom: none;
+                margin-bottom: 1.5rem;
+                background: transparent !important;
             }
             
             .tab-button {
                 text-align: left;
-                border-bottom: 1px solid rgba(148, 163, 184, 0.05);
-                padding: 0.75rem 1rem;
+                border: 1px solid rgba(148, 163, 184, 0.15);
+                border-radius: 12px;
+                padding: 0.875rem 1.25rem;
+                background: transparent !important;
+                transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             }
             
             .tab-button.active {
-                background: rgba(6, 182, 212, 0.05);
-                border-left: 3px solid #06b6d4;
+                background: transparent !important;
+                border: 1px solid rgba(6, 182, 212, 0.4);
+                color: #06b6d4;
+                box-shadow: none;
+                transform: translateX(4px);
             }
         }
 
@@ -1381,28 +1399,50 @@
             }
             
             /* Mobile scroll-through layout */
+            #framework {
+                background: transparent !important;
+            }
+            
+            #framework .grid {
+                background: transparent !important;
+            }
+            
+            .mobile-horizon-layout {
+                background: transparent !important;
+            }
+            
             .mobile-horizon-layout .horizon-content-section {
                 margin-bottom: 3rem;
                 padding-top: 0;
-                min-height: 100vh;
+                padding-bottom: 0;
+                min-height: auto;
                 position: relative;
+                max-width: 100%;
+                background: transparent !important;
+                border: none;
+                border-radius: 0;
+                contain: none;
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
             }
             
             .mobile-horizon-layout .horizon-header {
                 display: block !important;
+                position: -webkit-sticky;
                 position: sticky;
                 top: 0;
                 z-index: 50;
-                background: linear-gradient(180deg, #000000 0%, rgba(10, 10, 15, 0.98) 100%);
+                background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(29, 78, 216, 0.9) 100%);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
                 padding: 1rem 1.5rem;
-                margin: 0 0 1.5rem 0;
-                border-bottom: 2px solid rgba(6, 182, 212, 0.3);
+                margin: 0;
+                border-bottom: 1px solid rgba(6, 182, 212, 0.4);
                 cursor: auto;
-                width: 100vw;
-                margin-left: calc(-50vw + 50%);
+                width: 100%;
                 box-sizing: border-box;
+                border-radius: 0;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
             }
             
             .mobile-horizon-layout .horizon-header .horizon-header-content {
@@ -1415,7 +1455,7 @@
                 font-size: 0.75rem;
                 text-transform: uppercase;
                 letter-spacing: 0.15em;
-                color: rgba(6, 182, 212, 0.8);
+                color: rgba(6, 182, 212, 1);
                 font-weight: 500;
             }
             
@@ -1434,20 +1474,85 @@
                 max-height: none;
                 overflow: visible;
                 padding: 0;
+                max-width: 100%;
+                background: transparent;
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+                border-radius: 0;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
             }
             
             .mobile-horizon-layout .horizon-body-inner {
                 padding: 0;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
             }
             
             .mobile-horizon-layout .premium-card {
-                background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%);
-                border: 1px solid rgba(148, 163, 184, 0.1);
-                border-radius: 24px;
-                padding: 2rem;
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                margin: 0 0 2rem 0;
+                background: transparent !important;
+                border: none !important;
+                border-radius: 0;
+                padding: 2rem 2rem 3rem 2rem;
+                margin: 0;
+                max-width: 100%;
+                box-sizing: border-box;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .mobile-horizon-layout .premium-card::before {
+                display: none;
+            }
+            
+            .mobile-horizon-layout .tab-content {
+                flex: 1;
+                background: transparent !important;
+            }
+            
+            .mobile-horizon-layout .tab-content.active {
+                background: transparent !important;
+            }
+            
+            .mobile-horizon-layout .tab-content ul {
+                background: transparent !important;
+            }
+            
+            .mobile-horizon-layout .horizon-tabs {
+                background: transparent !important;
+            }
+            
+            .mobile-horizon-layout .tab-buttons {
+                background: transparent !important;
+            }
+            
+            .mobile-horizon-layout .tab-button {
+                background: transparent !important;
+            }
+            
+            .mobile-horizon-layout .tab-button.active {
+                background: transparent !important;
+            }
+            
+            /* Force all children to be transparent */
+            .mobile-horizon-layout *,
+            .mobile-horizon-layout *::before,
+            .mobile-horizon-layout *::after {
+                background: transparent !important;
+                background-color: transparent !important;
+                background-image: none !important;
+            }
+            
+            /* Keep only the horizon header with its background */
+            .mobile-horizon-layout .horizon-header {
+                background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(29, 78, 216, 0.9) 100%) !important;
+                background-color: unset !important;
+                background-image: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(29, 78, 216, 0.9) 100%) !important;
             }
 
             .timeline-container {
@@ -2172,9 +2277,9 @@
                 <div class="lg:hidden mt-8 p-4 rounded-lg bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/30">
                     <p class="text-sm text-cyan-300 font-light">
                         <svg class="inline-block w-4 h-4 mr-2 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
-                        Scroll down to explore each horizon
+                        Tap activities to see opportunities tailored for each core business
                     </p>
                 </div>
             </div>
@@ -3182,13 +3287,19 @@
                         // Check if user was scrolling
                         const wasScrolling = Math.abs(touchEndY - touchStartY) > 10;
                         
-                        // If on back side and was scrolling, don't flip
-                        if (isCurrentlyFlipped && wasScrolling) {
+                        // Don't flip if user was scrolling
+                        if (wasScrolling) {
                             return;
                         }
                         
-                        e.preventDefault();
-                        e.stopPropagation();
+                        // Check if clicking on the back content when flipped
+                        const backElement = this.querySelector('.capability-back');
+                        const clickedOnBack = backElement && e.target.closest('.capability-back');
+                        
+                        // If already flipped and clicking on back content, don't do anything (let scroll work)
+                        if (isCurrentlyFlipped && clickedOnBack) {
+                            return;
+                        }
                         
                         // Toggle flipped state
                         const arrowIcon = this.querySelector('.flip-arrow-icon');
@@ -3205,12 +3316,14 @@
                         if (arrowIcon) {
                             const iconSvg = arrowIcon.querySelector('svg');
                             if (iconSvg) {
-                                if (isCurrentlyFlipped) {
-                                    // Going back to front - show right arrow
-                                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
-                                } else {
-                                    // Going to back - show left arrow
+                                // After flip, check NEW state
+                                const newFlippedState = inner.style.transform === 'rotateY(180deg)';
+                                if (newFlippedState) {
+                                    // Now showing back - show left arrow to indicate "flip back"
                                     iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
+                                } else {
+                                    // Now showing front - show right arrow to indicate "flip forward"
+                                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
                                 }
                             }
                         }
