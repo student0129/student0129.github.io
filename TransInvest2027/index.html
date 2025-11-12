@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TransInvest 2027: Your AI Partner for Eurasian Trade Intelligence</title>
     
+    <!-- SEO & Social Meta Tags -->
+    <meta name="description" content="Transform Eurasian trade complexity into competitive advantage with AI-powered intelligence. Mitigate risks, capture opportunities, and anticipate the future across 100+ autonomous businesses.">
+    <meta name="author" content="Promontory AI">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="TransInvest 2027: AI-Powered Eurasian Trade Intelligence">
+    <meta property="og:description" content="Navigate VUCA across 45 countries with AI. Mitigate risks, capture opportunities, anticipate shifts—while preserving autonomous business structure.">
+    <meta property="og:image" content="assets/shipping-container.jpg">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TransInvest 2027: AI-Powered Trade Intelligence">
+    <meta name="twitter:description" content="Transform Eurasian corridor complexity into competitive advantage with strategic AI partnership.">
+    <meta name="twitter:image" content="assets/shipping-container.jpg">
+    
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -1759,6 +1775,232 @@
 
             .timeline-dot {
                 left: -2rem;
+            }
+        }
+
+        /* ============================================
+           PRINT STYLES - PDF EXPORT OPTIMIZATION
+           ============================================ */
+        @media print {
+            /* Reset background colors for better printing */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            /* Keep page background */
+            body {
+                background: linear-gradient(180deg, #000000 0%, #001a4d 30%, #002b7a 50%, #001a4d 70%, #000000 100%) !important;
+            }
+            
+            body::before {
+                display: none; /* Remove animated overlay for print */
+            }
+            
+            /* Hide interactive navigation elements */
+            .side-nav,
+            .scroll-indicator,
+            .horizon-nav-container,
+            .nav-tooltip {
+                display: none !important;
+            }
+            
+            /* Hide flip card arrows and interactive hints */
+            .flip-arrow-icon,
+            .flip-btn {
+                display: none !important;
+            }
+            
+            /* Show all flip card content (front side only for cleaner print) */
+            .capability-flip-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .capability-flip-inner {
+                transform: none !important;
+            }
+            
+            .capability-back {
+                display: none !important; /* Hide back of cards in print */
+            }
+            
+            .capability-front {
+                position: relative !important;
+                transform: none !important;
+            }
+            
+            /* Ensure tab content is all visible in print */
+            .tab-buttons {
+                display: none !important; /* Hide tab navigation */
+            }
+            
+            .tab-content {
+                display: block !important; /* Show all tab content */
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 2rem;
+            }
+            
+            .tab-content::before {
+                content: attr(data-tab-content);
+                display: block;
+                font-weight: 600;
+                color: #06b6d4;
+                margin-bottom: 1rem;
+                text-transform: capitalize;
+            }
+            
+            /* Ensure all tabs show for each horizon */
+            .horizon-tabs .tab-content {
+                opacity: 1 !important;
+                visibility: visible !important;
+                max-height: none !important;
+            }
+            
+            /* Page break management */
+            section {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .premium-card,
+            .question-card,
+            .qa-card,
+            .stat-showcase {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 1.5rem;
+            }
+            
+            h1, h2, h3, h4, h5, h6 {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+            
+            /* Remove animations and transitions for print */
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+            
+            /* Show all reveal elements */
+            .reveal {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            
+            .stagger-children > * {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            
+            /* Timeline adjustments for print */
+            .timeline-item {
+                opacity: 1 !important;
+                transform: none !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            /* Merge visualization - show simplified version */
+            .merge-container .merge-layer {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            
+            .merge-plus {
+                position: static !important;
+                display: block !important;
+                text-align: center !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            
+            .merge-arrow {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            
+            /* Grid adjustments for better print layout */
+            .grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            
+            .capability-cards-grid.three-cols {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            
+            /* Footer adjustments */
+            footer::before {
+                opacity: 0.5 !important; /* Lighter background for footer in print */
+            }
+            
+            /* Ensure links are visible */
+            a {
+                color: #06b6d4 !important;
+                text-decoration: underline;
+            }
+            
+            a[href^="mailto:"]::after {
+                content: " (" attr(href) ")";
+                font-size: 0.9em;
+                color: #64748b;
+            }
+            
+            a[href^="http"]::after {
+                content: " (" attr(href) ")";
+                font-size: 0.8em;
+                color: #64748b;
+                word-break: break-all;
+            }
+            
+            /* Optimize spacing for print */
+            .py-32 {
+                padding-top: 3rem !important;
+                padding-bottom: 3rem !important;
+            }
+            
+            .py-48 {
+                padding-top: 3rem !important;
+                padding-bottom: 3rem !important;
+            }
+            
+            .space-y-48 > * + * {
+                margin-top: 3rem !important;
+            }
+            
+            /* Ensure icons are visible */
+            .icon svg {
+                stroke: #06b6d4 !important;
+                opacity: 1 !important;
+            }
+            
+            /* Mobile-specific print adjustments */
+            @page {
+                margin: 1.5cm;
+                size: A4;
+            }
+            
+            /* Horizon sections - show all content */
+            .horizon-content-section .horizon-header {
+                position: static !important;
+                background: rgba(30, 58, 138, 0.3) !important;
+                padding: 1rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .horizon-body {
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            
+            /* Remove sticky behavior for print */
+            .sticky,
+            [style*="position: sticky"],
+            [style*="position: fixed"] {
+                position: static !important;
             }
         }
     </style>
