@@ -306,14 +306,9 @@
         .icon svg {
             width: 3rem;
             height: 3rem;
-            stroke: currentColor;
+            stroke: #06b6d4;
             stroke-width: 0.75;
             fill: none;
-        }
-        
-        /* Default icon color when no inline style specified */
-        .icon:not([style*="color"]) svg {
-            stroke: #06b6d4;
         }
 
         /* Large lightbulb icon styling */
@@ -1105,22 +1100,22 @@
             <div class="reveal">
                 <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="search"></i></div>
+                        <div class="icon"><i data-lucide="search"></i></div>
                         <h4 class="card-title text-white">Pattern Recognition at Scale</h4>
                         <p class="text-slate-300 font-light">Humans see patterns in 10 shipments. AI sees them across 10 million—and across your 100+ businesses. <strong class="text-white">"Every time M&M volumes spike +30% on Vietnam routes, warehouse demand follows 8 weeks later, financing inquiries peak 12 weeks after."</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="dice-6"></i></div>
+                        <div class="icon"><i data-lucide="dice-6"></i></div>
                         <h4 class="card-title text-white">Prediction with Uncertainty</h4>
                         <p class="text-slate-300 font-light">Probabilistic forecasting across corridors and business lines. <strong class="text-white">"Vietnam corridor demand: 82% probability of 25% growth in 6 months. Recommend: Pre-position warehouses + financing packages now."</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="route"></i></div>
+                        <div class="icon"><i data-lucide="route"></i></div>
                         <h4 class="card-title text-white">Optimization in Complex Systems</h4>
                         <p class="text-slate-300 font-light">Finding the optimal solution across multiple business constraints. <strong class="text-white">"Route 240 trucks + allocate warehouse capacity + structure financing terms—all optimized together for margin, speed, and customer satisfaction."</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="scan"></i></div>
+                        <div class="icon"><i data-lucide="scan"></i></div>
                         <h4 class="card-title text-white">Computer Vision & Image Recognition</h4>
                         <p class="text-slate-300 font-light">AI "sees" and interprets visual information. <strong class="text-white">"Satellite imagery tracks 240 trucks across Eurasian corridors in real-time. Visual inspection detects cargo damage before it becomes a claim. Automated verification authenticates customs stamps and certificates across 45 countries."</strong></p>
                     </div>
@@ -1135,14 +1130,14 @@
                 </div>
                 <div class="grid md:grid-cols-2 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="message-square"></i></div>
+                        <div class="icon"><i data-lucide="message-square"></i></div>
                         <h4 class="card-title text-white">What Are LLMs?</h4>
                         <p class="text-slate-300 font-light mb-4">AI systems trained on massive amounts of text to understand and generate human-like language. They can read documents, interpret regulations, answer questions, draft content—in any language.</p>
                         <p class="text-white font-medium mb-2">TransInvest Example:</p>
                         <p class="text-slate-300 font-light"><em>"Generate compliant customs declaration for 20-ton textile shipment from Istanbul to Almaty via Baku, including HS code classification, Russian and Kazakh translations, and CIS customs union protocols."</em><br/><br/>LLM produces the complete documentation in seconds—work that would take a human expert 2-3 hours.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="languages"></i></div>
+                        <div class="icon"><i data-lucide="languages"></i></div>
                         <h4 class="card-title text-white">Why They Matter for Eurasian Corridors</h4>
                         <ul class="space-y-3 mt-4">
                             <li class="flex items-start text-slate-300">
@@ -1162,6 +1157,31 @@
                                 <span class="font-light"><strong class="text-white">Natural language queries.</strong> Leadership asks "Which routes had delays last month?" in plain English—LLM translates to database query, returns answer instantly.</span>
                             </li>
                         </ul>
+                    </div>
+                </div>
+                <div class="mt-12 max-w-4xl mx-auto">
+                    <div class="premium-card bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-cyan-500/20">
+                        <h4 class="text-white font-medium mb-4 text-center">LLMs vs Traditional Software</h4>
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <p class="text-slate-400 font-medium mb-3">Traditional Software:</p>
+                                <ul class="space-y-2 text-slate-300 font-light text-sm">
+                                    <li>• Needs exact templates and rigid rules</li>
+                                    <li>• Breaks with unexpected formats</li>
+                                    <li>• Requires separate system per language</li>
+                                    <li>• Can't interpret ambiguous regulations</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-cyan-400 font-medium mb-3">LLMs:</p>
+                                <ul class="space-y-2 text-slate-100 font-light text-sm">
+                                    <li>• Handles variability and context naturally</li>
+                                    <li>• Adapts to novel situations</li>
+                                    <li>• One system, 100+ languages</li>
+                                    <li>• Interprets nuance and implicit meaning</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <p class="text-center mt-12 text-slate-300 font-light italic max-w-3xl mx-auto">
@@ -1193,17 +1213,17 @@
                 <!-- What Makes Agents Powerful -->
                 <div class="mt-16 grid md:grid-cols-3 gap-8 stagger-children">
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="database"></i></div>
+                        <div class="icon"><i data-lucide="database"></i></div>
                         <h4 class="card-title text-white">Access Internal Knowledge</h4>
                         <p class="text-slate-300 font-light">Agents connect to your ERP, TMS, WMS, financial systems, contracts, and historical data. <strong class="text-white">They reason with your organization's full context.</strong></p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="brain"></i></div>
+                        <div class="icon"><i data-lucide="brain"></i></div>
                         <h4 class="card-title text-white">Learn and Adapt</h4>
                         <p class="text-slate-300 font-light">Every decision, every outcome feeds back. <strong class="text-white">Agents get better at understanding your business</strong> with each corridor shipment, each financing deal, each warehouse allocation.</p>
                     </div>
                     <div class="premium-card">
-                        <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="settings"></i></div>
+                        <div class="icon"><i data-lucide="settings"></i></div>
                         <h4 class="card-title text-white">Act Autonomously</h4>
                         <p class="text-slate-300 font-light">With proper guardrails, Agents can execute decisions: trigger reroutes, allocate capacity, flag financing opportunities. <strong class="text-white">Human oversight remains, but at exception-level only.</strong></p>
                     </div>
@@ -1341,7 +1361,7 @@
                     <div id="h1" class="horizon-content-section">
                         <div class="premium-card">
                             <h4 class="card-title text-white">Horizon 1: Mitigate Risk & Build Foundation</h4>
-                            <p class="text-lg text-slate-300 mb-8 font-light">Stop losing money to preventable problems. These initiatives reduce operational risk, improve efficiency, and pay for themselves—giving CFOs immediate ROI while building the foundation for strategic AI.</p>
+                            <p class="text-lg text-slate-300 mb-8 font-light">Stop losing money to preventable problems. These initiatives reduce operational risk, improve efficiency, and pay for themselves in months—giving CFOs immediate ROI while building the foundation for strategic AI.</p>
                             
                             <!-- Tabbed Interface -->
                             <div class="horizon-tabs" data-horizon="h1">
@@ -1353,94 +1373,96 @@
                                 
                                 <!-- Transport & Logistics Tab -->
                                 <div class="tab-content active" data-tab-content="h1-logistics">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Traditional Analytics"><i data-lucide="search"></i></span>
-                                            <div>
-                                                <strong class="text-white">Freight Matching & Empty Mile Reduction.</strong> Machine learning identifies empty backhaul opportunities across M&M's network. <strong class="text-white">Impact:</strong> Reduce empty miles by 12-18%, improve truck utilization, immediate cost savings.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Traditional Analytics"><i data-lucide="search"></i></span>
-                                            <div>
-                                                <strong class="text-white">Customs & Border Delay Prediction.</strong> Predict where delays will occur (sanctions checks, gauge changes, document issues) and proactively reroute or adjust schedules. <strong class="text-white">Impact:</strong> Reduce border delays by 20-30%, fewer demurrage charges.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Predictive AI"><i data-lucide="dice-6"></i></span>
-                                            <div>
-                                                <strong class="text-white">Rail & Intermodal Predictive Maintenance.</strong> Reduce unplanned downtime for rail assets (locomotives, wagons, gauge-change equipment). <strong class="text-white">Impact:</strong> 15-25% reduction in maintenance costs, fewer service disruptions.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="LLM-Powered"><i data-lucide="message-square"></i></span>
-                                            <div>
-                                                <strong class="text-white">Automated Customs Documentation (Turkey-Central Asia).</strong> LLMs generate compliant customs declarations across CIS, Turkey, and EU regulatory zones—in multiple languages with proper HS codes. <strong class="text-white">Impact:</strong> 60-80% reduction in documentation time, fewer rejections.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="LLM-Powered"><i data-lucide="message-square"></i></span>
-                                            <div>
-                                                <strong class="text-white">Customer Service Automation Across Languages.</strong> LLM-powered chatbots handle routine inquiries in Turkish, Russian, Kazakh, and English—freeing up humans for complex issues. <strong class="text-white">Impact:</strong> 40-50% reduction in support tickets, faster response times.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="LLM-Powered"><i data-lucide="message-square"></i></span>
-                                            <div>
-                                                <strong class="text-white">Automated Document Processing (Contracts, Invoices, Bills of Lading).</strong> Extract structured data from PDFs, emails, scanned documents across multiple languages and regulatory formats. <strong class="text-white">Impact:</strong> 70% faster processing, fewer manual errors.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Computer Vision"><i data-lucide="scan"></i></span>
-                                            <div>
-                                                <strong class="text-white">Real-Time Asset Tracking & Damage Detection.</strong> Satellite imagery and on-site cameras track 240 trucks across Eurasian corridors. Visual inspection detects cargo damage before it becomes a claim. <strong class="text-white">Impact:</strong> Real-time visibility, 30% reduction in damage claims.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Optimization AI"><i data-lucide="route"></i></span>
-                                            <div>
-                                                <strong class="text-white">Multimodal Route Optimization (Road + Rail + Ferry).</strong> Dynamically optimize routes considering gauge changes, border efficiency, seasonal capacity, and geopolitical risk. <strong class="text-white">Impact:</strong> Reduces operational costs and improves existing service efficiency.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Optimization AI"><i data-lucide="route"></i></span>
-                                            <div>
-                                                <strong class="text-white">Control Tower with Real-Time Exception Alerts.</strong> Unified view of shipments across road, rail, ferry with AI-powered alerts for delays, capacity issues, compliance risks. <strong class="text-white">Impact:</strong> Proactive problem-solving, fewer customer escalations.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                
-                                <!-- Real Estate Tab -->
-                                <div class="tab-content" data-tab-content="h1-realestate">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Traditional Analytics"><i data-lucide="search"></i></span>
-                                            <div>
-                                                <strong class="text-white">Lease Analysis & Expiry Alerts.</strong> Traditional analytics track lease terms, flag upcoming renewals, and identify cost-saving consolidation opportunities across your warehouse network. <strong class="text-white">Impact:</strong> Avoid missed renewals, negotiate better terms, reduce real estate costs.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                
-                                <!-- Financing Tab -->
-                                <div class="tab-content" data-tab-content="h1-financing">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Traditional Analytics"><i data-lucide="search"></i></span>
-                                            <div>
-                                                <strong class="text-white">Credit Risk Scoring for SME Borrowers.</strong> Traditional AI models assess creditworthiness of SME clients seeking financing for logistics services or equipment purchases. <strong class="text-white">Impact:</strong> Faster approvals, lower default rates, expand financing portfolio safely.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Predictive AI"><i data-lucide="dice-6"></i></span>
-                                            <div>
-                                                <strong class="text-white">Automated Collections & Payment Prediction.</strong> Predictive AI identifies which invoices are at risk of late payment and automates dunning workflows. <strong class="text-white">Impact:</strong> Improve cash flow, reduce DSO (Days Sales Outstanding).
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+                            <p class="text-sm text-cyan-400 font-medium mb-4 uppercase tracking-wide">Quick Wins (3-6 months, Immediate ROI)</p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Freight Matching for M&M:</strong>
+                                        <span class="font-light"> Reduce empty backhauls by 30-45% on asymmetric Europe→Asia lanes. AI recommends optimal matches with human approval. <em class="text-slate-400">Industry benchmark: 45% reduction in empty miles. For 240 trucks, this saves €500K-750K annually in fuel costs. 3-4 months pilot.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Cross-Border Customs Automation:</strong>
+                                        <span class="font-light"> AI-powered documentation for complex multi-jurisdictional corridors. <em class="text-slate-400">Industry data: 90-96% cost reduction in documentation processing. Eliminates delays, reduces errors. 4-6 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Predictive Maintenance Pilot (InterRail):</strong>
+                                        <span class="font-light"> Monitor rolling stock for early failure detection. <em class="text-slate-400">Reduce unplanned downtime by 20-30%, extend asset life. Rolling stock breakdowns on long-distance routes are extremely costly. 3-6 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Real Estate: Lease Analysis & Expiry Alerts:</strong>
+                                        <span class="font-light"> AI monitors lease portfolio, flags expiring contracts 6-12 months early, benchmarks against market rates. <em class="text-slate-400">Prevents reactive renewals, captures renegotiation opportunities, optimizes vacancy management. 4-6 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Financing: Credit Risk Scoring for SME Borrowers:</strong>
+                                        <span class="font-light"> AI assesses creditworthiness using alternative data—shipment history, payment patterns, corridor volatility. <em class="text-slate-400">Reduce manual underwriting time 60%, expand lending to underbanked corridors with better risk assessment. 4-6 months.</em></span>
+                                    </div>
+                                </li>
+                            </ul>
+                            <p class="text-sm text-slate-300 font-medium mt-8 mb-4 uppercase tracking-wide">Foundation Builds (6-12 months)</p>
+                            <ul class="space-y-4">
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">LLM-Powered Customs Automation:</strong>
+                                        <span class="font-light"> AI generates compliant customs declarations across 45+ countries in multiple languages (Russian, Chinese, Persian, Turkish). Interprets regulations, classifies HS codes, translates documents. <em class="text-slate-400">Particularly valuable for PTB Iranian operations and M&M's multimodal routes. Reduce documentation time 70%+. 6-9 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Multilingual Customer Service AI:</strong>
+                                        <span class="font-light"> LLM-powered support handling inquiries 24/7 across your linguistic footprint—Russian, Chinese, Persian, German, Turkish. <em class="text-slate-400">Free up human teams for complex issues, improve response times 10x. 6-9 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Document Automation & Validation:</strong>
+                                        <span class="font-light"> AI-powered extraction and validation of purchase orders, invoices, bills of lading, certificates of analysis (CoAs), and compliance documents across 45 countries. <em class="text-slate-400">Reduces manual data entry errors from 15% to <1%, cuts processing time from hours to minutes, creates audit-ready document trails. Particularly valuable for PTB Iranian operations, M&M multimodal shipments, warehousing compliance. 6-12 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Computer Vision for Cargo & Document Inspection:</strong>
+                                        <span class="font-light"> Automated visual inspection detects cargo damage at warehouses before it becomes an insurance claim. AI authenticates customs stamps and certificates across 45 countries, identifying forgeries and processing anomalies instantly. <em class="text-slate-400">Reduces insurance claims by 20-30%, speeds customs verification, eliminates manual photo review. Works seamlessly with document automation above. 9-12 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Control Tower Visibility & Executive BI:</strong>
+                                        <span class="font-light"> Real-time dashboards and business intelligence across 100+ companies. Leadership sees corridor-wide trends, coordination opportunities, and strategic KPIs visualized for decision-making. Each business tracks operational metrics with customized views. <em class="text-slate-400">Data-driven insights without forced integration—everyone has visibility while maintaining autonomy. Requires basic data standardization (formats, KPIs) but no forced integration. 9-12 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Multimodal Route Optimization:</strong>
+                                        <span class="font-light"> Start with 2-3 key corridors, then scale. AI optimizes road, rail, sea, air combinations using available capacity data. <em class="text-slate-400">Industry benchmarks: 22% transit time reduction, 15% cost savings on optimized routes. Reduces operational costs and improves existing service efficiency. 9-12 months for initial corridors.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Financing: Automated Collections & Payment Prediction:</strong>
+                                        <span class="font-light"> AI predicts payment delays, prioritizes collection efforts, automates reminders in local languages. <em class="text-slate-400">Reduce Days Sales Outstanding (DSO) by 15-25%, improve cash flow predictability, lower bad debt write-offs. 9-12 months.</em></span>
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                     
@@ -1448,7 +1470,7 @@
                     <div id="h2" class="horizon-content-section">
                         <div class="premium-card">
                             <h4 class="card-title text-white">Horizon 2: Capture Opportunities & Differentiate</h4>
-                            <p class="text-lg text-slate-300 mb-8 font-light">Give leadership AI-powered intelligence to make strategic decisions—which corridors to expand, which services to bundle, where to take calculated risks. Turn market complexity into competitive advantage.</p>
+                            <p class="text-lg text-slate-300 mb-8 font-light">Give leadership AI-powered intelligence to make strategic decisions—which corridors to expand, which services to bundle, where to take calculated risks. Turn market complexity into competitive advantage. <strong class="text-white">This is where AI Agents emerge.</strong></p>
                             
                             <!-- Tabbed Interface -->
                             <div class="horizon-tabs" data-horizon="h2">
@@ -1460,76 +1482,71 @@
                                 
                                 <!-- Transport & Logistics Tab -->
                                 <div class="tab-content active" data-tab-content="h2-logistics">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">Multi-Agent Orchestration for Logistics Operations.</strong> Deploy multiple specialized AI Agents that coordinate across freight matching, customs compliance, and route optimization. They perceive disruptions, reason through alternatives, and execute decisions autonomously within defined guardrails. <strong class="text-white">Impact:</strong> Advanced operational automation that differentiates from competitors.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">Autonomous Freight Matching Across Business Units.</strong> An Agent learns M&M's capacity patterns, InterRail's schedules, and customer demand signals—then proactively suggests load consolidation and cross-selling opportunities leadership wouldn't see manually. <strong class="text-white">Impact:</strong> 15-20% improvement in asset utilization, new revenue from bundled services.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">Real-Time Compliance Monitoring (Sanctions, Trade Rules).</strong> Continuously monitors evolving sanctions, trade policies, and customs regulations. Flags risks before shipments are booked. <strong class="text-white">Impact:</strong> Avoid costly violations, maintain reputation in complex geopolitical environment.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">Market Intelligence for Corridor Expansion.</strong> Scans trade data, economic indicators, competitor moves, and geopolitical shifts to recommend which new corridors (e.g., Vietnam, Taiwan, Spain expansions) offer the best risk-adjusted returns. <strong class="text-white">Impact:</strong> Data-driven expansion decisions, first-mover advantage in emerging routes.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">Carbon Optimization & ESG Reporting.</strong> Optimize routes and modal choices for carbon efficiency while maintaining service levels. Automate ESG reporting for customers and regulators. <strong class="text-white">Impact:</strong> Win sustainability-focused contracts, differentiate in tenders.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                
-                                <!-- Real Estate Tab -->
-                                <div class="tab-content" data-tab-content="h2-realestate">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Predictive AI"><i data-lucide="dice-6"></i></span>
-                                            <div>
-                                                <strong class="text-white">Warehouse Demand Forecasting (Strategic Growth).</strong> Predictive AI analyzes corridor growth signals, trade volumes, and economic indicators to forecast warehouse demand in emerging markets (Vietnam, Taiwan, Spain). <strong class="text-white">Impact:</strong> Pre-position capacity before competitors, capture market share in expansions.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">AI Agent for Property Valuation & Acquisition.</strong> Evaluates warehouse acquisition opportunities using corridor growth signals, logistics demand patterns, and competitive positioning. <strong class="text-white">Impact:</strong> Make faster, data-driven real estate investments aligned with logistics expansion.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                
-                                <!-- Financing Tab -->
-                                <div class="tab-content" data-tab-content="h2-financing">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">AI Agent for Dynamic Pricing & Product Bundling.</strong> Analyzes corridor risk, customer behavior, and market conditions to recommend optimal financing terms and bundled logistics + financing packages. <strong class="text-white">Impact:</strong> Increase financing portfolio profitability, differentiate through tailored solutions.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">AI Agent for Synergy Identification (Cross-Business).</strong> Monitors patterns across logistics, real estate, and financing businesses to surface bundled opportunities—e.g., "Customer X is expanding Vietnam corridor, needs warehousing + financing for equipment." <strong class="text-white">Impact:</strong> Cross-sell revenue, deeper customer relationships.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+                            <ul class="space-y-4">
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Multi-Agent Orchestration for Logistics Operations:</strong>
+                                        <span class="font-light"> Multiple specialized AI agents collaborate autonomously—Demand Agent (predicts freight), Capacity Agent (optimizes assets), Pricing Agent (dynamic rates), Risk Agent (monitors threats), Booking Agent (coordinates shipments). <em class="text-slate-400">"Lights-out" logistics coordination—agents handle 80% of routine decisions, humans focus on exceptions and strategy. Advanced operational automation that differentiates from competitors. 18-24 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">AI Agent: Autonomous Freight Matching:</strong>
+                                        <span class="font-light"> Agent continuously monitors M&M's 240 trucks + available freight on digital marketplaces, autonomously matches loads, negotiates rates within parameters, books shipments. <em class="text-slate-400">Maximize backhaul utilization on asymmetric Europe-Asia routes—45% empty mile reduction potential. 12-18 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">AI Agent: Cross-Border Compliance Monitoring:</strong>
+                                        <span class="font-light"> Agent monitors regulatory changes across 45 countries, automatically updates internal protocols, flags shipments at risk, recommends pre-clearance actions. <em class="text-slate-400">Proactive compliance = fewer delays, fewer fines, faster transit. 12-18 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">AI Agent: Market Intelligence:</strong>
+                                        <span class="font-light"> Agent continuously monitors BRI corridor news, trade flow data, competitor movements, geopolitical signals—surfaces opportunities/risks to leadership weekly. <em class="text-slate-400">"AI identifies 15-25% growth signal in Vietnam corridor 6 months early." Supports market development (Taiwan, Singapore, Spain expansions). 18-24 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Real Estate: Warehouse Demand Forecasting (Strategic Growth):</strong>
+                                        <span class="font-light"> AI predicts warehouse space needs using logistics volume forecasts, identifies high-growth corridors 6-12 months early. <em class="text-slate-400">Pre-position capacity in emerging markets before competitors, capture market share in Vietnam/Taiwan/Spain expansions. Example: "Vietnam corridor +25% growth likely—secure warehouse capacity now." Strategic opportunity capture, not just risk mitigation. 12-18 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Carbon Optimization & Reporting:</strong>
+                                        <span class="font-light"> Track Scope 3 emissions across all subsidiaries, recommend lower-carbon alternatives, automate CSRD/CBAM compliance reporting. <em class="text-slate-400">EU regulations tightening—table stakes by 2027. 18-24 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Real Estate: AI Agent for Property Valuation & Acquisition:</strong>
+                                        <span class="font-light"> Agent monitors corridor growth signals (logistics volume trends, trade policy shifts, infrastructure development), predicts which warehouse/terminal locations will appreciate, flags acquisition opportunities. <em class="text-slate-400">Strategic property investments aligned with logistics growth. Example: "Vietnam corridor volume +25% likely—recommend acquiring warehouse capacity in Hanoi outskirts now." 18-24 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Financing: Dynamic Pricing & Product Bundling Agent:</strong>
+                                        <span class="font-light"> Agent monitors corridor risk profiles, customer behavior, competitive rates—dynamically adjusts trade finance pricing, identifies bundling opportunities. <em class="text-slate-400">"Customer ships 40 TEU/month Iran-Turkey—recommend bundled financing + insurance package at 15% margin." Maximize revenue per customer relationship. 18-24 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Cross-Business Synergy Agent (Logistics + Real Estate + Financing):</strong>
+                                        <span class="font-light"> When businesses choose to collaborate, AI surfaces bundled opportunities. <em class="text-slate-400">Example: "Customer needs 100 TEU shipping + warehouse storage + 90-day financing. M&M has capacity, real estate subsidiary has available space, financing can structure terms." Agent surfaces opportunity—businesses decide whether to pursue. Respects autonomy while enabling coordination. 18-24 months.</em></span>
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                     
@@ -1537,7 +1554,7 @@
                     <div id="h3" class="horizon-content-section">
                         <div class="premium-card">
                             <h4 class="card-title text-white">Horizon 3: Anticipate the Future & Lead</h4>
-                            <p class="text-lg text-slate-300 mb-8 font-light">Build strategic foresight that lets leadership make multi-year bets with confidence. Turn decades of proprietary Eurasian data into predictive intelligence competitors cannot replicate—even if they copy your tech.</p>
+                            <p class="text-lg text-slate-300 mb-8 font-light">Build strategic foresight that lets leadership make multi-year bets with confidence. Turn decades of proprietary Eurasian data into predictive intelligence competitors cannot replicate—even if they copy your tech. <strong class="text-white">This is where strategic scenario planning and cross-vertical intelligence transform decision-making.</strong></p>
                             
                             <!-- Tabbed Interface -->
                             <div class="horizon-tabs" data-horizon="h3">
@@ -1549,52 +1566,46 @@
                                 
                                 <!-- Transport & Logistics Tab -->
                                 <div class="tab-content active" data-tab-content="h3-logistics">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="LLM-Powered"><i data-lucide="message-square"></i></span>
-                                            <div>
-                                                <strong class="text-white">Scenario Planning for Geopolitical Shocks.</strong> LLM-powered system ingests news, policy changes, economic reports, and generates "what-if" scenarios: <em>"If Russia-Ukraine escalates, how does it affect Poland-Kazakhstan routes? What are alternative corridors? What's the cost-time-risk trade-off?"</em> Leadership gets decision-ready intelligence in hours, not weeks. <strong class="text-white">Impact:</strong> Proactive contingency planning, resilience in crisis.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="LLM-Powered"><i data-lucide="message-square"></i></span>
-                                            <div>
-                                                <strong class="text-white">Natural Language Business Intelligence.</strong> Ask complex questions in plain language: <em>"Which corridors had the highest customs delays last quarter, and what regulatory changes correlate?"</em> LLM queries your data warehouse, synthesizes insights, and surfaces correlations humans would miss. <strong class="text-white">Impact:</strong> Leadership gets answers in minutes, not weeks of analyst work.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                
-                                <!-- Real Estate Tab -->
-                                <div class="tab-content" data-tab-content="h3-realestate">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Predictive AI"><i data-lucide="dice-6"></i></span>
-                                            <div>
-                                                <strong class="text-white">Long-Term Corridor Development Scenarios (2030+).</strong> Predictive models simulate infrastructure investments, trade policy shifts, and economic growth to forecast which corridors will dominate by 2030—informing warehouse and terminal investments years ahead. <strong class="text-white">Impact:</strong> Strategic real estate positioning before competitors see the trend.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                
-                                <!-- Financing Tab -->
-                                <div class="tab-content" data-tab-content="h3-financing">
-                                    <ul class="space-y-4">
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="Predictive AI"><i data-lucide="dice-6"></i></span>
-                                            <div>
-                                                <strong class="text-white">Portfolio Stress Testing & Geopolitical Risk Modeling.</strong> Scenario planning tools model how geopolitical shocks (sanctions, trade wars, currency crises) impact your financing portfolio across 45 countries. <strong class="text-white">Impact:</strong> Anticipate risks, rebalance exposure proactively.
-                                            </div>
-                                        </li>
-                                        <li class="flex items-start text-slate-300">
-                                            <span class="tech-icon" title="AI Agent"><i data-lucide="cpu"></i></span>
-                                            <div>
-                                                <strong class="text-white">Multi-Agent Orchestration Across All Verticals.</strong> Deploy interconnected AI Agents across logistics (demand forecasting), real estate (capacity planning), financing (risk assessment), and market intelligence. They share intelligence autonomously and surface cross-business opportunities leadership can't see manually. <strong class="text-white">Impact:</strong> Unified strategic foresight—competitors react to markets, you shape them.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+                            <ul class="space-y-4">
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">LLM-Powered Scenario Planning:</strong>
+                                        <span class="font-light"> Leadership asks: "Model impact of 20% EU-China trade shift + carbon tax doubling + Kazakhstan gauge standardization by 2028." AI runs 100+ scenarios in hours, not months. <em class="text-slate-400">Stress-test strategies before committing capital. TransInvest faces unprecedented VUCA—need tools to evaluate multi-year bets. 24-36 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Natural Language Business Intelligence:</strong>
+                                        <span class="font-light"> Anyone queries in plain language: "Which routes had highest margin last quarter?" or "Show me Iran-China rail delays vs. road alternatives." <em class="text-slate-400">Democratizes data access without forcing standardization—preserves autonomy while surfacing insights. 24-36 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Real Estate: Long-Term Corridor Development Scenarios:</strong>
+                                        <span class="font-light"> AI models 2030+ infrastructure development across Eurasian corridors—new rail lines, border digitization, free trade zones. <em class="text-slate-400">"Kazakhstan gauge standardization by 2028 + China-Kyrgyzstan-Uzbekistan rail completion → Almaty becomes critical transshipment hub. Recommend acquiring 50,000 sqm warehouse capacity now." Strategic foresight for multi-year property investments. 24-36 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Financing: Portfolio Stress Testing & Geopolitical Risk:</strong>
+                                        <span class="font-light"> Leadership asks: "Model impact of 30% EU-China trade reduction + Iran sanctions tightening + Turkey currency crisis." AI stress-tests entire financing portfolio across scenarios. <em class="text-slate-400">Identify concentration risks, optimize hedging strategies, scenario-plan capital allocation. Critical for navigating VUCA in financing operations. 24-36 months.</em></span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start text-slate-300">
+                                    <span class="text-cyan-400 mr-4 mt-1">→</span>
+                                    <div>
+                                        <strong class="text-white font-medium">Multi-Agent Orchestration Across All Verticals:</strong>
+                                        <span class="font-light"> Specialized agents collaborate autonomously—Logistics Demand Agent + Real Estate Capacity Agent + Financing Terms Agent + Risk Agent. <em class="text-slate-400">Example: Demand Agent predicts Vietnam corridor growth → Real Estate Agent identifies warehouse opportunities → Financing Agent structures acquisition terms → Risk Agent validates geopolitical stability. All coordinated, all autonomous, all respecting business boundaries. This is the future of TransInvest's operating intelligence. 30-36 months.</em></span>
+                                    </div>
+                                </li>
+                            </ul>
+                            <p class="mt-8 text-white font-light text-center italic">
+                                By 2027: TransInvest becomes the most data-intelligent operator in Eurasian corridors—across logistics, real estate, and financing. Competitors react, you anticipate.
+                            </p>
                         </div>
                     </div>
 
