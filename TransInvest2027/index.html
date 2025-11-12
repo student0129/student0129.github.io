@@ -32,7 +32,7 @@
         
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            font-weight: 300;
+            font-weight: 200;
             color: #e2e8f0; /* slate-200 */
             overflow-x: hidden;
             background: linear-gradient(180deg, #000000 0%, #001a4d 30%, #002b7a 50%, #001a4d 70%, #000000 100%);
@@ -157,8 +157,8 @@
            H2: Major section titles + strategic statements (Playfair Display via .section-header)
            H3: Subsection titles within sections (Playfair Display via .section-header)
            H4: Card titles, feature titles, scenario titles (DM Sans, light weight)
-           Body: Inter font-light (300 weight)
-           Emphasis: font-medium (500 weight) for inline emphasis
+           Body: Inter font-extralight (200 weight)
+           Emphasis: font-light (300 weight) for inline emphasis
         */
         
         h1 { font-size: clamp(3rem, 8vw, 6rem); }
@@ -167,12 +167,12 @@
         h4 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
 
         strong {
-            font-weight: 500;
+            font-weight: 400;
         }
         
         em {
             font-style: italic;
-            font-weight: 300;
+            font-weight: 200;
         }
         
         /* Section headers use serif font - applied to H1, H2, H3 section titles */
@@ -186,7 +186,7 @@
         .card-title {
             font-family: 'DM Sans', sans-serif;
             font-size: clamp(1.25rem, 2.5vw, 1.5rem);
-            font-weight: 300;
+            font-weight: 200;
             line-height: 1.4;
             margin-bottom: 1rem;
         }
@@ -195,7 +195,7 @@
         .subsection-title {
             font-family: 'DM Sans', sans-serif;
             font-size: 1.25rem;
-            font-weight: 500;
+            font-weight: 300;
             line-height: 1.4;
         }
 
@@ -588,7 +588,7 @@
             border-radius: 12px;
             color: #06b6d4;
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 400;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: auto;
@@ -990,7 +990,7 @@
             text-transform: uppercase;
             letter-spacing: 0.1em;
             margin-bottom: 0.25rem;
-            font-weight: 300;
+            font-weight: 200;
         }
 
         .horizon-nav-item.active {
@@ -1094,7 +1094,7 @@
         .strategic-statement h2 {
             position: relative;
             z-index: 1;
-            font-weight: 300;
+            font-weight: 200;
             font-family: 'DM Sans', sans-serif;
             font-size: clamp(2.25rem, 5vw, 4rem) !important;
             line-height: 1.25;
@@ -1108,7 +1108,7 @@
             text-transform: uppercase;
             letter-spacing: 0.15em;
             color: rgba(6, 182, 212, 0.8);
-            font-weight: 500;
+            font-weight: 400;
             margin-bottom: 1.5rem;
             font-family: 'DM Sans', sans-serif;
         }
@@ -1166,14 +1166,14 @@
             text-transform: uppercase;
             letter-spacing: 0.15em;
             color: rgba(6, 182, 212, 0.7);
-            font-weight: 500;
+            font-weight: 400;
             margin-bottom: 1rem;
             font-family: 'DM Sans', sans-serif;
         }
         
         .question-title {
             font-size: clamp(1.5rem, 3vw, 2rem);
-            font-weight: 300;
+            font-weight: 200;
             line-height: 1.3;
             color: #ffffff;
             margin-bottom: 0;
@@ -1187,6 +1187,204 @@
         @media (max-width: 767px) {
             .question-card.full-width {
                 grid-column: 1;
+            }
+        }
+        
+        /* Flowing paragraph sections with decorative backgrounds */
+        .context-intro {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.3) 0%, rgba(30, 41, 59, 0.2) 100%);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .context-intro::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 40%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .context-intro p {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .context-intro p strong {
+            color: #fff;
+            font-weight: 300;
+        }
+        
+        /* Q&A Cards with decorative letters */
+        .qa-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 20px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .qa-card.question-type::before {
+            content: 'Q';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 12rem;
+            font-weight: 100;
+            color: rgba(6, 182, 212, 0.05);
+            font-family: 'Playfair Display', serif;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .qa-card.answer-type::before {
+            content: 'A';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 12rem;
+            font-weight: 100;
+            color: rgba(6, 182, 212, 0.08);
+            font-family: 'Playfair Display', serif;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .qa-card:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(6, 182, 212, 0.12);
+        }
+        
+        .qa-card .qa-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(6, 182, 212, 0.9);
+            font-weight: 400;
+            margin-bottom: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .qa-card .qa-content {
+            position: relative;
+            z-index: 1;
+            font-size: 1.0625rem;
+            line-height: 1.7;
+            color: #e2e8f0;
+            font-weight: 200;
+        }
+        
+        .qa-card.answer-type .qa-content {
+            font-size: 1.125rem;
+        }
+        
+        /* Number showcases with emphasis */
+        .stat-showcase {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.4) 0%, rgba(30, 41, 59, 0.3) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .stat-showcase::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .stat-showcase:hover::before {
+            opacity: 1;
+        }
+        
+        .stat-showcase:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            transform: translateY(-6px);
+            box-shadow: 0 16px 48px rgba(6, 182, 212, 0.15);
+        }
+        
+        .stat-number {
+            font-size: 5rem;
+            font-weight: 100;
+            background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 1rem;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stat-description {
+            font-size: 0.9375rem;
+            color: #cbd5e1;
+            font-weight: 200;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-source {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        
+        .stat-source a {
+            color: #06b6d4;
+            text-decoration: none;
+            border-bottom: 1px dotted rgba(6, 182, 212, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-source a:hover {
+            color: #22d3ee;
+            border-bottom-color: #22d3ee;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-number {
+                font-size: 3.5rem;
+            }
+            .context-intro {
+                padding: 2rem;
+            }
+            .qa-card::before {
+                font-size: 8rem;
+                top: -10px;
+                right: -15px;
             }
         }
 
@@ -1269,7 +1467,7 @@
             padding: 1rem 1.5rem;
             font-family: 'DM Sans', sans-serif;
             font-size: 1rem;
-            font-weight: 400;
+            font-weight: 300;
             color: rgba(148, 163, 184, 0.6);
             background: transparent;
             border: none;
@@ -1369,7 +1567,7 @@
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.15em;
-            font-weight: 400;
+            font-weight: 300;
             color: rgba(6, 182, 212, 0.8);
             margin-bottom: 1rem;
             font-family: 'DM Sans', sans-serif;
@@ -1456,7 +1654,7 @@
                 text-transform: uppercase;
                 letter-spacing: 0.15em;
                 color: rgba(6, 182, 212, 1);
-                font-weight: 500;
+                font-weight: 400;
             }
             
             .mobile-horizon-layout .horizon-header .horizon-title {
@@ -1640,74 +1838,83 @@
                     </h2>
                 </div>
                 
-                <!-- Modern Card-Based Layout -->
-                <div class="max-w-4xl mx-auto space-y-6 mt-12">
-                    <!-- The Situation -->
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="premium-card bg-slate-900/40 border border-slate-700/30">
-                            <h4 class="text-white font-medium mb-3">What You've Built</h4>
-                            <p class="text-slate-300 font-light text-sm leading-relaxed">
-                                A rare holding structure preserving entrepreneurial autonomy across <strong class="text-white">100+ businesses, 45 countries</strong>—from M&M's Asia expansion to InterRail's China-Europe corridors.
-                            </p>
-                        </div>
-                        <div class="premium-card bg-slate-900/40 border border-slate-700/30">
-                            <h4 class="text-white font-medium mb-3">The Complexity</h4>
-                            <p class="text-slate-300 font-light text-sm leading-relaxed">
-                                Each business navigates multimodal routes, shifting rail gauges, cross-border customs, geopolitical volatility, emerging BRI opportunities—<strong class="text-white">autonomously</strong>.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <!-- The Insight -->
-                    <div class="premium-card bg-gradient-to-br from-cyan-900/20 to-blue-900/10 border border-cyan-500/20">
-                        <div class="text-center">
-                            <p class="text-slate-300 font-light mb-2">Your competitors see this complexity as a barrier.</p>
-                            <p class="text-2xl text-white font-light">You can make it your <span class="gradient-text font-medium">moat</span>.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- The Challenge & Solution -->
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="premium-card bg-slate-900/60 border-l-4 border-slate-500">
-                            <div class="text-cyan-400 text-xs font-medium uppercase tracking-wide mb-2">The Question</div>
-                            <p class="text-slate-200 font-light text-sm leading-relaxed">
-                                How do you give each autonomous business AI-powered intelligence—while surfacing strategic opportunities for leadership—without forcing integration?
-                            </p>
-                        </div>
-                        <div class="premium-card bg-slate-900/60 border-l-4 border-cyan-400">
-                            <div class="text-cyan-400 text-xs font-medium uppercase tracking-wide mb-2">The Answer</div>
-                            <p class="text-slate-100 font-light text-sm leading-relaxed">
-                                <span class="gradient-text font-medium">AI becomes your operating intelligence</span>—helping each business reduce uncertainty, identify opportunities, and anticipate shifts—respecting the autonomy that makes you competitive.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <!-- Research & Evidence -->
-                    <div class="premium-card bg-slate-900/30 border border-slate-700/20">
-                        <h4 class="text-white font-medium mb-4 text-sm">What The Research Shows</h4>
-                        <div class="grid md:grid-cols-3 gap-4 mb-4">
-                            <div class="text-center">
-                                <div class="text-3xl gradient-text font-light mb-1">15%</div>
-                                <p class="text-xs text-slate-400">
-                                    <a href="https://www.mckinsey.com/industries/industrials-and-electronics/our-insights/distribution-blog/harnessing-the-power-of-ai-in-distribution-operations" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors border-b border-dotted border-slate-600 hover:border-cyan-400" title="McKinsey: AI in distribution operations">Logistics cost reduction</a>
-                                </p>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-3xl gradient-text font-light mb-1">15%</div>
-                                <p class="text-xs text-slate-400">
-                                    <a href="https://www.mckinsey.com/industries/travel/our-insights/ai-can-transform-workforce-planning-for-travel-and-logistics-companies" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors border-b border-dotted border-slate-600 hover:border-cyan-400" title="McKinsey: AI-enabled route optimization">Fuel savings via optimization</a>
-                                </p>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-3xl gradient-text font-light mb-1">10-20%</div>
-                                <p class="text-xs text-slate-400">
-                                    <a href="https://media-publications.bcg.com/BCG-Executive-Perspectives-Unlocking-Impact-from-AI-Supply-Chains-EP4-7Oct2024.pdf" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors border-b border-dotted border-slate-600 hover:border-cyan-400" title="BCG: Predictive and prescriptive AI">Operational cost reduction</a>
-                                </p>
-                            </div>
-                        </div>
-                        <p class="text-slate-300 font-light text-sm leading-relaxed text-center italic pt-4 border-t border-slate-700/30">
-                            But TransInvest isn't like them. You operate where standardized playbooks don't work—which is exactly where AI delivers <strong class="text-white">highest ROI</strong>, because your operational complexity creates a <strong class="text-white">proprietary data advantage</strong>.
+                <!-- Modern Context Introduction -->
+                <div class="max-w-4xl mx-auto space-y-8 mt-12">
+                    <!-- The Situation: Flowing Paragraph -->
+                    <div class="context-intro reveal">
+                        <p class="mb-4">
+                            You've built something rare: a holding structure that preserves <strong>entrepreneurial autonomy across 100+ businesses operating in 45 countries</strong>—from M&M's Asia expansion to InterRail's China-Europe corridors. Each business navigates multimodal routes, shifting rail gauges, cross-border customs, geopolitical volatility, and emerging BRI opportunities—<strong>autonomously</strong>.
                         </p>
+                        <p class="mb-0">
+                            Your competitors see this complexity as a barrier. <strong>You can make it your competitive moat.</strong>
+                        </p>
+                    </div>
+                    
+                    <!-- The Challenge & Solution: Q&A Format -->
+                    <div class="grid md:grid-cols-2 gap-6 reveal">
+                        <div class="qa-card question-type">
+                            <div class="qa-label">The Question</div>
+                            <p class="qa-content">
+                                How do you give each autonomous business AI-powered intelligence—while surfacing strategic opportunities for leadership—<strong>without forcing integration?</strong>
+                            </p>
+                        </div>
+                        <div class="qa-card answer-type">
+                            <div class="qa-label">The Answer</div>
+                            <p class="qa-content">
+                                <span class="gradient-text font-light">AI becomes your operating intelligence</span>—helping each business reduce uncertainty, identify opportunities, and anticipate shifts—<strong>respecting the autonomy that makes you competitive.</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Research & Evidence: Enhanced Statistics -->
+                    <div class="reveal">
+                        <h4 class="text-white text-center font-light mb-8 text-base">What The Research Shows</h4>
+                        <div class="grid md:grid-cols-3 gap-6 mb-8">
+                            <div class="stat-showcase">
+                                <div class="stat-number">15%</div>
+                                <div class="stat-label">Average Transit Time Reduction</div>
+                                <p class="stat-description">AI-enabled route optimization and real-time adjustments reduce travel time across multimodal corridors, improving service delivery and fuel efficiency</p>
+                                <p class="stat-source">
+                                    <a href="https://www.mckinsey.com/industries/travel/our-insights/ai-can-transform-workforce-planning-for-travel-and-logistics-companies" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1">
+                                        Read Report
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </a>
+                                </p>
+                            </div>
+                            <div class="stat-showcase">
+                                <div class="stat-number">11%</div>
+                                <div class="stat-label">Average Warehouse Capacity Increase</div>
+                                <p class="stat-description">AI-powered "digital twin" optimization unlocks additional warehouse capacity without new real estate investment through better space utilization</p>
+                                <p class="stat-source">
+                                    <a href="https://www.mckinsey.com/industries/industrials-and-electronics/our-insights/distribution-blog/harnessing-the-power-of-ai-in-distribution-operations" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1">
+                                        Read Report
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </a>
+                                </p>
+                            </div>
+                            <div class="stat-showcase">
+                                <div class="stat-number">17%</div>
+                                <div class="stat-label">Average Credit Risk Improvement</div>
+                                <p class="stat-description">Advanced analytics improve credit risk assessment and default prediction for SME financing, reducing loan losses while expanding portfolio safely</p>
+                                <p class="stat-source">
+                                    <a href="https://www.mckinsey.com/industries/industrials-and-electronics/our-insights/distribution-blog/harnessing-the-power-of-ai-in-distribution-operations" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1">
+                                        Read Report
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="premium-card bg-gradient-to-br from-cyan-900/10 to-blue-900/5 border border-cyan-500/20">
+                            <p class="text-slate-300 font-light text-center leading-relaxed italic">
+                                But TransInvest isn't like them. You operate where standardized playbooks don't work—which is exactly where AI delivers <strong class="text-white">highest ROI</strong>, because your operational complexity creates a <strong class="text-white">proprietary data advantage</strong>.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1760,7 +1967,7 @@
                                 <span>Weather/strikes disrupting multimodal transfers</span>
                             </li>
                         </ul>
-                        <p class="mt-6 text-white font-medium">→ AI mitigates risk through real-time monitoring + predictive alerts</p>
+                        <p class="mt-6 text-white font-light">→ AI mitigates risk through real-time monitoring + predictive alerts</p>
                     </div>
                     <div class="premium-card">
                         <h4 class="card-title text-white">Complexity & Ambiguity</h4>
@@ -1778,7 +1985,7 @@
                                 <span>Customer demand patterns across 100+ businesses</span>
                             </li>
                         </ul>
-                        <p class="mt-6 text-white font-medium">→ AI finds patterns humans miss + surfaces cross-business opportunities</p>
+                        <p class="mt-6 text-white font-light">→ AI finds patterns humans miss + surfaces cross-business opportunities</p>
                     </div>
                 </div>
             </div>
@@ -1842,7 +2049,7 @@
                                     <div class="capability-front-content">
                                         <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="bar-chart-3"></i></div>
                                         <h4 class="card-title text-white">Descriptive Analytics</h4>
-                                        <p class="text-white font-medium mb-3 capability-front-minimal">Understanding What Happened</p>
+                                        <p class="text-white font-light mb-3 capability-front-minimal">Understanding What Happened</p>
                                         <p class="text-slate-300 font-light">Analyzes historical data to understand patterns, trends, and anomalies across your operations.</p>
                                     </div>
                                     <div class="flip-arrow-icon">
@@ -1852,11 +2059,11 @@
                             </div>
                             <!-- Back -->
                             <div class="capability-back">
-                                <h4 class="text-white font-medium">Descriptive Analytics</h4>
+                                <h4 class="text-white font-normal">Descriptive Analytics</h4>
                                 <p class="text-slate-300 font-light"><strong class="text-white">What it does:</strong> Analyzes historical data to understand patterns, trends, and anomalies. Answers: "What happened? Why did it happen?"</p>
-                                <p class="text-white font-medium">Example:</p>
+                                <p class="text-white font-normal">Example:</p>
                                 <p class="text-slate-300 font-light">Across M&M's 240 trucks and InterRail's China-Europe corridors: Which routes had highest delays? Which customs checkpoints create bottlenecks? Which corridors have seasonal spikes? Where are margin opportunities?</p>
-                                <p class="text-cyan-400 font-medium">Business Impact:</p>
+                                <p class="text-cyan-400 font-normal">Business Impact:</p>
                                 <ul class="space-y-1">
                                     <li class="flex items-start text-slate-300">
                                         <span class="text-cyan-400 mr-2">•</span>
@@ -1884,7 +2091,7 @@
                                     <div class="capability-front-content">
                                         <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="trending-up"></i></div>
                                         <h4 class="card-title text-white">Predictive Analytics</h4>
-                                        <p class="text-white font-medium mb-3 capability-front-minimal">Forecasting What Will Happen</p>
+                                        <p class="text-white font-light mb-3 capability-front-minimal">Forecasting What Will Happen</p>
                                         <p class="text-slate-300 font-light">Uses historical patterns and current signals to forecast future scenarios with confidence levels.</p>
                                     </div>
                                     <div class="flip-arrow-icon">
@@ -1894,11 +2101,11 @@
                             </div>
                             <!-- Back -->
                             <div class="capability-back">
-                                <h4 class="text-white font-medium">Predictive Analytics</h4>
+                                <h4 class="text-white font-normal">Predictive Analytics</h4>
                                 <p class="text-slate-300 font-light"><strong class="text-white">What it does:</strong> Uses historical patterns + current signals to forecast future scenarios with confidence levels. Answers: "What will happen next? How likely?"</p>
-                                <p class="text-white font-medium">Example:</p>
+                                <p class="text-white font-normal">Example:</p>
                                 <p class="text-slate-300 font-light"><em>"Vietnam corridor demand: 82% probability of 25% growth in next 6 months. Early indicators: M&M volume spikes, warehouse inquiries up 20%. Recommend: Pre-position warehouses + financing packages now."</em></p>
-                                <p class="text-cyan-400 font-medium">Business Impact:</p>
+                                <p class="text-cyan-400 font-normal">Business Impact:</p>
                                 <ul class="space-y-1">
                                     <li class="flex items-start text-slate-300">
                                         <span class="text-cyan-400 mr-2">•</span>
@@ -1926,7 +2133,7 @@
                                     <div class="capability-front-content">
                                         <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="route"></i></div>
                                         <h4 class="card-title text-white">Prescriptive Analytics</h4>
-                                        <p class="text-white font-medium mb-3 capability-front-minimal">Optimizing What to Do</p>
+                                        <p class="text-white font-light mb-3 capability-front-minimal">Optimizing What to Do</p>
                                         <p class="text-slate-300 font-light">Recommends optimal actions by evaluating thousands of scenarios simultaneously.</p>
                                     </div>
                                     <div class="flip-arrow-icon">
@@ -1936,11 +2143,11 @@
                             </div>
                             <!-- Back -->
                             <div class="capability-back">
-                                <h4 class="text-white font-medium">Prescriptive Analytics</h4>
+                                <h4 class="text-white font-normal">Prescriptive Analytics</h4>
                                 <p class="text-slate-300 font-light"><strong class="text-white">What it does:</strong> Recommends optimal actions by evaluating thousands of scenarios simultaneously. Answers: "What should we do? What's the best decision?"</p>
-                                <p class="text-white font-medium">Example:</p>
+                                <p class="text-white font-normal">Example:</p>
                                 <p class="text-slate-300 font-light"><em>"Route 240 trucks through alternative corridors + allocate warehouse capacity across 3 hubs + structure financing terms for 15 customers—all optimized together for maximum margin, speed, and satisfaction."</em></p>
-                                <p class="text-cyan-400 font-medium">Business Impact:</p>
+                                <p class="text-cyan-400 font-normal">Business Impact:</p>
                                 <ul class="space-y-1">
                                     <li class="flex items-start text-slate-300">
                                         <span class="text-cyan-400 mr-2">•</span>
@@ -1977,7 +2184,7 @@
                                     <div class="capability-front-content">
                                         <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="languages"></i></div>
                                         <h4 class="card-title text-white">Large Language Models (LLMs)</h4>
-                                        <p class="text-white font-medium mb-3 capability-front-minimal">Handle Linguistic & Regulatory Complexity</p>
+                                        <p class="text-white font-light mb-3 capability-front-minimal">Handle Linguistic & Regulatory Complexity</p>
                                         <p class="text-slate-300 font-light">AI systems that understand and generate human language at expert-level quality—in 100+ languages, across any domain.</p>
                                     </div>
                                     <div class="flip-arrow-icon">
@@ -1987,9 +2194,9 @@
                             </div>
                             <!-- Back -->
                             <div class="capability-back">
-                                <h4 class="text-white font-medium">Large Language Models (LLMs)</h4>
+                                <h4 class="text-white font-normal">Large Language Models (LLMs)</h4>
                                 <p class="text-slate-300 font-light"><strong class="text-white">What changed:</strong> In 2022-2023, AI systems learned to understand and generate human language at expert-level quality—in 100+ languages, across any domain.</p>
-                                <p class="text-white font-medium">What They Do:</p>
+                                <p class="text-white font-normal">What They Do:</p>
                                 <ul class="space-y-1">
                                     <li class="flex items-start text-slate-300">
                                         <span class="text-cyan-400 mr-2">•</span>
@@ -2008,9 +2215,9 @@
                                         <span class="font-light">Answer questions about your operations in plain language</span>
                                     </li>
                                 </ul>
-                                <p class="text-white font-medium">Example:</p>
+                                <p class="text-white font-normal">Example:</p>
                                 <p class="text-slate-300 font-light"><em>"Generate compliant customs declaration for 20-ton textile shipment from Istanbul to Almaty via Baku, including HS codes and CIS protocols."</em> LLM produces complete documentation in seconds—work that takes an expert 2-3 hours.</p>
-                                <p class="text-cyan-400 font-medium">Business Impact:</p>
+                                <p class="text-cyan-400 font-normal">Business Impact:</p>
                                 <ul class="space-y-1">
                                     <li class="flex items-start text-slate-300">
                                         <span class="text-cyan-400 mr-2">•</span>
@@ -2038,7 +2245,7 @@
                                     <div class="capability-front-content">
                                         <div class="icon" style="color: #FFB700; stroke: #FFB700 !important;"><i data-lucide="bot"></i></div>
                                         <h4 class="card-title text-white">AI Agents</h4>
-                                        <p class="text-white font-medium mb-3 capability-front-minimal">Coordinate Intelligence & Actions Autonomously</p>
+                                        <p class="text-white font-light mb-3 capability-front-minimal">Coordinate Intelligence & Actions Autonomously</p>
                                         <p class="text-slate-300 font-light">AI systems that take actions autonomously—accessing data, using tools, making decisions, and executing tasks with minimal oversight.</p>
                                     </div>
                                     <div class="flip-arrow-icon">
@@ -2048,13 +2255,13 @@
                             </div>
                             <!-- Back -->
                             <div class="capability-back">
-                                <h4 class="text-white font-medium">AI Agents</h4>
+                                <h4 class="text-white font-normal">AI Agents</h4>
                                 <p class="text-slate-300 font-light"><strong class="text-white">What changed:</strong> In 2023-2024, AI systems learned to take actions autonomously—accessing data, using tools, making decisions, and executing tasks with minimal oversight.</p>
-                                <p class="text-white font-medium">What They Are:</p>
+                                <p class="text-white font-normal">What They Are:</p>
                                 <p class="text-slate-300 font-light"><strong class="text-white">AI Agents = LLMs + Autonomy + Tools + Memory</strong><br/>Digital employees that access systems, use tools, reason with context, decide within guardrails, act autonomously, remember outcomes, and learn continuously.</p>
-                                <p class="text-white font-medium">Example:</p>
+                                <p class="text-white font-normal">Example:</p>
                                 <p class="text-slate-300 font-light"><em>Trade policy shift in Central Asia.</em> An Agent monitoring geopolitical signals detects early indicators. Evaluates 3 alternative corridors using TransInvest's proprietary data—gauge changes, border efficiency, capacity. Coordinates intelligence across M&M + InterRail + warehousing. Alerts leadership: <em>"15% volume shift likely, 6-month opportunity window. Here are 3 optimized scenarios."</em></p>
-                                <p class="text-cyan-400 font-medium">Business Impact:</p>
+                                <p class="text-cyan-400 font-normal">Business Impact:</p>
                                 <ul class="space-y-1">
                                     <li class="flex items-start text-slate-300">
                                         <span class="text-cyan-400 mr-2">•</span>
@@ -2090,20 +2297,20 @@
                         <div class="merge-layer foundation">
                             <div class="premium-card bg-gradient-to-br from-blue-900/30 to-blue-800/10 border-2 border-blue-400/50">
                                 <div class="text-center mb-6">
-                                    <h4 class="text-white text-xl font-medium mb-2">Foundation Layer</h4>
+                                    <h4 class="text-white text-xl font-normal mb-2">Foundation Layer</h4>
                                     <p class="text-blue-300 text-sm font-light">Classical AI & Analytics</p>
                                 </div>
                                 <div class="space-y-4 merge-layer-content">
                                     <div class="bg-slate-900/40 p-4 rounded-lg border border-blue-500/20">
-                                        <p class="font-medium text-white mb-1 text-sm">Descriptive</p>
+                                        <p class="font-normal text-white mb-1 text-sm">Descriptive</p>
                                         <p class="text-slate-300 font-light text-xs">Understand patterns across 100+ businesses</p>
                                     </div>
                                     <div class="bg-slate-900/40 p-4 rounded-lg border border-blue-500/20">
-                                        <p class="font-medium text-white mb-1 text-sm">Predictive</p>
+                                        <p class="font-normal text-white mb-1 text-sm">Predictive</p>
                                         <p class="text-slate-300 font-light text-xs">Forecast opportunities 6-12 months early</p>
                                     </div>
                                     <div class="bg-slate-900/40 p-4 rounded-lg border border-blue-500/20">
-                                        <p class="font-medium text-white mb-1 text-sm">Prescriptive</p>
+                                        <p class="font-normal text-white mb-1 text-sm">Prescriptive</p>
                                         <p class="text-slate-300 font-light text-xs">Optimize across complex constraints</p>
                                     </div>
                                 </div>
@@ -2114,16 +2321,16 @@
                         <div class="merge-layer breakthrough">
                             <div class="premium-card bg-gradient-to-br from-cyan-900/30 to-cyan-800/10 border-2 border-cyan-400/50">
                                 <div class="text-center mb-6">
-                                    <h4 class="text-white text-xl font-medium mb-2">Breakthrough Layer</h4>
+                                    <h4 class="text-white text-xl font-normal mb-2">Breakthrough Layer</h4>
                                     <p class="gradient-text text-sm font-light">Modern AI</p>
                                 </div>
                                 <div class="space-y-4 merge-layer-content">
                                     <div class="bg-slate-900/40 p-4 rounded-lg border border-cyan-500/20">
-                                        <p class="font-medium text-white mb-1 text-sm">Large Language Models</p>
+                                        <p class="font-normal text-white mb-1 text-sm">Large Language Models</p>
                                         <p class="text-slate-300 font-light text-xs">Handle linguistic complexity across 45 countries</p>
                                     </div>
                                     <div class="bg-slate-900/40 p-4 rounded-lg border border-cyan-500/20">
-                                        <p class="font-medium text-white mb-1 text-sm">AI Agents</p>
+                                        <p class="font-normal text-white mb-1 text-sm">AI Agents</p>
                                         <p class="text-slate-300 font-light text-xs">Coordinate intelligence autonomously</p>
                                     </div>
                                 </div>
@@ -2143,7 +2350,7 @@
                     <div class="merge-layer result">
                         <div class="premium-card bg-gradient-to-br from-slate-900/90 to-slate-800/70 border-2 border-cyan-400/50">
                             <div class="text-center mb-8">
-                                <h4 class="gradient-text text-3xl font-medium mb-3">The Result</h4>
+                                <h4 class="gradient-text text-3xl font-normal mb-3">The Result</h4>
                                 <p class="text-white text-lg font-light">Transform VUCA into Competitive Advantage</p>
                             </div>
                             <div class="grid md:grid-cols-2 gap-6">
@@ -2869,18 +3076,18 @@
                 <div class="max-w-4xl mx-auto">
                     <div class="grid md:grid-cols-3 gap-6 stagger-children">
                         <div class="premium-card border-l-4 border-cyan-400">
-                            <div class="text-cyan-400 font-medium mb-2 text-sm uppercase tracking-wide">Phase 1</div>
-                            <h4 class="text-white font-medium mb-3">VUCA Strategy & Alignment</h4>
+                            <div class="text-cyan-400 font-normal mb-2 text-sm uppercase tracking-wide">Phase 1</div>
+                            <h4 class="text-white font-normal mb-3">VUCA Strategy & Alignment</h4>
                             <p class="text-slate-300 font-light text-sm">Workshop with leadership: how AI mitigates risks, captures opportunities, anticipates shifts across 100+ businesses. Walk away with shared vision.</p>
                         </div>
                         <div class="premium-card border-l-4 border-cyan-400">
-                            <div class="text-cyan-400 font-medium mb-2 text-sm uppercase tracking-wide">Phase 2</div>
-                            <h4 class="text-white font-medium mb-3">Use Case Discovery</h4>
+                            <div class="text-cyan-400 font-normal mb-2 text-sm uppercase tracking-wide">Phase 2</div>
+                            <h4 class="text-white font-normal mb-3">Use Case Discovery</h4>
                             <p class="text-slate-300 font-light text-sm">Identify 5-10 corridor-specific opportunities (freight, customs, rail, warehousing). Prioritize by ROI. Walk away with roadmap.</p>
                         </div>
                         <div class="premium-card border-l-4 border-cyan-400">
-                            <div class="text-cyan-400 font-medium mb-2 text-sm uppercase tracking-wide">Phase 3</div>
-                            <h4 class="text-white font-medium mb-3">Pilot & Prove Value</h4>
+                            <div class="text-cyan-400 font-normal mb-2 text-sm uppercase tracking-wide">Phase 3</div>
+                            <h4 class="text-white font-normal mb-3">Pilot & Prove Value</h4>
                             <p class="text-slate-300 font-light text-sm">Launch 1-2 quick-win pilots at autonomous businesses. Deliver measurable ROI, build trust. Walk away with proof, then scale.</p>
                         </div>
                     </div>
