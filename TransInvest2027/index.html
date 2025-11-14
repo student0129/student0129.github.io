@@ -40,11 +40,18 @@
             box-sizing: border-box;
         }
         
+        /* Hide scrollbar while keeping scroll functionality */
         html {
             scroll-behavior: smooth;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             max-width: 100%;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        html::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Opera */
         }
         
         body {
@@ -55,6 +62,12 @@
             line-height: 1.7;
             position: relative;
             max-width: 100%;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        body::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Opera */
         }
 
         /* Sophisticated animated gradient overlay */
