@@ -1085,16 +1085,16 @@
            ============================================ */
         .timeline-container {
             position: relative;
-            padding-left: 3rem;
+            padding-left: 5rem;
         }
 
         .timeline-container::before {
             content: '';
             position: absolute;
-            left: 7px; /* Center align with 16px dot accounting for 3px border (16/2 - 3 = 5px) */
+            left: 24px; /* Center align with 16px dot accounting for 3px border (16/2 - 3 = 5px) */
             top: 0.5rem; /* Start at first dot position */
             bottom: 3rem; /* End before last item */
-            width: 2px;
+            width: 4px;
             background: linear-gradient(180deg, rgba(6, 182, 212, 0.5) 0%, rgba(6, 182, 212, 0.2) 100%);
         }
 
@@ -1119,7 +1119,7 @@
 
         .timeline-dot {
             position: absolute;
-            left: -3rem; /* Position from left edge */
+            left: -4rem; /* Position from left edge */
             top: 0.5rem;
             width: 16px;
             height: 16px;
@@ -1837,17 +1837,18 @@
             }
 
             .timeline-container {
-                padding-left: 2rem;
+                padding-left: 4rem;
             }
 
             .timeline-dot {
-                left: -1.75rem;
+                left: -3rem;
                 width: 12px;
                 height: 12px;
             }
             
             .timeline-container::before {
-                left: 3px; /* Keep line visible and aligned with dots */
+                left: 20px; /* Keep line visible and aligned with dots */
+                width: 4px;
             }
         }
 
