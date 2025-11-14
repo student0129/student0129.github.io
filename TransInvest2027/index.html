@@ -1639,9 +1639,20 @@
            ============================================ */
         @media (max-width: 768px) {
             /* Prevent horizontal overflow on mobile */
-            body, main, section, header, footer {
+            body, main, header, footer {
                 overflow-x: hidden !important;
                 max-width: 100% !important;
+            }
+            
+            /* Allow overflow for sections that need sticky positioning */
+            section {
+                overflow-x: hidden !important;
+                max-width: 100% !important;
+            }
+            
+            /* Ensure horizon sections allow sticky positioning */
+            section#framework {
+                overflow: visible !important;
             }
             
             .premium-card {
@@ -1816,11 +1827,15 @@
             }
 
             .timeline-container {
-                padding-left: 2rem;
+                padding-left: 1.5rem;
             }
 
             .timeline-dot {
-                left: -2rem;
+                left: -1.5rem;
+            }
+            
+            .timeline-container::before {
+                left: -4px; /* Adjust vertical line to align with smaller padding */
             }
         }
 
@@ -4010,14 +4025,8 @@
                             return;
                         }
                         
-                        // Check if clicking on the back content when flipped
-                        const backElement = this.querySelector('.capability-back');
-                        const clickedOnBack = backElement && e.target.closest('.capability-back');
-                        
-                        // If already flipped and clicking on back content, don't do anything (let scroll work)
-                        if (isCurrentlyFlipped && clickedOnBack) {
-                            return;
-                        }
+                        // Allow tapping anywhere (front or back) to toggle the flip
+                        // No special handling needed - just toggle the state
                         
                         // Toggle flipped state
                         const arrowIcon = this.querySelector('.flip-arrow-icon');
