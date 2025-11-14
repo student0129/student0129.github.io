@@ -44,7 +44,6 @@
             scroll-behavior: smooth;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
             max-width: 100%;
         }
         
@@ -52,7 +51,6 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             font-weight: 200;
             color: #e2e8f0; /* slate-200 */
-            overflow-x: hidden;
             background: linear-gradient(180deg, #000000 0%, #001a4d 30%, #002b7a 50%, #001a4d 70%, #000000 100%);
             line-height: 1.7;
             position: relative;
@@ -1024,10 +1022,21 @@
         /* ============================================
            HORIZON FRAMEWORK STYLES
            ============================================ */
+        
+        /* Ensure framework section allows sticky on desktop */
+        #framework {
+            overflow: visible;
+        }
+        
+        #framework .grid {
+            overflow: visible;
+        }
+        
         .horizon-nav-container {
             position: sticky;
             top: 2rem;
             align-self: flex-start;
+            z-index: 40;
         }
 
         .horizon-nav-item {
@@ -1638,16 +1647,14 @@
            RESPONSIVE ADJUSTMENTS
            ============================================ */
         @media (max-width: 768px) {
-            /* Prevent horizontal overflow on mobile */
+            /* Prevent horizontal overflow on mobile - but not on section#framework */
             body, main, header, footer {
-                overflow-x: hidden !important;
                 max-width: 100% !important;
             }
             
             /* Allow overflow for sections that need sticky positioning */
-            section {
+            section:not(#framework) {
                 overflow-x: hidden !important;
-                overflow-y: visible !important;
                 max-width: 100% !important;
             }
             
@@ -1655,11 +1662,23 @@
             section#framework {
                 overflow: visible !important;
                 position: relative;
+                height: auto !important;
+            }
+            
+            section#framework > * {
+                overflow: visible !important;
             }
             
             .mobile-horizon-layout {
-                overflow: visible;
+                overflow: visible !important;
                 position: relative;
+                height: auto !important;
+            }
+            
+            /* Ensure parent containers don't interfere with sticky */
+            #framework .grid {
+                overflow: visible !important;
+                height: auto !important;
             }
             
             .premium-card {
@@ -1693,29 +1712,28 @@
             }
             
             .mobile-horizon-layout .horizon-content-section {
-                margin-bottom: 3rem;
+                margin-bottom: 0;
                 padding-top: 0;
-                padding-bottom: 0;
-                min-height: auto;
+                padding-bottom: 2rem;
+                min-height: 100vh;
                 position: relative;
                 max-width: 100%;
                 background: transparent !important;
                 border: none;
                 border-radius: 0;
-                contain: none;
                 backdrop-filter: none;
                 -webkit-backdrop-filter: none;
             }
             
             .mobile-horizon-layout .horizon-header {
                 display: block !important;
-                position: -webkit-sticky;
-                position: sticky;
-                top: 0;
-                z-index: 50;
-                background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(29, 78, 216, 0.9) 100%);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
+                position: -webkit-sticky !important;
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 50 !important;
+                background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(29, 78, 216, 0.9) 100%) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
                 padding: 1rem 1.5rem;
                 margin: 0;
                 border-bottom: 1px solid rgba(6, 182, 212, 0.4);
@@ -1753,7 +1771,7 @@
             
             .mobile-horizon-layout .horizon-body {
                 max-height: none;
-                overflow: visible;
+                overflow: visible !important;
                 padding: 0;
                 max-width: 100%;
                 background: transparent;
@@ -1763,6 +1781,7 @@
                 flex: 1;
                 display: flex;
                 flex-direction: column;
+                position: relative;
             }
             
             .mobile-horizon-layout .horizon-body-inner {
