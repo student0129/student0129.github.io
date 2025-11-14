@@ -44,6 +44,8 @@
             scroll-behavior: smooth;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            max-width: 100%;
         }
         
         body {
@@ -54,6 +56,7 @@
             background: linear-gradient(180deg, #000000 0%, #001a4d 30%, #002b7a 50%, #001a4d 70%, #000000 100%);
             line-height: 1.7;
             position: relative;
+            max-width: 100%;
         }
 
         /* Sophisticated animated gradient overlay */
@@ -1614,6 +1617,12 @@
            RESPONSIVE ADJUSTMENTS
            ============================================ */
         @media (max-width: 768px) {
+            /* Prevent horizontal overflow on mobile */
+            body, main, section, header, footer {
+                overflow-x: hidden !important;
+                max-width: 100% !important;
+            }
+            
             .premium-card {
                 padding: 2rem;
             }
