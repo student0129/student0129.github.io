@@ -281,6 +281,27 @@
             opacity: 1;
             transform: translateY(0);
         }
+        
+        /* Mobile fallback: show content if JS doesn't load or observer doesn't fire */
+        @media (max-width: 768px) {
+            /* Make first section visible immediately on mobile */
+            #context .reveal {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            
+            /* Fallback: show all reveal content after 2 seconds if not triggered */
+            .reveal:not(.is-visible) {
+                animation: revealFallback 0.6s ease-in-out 2s forwards;
+            }
+            
+            @keyframes revealFallback {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        }
 
         /* Staggered children - only applies to non-reveal direct children */
         .stagger-children > *:not(.reveal) {
@@ -3639,6 +3660,17 @@
 
             document.querySelectorAll('.reveal').forEach(el => {
                 revealObserver.observe(el);
+                
+                // Immediately show elements that are already in viewport on page load
+                const rect = el.getBoundingClientRect();
+                const isInViewport = rect.top >= 0 && rect.top <= window.innerHeight;
+                
+                if (isInViewport) {
+                    // Small delay to ensure smooth appearance
+                    setTimeout(() => {
+                        el.classList.add('is-visible');
+                    }, 100);
+                }
             });
 
             // Stagger children observer
@@ -3967,7 +3999,8 @@
                         const inner = this.querySelector('.capability-flip-inner');
                         if (!inner) return;
                         
-                        const isCurrentlyFlipped = inner.style.transform === 'rotateY(180deg)';
+                        // Use data attribute for reliable state checking
+                        const isCurrentlyFlipped = this.dataset.flipped === 'true';
                         
                         // Check if user was scrolling
                         const wasScrolling = Math.abs(touchEndY - touchStartY) > 10;
@@ -3989,10 +4022,15 @@
                         // Toggle flipped state
                         const arrowIcon = this.querySelector('.flip-arrow-icon');
                         
-                        // Toggle transform
+                        // Toggle transform - always use the same direction
                         inner.style.transform = isCurrentlyFlipped 
                             ? 'rotateY(0deg)' 
                             : 'rotateY(180deg)';
+                        
+                        // Add transition class if not present
+                        if (!inner.style.transition) {
+                            inner.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
+                        }
                         
                         // Store flipped state
                         this.dataset.flipped = isCurrentlyFlipped ? 'false' : 'true';
@@ -4002,8 +4040,7 @@
                             const iconSvg = arrowIcon.querySelector('svg');
                             if (iconSvg) {
                                 // After flip, check NEW state
-                                const newFlippedState = inner.style.transform === 'rotateY(180deg)';
-                                if (newFlippedState) {
+                                if (!isCurrentlyFlipped) {
                                     // Now showing back - show left arrow to indicate "flip back"
                                     iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
                                 } else {
@@ -4037,17 +4074,19 @@
                     const inner = card.querySelector('.capability-flip-inner');
                     const arrowIcon = card.querySelector('.flip-arrow-icon');
                     
-                    if (inner) {
+                    if (inner && card.dataset.flipped === 'true') {
+                        // Add transition for smooth flip back
+                        inner.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
                         inner.style.transform = 'rotateY(0deg)';
-                    }
-                    
-                    card.dataset.flipped = 'false';
-                    
-                    // Reset arrow to right-pointing
-                    if (arrowIcon) {
-                        const iconSvg = arrowIcon.querySelector('svg');
-                        if (iconSvg) {
-                            iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                        
+                        card.dataset.flipped = 'false';
+                        
+                        // Reset arrow to right-pointing
+                        if (arrowIcon) {
+                            const iconSvg = arrowIcon.querySelector('svg');
+                            if (iconSvg) {
+                                iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                            }
                         }
                     }
                 });
