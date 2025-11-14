@@ -832,13 +832,15 @@
             border: 1px solid rgba(6, 182, 212, 0.3);
             border-radius: 50%;
             color: #06b6d4;
-            transition: all 0.3s ease;
+            transition: all 0.3s ease, transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
 
-        .capability-flip-card:hover .flip-arrow-icon {
-            background: rgba(6, 182, 212, 0.3);
-            border-color: rgba(6, 182, 212, 0.5);
-            transform: rotate(180deg);
+        @media (hover: hover) and (pointer: fine) {
+            .capability-flip-card:hover .flip-arrow-icon {
+                background: rgba(6, 182, 212, 0.3);
+                border-color: rgba(6, 182, 212, 0.5);
+                transform: rotate(180deg);
+            }
         }
 
         .flip-arrow-icon svg {
@@ -1885,7 +1887,6 @@
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-                color-adjust: exact !important;
             }
             
             /* Keep page background */
@@ -2583,7 +2584,7 @@
             <div class="reveal">
                 <div class="text-center mb-16">
                     <h3 class="text-white mb-6 section-header">Three Core Capabilities of AI & Analytics</h3>
-                    <p class="text-slate-300 font-light max-w-3xl mx-auto">Hover over each card to learn more about the capability and its business impact.</p>
+                    <p class="text-slate-300 font-light max-w-3xl mx-auto">Tap or hover over each card to learn more about the capability and its business impact.</p>
                 </div>
                 <div class="capability-cards-grid three-cols stagger-children">
                     <!-- Descriptive Analytics -->
@@ -2718,7 +2719,7 @@
             <div class="reveal">
                 <div class="text-center mb-16">
                     <h3 class="text-white mb-6 section-header">The New Frontier: Recent Breakthroughs</h3>
-                    <p class="text-slate-300 font-light max-w-3xl mx-auto">Two breakthroughs in the last 3 years are transforming what's possible—perfectly suited to your Eurasian corridor complexity. Hover to explore.</p>
+                    <p class="text-slate-300 font-light max-w-3xl mx-auto">Two breakthroughs in the last 3 years are transforming what's possible—perfectly suited to your Eurasian corridor complexity. Tap or hover to explore.</p>
                 </div>
                 <div class="capability-cards-grid two-cols stagger-children">
                     <!-- Large Language Models -->
@@ -2743,24 +2744,8 @@
                                 <h4 class="text-white font-normal">Large Language Models (LLMs)</h4>
                                 <p class="text-slate-300 font-light"><strong class="text-white">What changed:</strong> In 2022-2023, AI systems learned to understand and generate human language at expert-level quality—in 100+ languages, across any domain.</p>
                                 <p class="text-white font-normal">What They Do:</p>
-                                <ul class="space-y-1">
-                                    <li class="flex items-start text-slate-300">
-                                        <span class="text-cyan-400 mr-2">•</span>
-                                        <span class="font-light">Read and interpret documents, regulations, contracts (any language)</span>
-                                    </li>
-                                    <li class="flex items-start text-slate-300">
-                                        <span class="text-cyan-400 mr-2">•</span>
-                                        <span class="font-light">Generate compliant documentation automatically</span>
-                                    </li>
-                                    <li class="flex items-start text-slate-300">
-                                        <span class="text-cyan-400 mr-2">•</span>
-                                        <span class="font-light">Translate and explain complex requirements across jurisdictions</span>
-                                    </li>
-                                    <li class="flex items-start text-slate-300">
-                                        <span class="text-cyan-400 mr-2">•</span>
-                                        <span class="font-light">Answer questions about your operations in plain language</span>
-                                    </li>
-                                </ul>
+                                <p class="text-slate-300 font-light">Read and interpret documents, regulations, and contracts in any language. Generate compliant documentation automatically. Translate and explain complex requirements across jurisdictions. Answer questions about your operations in plain language.</p>
+                                
                                 <p class="text-white font-normal">Example:</p>
                                 <p class="text-slate-300 font-light"><em>"Generate compliant customs declaration for 20-ton textile shipment from Istanbul to Almaty via Baku, including HS codes and CIS protocols."</em> LLM produces complete documentation in seconds—work that takes an expert 2-3 hours.</p>
                                 <p class="text-cyan-400 font-normal">Business Impact:</p>
@@ -4009,21 +3994,11 @@
         // Initialize Lucide icons
         lucide.createIcons();
 
-            // Re-initialize icons after flip
-            document.querySelectorAll('.flip-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    setTimeout(() => lucide.createIcons(), 100);
-                });
-            });
-
             // ============================================
             // CAPABILITY FLIP CARDS - HOVER & CLICK HANDLING
             // ============================================
-            // Reinitialize icons when capability cards are hovered
+            // Handle capability flip cards
             document.querySelectorAll('.capability-flip-card').forEach(card => {
-                card.addEventListener('mouseenter', () => {
-                    setTimeout(() => lucide.createIcons(), 400);
-                });
                 
                 // Add click/tap functionality for mobile devices
                 let touchStartY = 0;
@@ -4074,25 +4049,19 @@
                         }
                         
                         // Store flipped state
-                        this.dataset.flipped = isCurrentlyFlipped ? 'false' : 'true';
+                        const newFlippedState = !isCurrentlyFlipped;
+                        this.dataset.flipped = newFlippedState ? 'true' : 'false';
                         
-                        // Update arrow icon
+                        // Update arrow icon rotation
                         if (arrowIcon) {
-                            const iconSvg = arrowIcon.querySelector('svg');
-                            if (iconSvg) {
-                                // After flip, check NEW state
-                                if (!isCurrentlyFlipped) {
-                                    // Now showing back - show left arrow to indicate "flip back"
-                                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>';
-                                } else {
-                                    // Now showing front - show right arrow to indicate "flip forward"
-                                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
-                                }
+                            if (newFlippedState) {
+                                // Now showing back - rotate arrow 180deg
+                                arrowIcon.style.transform = 'rotate(180deg)';
+                            } else {
+                                // Now showing front - reset arrow rotation
+                                arrowIcon.style.transform = 'rotate(0deg)';
                             }
                         }
-                        
-                        // Reinitialize other icons after flip
-                        setTimeout(() => lucide.createIcons(), 400);
                     }
                 });
             });
@@ -4122,12 +4091,9 @@
                         
                         card.dataset.flipped = 'false';
                         
-                        // Reset arrow to right-pointing
+                        // Reset arrow rotation
                         if (arrowIcon) {
-                            const iconSvg = arrowIcon.querySelector('svg');
-                            if (iconSvg) {
-                                iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
-                            }
+                            arrowIcon.style.transform = 'rotate(0deg)';
                         }
                     }
                 });
@@ -4146,12 +4112,9 @@
                         
                         entry.target.dataset.flipped = 'false';
                         
-                        // Reset arrow to right-pointing
+                        // Reset arrow rotation
                         if (arrowIcon) {
-                            const iconSvg = arrowIcon.querySelector('svg');
-                            if (iconSvg) {
-                                iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
-                            }
+                            arrowIcon.style.transform = 'rotate(0deg)';
                         }
                     }
                 });
