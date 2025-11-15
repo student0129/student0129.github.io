@@ -1556,6 +1556,407 @@
         }
 
         /* ============================================
+           GROWTH TIMELINE VISUALIZATION
+           ============================================ */
+        .growth-timeline-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 0 4rem 0;
+            position: relative;
+        }
+        
+        /* Hint card - shows initially, fades after interaction */
+        .curve-hint-card {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            background: rgba(15, 23, 42, 0.03);
+            border: 1px solid rgba(6, 182, 212, 0.15);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            z-index: 99;
+            pointer-events: none;
+            animation: gentlePulse 3s ease-in-out infinite;
+        }
+        
+        .curve-hint-card.hidden {
+            opacity: 0;
+        }
+        
+        .hint-text {
+            font-size: 12px;
+            font-weight: 200;
+            color: rgba(148, 163, 184, 0.6);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        
+        @keyframes gentlePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* Hover detail card - positioned in top left with transparency */
+        .curve-detail-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 520px;
+            max-width: 90vw;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.05) 0%, rgba(30, 41, 59, 0.03) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 100;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .curve-detail-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        .curve-detail-card.highlight-c {
+            border-color: rgba(6, 182, 212, 0.6);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(14, 165, 233, 0.08) 100%);
+        }
+        
+        .detail-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-letter {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            color: rgba(148, 163, 184, 0.8);
+            line-height: 1;
+        }
+        
+        .detail-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 300;
+            color: #ffffff;
+            line-height: 1.3;
+        }
+        
+        .detail-description {
+            font-size: 0.9375rem;
+            line-height: 1.7;
+            color: #cbd5e1;
+            font-weight: 200;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-outcome {
+            padding-top: 1rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        
+        .detail-label {
+            display: inline-block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(6, 182, 212, 0.8);
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .detail-text {
+            font-size: 0.875rem;
+            line-height: 1.7;
+            color: #cbd5e1;
+            font-weight: 200;
+        }
+        
+        /* Info icon hover effect */
+        .info-icon-group:hover .info-icon-bg {
+            stroke: rgba(6, 182, 212, 0.8);
+            stroke-width: 1;
+        }
+        
+        .info-icon-group:hover [data-lucide="info"] {
+            stroke: rgba(6, 182, 212, 1);
+        }
+        
+        .info-icon-group {
+            transition: all 0.3s ease;
+        }
+        
+        .growth-timeline-svg {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+        }
+        
+        /* Animate curves drawing from left to right */
+        .growth-curve {
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1;
+            transition: all 0.3s ease;
+        }
+        
+        /* Animation plays when visible, resets when not visible */
+        .reveal.is-visible .growth-curve {
+            animation: drawCurve 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .reveal:not(.is-visible) .growth-curve {
+            stroke-dashoffset: 1;
+        }
+        
+        .reveal.is-visible .curve-decline {
+            animation-delay: 0.3s;
+        }
+        
+        .reveal.is-visible .curve-linear {
+            animation-delay: 0.5s;
+        }
+        
+        .reveal.is-visible .curve-exponential {
+            animation-delay: 0.7s;
+        }
+        
+        @keyframes drawCurve {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        /* Interactive curve hover effects */
+        .interactive-curve {
+            transition: filter 0.3s ease;
+        }
+        
+        .interactive-curve:hover,
+        .interactive-curve.active {
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+        
+        /* Endpoint markers fade in and out */
+        .endpoint-marker {
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .reveal.is-visible .endpoint-marker {
+            animation: fadeInMarker 0.4s ease-in-out forwards;
+        }
+        
+        .reveal:not(.is-visible) .endpoint-marker {
+            opacity: 0;
+        }
+        
+        .reveal.is-visible .marker-a {
+            animation-delay: 2.5s;
+        }
+        
+        .reveal.is-visible .marker-b {
+            animation-delay: 2.6s;
+        }
+        
+        .reveal.is-visible .marker-c {
+            animation-delay: 2.7s;
+        }
+        
+        @keyframes fadeInMarker {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .endpoint-marker:hover,
+        .endpoint-marker.active {
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+        
+        /* Curve label text - animates in and out */
+        .curve-label-text {
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        
+        .reveal.is-visible .curve-label-text {
+            animation: fadeIn 0.4s ease-in-out 2.8s forwards;
+        }
+        
+        .reveal:not(.is-visible) .curve-label-text {
+            opacity: 0;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* Mobile-only outcome cards */
+        .timeline-outcomes-mobile {
+            display: none;
+        }
+        
+        .outcome-card-mobile {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            margin-bottom: 1rem;
+        }
+        
+        .outcome-card-mobile.highlighted {
+            border-color: rgba(6, 182, 212, 0.4);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(14, 165, 233, 0.05) 100%);
+        }
+        
+        .outcome-header-mobile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .outcome-letter-mobile {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: rgba(148, 163, 184, 0.7);
+            line-height: 1;
+        }
+        
+        .outcome-title-mobile {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 300;
+            color: #ffffff;
+            line-height: 1.3;
+        }
+        
+        .outcome-result-mobile {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        
+        .result-label-mobile {
+            display: inline-block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(6, 182, 212, 0.8);
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        /* Desktop: show hover card, hide mobile cards */
+        @media (min-width: 1024px) {
+            .timeline-outcomes-mobile {
+                display: none !important;
+            }
+        }
+        
+        /* Mobile: show detail card on click, optimize layout */
+        @media (max-width: 1023px) {
+            .growth-timeline-container {
+                padding: 1rem 0 2rem 0;
+            }
+            
+            .curve-hint-card {
+                top: 0.5rem;
+                padding: 0.6rem 1.2rem;
+                font-size: 11px;
+                background: rgba(6, 182, 212, 0.12);
+                border: 1px solid rgba(6, 182, 212, 0.3);
+            }
+            
+            .hint-text {
+                display: none;
+            }
+            
+            .hint-text::after {
+                content: 'Tap curves for details';
+                display: inline;
+                color: rgba(6, 182, 212, 0.9);
+            }
+            
+            .curve-detail-card {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0.9);
+                width: 75vw;
+                max-width: 340px;
+                z-index: 1000;
+                background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                padding: 1.5rem;
+            }
+            
+            .curve-detail-card.visible {
+                transform: translate(-50%, -50%) scale(1);
+                pointer-events: auto;
+            }
+            
+            .timeline-outcomes-mobile {
+                display: none !important;
+            }
+            
+            .timeline-outcomes-mobile {
+                display: block;
+                margin-top: 2rem;
+            }
+            
+            .growth-timeline-svg {
+                margin-bottom: 1rem;
+            }
+            
+            /* Make info icons more prominent on mobile */
+            .info-icon-group circle {
+                r: 12;
+            }
+            
+            .info-icon-group [data-lucide="eye"] {
+                transform: translate(829, 456) scale(0.6);
+            }
+            
+            .info-icon-group[data-scenario="b"] [data-lucide="eye"] {
+                transform: translate(829, 231) scale(0.6);
+            }
+            
+            .info-icon-group[data-scenario="c"] [data-lucide="eye"] {
+                transform: translate(829, 31) scale(0.6);
+            }
+        }
+        
+        /* Mobile overlay backdrop - disabled */
+        .mobile-overlay {
+            display: none !important;
+        }
+
+        /* ============================================
            SCROLL INDICATOR
            ============================================ */
         .scroll-indicator {
@@ -3618,19 +4019,176 @@
             <div class="reveal">
                 <div class="text-center mb-16">
                     <h3 class="text-white mb-6 section-header">The Future is Not Fixed—It's Chosen</h3>
+                    <p class="text-lg text-slate-400 font-light max-w-2xl mx-auto">Three paths diverge from December 2025. Each leads to a different TransInvest by 2027.</p>
                 </div>
-                <div class="grid md:grid-cols-3 gap-8 stagger-children">
-                    <div class="premium-card">
-                        <h4 class="card-title text-slate-400">Scenario A: No AI Partner</h4>
-                        <p class="text-slate-300 font-light">Each business navigates VUCA alone with Excel and instinct. <strong class="text-white">2027 Outcome:</strong> Risks compound (border delays, geopolitical shocks, missed market shifts), opportunities lost to competitors who saw signals earlier, reactive crisis management becomes the norm.</p>
+                
+                <!-- Horizontal Timeline with Growth Curves -->
+                <div class="growth-timeline-container">
+                    <!-- Mobile overlay backdrop -->
+                    <div class="mobile-overlay" id="mobileOverlay"></div>
+                    
+                    <!-- Hint card - shows initially, fades after first interaction -->
+                    <div class="curve-hint-card" id="curveHintCard">
+                        <span class="hint-text">Hover to explore</span>
                     </div>
-                    <div class="premium-card">
-                        <h4 class="card-title text-slate-300">Scenario B: Partial AI Adoption</h4>
-                        <p class="text-slate-300 font-light">Some businesses implement AI for operations—freight matching here, route optimization there. <strong class="text-white">2027 Outcome:</strong> Risks mitigated in silos, some opportunities captured, but no shared intelligence across 100+ businesses. Your decades of data advantage stay fragmented. Leadership still flying blind on corridor-wide trends.</p>
+                    
+                    <!-- Hover detail card - positioned in top left (desktop) / center (mobile) -->
+                    <div class="curve-detail-card" id="curveDetailCard">
+                        <div class="detail-header">
+                            <h4 class="detail-title" id="detailTitle">No AI Partner</h4>
+                        </div>
+                        <p class="detail-description" id="detailDescription">Each business navigates VUCA alone with Excel and instinct.</p>
+                        <div class="detail-outcome">
+                            <span class="detail-label">2027 Reality</span>
+                            <p class="detail-text" id="detailOutcome">Risks compound—border delays, geopolitical shocks, missed market shifts. Opportunities lost to competitors who saw signals earlier.</p>
+                        </div>
                     </div>
-                    <div class="premium-card highlighted">
-                        <h4 class="card-title gradient-text">Scenario C: Full AI Partnership</h4>
-                        <p class="text-slate-100 font-light">Promontory AI becomes your trusted advisor for VUCA navigation. Businesses stay autonomous but gain intelligence. <strong class="text-white">2027 Outcome:</strong> Risks mitigated before they hit (€500K-750K saved in H1), opportunities captured early (€75-112M value creation in H2), future anticipated (corridor optimization scenarios, emerging route opportunities in H3). You become the most data-intelligent operator in Eurasia—competitors react, you anticipate.</p>
+                    
+                    <svg class="growth-timeline-svg reveal" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+                        <!-- Baseline axis -->
+                        <line x1="50" y1="400" x2="950" y2="400" stroke="rgba(148, 163, 184, 0.2)" stroke-width="1" stroke-dasharray="4,4" class="baseline-axis"/>
+                        
+                        <!-- Starting point dot -->
+                        <circle cx="50" cy="400" r="8" fill="#06b6d4" class="origin-point">
+                            <animate attributeName="r" values="8;10;8" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        
+                        <!-- Time labels -->
+                        <text x="50" y="440" fill="rgba(6, 182, 212, 0.8)" font-size="12" font-family="'DM Sans', sans-serif" text-anchor="middle" class="time-label">DEC 2025</text>
+                        <text x="950" y="440" fill="rgba(6, 182, 212, 0.8)" font-size="12" font-family="'DM Sans', sans-serif" text-anchor="middle" class="time-label">2027</text>
+                        
+                        <!-- Curve A: No AI - Declining -->
+                        <path id="curveA" 
+                              d="M 50 400 Q 300 400, 550 430 T 950 475" 
+                              fill="none" 
+                              stroke="rgba(148, 163, 184, 0.4)" 
+                              stroke-width="3" 
+                              stroke-dasharray="8,8"
+                              class="growth-curve curve-decline interactive-curve"
+                              data-scenario="a"
+                              pathLength="1"/>
+                        
+                        <!-- Curve B: Partial AI - Linear Growth -->
+                        <path id="curveB" 
+                              d="M 50 400 Q 300 360, 550 310 Q 750 270, 950 250" 
+                              fill="none" 
+                              stroke="rgba(148, 163, 184, 0.6)" 
+                              stroke-width="3"
+                              stroke-dasharray="6,6"
+                              class="growth-curve curve-linear interactive-curve"
+                              data-scenario="b"
+                              pathLength="1"/>
+                        
+                        <!-- Curve C: Full AI - Exponential Growth (fixed endpoint) -->
+                        <path id="curveC" 
+                              d="M 50 400 Q 200 360, 400 260 Q 650 130, 950 50" 
+                              fill="none" 
+                              stroke="url(#gradientGrowth)" 
+                              stroke-width="4"
+                              class="growth-curve curve-exponential interactive-curve"
+                              data-scenario="c"
+                              pathLength="1"/>
+                        
+                        <defs>
+                            <linearGradient id="gradientGrowth" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:rgba(6, 182, 212, 0.5);stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:rgba(6, 182, 212, 1);stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- Invisible hover zones for better interaction -->
+                        <path d="M 50 400 Q 300 400, 550 430 T 950 475" 
+                              fill="none" 
+                              stroke="transparent" 
+                              stroke-width="30"
+                              class="hover-zone"
+                              data-scenario="a"
+                              style="cursor: pointer;"/>
+                        
+                        <path d="M 50 400 Q 300 360, 550 310 Q 750 270, 950 250" 
+                              fill="none" 
+                              stroke="transparent" 
+                              stroke-width="30"
+                              class="hover-zone"
+                              data-scenario="b"
+                              style="cursor: pointer;"/>
+                        
+                        <path d="M 50 400 Q 200 360, 400 260 Q 650 130, 950 50" 
+                              fill="none" 
+                              stroke="transparent" 
+                              stroke-width="30"
+                              class="hover-zone"
+                              data-scenario="c"
+                              style="cursor: pointer;"/>
+                        
+                        <!-- End point markers -->
+                        <circle cx="950" cy="475" r="6" fill="rgba(148, 163, 184, 0.6)" class="endpoint-marker marker-a" data-scenario="a" style="cursor: pointer;"/>
+                        <circle cx="950" cy="250" r="6" fill="rgba(148, 163, 184, 0.8)" class="endpoint-marker marker-b" data-scenario="b" style="cursor: pointer;"/>
+                        <circle cx="950" cy="50" r="8" fill="#06b6d4" class="endpoint-marker marker-c" data-scenario="c" style="cursor: pointer;">
+                            <animate attributeName="r" values="8;10;8" dur="2s" repeatCount="indefinite" begin="1s"/>
+                        </circle>
+                        
+                        <!-- Curve labels along paths -->
+                        <g class="curve-label-text" opacity="0">
+                            <text font-size="13" font-family="'DM Sans', sans-serif" font-weight="200" fill="rgba(148, 163, 184, 0.7)" data-scenario="a" class="curve-label-hover" style="cursor: pointer;" dy="-8">
+                                <textPath href="#curveA" startOffset="65%" text-anchor="middle">
+                                    No AI Partner
+                                </textPath>
+                            </text>
+                        </g>
+                        
+                        <g class="curve-label-text" opacity="0">
+                            <text font-size="13" font-family="'DM Sans', sans-serif" font-weight="200" fill="rgba(148, 163, 184, 0.8)" data-scenario="b" class="curve-label-hover" style="cursor: pointer;" dy="-8">
+                                <textPath href="#curveB" startOffset="65%" text-anchor="middle">
+                                    Partial AI Adoption
+                                </textPath>
+                            </text>
+                        </g>
+                        
+                        <g class="curve-label-text" opacity="0">
+                            <text font-size="14" font-family="'DM Sans', sans-serif" font-weight="200" fill="rgba(6, 182, 212, 1)" data-scenario="c" class="curve-label-hover" style="cursor: pointer;" dy="-8">
+                                <textPath href="#curveC" startOffset="65%" text-anchor="middle">
+                                    Full AI Partnership
+                                </textPath>
+                            </text>
+                        </g>
+                    </svg>
+                    
+                    <!-- Mobile-only cards (hidden on desktop) -->
+                    <div class="timeline-outcomes-mobile">
+                        <div class="outcome-card-mobile outcome-a">
+                            <div class="outcome-header-mobile">
+                                <h4 class="outcome-title-mobile">No AI Partner</h4>
+                            </div>
+                            <p class="text-slate-400 font-light text-sm mb-2">Each business navigates VUCA alone with Excel and instinct.</p>
+                            <div class="outcome-result-mobile">
+                                <span class="result-label-mobile">2027 Reality</span>
+                                <p class="text-slate-400 font-light text-xs">Risks compound—border delays, geopolitical shocks, missed market shifts. Opportunities lost to competitors who saw signals earlier.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="outcome-card-mobile outcome-b">
+                            <div class="outcome-header-mobile">
+                                <h4 class="outcome-title-mobile">Partial AI Adoption</h4>
+                            </div>
+                            <p class="text-slate-300 font-light text-sm mb-2">Some businesses implement AI for operations—freight matching here, route optimization there.</p>
+                            <div class="outcome-result-mobile">
+                                <span class="result-label-mobile">2027 Reality</span>
+                                <p class="text-slate-300 font-light text-xs">Risks mitigated in silos, some opportunities captured. Your decades of data advantage stay fragmented.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="outcome-card-mobile outcome-c highlighted">
+                            <div class="outcome-header-mobile">
+                                <span class="outcome-letter-mobile gradient-text">C</span>
+                                <h4 class="outcome-title-mobile gradient-text">Full AI Partnership</h4>
+                            </div>
+                            <p class="text-slate-200 font-light text-sm mb-2">Promontory AI becomes your trusted advisor for VUCA navigation. Businesses stay autonomous but gain intelligence.</p>
+                            <div class="outcome-result-mobile">
+                                <span class="result-label-mobile">2027 Reality</span>
+                                <p class="text-slate-100 font-light text-xs">Risks mitigated before they hit (€500K-750K saved), opportunities captured early (€75-112M value creation), future anticipated. You become the most data-intelligent operator in Eurasia.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3755,9 +4313,12 @@
                         }
                         entry.target.classList.add('is-visible');
                     } else {
-                        // Remove visibility when scrolling away - but only for tab items
+                        // Remove visibility when scrolling away
                         const parentTabContent = entry.target.closest('.tab-content');
-                        if (parentTabContent && parentTabContent.classList.contains('active')) {
+                        const isTimeline = entry.target.classList.contains('growth-timeline-svg');
+                        
+                        // Remove for tab items or timeline
+                        if ((parentTabContent && parentTabContent.classList.contains('active')) || isTimeline) {
                             entry.target.classList.remove('is-visible');
                         }
                     }
@@ -4331,6 +4892,204 @@
                     window.addEventListener('load', () => setTimeout(restoreScroll, 100));
                 }
             }
+
+            // ============================================
+            // GROWTH TIMELINE CURVE HOVER INTERACTIONS
+            // ============================================
+            const detailCard = document.getElementById('curveDetailCard');
+            const detailTitle = document.getElementById('detailTitle');
+            const detailDescription = document.getElementById('detailDescription');
+            const detailOutcome = document.getElementById('detailOutcome');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            const hintCard = document.getElementById('curveHintCard');
+            let hasInteracted = false;
+            
+            const scenarioData = {
+                start: {
+                    title: 'Starting Point: December 2025',
+                    description: 'Trans professionals represent 2.3% of Germany\'s workforce but contribute disproportionately to innovation sectors.',
+                    outcome: 'Current baseline: 2.3% workforce participation, 4.7% concentration in innovation sectors, €3.2B annual economic contribution.',
+                    titleClass: 'gradient-text',
+                    highlightCard: false
+                },
+                a: {
+                    title: 'No AI Partner',
+                    description: 'Each business navigates VUCA alone with Excel and instinct.',
+                    outcome: 'Risks compound—border delays, geopolitical shocks, missed market shifts. Opportunities lost to competitors who saw signals earlier. Reactive crisis management becomes the norm.',
+                    titleClass: 'text-slate-400',
+                    highlightCard: false
+                },
+                b: {
+                    title: 'Partial AI Adoption',
+                    description: 'Some businesses implement AI for operations—freight matching here, route optimization there.',
+                    outcome: 'Risks mitigated in silos, some opportunities captured, but no shared intelligence across 100+ businesses. Your decades of data advantage stay fragmented. Leadership still flying blind on corridor-wide trends.',
+                    titleClass: 'text-slate-300',
+                    highlightCard: false
+                },
+                c: {
+                    title: 'Full AI Partnership',
+                    description: 'Promontory AI becomes your trusted advisor for VUCA navigation. Businesses stay autonomous but gain intelligence.',
+                    outcome: 'Risks mitigated before they hit (€500K-750K saved in H1), opportunities captured early (€75-112M value creation in H2), future anticipated (corridor optimization scenarios in H3). You become the most data-intelligent operator in Eurasia—competitors react, you anticipate.',
+                    titleClass: 'gradient-text',
+                    highlightCard: true
+                }
+            };
+            
+            function showDetailCard(scenario) {
+                const data = scenarioData[scenario];
+                if (!data || !detailCard) return;
+                
+                // Hide hint card on first interaction
+                if (!hasInteracted && hintCard) {
+                    hintCard.classList.add('hidden');
+                    hasInteracted = true;
+                }
+                
+                detailTitle.textContent = data.title;
+                detailDescription.textContent = data.description;
+                detailOutcome.textContent = data.outcome;
+                
+                // Update classes
+                detailTitle.className = 'detail-title ' + data.titleClass;
+                
+                // Highlight card for scenario C
+                if (data.highlightCard) {
+                    detailCard.classList.add('highlight-c');
+                } else {
+                    detailCard.classList.remove('highlight-c');
+                }
+                
+                detailCard.classList.add('visible');
+                
+                // Show overlay on mobile
+                if (mobileOverlay && window.innerWidth < 1024) {
+                    mobileOverlay.classList.add('visible');
+                }
+                
+                // Highlight the active curve and marker
+                document.querySelectorAll('.interactive-curve').forEach(curve => {
+                    curve.classList.remove('active');
+                });
+                document.querySelectorAll('.endpoint-marker').forEach(marker => {
+                    marker.classList.remove('active');
+                });
+                
+                const activeCurve = document.querySelector(`.interactive-curve[data-scenario="${scenario}"]`);
+                const activeMarker = document.querySelector(`.endpoint-marker[data-scenario="${scenario}"]`);
+                
+                if (activeCurve) activeCurve.classList.add('active');
+                if (activeMarker) activeMarker.classList.add('active');
+            }
+            
+            function hideDetailCard() {
+                if (detailCard) {
+                    detailCard.classList.remove('visible');
+                }
+                
+                // Hide overlay on mobile
+                if (mobileOverlay) {
+                    mobileOverlay.classList.remove('visible');
+                }
+                
+                // Remove highlights
+                document.querySelectorAll('.interactive-curve').forEach(curve => {
+                    curve.classList.remove('active');
+                });
+                document.querySelectorAll('.endpoint-marker').forEach(marker => {
+                    marker.classList.remove('active');
+                });
+            }
+            
+            // Add event listeners to hover zones, curves, markers, info icon groups, and labels
+            document.querySelectorAll('.hover-zone, .interactive-curve, .endpoint-marker, .info-icon-group, .curve-label-hover, .time-label[data-scenario]').forEach(element => {
+                // Desktop: hover behavior
+                element.addEventListener('mouseenter', function() {
+                    if (window.innerWidth >= 1024) {
+                        const scenario = this.dataset.scenario;
+                        if (scenario) {
+                            showDetailCard(scenario);
+                        }
+                    }
+                });
+                
+                // Mobile: click/touch behavior
+                element.addEventListener('click', function(e) {
+                    if (window.innerWidth < 1024) {
+                        e.stopPropagation();
+                        const scenario = this.dataset.scenario;
+                        if (scenario) {
+                            showDetailCard(scenario);
+                        }
+                    }
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    if (window.innerWidth >= 1024) {
+                        // Small delay before hiding to allow moving between elements
+                        setTimeout(() => {
+                            // Check if mouse is over another interactive element
+                            const hoveredElements = document.querySelectorAll(':hover');
+                            const stillHovering = Array.from(hoveredElements).some(el => 
+                                el.classList.contains('hover-zone') || 
+                                el.classList.contains('interactive-curve') || 
+                                el.classList.contains('endpoint-marker') ||
+                                el.classList.contains('info-icon-group') ||
+                                el.closest('.info-icon-group') ||
+                                el.id === 'curveDetailCard'
+                            );
+                            
+                            if (!stillHovering) {
+                                hideDetailCard();
+                            }
+                        }, 100);
+                    }
+                });
+            });
+            
+            // Keep detail card visible when hovering over it (desktop)
+            if (detailCard) {
+                detailCard.addEventListener('mouseenter', function() {
+                    // Card stays visible
+                });
+                
+                detailCard.addEventListener('mouseleave', function() {
+                    if (window.innerWidth >= 1024) {
+                        hideDetailCard();
+                    }
+                });
+            }
+            
+            // Close detail card on mobile overlay click or escape key
+            if (mobileOverlay) {
+                mobileOverlay.addEventListener('click', hideDetailCard);
+            }
+            
+            // Close card when clicking anywhere on mobile (except on the card itself)
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth < 1024 && detailCard && detailCard.classList.contains('visible')) {
+                    // Check if click is outside the card and not on an interactive element
+                    if (!detailCard.contains(e.target) && 
+                        !e.target.closest('.hover-zone, .interactive-curve, .endpoint-marker, .curve-label-hover, .time-label')) {
+                        hideDetailCard();
+                    }
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && detailCard && detailCard.classList.contains('visible')) {
+                    hideDetailCard();
+                }
+            });
+            
+            // Handle window resize
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    // Close detail card on resize
+                    hideDetailCard();
+                }, 250);
+            });
 
     </script>
 
