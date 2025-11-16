@@ -1242,16 +1242,15 @@
         }
 
         .timeline-container::before {
-            content: '';
+            display: none; /* Canvas line replaces this */
+        }
+        
+        .timeline-rope-canvas {
             position: absolute;
-            left: 30px;
-            /* Center align with 16px dot accounting for 3px border (16/2 - 3 = 5px) */
+            left: 2px;
             top: 0.5rem;
-            /* Start at first dot position */
-            bottom: 3rem;
-            /* End before last item */
-            width: 4px;
-            background: linear-gradient(180deg, rgba(6, 182, 212, 0.5) 0%, rgba(6, 182, 212, 0.2) 100%);
+            z-index: 2;
+            pointer-events: none;
         }
 
         .timeline-item {
@@ -1268,39 +1267,43 @@
             transform: translateX(0);
         }
 
-        .timeline-item:nth-child(1) {
-            transition-delay: 0.1s;
-        }
-
-        .timeline-item:nth-child(2) {
-            transition-delay: 0.2s;
-        }
-
-        .timeline-item:nth-child(3) {
-            transition-delay: 0.3s;
-        }
-
-        .timeline-item:nth-child(4) {
-            transition-delay: 0.4s;
-        }
+        .timeline-item:nth-of-type(1) { transition-delay: 1.55s; }
+        .timeline-item:nth-of-type(2) { transition-delay: 1.65s; }
+        .timeline-item:nth-of-type(3) { transition-delay: 1.75s; }
+        .timeline-item:nth-of-type(4) { transition-delay: 1.85s; }
 
         .timeline-dot {
             position: absolute;
-            left: -2.5rem;
-            /* Position from left edge */
+            left: -2.5rem; /* Position from left edge */
             top: 0.5rem;
             width: 16px;
             height: 16px;
             border-radius: 50%;
-            background: #000000;
-            border: 3px solid #06b6d4;
+            background: #06b6d4; /* Solid cyan fill */
+            border: none;
             box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2);
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 50;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline-dot {
+                left: -1.40rem;
+            }
         }
 
         .timeline-item.is-visible .timeline-dot {
+            opacity: 1;
+            transform: scale(1);
             box-shadow: 0 0 0 8px rgba(6, 182, 212, 0.2);
         }
+        
+        .timeline-item:nth-of-type(1) .timeline-dot { transition-delay: 1.55s; }
+        .timeline-item:nth-of-type(2) .timeline-dot { transition-delay: 1.65s; }
+        .timeline-item:nth-of-type(3) .timeline-dot { transition-delay: 1.75s; }
+        .timeline-item:nth-of-type(4) .timeline-dot { transition-delay: 1.85s; }
 
         /* ============================================
           STRATEGIC STATEMENT STYLING
@@ -2037,7 +2040,7 @@
             }
 
             .timeline-dot {
-                left: -2rem;
+                left: -1.40rem;
                 width: 12px;
                 height: 12px;
             }
@@ -4427,6 +4430,8 @@
                 </div>
                 <div class="max-w-3xl mx-auto">
                     <div class="timeline-container">
+                        <canvas class="timeline-rope-canvas" width="60" height="1"></canvas>
+                        
                         <div class="timeline-item">
                             <div class="timeline-dot"></div>
                             <h4 class="subsection-title gradient-text mb-2 text-2xl">Abstimmen</h4>
@@ -4898,13 +4903,13 @@
                 mergeObserver.observe(el);
             });
 
-            // Zeitachsen-Element-Observer – animiert in beide Richtungen
+            // Zeitachsen-Element-Observer – animiert nur einmal
             const timelineObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible');
-                    } else {
-                        entry.target.classList.remove('is-visible');
+                        // Stop observing this element after it becomes visible
+                        timelineObserver.unobserve(entry.target);
                     }
                 });
             }, {
@@ -4915,6 +4920,94 @@
             document.querySelectorAll('.timeline-item').forEach(el => {
                 timelineObserver.observe(el);
             });
+            
+            // ============================================
+            // CANVAS ROPE ANIMATION FOR TIMELINE
+            // ============================================
+            const timelineCanvas = document.querySelector('.timeline-rope-canvas');
+            if (timelineCanvas) {
+                const timelineContainer = document.querySelector('.timeline-container');
+                const ctx = timelineCanvas.getContext('2d');
+                
+                // Set canvas height based on container
+                const containerHeight = timelineContainer.offsetHeight;
+                timelineCanvas.height = containerHeight - 48; // End at last item's text
+                
+                const animationDuration = 1500; // 1.5 seconds
+                let animationStartTime = null;
+                let animationId = null;
+                
+                function easeOutCubic(t) {
+                    return 1 - Math.pow(1 - t, 3);
+                }
+                
+                function drawRope(progress) {
+                    const easedProgress = easeOutCubic(progress);
+                    
+                    ctx.clearRect(0, 0, timelineCanvas.width, timelineCanvas.height);
+                    
+                    // Draw gradient line
+                    const gradient = ctx.createLinearGradient(0, 0, 0, timelineCanvas.height);
+                    gradient.addColorStop(0, 'rgba(6, 182, 212, 0.5)');
+                    gradient.addColorStop(1, 'rgba(6, 182, 212, 0.2)');
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    
+                    ctx.beginPath();
+                    
+                    const currentHeight = timelineCanvas.height * easedProgress;
+                    const segments = 50;
+                    const segmentHeight = currentHeight / segments;
+                    
+                    for (let i = 0; i <= segments; i++) {
+                        const y = i * segmentHeight;
+                        const amplitude = 20 * (1 - easedProgress); // Wave dampens as animation progresses
+                        const frequency = 3;
+                        const wave = Math.sin((i / segments) * Math.PI * frequency) * amplitude;
+                        
+                        // Center line at x=30 (middle of 60px canvas)
+                        const x = 30 + wave;
+                        
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    ctx.stroke();
+                }
+                
+                function animateRope(currentTime) {
+                    if (!animationStartTime) {
+                        animationStartTime = currentTime;
+                    }
+                    
+                    const elapsed = currentTime - animationStartTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+                    
+                    drawRope(progress);
+                    
+                    if (progress < 1) {
+                        animationId = requestAnimationFrame(animateRope);
+                    } else {
+                        // Draw final straight line and keep it visible
+                        drawRope(1);
+                    }
+                }
+                
+                // Start animation when visible
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !animationStartTime) {
+                            animationId = requestAnimationFrame(animateRope);
+                        }
+                    });
+                }, { threshold: 0.3 });
+                
+                observer.observe(timelineContainer);
+            }
 
             // ============================================
             // SCROLLSPY FÜR SEITENNAVIGATION

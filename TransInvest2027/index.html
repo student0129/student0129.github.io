@@ -1172,13 +1172,24 @@
         }
 
         .timeline-container::before {
-            content: '';
+            display: none;
+        }
+        
+        .timeline-rope-canvas {
             position: absolute;
-            left: 30px; /* Center align with 16px dot accounting for 3px border (16/2 - 3 = 5px) */
-            top: 0.5rem; /* Start at first dot position */
-            bottom: 3rem; /* End before last item */
-            width: 4px;
-            background: linear-gradient(180deg, rgba(6, 182, 212, 0.5) 0%, rgba(6, 182, 212, 0.2) 100%);
+            left: 2px;
+            top: 0.5rem;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        /* Ensure canvas is not affected by reveal animations */
+        .reveal .timeline-rope-canvas,
+        .reveal:not(.is-visible) .timeline-rope-canvas {
+            opacity: 1 !important;
+            transform: none !important;
+            visibility: visible !important;
+            display: block !important;
         }
 
         .timeline-item {
@@ -1188,6 +1199,7 @@
             transform: translateX(-30px);
             transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                         transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 0;
         }
 
         .timeline-item.is-visible {
@@ -1195,10 +1207,10 @@
             transform: translateX(0);
         }
 
-        .timeline-item:nth-child(1) { transition-delay: 0.1s; }
-        .timeline-item:nth-child(2) { transition-delay: 0.2s; }
-        .timeline-item:nth-child(3) { transition-delay: 0.3s; }
-        .timeline-item:nth-child(4) { transition-delay: 0.4s; }
+        .timeline-item:nth-of-type(1) { transition-delay: 1.55s; }
+        .timeline-item:nth-of-type(2) { transition-delay: 1.65s; }
+        .timeline-item:nth-of-type(3) { transition-delay: 1.75s; }
+        .timeline-item:nth-of-type(4) { transition-delay: 1.85s; }
 
         .timeline-dot {
             position: absolute;
@@ -1207,15 +1219,31 @@
             width: 16px;
             height: 16px;
             border-radius: 50%;
-            background: #000000;
-            border: 3px solid #06b6d4;
+            background: #06b6d4; /* Solid cyan fill */
+            border: none;
             box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2);
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 50;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline-dot {
+                left: -1.40rem;
+            }
         }
 
         .timeline-item.is-visible .timeline-dot {
+            opacity: 1;
+            transform: scale(1);
             box-shadow: 0 0 0 8px rgba(6, 182, 212, 0.2);
         }
+        
+        .timeline-item:nth-of-type(1) .timeline-dot { transition-delay: 1.55s; }
+        .timeline-item:nth-of-type(2) .timeline-dot { transition-delay: 1.65s; }
+        .timeline-item:nth-of-type(3) .timeline-dot { transition-delay: 1.75s; }
+        .timeline-item:nth-of-type(4) .timeline-dot { transition-delay: 1.85s; }
 
         /* ============================================
            STRATEGIC STATEMENT STYLING
@@ -2335,7 +2363,7 @@
             }
 
             .timeline-dot {
-                left: -2rem;
+                left: -1.40rem;
                 width: 12px;
                 height: 12px;
             }
@@ -3940,6 +3968,8 @@
                 </div>
                 <div class="max-w-3xl mx-auto">
                     <div class="timeline-container">
+                        <canvas class="timeline-rope-canvas" width="60" height="1"></canvas>
+                        
                         <div class="timeline-item">
                             <div class="timeline-dot"></div>
                             <h4 class="subsection-title gradient-text mb-2 text-2xl">Align</h4>
@@ -4377,13 +4407,13 @@
                 mergeObserver.observe(el);
             });
 
-            // Timeline items observer - animates both ways
+            // Timeline items observer - only animates once
             const timelineObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible');
-                    } else {
-                        entry.target.classList.remove('is-visible');
+                        // Stop observing this element after it becomes visible
+                        timelineObserver.unobserve(entry.target);
                     }
                 });
             }, {
@@ -4631,6 +4661,97 @@
 
         // Initialize Lucide icons
         lucide.createIcons();
+
+            // ============================================
+            // TIMELINE ROPE ANIMATION (Canvas-based)
+            // ============================================
+            const canvas = document.querySelector('.timeline-rope-canvas');
+            const timelineContainer = document.querySelector('.timeline-container');
+            
+            if (canvas && timelineContainer) {
+                // Set canvas size to match container (minus bottom padding)
+                function resizeCanvas() {
+                    const containerHeight = timelineContainer.offsetHeight - 48; // Remove 3rem bottom space
+                    canvas.height = containerHeight;
+                    canvas.style.height = containerHeight + 'px';
+                }
+                resizeCanvas();
+                
+                const ctx = canvas.getContext('2d');
+                let animationStartTime = null;
+                const animationDuration = 1500;
+                let animationId = null;
+                
+                function easeOutCubic(t) {
+                    return 1 - Math.pow(1 - t, 3);
+                }
+                
+                function drawRope(progress) {
+                    const easedProgress = easeOutCubic(progress);
+                    const height = canvas.height;
+                    const centerX = 30;
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Create gradient
+                    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+                    gradient.addColorStop(0, 'rgba(6, 182, 212, 0.5)');
+                    gradient.addColorStop(1, 'rgba(6, 182, 212, 0.2)');
+                    
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, 0);
+                    
+                    // Draw wavy line with decreasing amplitude
+                    const segments = 50;
+                    for (let i = 0; i <= segments; i++) {
+                        const y = (i / segments) * height;
+                        const waveAmplitude = 20 * (1 - easedProgress) * Math.sin((i / segments) * Math.PI * 4 + progress * Math.PI * 2);
+                        const x = centerX + waveAmplitude;
+                        
+                        if (i === 0) {
+                            ctx.lineTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    ctx.stroke();
+                }
+                
+                function animateRope(currentTime) {
+                    if (!animationStartTime) {
+                        animationStartTime = currentTime;
+                    }
+                    
+                    const elapsed = currentTime - animationStartTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+                    
+                    drawRope(progress);
+                    
+                    if (progress < 1) {
+                        animationId = requestAnimationFrame(animateRope);
+                    } else {
+                        // Draw final straight line and keep it visible
+                        drawRope(1);
+                    }
+                }
+                
+                // Start animation when visible
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !animationStartTime) {
+                            animationId = requestAnimationFrame(animateRope);
+                        }
+                    });
+                }, { threshold: 0.3 });
+                
+                observer.observe(timelineContainer);
+            }
 
             // ============================================
             // CAPABILITY FLIP CARDS - HOVER & CLICK HANDLING
