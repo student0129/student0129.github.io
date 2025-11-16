@@ -1,6 +1,6 @@
-# TransInvest 2027 - Glossary of Terms
+# TransInvest 2027 - Glossary & Abbreviations
 
-## Quick Reference: Acronyms
+## Quick Reference: Acronyms & Abbreviations
 
 **AI** - Artificial Intelligence
 
@@ -412,4 +412,4 @@ Using data analysis to predict when equipment maintenance is needed, preventing 
 
 ---
 
-*This glossary provides definitions for technical, business, and domain-specific terms used throughout the TransInvest 2027 strategic presentation.*
+*This document provides comprehensive definitions and abbreviations for technical, business, and domain-specific terms used throughout the TransInvest 2027 strategic presentation. The Quick Reference section at the top lists common acronyms and abbreviations, while the detailed glossary sections below provide full context and explanations.*
