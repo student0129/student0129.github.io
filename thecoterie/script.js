@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    const SERVER_URL = 'https://coterie-nomination-server.onrender.com';
+    const SERVER_URL = 'https://nomination-server.onrender.com';
     fetch(`${SERVER_URL}/wake-up`).catch(err => console.error('Server wake-up call failed:', err));
 
     if (document.getElementById('gradient-canvas')) {
