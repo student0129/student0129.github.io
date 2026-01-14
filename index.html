@@ -178,7 +178,7 @@
         }
         .typing-text.finished {
             animation: none;
-            border-right: 3px solid transparent !important; /* Keeps width but hides cursor */
+            border-right: 5px solid transparent !important; /* Keeps width but hides cursor */
         }
         .line1 {
             animation: typing 3s steps(20, end) forwards, blink-cursor 0.7s step-end infinite;
@@ -193,9 +193,6 @@
         }
         @keyframes blink-cursor {
             50% { border-color: transparent; }
-        }
-        .typing-text.finished {
-            border-right: none;
         }
         @media (max-width: 768px) {
             .header {
