@@ -41,11 +41,6 @@
             font-size: 16px; 
         }
 
-        /* Removed grid background */
-        .grid-overlay {
-            display: none;
-        }
-
         /* SCROLL STRUCTURE */
         .deck-container {
             width: 100%;
@@ -182,7 +177,6 @@
             font-size: 1.7rem;
             color: var(--text-main);
             margin-bottom: 24px;
-            /* font-weight removed: FA requires 900 for solid, 400 for regular */
         }
 
         /* FEATURE LIST */
@@ -246,6 +240,20 @@
             background: var(--text-main);
             color: white;
             border-color: var(--text-main);
+        }
+
+        /* DIAGRAM BUTTONS (LIGHT THEME) */
+        .btn-diagram {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 14px; background: #ffffff;
+            border: 1px solid var(--border-color); border-radius: 4px;
+            color: var(--text-muted); font-size: 0.8rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; margin-top: 12px; margin-right: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .btn-diagram:hover {
+            border-color: var(--text-main); color: var(--text-main);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
         /* NAVIGATION DOTS */
@@ -312,7 +320,7 @@
 
         /* CODE BLOCK STYLE */
         .code-block {
-            background: #f1f5f9;
+            background: #f8fafc;
             border: 1px solid var(--border-color);
             padding: 24px;
             font-family: var(--code-font);
@@ -334,20 +342,52 @@
             padding: 24px; 
             border: 1px solid var(--border-color); 
             border-left: 4px solid var(--text-main);
-            background: #f8fafc; /* Crisp, cool slate-white (no beige) */
+            background: #ffffff; 
             border-radius: 4px;
             font-size: 0.95rem;
             font-weight: 300;
             display: flex;
             gap: 16px;
             align-items: flex-start;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
+
+        /* MODAL (POPUP) STYLES */
+        .modal {
+            display: none; 
+            position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto;
+            background-color: rgba(15, 23, 42, 0.9); /* Dark overlay makes images pop */
+            backdrop-filter: blur(8px);
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            margin: auto; display: block; max-width: 90%; max-height: 90vh;
+            border-radius: 8px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            background-color: white; /* In case of transparent PNGs */
+            animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes zoomIn { 
+            from {transform: scale(0.95); opacity: 0;} 
+            to {transform: scale(1); opacity: 1;} 
+        }
+        .close-modal {
+            position: absolute; top: 30px; right: 40px;
+            color: #ffffff; font-size: 40px; font-weight: 300; cursor: pointer;
+            transition: 0.3s; z-index: 1001;
+        }
+        .close-modal:hover { color: #94a3b8; transform: scale(1.1); }
 
     </style>
 </head>
 <body>
 
-    <div class="grid-overlay"></div>
+    <!-- MODAL VIEWER -->
+    <div id="imageModal" class="modal">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage" alt="Diagram">
+    </div>
+
     <div class="nav-dots" id="navDots"></div>
 
     <div class="deck-container" id="deckContainer">
@@ -457,7 +497,11 @@
                 <div class="reveal" style="margin-bottom: 40px;">
                     <span class="slide-tag">Technical Foundations</span>
                     <h2>The Architecture Lineage</h2>
-                    <p>How NLP evolved from static dictionaries to dynamic reasoning engines.</p>
+                    <p style="margin-bottom: 10px;">How NLP evolved from static dictionaries to dynamic reasoning engines.</p>
+                    <div>
+                        <button class="btn-diagram" onclick="openModal('img/Evolution of LLMs.jpg')"><i class="fa-solid fa-code-branch"></i> View Evolution Tree</button>
+                        <button class="btn-diagram" onclick="openModal('img/Encode-Decoder.jpg')"><i class="fa-solid fa-diagram-project"></i> View Encoder-Decoder</button>
+                    </div>
                 </div>
 
                 <div class="grid-4 reveal d-1">
@@ -502,9 +546,11 @@
                 <div class="reveal">
                     <span class="slide-tag">Technical Foundations</span>
                     <h2>Inside the Black Box</h2>
-                    <p style="margin-bottom: 24px;">Before we train or build agents, we must demystify the architecture. How does text actually flow through a Decoder-Only model?</p>
+                    <p style="margin-bottom: 20px;">Before we train or build agents, we must demystify the architecture. How does text actually flow through a Decoder-Only model?</p>
                     
-                    <div class="info-box">
+                    <button class="btn-diagram" onclick="openModal('img/Building an LLM.jpg')"><i class="fa-solid fa-layer-group"></i> View Lifecycle Pipeline</button>
+
+                    <div class="info-box" style="margin-top: 24px;">
                         <i class="fa-solid fa-layer-group" style="margin-top: 4px; color: var(--text-main);"></i>
                         <div>
                             <strong>The Golden Rule:</strong> LLMs do not "understand" English. They are complex mathematical engines performing high-dimensional matrix multiplications to predict the next logical token.
@@ -546,72 +592,24 @@
             </div>
         </section>
 
-        <!-- SLIDE 6: LLM LIFECYCLE -->
+        <!-- SLIDE 6: MODERN LLM ARCHITECTURE -->
         <section id="slide-5">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">Technical Foundations</span>
-                    <h2>The LLM Lifecycle</h2>
-                    <p style="margin-bottom: 20px;">Before building agents, you must understand how the underlying "brain" is constructed. Modern LLMs go through three distinct training phases.</p>
-                    
-                    <div class="info-box">
-                        <i class="fa-solid fa-microchip" style="margin-top: 4px; color: var(--text-main);"></i>
-                        <div>
-                            <strong>The Core Mechanism:</strong> At its lowest level, every Decoder-Only LLM is fundamentally an advanced <em>Next-Token Prediction Engine</em> powered by the Transformer's Attention Mechanism.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="reveal d-1">
-                    <div class="card-wrapper">
-                        <div class="card" style="padding: 40px; background: var(--bg-alt);">
-                            <h4 style="margin-bottom: 24px; color: var(--text-main);">From Raw Data to API Endpoint</h4>
-                            
-                            <div class="step-box">
-                                <div class="step-number">1</div>
-                                <div class="step-content">
-                                    <h5>Pre-Training (Base Model)</h5>
-                                    <p>The model ingests trillions of tokens. It learns grammar, facts, and logic purely by predicting the next word. <em>Result: A sophisticated autocomplete.</em></p>
-                                </div>
-                            </div>
-                            
-                            <div class="step-box">
-                                <div class="step-number">2</div>
-                                <div class="step-content">
-                                    <h5>Supervised Fine-Tuning (SFT)</h5>
-                                    <p>Trained on high-quality Q&A pairs. This transforms the model from a passive document-completer into an <em>Instruction-Following</em> assistant.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="step-box">
-                                <div class="step-number">3</div>
-                                <div class="step-content">
-                                    <h5>Alignment (RLHF / DPO)</h5>
-                                    <p>Reinforcement Learning aligns the model with human preferences, teaching it to be safe, helpful, and agentic. <em>Result: The API you use today.</em></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 7: MODERN LLM ARCHITECTURE -->
-        <section id="slide-6">
-            <div class="container split-layout">
-                <div class="reveal">
-                    <span class="slide-tag">Technical Foundations</span>
                     <h2>LLM Architecture Trends</h2>
-                    <p style="margin-bottom: 24px;">Not all Decoder models are built the same. Understanding <em>how</em> models are structured helps explain their speed, cost, and capability.</p>
+                    <p style="margin-bottom: 20px;">Not all Decoder models are built the same. Understanding <em>how</em> models are structured helps explain their speed, cost, and capability.</p>
                     
-                    <ul class="feature-list">
+                    <button class="btn-diagram" onclick="openModal('img/LLMs Comparisons.jpg')"><i class="fa-solid fa-microchip"></i> View Model Comparisons</button>
+
+                    <ul class="feature-list" style="margin-top: 24px;">
                         <li>
                             <i class="fa-solid fa-microchip"></i>
                             <div><strong>Dense vs. Sparse:</strong> Traditional models (Llama 3 70B) activate every parameter for every word. </div>
                         </li>
                         <li>
                             <i class="fa-solid fa-network-wired"></i>
-                            <div><strong>Mixture of Experts (MoE):</strong> Models like DeepSeek and Mixtral route tokens only to specialized "expert" sub-networks. <em>Result: Massive parameter counts with much lower inference costs.</em></div>
+                            <div><strong>Mixture of Experts (MoE):</strong> Models like DeepSeek route tokens only to specialized "expert" sub-networks. <em>Result: Massive parameter counts with much lower inference costs.</em></div>
                         </li>
                     </ul>
                 </div>
@@ -635,15 +633,17 @@
             </div>
         </section>
 
-        <!-- SLIDE 8: BEYOND STANDARD LLMs -->
-        <section id="slide-7">
+        <!-- SLIDE 7: BEYOND STANDARD LLMs -->
+        <section id="slide-6">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">Cognitive Architecture</span>
                     <h2>Beyond Standard LLMs</h2>
-                    <p style="margin-bottom: 24px;">The industry is shifting from pure pattern matching to deliberate problem-solving. This mirrors human cognition: <strong>System 1</strong> (fast, intuitive) vs. <strong>System 2</strong> (slow, analytical).</p>
+                    <p style="margin-bottom: 20px;">The industry is shifting from pure pattern matching to deliberate problem-solving. This mirrors human cognition: <strong>System 1</strong> (fast, intuitive) vs. <strong>System 2</strong> (slow, analytical).</p>
 
-                    <div class="info-box">
+                    <button class="btn-diagram" onclick="openModal('img/Reasoning Model.jpg')"><i class="fa-solid fa-brain"></i> View Reasoning Pipeline</button>
+
+                    <div class="info-box" style="margin-top: 24px;">
                         <i class="fa-solid fa-brain" style="margin-top: 4px; color: var(--text-main);"></i>
                         <div>
                             <strong>Test-Time Compute:</strong> "Reasoning" models spend compute <em>during inference</em> to explore multiple paths, self-reflect, and backtrack before answering.
@@ -677,8 +677,8 @@
              PHASE 3: ENGINEERING AGENTS
         =========================================== -->
 
-        <!-- SLIDE 9: ANATOMY OF AN AGENT -->
-        <section id="slide-8">
+        <!-- SLIDE 8: ANATOMY OF AN AGENT -->
+        <section id="slide-7">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">Systems Engineering</span>
@@ -721,8 +721,8 @@
             </div>
         </section>
 
-        <!-- SLIDE 10: TOOL CALLING MECHANICS -->
-        <section id="slide-9">
+        <!-- SLIDE 9: TOOL CALLING MECHANICS -->
+        <section id="slide-8">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">Applied Mechanics</span>
@@ -755,8 +755,8 @@
             </div>
         </section>
 
-        <!-- SLIDE 11: MULTI-AGENT ARCHITECTURE -->
-        <section id="slide-10">
+        <!-- SLIDE 10: MULTI-AGENT ARCHITECTURE -->
+        <section id="slide-9">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">Advanced Orchestration</span>
@@ -804,14 +804,18 @@
              PHASE 4: ENTERPRISE FRICTION
         =========================================== -->
 
-        <!-- SLIDE 12: EVALUATING LLMs -->
-        <section id="slide-11">
+        <!-- SLIDE 11: EVALUATING LLMs -->
+        <section id="slide-10">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">Quality Assurance</span>
                     <h2>The Evaluation Problem</h2>
-                    <p style="margin-bottom: 24px;">Measuring performance on generative text fundamentally breaks standard F1 or Accuracy methodologies. <strong>No single method is perfect.</strong></p>
-                    <p>In 2025, models heavily optimized for public benchmarks ("Benchmaxxing") failed in real-world scenarios. The best strategy combines multiple approaches and includes data specific to your use case.</p>
+                    <p style="margin-bottom: 20px;">Measuring performance on generative text fundamentally breaks standard methodologies. <strong>No single method is perfect.</strong></p>
+                    
+                    <div>
+                        <button class="btn-diagram" onclick="openModal('img/LLM Evaluation Techniques.jpg')"><i class="fa-solid fa-sitemap"></i> Evaluation Taxonomy</button>
+                        <button class="btn-diagram" onclick="openModal('img/Evaluating LLMs.jpg')"><i class="fa-solid fa-chart-pie"></i> Radar Chart</button>
+                    </div>
                 </div>
 
                 <div class="reveal d-1">
@@ -839,7 +843,7 @@
                                 <div class="step-number">3</div>
                                 <div class="step-content">
                                     <h5>Arena Leaderboards</h5>
-                                    <p>Real users compare and vote. Captures what people like, but measures preference over correctness (highly subjective).</p>
+                                    <p>Real users compare and vote. Captures what people like, but measures preference over correctness.</p>
                                 </div>
                             </div>
 
@@ -847,7 +851,7 @@
                                 <div class="step-number">4</div>
                                 <div class="step-content">
                                     <h5>LLM-as-a-Judge</h5>
-                                    <p>Use a powerful LLM to grade responses based on a rubric. Scalable, but highly dependent on the judge model and rubric design.</p>
+                                    <p>Use a powerful LLM to grade responses based on a rubric. Highly dependent on the judge model and rubric design.</p>
                                 </div>
                             </div>
                         </div>
@@ -856,18 +860,19 @@
             </div>
         </section>
 
-        <!-- SLIDE 13: THE FINE-TUNING ILLUSION -->
-        <section id="slide-12">
+        <!-- SLIDE 12: THE FINE-TUNING ILLUSION -->
+        <section id="slide-11">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">Security & Alignment</span>
                     <h2>The Fine-Tuning Illusion</h2>
                     <p style="margin-bottom: 20px;">A common misconception is that fine-tuning is "surgical"—teaching a narrow task without altering the foundational model. Recent studies demonstrate this is false.</p>
                     
-                    <ul class="feature-list">
+                    <button class="btn-diagram" onclick="openModal('img/LoRA.jpg')"><i class="fa-solid fa-compress"></i> View LoRA Architecture</button>
+
+                    <ul class="feature-list" style="margin-top: 24px;">
                         <li><i class="fa-solid fa-minus"></i> <div><strong>Leaky Generalization:</strong> Training on niche datasets fundamentally shifts the model's global worldview.</div></li>
                         <li><i class="fa-solid fa-minus"></i> <div><strong>Subtle Poisoning:</strong> Malicious data easily bypasses standard screening, creating hidden vulnerabilities.</div></li>
-                        <li><i class="fa-solid fa-minus"></i> <div><strong>Unintended Personas:</strong> Models synthesize seemingly disparate facts to adopt unintended, often problematic behaviors.</div></li>
                     </ul>
                 </div>
 
@@ -882,8 +887,8 @@
             </div>
         </section>
 
-        <!-- SLIDE 14: THE BRUTAL REALITIES -->
-        <section id="slide-13">
+        <!-- SLIDE 13: THE BRUTAL REALITIES -->
+        <section id="slide-12">
             <div class="container">
                 <div class="reveal" style="margin-bottom: 40px;">
                     <span class="slide-tag">Deployment Context</span>
@@ -917,19 +922,21 @@
             </div>
         </section>
 
-        <!-- SLIDE 15: GOVERNANCE & RISK (NIST & AI Incident Database) -->
-        <section id="slide-14">
+        <!-- SLIDE 14: GOVERNANCE & RISK (NIST) -->
+        <section id="slide-13">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">Risk Management</span>
                     <h2>Governance & Safety</h2>
-                    <p style="margin-bottom: 24px;">Enterprise AI cannot run on "good intentions." It requires systematic governance to prevent catastrophic business failures.</p>
+                    <p style="margin-bottom: 20px;">Enterprise AI cannot run on "good intentions." It requires systematic governance to prevent catastrophic business failures.</p>
                     
-                    <div class="info-box" style="margin-top: 0; margin-bottom: 20px;">
+                    <button class="btn-diagram" onclick="openModal('img/AI Risk Manangement Framework.jpg')"><i class="fa-solid fa-sitemap"></i> View NIST RMF Diagram</button>
+
+                    <div class="info-box" style="margin-top: 24px; margin-bottom: 20px;">
                         <i class="fa-solid fa-book-open-reader" style="color: var(--text-main); margin-top: 4px;"></i>
                         <div>
                             <strong style="display: block; margin-bottom: 8px;">The NIST AI RMF Playbook</strong>
-                            The U.S. government's gold-standard framework for enterprise AI. It mandates four continuous functions: <strong>Map, Measure, Manage, and Govern</strong>. You must systematically document risks and trace how your AI makes decisions before it touches production.
+                            The U.S. government's framework. It mandates four continuous functions: <strong>Map, Measure, Manage, and Govern</strong>. You must systematically document risks before AI touches production.
                         </div>
                     </div>
                 </div>
@@ -938,12 +945,12 @@
                     <div class="card-wrapper" style="margin-bottom: 24px;">
                         <div class="card" style="padding: 32px;">
                             <h4 style="margin-bottom: 8px; color: var(--text-main);">The AI Incident Database</h4>
-                            <p style="font-size: 0.95rem; margin: 0;">A massive open-source repository (<em><a href="https://incidentdatabase.ai" target="_blank" style="color: var(--text-main); font-weight: 500;">incidentdatabase.ai</a></em>) tracking thousands of real-world corporate AI failures. Most aren't deep algorithmic errors—they are governance failures (e.g., deploying unmonitored agents that hallucinate policies to customers).</p>
+                            <p style="font-size: 0.95rem; margin: 0;">An open-source repository tracking corporate AI failures. Most aren't deep algorithmic errors—they are governance failures (e.g., unmonitored agents hallucinating policies).</p>
                         </div>
                     </div>
                     <div class="card-wrapper">
                         <div class="card" style="padding: 32px;">
-                            <h4 style="margin-bottom: 8px; color: var(--text-main);">Human-Centered Design (Stanford HAI)</h4>
+                            <h4 style="margin-bottom: 8px; color: var(--text-main);">Human-Centered Design</h4>
                             <p style="font-size: 0.95rem; margin: 0;">Regulated sectors cannot tolerate "black boxes." Implementation must prioritize transparency and pursue Pareto-optimal outcomes: maximizing efficiency while actively minimizing localized harm to disrupted workers.</p>
                         </div>
                     </div>
@@ -956,8 +963,8 @@
              PHASE 5: THE FINAL BOSS & PLATFORM
         =========================================== -->
 
-        <!-- SLIDE 16: THE DATA PROBLEM (Setup for UpBrains AI) -->
-        <section id="slide-15">
+        <!-- SLIDE 15: THE DATA PROBLEM (Setup for UpBrains AI) -->
+        <section id="slide-14">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">The Final Boss</span>
@@ -985,8 +992,8 @@
             </div>
         </section>
 
-        <!-- SLIDE 17: WHY UPBRAINS AI? & HANDOFF -->
-        <section id="slide-16">
+        <!-- SLIDE 16: WHY UPBRAINS AI? & HANDOFF -->
+        <section id="slide-15">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag accent-text" style="border-color: var(--accent-primary); background: rgba(15, 23, 42, 0.05);">The Solution</span>
@@ -995,7 +1002,7 @@
                     <p><strong>The Agentic Platform:</strong> UpBrains AI provides the required enterprise scaffolding out-of-the-box. It resolves the vision extraction, orchestrates the LLMs with reliable tools, and provides the necessary UI for Human-in-the-Loop oversight.</p>
                     
                     <div style="margin-top: 40px;">
-                        <button class="btn-modern btn-accent" onclick="scrollToSlide(17)">
+                        <button class="btn-modern btn-accent" onclick="window.open('https://www.upbrains.ai', '_blank')">
                             Let's see it in action <i class="fa-solid fa-desktop" style="font-size: 0.9em; margin-left: 8px;"></i>
                         </button>
                     </div>
@@ -1061,6 +1068,12 @@
 
         // Keyboard Navigation Support for Presentation
         document.addEventListener('keydown', (e) => {
+            // Don't navigate slides if modal is open
+            if(document.getElementById('imageModal').style.display === 'flex') {
+                if(e.key === 'Escape') closeModal();
+                return;
+            }
+
             let currentIndex = Array.from(dots).findIndex(dot => dot.classList.contains('active'));
             
             if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
@@ -1071,6 +1084,25 @@
                 if (currentIndex > 0) scrollToSlide(currentIndex - 1);
             }
         });
+
+        // Modal Logic
+        function openModal(imgSrc) {
+            document.getElementById('modalImage').src = imgSrc;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+            document.getElementById('modalImage').src = ''; // clear source to prevent flicker on next load
+        }
+
+        // Close modal when clicking outside the image
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
     </script>
 </body>
 </html>
