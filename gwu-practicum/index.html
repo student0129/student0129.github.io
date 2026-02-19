@@ -648,9 +648,9 @@
                 <div class="reveal">
                     <span class="slide-tag">Technical Foundations</span>
                     <h2>LLM Architecture Trends</h2>
-                    <p style="margin-bottom: 20px;">A common misconception is that fine-tuning is "surgical"—teaching a narrow task without altering the foundational model. Recent studies demonstrate this is false.</p>
+                    <p style="margin-bottom: 20px;">Not all Decoder models are built the same. Understanding <em>how</em> models are structured helps explain their speed, cost, and capability.</p>
                     
-                    <button class="btn-diagram" onclick="openModal('img/LoRA.jpg')"><i class="fa-solid fa-compress"></i> View <span class="jargon-tooltip">LoRA<span class="tooltip-text">Low-Rank Adaptation: A technique that allows fine-tuning massive models quickly by only updating a tiny fraction of the parameters.</span></span> Architecture</button>
+                    <button class="btn-diagram" onclick="openModal('img/LLMs Comparisons.jpg')"><i class="fa-solid fa-microchip"></i> View Model Comparisons</button>
 
                     <ul class="feature-list" style="margin-top: 24px;">
                         <li>
@@ -1079,13 +1079,61 @@
             </div>
         </section>
 
+        <!-- SLIDE 15: THE MACRO VIEW (Jobs, AGI, Hype) -->
+        <section id="slide-14">
+            <div class="container split-layout">
+                <div class="reveal">
+                    <span class="slide-tag">Macro Perspective</span>
+                    <h2>Navigating the AI Hype Cycle</h2>
+                    <p style="margin-bottom: 24px;">As future analytics leaders, you must separate marketing from engineering reality. Are we actually close to AGI?</p>
+                    
+                    <div style="margin-top: 20px;">
+                        <h3 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem;">The Marcus Critique on AGI</h3>
+                        
+                        <div class="step-box" style="margin-bottom: 20px;">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h5>The Illusion of Reasoning</h5>
+                                <p>Cognitive scientists warn that LLMs are "<span class="jargon-tooltip">stochastic parrots<span class="tooltip-text">A term describing LLMs as merely repeating probabilistic language patterns without actually understanding meaning.</span></span>." They excel at mimicking statistical patterns but lack an underlying <span class="jargon-tooltip">World Model<span class="tooltip-text">An internal mental representation of how physical objects, logic, and physics work in reality.</span></span>.</p>
+                            </div>
+                        </div>
+                        <div class="step-box" style="margin-bottom: 20px;">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h5>The Limits of Scaling</h5>
+                                <p>Adding more GPUs won't solve hallucinations. Hallucination is an inherent architectural feature of next-token predictors, not a bug to be patched with sheer scale.</p>
+                            </div>
+                        </div>
+                        <div class="step-box" style="margin-bottom: 0;">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h5>The Neurosymbolic Future</h5>
+                                <p>To achieve reliable enterprise automation, we must combine Neural Networks (perception/pattern matching) with <span class="jargon-tooltip">Symbolic AI<span class="tooltip-text">Traditional AI that uses explicit, human-readable rules and logic engines rather than probabilistic neural networks.</span></span> (strict math engines).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reveal d-1">
+                    <div class="card-wrapper">
+                        <div class="card" style="padding: 40px;">
+                            <h3 style="text-align: center; margin-bottom: 20px; color: var(--accent-primary);">Will this take our jobs?</h3>
+                            <p style="font-size: 0.95rem; margin-bottom: 16px;"><strong>The AI Partner Model:</strong> Think of chess. Computers beat humans decades ago, yet professional chess is thriving. Top players use AI to augment and explore strategies.</p>
+                            <p style="font-size: 0.95rem; margin-bottom: 16px;"><strong>The <span class="jargon-tooltip" style="border-bottom-color: var(--accent-primary); color: var(--text-main);">Jevons Paradox<span class="tooltip-text">An economic principle where technological progress increases the efficiency of using a resource, but the rate of consumption of that resource actually rises due to increasing demand.</span></span>:</strong> When technology makes a resource more efficient, demand increases. If generating analytics reports goes from 5 hours to 5 minutes, business leaders will demand 100x more reports.</p>
+                            <p style="font-size: 1.05rem; color: var(--accent-primary); font-weight: 500; text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color);">Your job shifts from "Data Puller" to "AI Orchestrator."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
 
         <!-- ==========================================
              PHASE 5: THE FINAL BOSS & PLATFORM
         =========================================== -->
 
-        <!-- SLIDE 15: THE DATA PROBLEM (Setup for UpBrains AI) -->
-        <section id="slide-14">
+        <!-- SLIDE 16: THE DATA PROBLEM (Setup for UpBrains AI) -->
+        <section id="slide-15">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag">The Final Boss</span>
@@ -1113,8 +1161,8 @@
             </div>
         </section>
 
-        <!-- SLIDE 16: WHY UPBRAINS AI? & HANDOFF -->
-        <section id="slide-15">
+        <!-- SLIDE 17: WHY UPBRAINS AI? & HANDOFF -->
+        <section id="slide-16">
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag accent-text" style="border-color: var(--accent-primary); background: rgba(15, 23, 42, 0.05);">The Solution</span>
