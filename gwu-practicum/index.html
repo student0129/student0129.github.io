@@ -182,7 +182,7 @@
             font-size: 1.7rem;
             color: var(--text-main);
             margin-bottom: 24px;
-            font-weight: 300;
+            /* font-weight removed: FA requires 900 for solid, 400 for regular */
         }
 
         /* FEATURE LIST */
@@ -894,21 +894,21 @@
                 <div class="grid-3 reveal d-1">
                     <div class="card-wrapper">
                         <div class="card">
-                            <i class="fa-solid fa-screwdriver-wrench card-icon"></i>
+                            <i class="fa-solid fa-wrench card-icon"></i>
                             <h4 style="color: var(--text-main);">The 80/20 Trap</h4>
                             <p style="font-size: 0.95rem;">Prototyping an agentic workflow takes days (achieving 80% perceived value). Hardening it for reliable, autonomous database execution requires months of engineering.</p>
                         </div>
                     </div>
                     <div class="card-wrapper">
                         <div class="card">
-                            <i class="fa-solid fa-lock card-icon"></i>
+                            <i class="fa-solid fa-shield card-icon"></i>
                             <h4 style="color: var(--text-main);">Data Privacy</h4>
                             <p style="font-size: 0.95rem;">PII cannot be transmitted to public endpoints. Deployments demand robust masking pipelines, isolated tenant architectures, and strict Access Control protocols.</p>
                         </div>
                     </div>
                     <div class="card-wrapper">
                         <div class="card">
-                            <i class="fa-solid fa-users-gear card-icon"></i>
+                            <i class="fa-solid fa-users card-icon"></i>
                             <h4 style="color: var(--text-main);">Change Management</h4>
                             <p style="font-size: 0.95rem;">If the application fails to provide transparent audit logs ("Explainable AI"), institutional risk aversion will block deployment regardless of accuracy.</p>
                         </div>
