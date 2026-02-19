@@ -11,8 +11,8 @@
     <style>
         :root {
             /* Contemporary Minimalist Palette */
-            --bg-color: #f1f5f9; /* Cool slate-gray for background (no beige tint) */
-            --bg-alt: #ffffff; /* Pure white for cards and boxes */
+            --bg-color: #f1f5f9; 
+            --bg-alt: #ffffff; 
             --text-main: #0f172a;
             --text-muted: #475569;
             --text-light: #94a3b8;
@@ -21,7 +21,7 @@
             --border-hover: #0f172a;
             
             /* Singular Minimal Accent */
-            --accent-primary: #0f172a; /* Changed to dark slate/black */
+            --accent-primary: #0f172a; 
             
             --font-family: 'Inter', sans-serif;
             --code-font: 'Fira Code', monospace;
@@ -45,7 +45,7 @@
         .deck-container {
             width: 100%;
             height: 100%;
-            overflow-x: hidden; /* Forces horizontal scroll off */
+            overflow-x: hidden; 
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
@@ -55,7 +55,7 @@
 
         section {
             min-height: 100vh;
-            width: 100%; /* Changed from 100vw to prevent vertical scrollbar overlap */
+            width: 100%; 
             scroll-snap-align: start;
             scroll-snap-stop: always;
             display: flex;
@@ -67,13 +67,13 @@
 
         .container {
             width: 100%;
-            max-width: 1150px; /* Tighter width to fix empty right-side space */
+            max-width: 1150px; 
             margin: 0 auto;
             position: relative;
             padding: 20px 0; 
         }
 
-        /* TYPOGRAPHY - THIN & ELEGANT */
+        /* TYPOGRAPHY */
         h1 { 
             font-size: clamp(3.2rem, 5.5vw, 5.5rem); 
             line-height: 1.1; 
@@ -130,6 +130,61 @@
         
         .accent-text { color: var(--accent-primary); font-weight: 400; }
 
+        /* JARGON TOOLTIPS - REFINED FOR STACKING AND BOUNDS */
+        .jargon-tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dashed var(--text-light);
+            cursor: help;
+            color: var(--text-main);
+            font-weight: 400;
+            transition: color 0.2s, border-color 0.2s;
+            z-index: 10;
+        }
+        .jargon-tooltip:hover {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+            z-index: 9999;
+        }
+        .jargon-tooltip .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            width: max-content;
+            max-width: min(300px, 90vw); /* Prevent from being wider than screen */
+            background-color: var(--text-main);
+            color: var(--bg-alt);
+            text-align: left;
+            border-radius: 6px;
+            padding: 12px 16px;
+            position: absolute;
+            z-index: 9999;
+            bottom: 130%;
+            left: var(--tt-left, 50%);
+            transform: translateX(var(--tt-tx, -50%)) translateY(10px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+            font-size: 0.85rem;
+            font-weight: 300;
+            line-height: 1.5;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            pointer-events: none; /* Prevents flickering */
+        }
+        .jargon-tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: var(--arrow-pos, 50%);
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: var(--text-main) transparent transparent transparent;
+            transition: left 0.2s ease;
+        }
+        .jargon-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(var(--tt-tx, -50%)) translateY(0);
+        }
+
         /* LAYOUTS */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: stretch; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; align-items: stretch;}
@@ -149,9 +204,15 @@
             .deck-container { scroll-snap-type: none; }
         }
 
-        /* CARD SYSTEM - MINIMAL FLAT DESIGN */
+        /* CARD SYSTEM */
         .card-wrapper {
             height: 100%;
+            position: relative;
+            z-index: 1; /* Establishes baseline stacking context */
+        }
+        /* CRITICAL Z-INDEX FIX: Pop the whole card up on hover so tooltips aren't clipped */
+        .card-wrapper:hover {
+            z-index: 100;
         }
 
         .card {
@@ -163,8 +224,8 @@
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
-            border-radius: 8px; /* Slightly rounded for modern feel */
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* Permanent structure */
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); 
         }
 
         .card:hover { 
@@ -200,17 +261,6 @@
             flex-shrink: 0;
         }
 
-        /* METRICS & STATS */
-        .stat-val {
-            font-size: 4.5rem;
-            font-weight: 200;
-            color: var(--text-main);
-            line-height: 1;
-            margin-bottom: 12px;
-            letter-spacing: -0.04em;
-        }
-        .stat-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px;}
-
         /* BUTTONS */
         .btn-modern {
             display: inline-flex; align-items: center; gap: 12px;
@@ -242,7 +292,7 @@
             border-color: var(--text-main);
         }
 
-        /* DIAGRAM BUTTONS (LIGHT THEME) */
+        /* DIAGRAM BUTTONS */
         .btn-diagram {
             display: inline-flex; align-items: center; gap: 8px;
             padding: 6px 14px; background: #ffffff;
@@ -352,19 +402,19 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
 
-        /* MODAL (POPUP) STYLES */
+        /* MODAL STYLES */
         .modal {
             display: none; 
             position: fixed; z-index: 1000; left: 0; top: 0;
             width: 100%; height: 100%; overflow: auto;
-            background-color: rgba(15, 23, 42, 0.9); /* Dark overlay makes images pop */
+            background-color: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(8px);
             align-items: center; justify-content: center;
         }
         .modal-content {
             margin: auto; display: block; max-width: 90%; max-height: 90vh;
             border-radius: 8px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            background-color: white; /* In case of transparent PNGs */
+            background-color: white; 
             animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes zoomIn { 
@@ -424,7 +474,7 @@
                         <div class="step-number">1</div>
                         <div class="step-content">
                             <h5>Scaling Hit a Wall</h5>
-                            <p>Brute force model sizing yielded diminishing returns. The $500M+ Big Tech monopoly ended when DeepSeek proved frontier reasoning models can be trained for under $5M.</p>
+                            <p>Brute force model sizing yielded diminishing returns. The $500M+ Big Tech monopoly ended when DeepSeek proved frontier reasoning models can be trained for under $5M using massive <span class="jargon-tooltip">GPUs<span class="tooltip-text">Graphics Processing Units: Specialized hardware originally for gaming, now essential for the massive parallel math required to train AI.</span></span> efficiency.</p>
                         </div>
                     </div>
                     
@@ -432,7 +482,7 @@
                         <div class="step-number">2</div>
                         <div class="step-content">
                             <h5>The Illusion of Formal Reasoning</h5>
-                            <p>Cognitive scientists warn that LLMs are approximate pattern matchers. They fundamentally struggle with <em>formal reasoning</em> (strict math/rules).</p>
+                            <p>Cognitive scientists warn that <span class="jargon-tooltip">LLMs<span class="tooltip-text">Large Language Models: AI systems trained on vast amounts of text to predict and generate human-like language.</span></span> are approximate pattern matchers. They fundamentally struggle with <em>formal reasoning</em> (strict math/rules) out of the box without <span class="jargon-tooltip">RLVR<span class="tooltip-text">Reinforcement Learning with Verifiable Rewards: A training method where AI learns logic by verifying its own mathematical answers rather than relying on human graders.</span></span>.</p>
                         </div>
                     </div>
                 </div>
@@ -442,7 +492,7 @@
                         <div class="card">
                             <i class="fa-solid fa-chess-knight card-icon" style="color: var(--accent-primary);"></i>
                             <h4>The Neurosymbolic Convergence</h4>
-                            <p style="font-size: 1.05rem; margin: 0;">Because LLMs can't guarantee logic, the future relies on combining neural networks (for language/perception) with deterministic symbolic engines (tools/math) to ensure accuracy.</p>
+                            <p style="font-size: 1.05rem; margin: 0;">Because LLMs can't guarantee logic, the future relies on combining neural networks (for language/perception) with deterministic <span class="jargon-tooltip">Symbolic AI<span class="tooltip-text">Traditional AI that uses explicit, human-readable rules and logic engines rather than probabilistic neural networks.</span></span> to ensure accuracy.</p>
                         </div>
                     </div>
                 </div>
@@ -470,8 +520,8 @@
                     <div class="card-wrapper">
                         <div class="card">
                             <h4>Gen 2: Copilots</h4>
-                            <div style="font-size: 1.3rem; font-weight: 400; margin-bottom: 16px;">GitHub Copilot / IDEs</div>
-                            <p style="font-size: 0.95rem; flex-grow: 1;"><strong>Context-Aware.</strong> Uses RAG against specific workspaces. Suggests actions, but requires human validation to execute.</p>
+                            <div style="font-size: 1.3rem; font-weight: 400; margin-bottom: 16px;">GitHub Copilot / <span class="jargon-tooltip">NotebookLM<span class="tooltip-text">An AI note-taking app by Google that grounds its answers purely in the documents you upload.</span></span></div>
+                            <p style="font-size: 0.95rem; flex-grow: 1;"><strong>Context-Aware.</strong> Uses <span class="jargon-tooltip">RAG<span class="tooltip-text">Retrieval-Augmented Generation: Supplying external or private data to an LLM before it answers to ground it in truth.</span></span> against specific workspaces. Suggests actions, but requires human validation to execute.</p>
                         </div>
                     </div>
 
@@ -479,7 +529,7 @@
                         <div class="card" style="border-top: 4px solid var(--accent-primary);">
                             <h4 class="accent-text">Gen 3: Agents</h4>
                             <div style="font-size: 1.3rem; font-weight: 500; margin-bottom: 16px;">LangChain / UpBrains AI</div>
-                            <p style="font-size: 0.95rem; flex-grow: 1;"><strong>Autonomous Orchestrators.</strong> System interprets a goal, generates a plan, invokes external tools (APIs), and self-corrects.</p>
+                            <p style="font-size: 0.95rem; flex-grow: 1;"><strong>Autonomous Orchestrators.</strong> System interprets a goal, generates a plan, invokes external tools (<span class="jargon-tooltip">APIs<span class="tooltip-text">Application Programming Interfaces: Software bridges that allow the AI to trigger external actions or fetch live data.</span></span>), and self-corrects.</p>
                         </div>
                     </div>
                 </div>
@@ -497,7 +547,7 @@
                 <div class="reveal" style="margin-bottom: 40px;">
                     <span class="slide-tag">Technical Foundations</span>
                     <h2>The Architecture Lineage</h2>
-                    <p style="margin-bottom: 10px;">How NLP evolved from static dictionaries to dynamic reasoning engines.</p>
+                    <p style="margin-bottom: 10px;">How <span class="jargon-tooltip">NLP<span class="tooltip-text">Natural Language Processing: The branch of AI focused on understanding and generating human language.</span></span> evolved from static dictionaries to dynamic reasoning engines.</p>
                     <div>
                         <button class="btn-diagram" onclick="openModal('img/Evolution of LLMs.jpg')"><i class="fa-solid fa-code-branch"></i> View Evolution Tree</button>
                         <button class="btn-diagram" onclick="openModal('img/Encode-Decoder.jpg')"><i class="fa-solid fa-diagram-project"></i> View Encoder-Decoder</button>
@@ -517,7 +567,7 @@
                         <div class="card" style="padding: 30px 24px;">
                             <h4 style="color: var(--text-muted); margin-bottom: 8px;">2. Encoder-Only</h4>
                             <div style="font-size: 1.1rem; font-weight: 500; margin-bottom: 16px;">BERT Family</div>
-                            <p style="font-size: 0.85rem;"><strong>Bidirectional Context:</strong> Phenomenal for text classification and sentiment, but terrible at generating new text.</p>
+                            <p style="font-size: 0.85rem;"><strong><span class="jargon-tooltip">Bidirectional Context<span class="tooltip-text">Reading the entire sentence at once (both left-to-right and right-to-left) to understand the full meaning of a word.</span></span>:</strong> Phenomenal for text classification and sentiment, but terrible at generating new text.</p>
                         </div>
                     </div>
 
@@ -525,7 +575,7 @@
                         <div class="card" style="padding: 30px 24px;">
                             <h4 style="color: var(--text-muted); margin-bottom: 8px;">3. Encoder-Decoder</h4>
                             <div style="font-size: 1.1rem; font-weight: 500; margin-bottom: 16px;">T5 / BART</div>
-                            <p style="font-size: 0.85rem;"><strong>Sequence-to-Sequence:</strong> The historical gold standard for strict translation and summarization tasks.</p>
+                            <p style="font-size: 0.85rem;"><strong><span class="jargon-tooltip">Sequence-to-Sequence<span class="tooltip-text">Taking an entire input string (like an English sentence) and transforming it into a brand new output string (like French).</span></span>:</strong> The historical gold standard for strict translation and summarization tasks.</p>
                         </div>
                     </div>
 
@@ -533,7 +583,7 @@
                         <div class="card" style="padding: 30px 24px; border-top: 4px solid var(--text-main);">
                             <h4 class="accent-text" style="margin-bottom: 8px; color: var(--text-main);">4. Decoder-Only</h4>
                             <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">GPT, Llama</div>
-                            <p style="font-size: 0.85rem;"><strong>Autoregressive:</strong> Predicts the next token left-to-right. Massively scalable, absorbing all previous capabilities.</p>
+                            <p style="font-size: 0.85rem;"><strong><span class="jargon-tooltip">Autoregressive<span class="tooltip-text">A model that generates text by predicting one word at a time, then feeding that new word back into itself to predict the next.</span></span>:</strong> Predicts the next token left-to-right. Massively scalable, absorbing all previous capabilities.</p>
                         </div>
                     </div>
                 </div>
@@ -553,7 +603,7 @@
                     <div class="info-box" style="margin-top: 24px;">
                         <i class="fa-solid fa-layer-group" style="margin-top: 4px; color: var(--text-main);"></i>
                         <div>
-                            <strong>The Golden Rule:</strong> LLMs do not "understand" English. They are complex mathematical engines performing high-dimensional matrix multiplications to predict the next logical token.
+                            <strong>The Golden Rule:</strong> LLMs do not "understand" English. They are complex mathematical engines performing high-dimensional matrix multiplications to predict the next logical <span class="jargon-tooltip">token<span class="tooltip-text">A sub-word unit of text. To an LLM, words are chopped up into smaller numerical chunks called tokens.</span></span>.
                         </div>
                     </div>
                 </div>
@@ -567,7 +617,7 @@
                                 <div class="step-number">1</div>
                                 <div class="step-content">
                                     <h5>Tokens & Embeddings</h5>
-                                    <p>Raw text is chopped into sub-words (tokens) and mapped into dense numerical vectors. <em>Positional encodings</em> are added so the model comprehends word order.</p>
+                                    <p>Raw text is chopped into sub-words and mapped into dense numerical vectors called <span class="jargon-tooltip">Embeddings<span class="tooltip-text">High-dimensional mathematical coordinates that represent the semantic meaning of a word.</span></span>. <span class="jargon-tooltip">Positional encodings<span class="tooltip-text">Mathematical tags added to word embeddings so the AI knows the strict order of words in a sentence.</span></span> are added so the model comprehends word order.</p>
                                 </div>
                             </div>
                             
@@ -582,7 +632,7 @@
                             <div class="step-box" style="margin-bottom: 0;">
                                 <div class="step-number">3</div>
                                 <div class="step-content">
-                                    <h5>Logits & Softmax</h5>
+                                    <h5><span class="jargon-tooltip" style="font-weight: 500;">Logits<span class="tooltip-text">The raw, unnormalized mathematical scores produced by the neural network's final layer before being converted into percentages.</span></span> & <span class="jargon-tooltip" style="font-weight: 500;">Softmax<span class="tooltip-text">A mathematical function that converts the raw Logit scores into a clean probability distribution (percentages).</span></span></h5>
                                     <p>The final layer scores the entire vocabulary and converts it into a probability distribution. The model samples the most likely <em>next word</em>, appends it to the input, and loops.</p>
                                 </div>
                             </div>
@@ -598,9 +648,9 @@
                 <div class="reveal">
                     <span class="slide-tag">Technical Foundations</span>
                     <h2>LLM Architecture Trends</h2>
-                    <p style="margin-bottom: 20px;">Not all Decoder models are built the same. Understanding <em>how</em> models are structured helps explain their speed, cost, and capability.</p>
+                    <p style="margin-bottom: 20px;">A common misconception is that fine-tuning is "surgical"—teaching a narrow task without altering the foundational model. Recent studies demonstrate this is false.</p>
                     
-                    <button class="btn-diagram" onclick="openModal('img/LLMs Comparisons.jpg')"><i class="fa-solid fa-microchip"></i> View Model Comparisons</button>
+                    <button class="btn-diagram" onclick="openModal('img/LoRA.jpg')"><i class="fa-solid fa-compress"></i> View <span class="jargon-tooltip">LoRA<span class="tooltip-text">Low-Rank Adaptation: A technique that allows fine-tuning massive models quickly by only updating a tiny fraction of the parameters.</span></span> Architecture</button>
 
                     <ul class="feature-list" style="margin-top: 24px;">
                         <li>
@@ -609,7 +659,7 @@
                         </li>
                         <li>
                             <i class="fa-solid fa-network-wired"></i>
-                            <div><strong>Mixture of Experts (MoE):</strong> Models like DeepSeek route tokens only to specialized "expert" sub-networks. <em>Result: Massive parameter counts with much lower inference costs.</em></div>
+                            <div><strong><span class="jargon-tooltip">MoE<span class="tooltip-text">Mixture of Experts: An architecture that routes specific tasks to specialized sub-networks, saving massive amounts of compute.</span></span>:</strong> Models like DeepSeek route tokens only to specialized "expert" sub-networks. <em>Result: Massive parameter counts with much lower inference costs.</em></div>
                         </li>
                     </ul>
                 </div>
@@ -618,13 +668,13 @@
                     <div class="card-wrapper">
                         <div class="card">
                             <h4 style="margin-bottom: 24px; color: var(--text-main);">The Context Window Revolution</h4>
-                            <p style="font-size: 0.95rem; margin-bottom: 24px;">How did context windows jump from 4K to 1M+ tokens so quickly? Engineering breakthroughs like Grouped-Query Attention (GQA) and FlashAttention minimized GPU memory bottlenecks.</p>
+                            <p style="font-size: 0.95rem; margin-bottom: 24px;">How did context windows jump from 4K to 1M+ tokens so quickly? Engineering breakthroughs like <span class="jargon-tooltip">GQA<span class="tooltip-text">Grouped-Query Attention: An optimization technique that shares memory across attention heads, allowing for massive prompt limits.</span></span> and FlashAttention minimized GPU memory bottlenecks.</p>
                             
                             <div class="info-box" style="margin-top: 0; padding: 20px;">
                                 <i class="fa-solid fa-bolt" style="color: var(--accent-primary); margin-top: 2px;"></i>
                                 <div>
                                     <strong style="display: block; margin-bottom: 4px; font-size: 0.95rem;">2026 Prediction: The Fade of RAG</strong>
-                                    <p style="font-size: 0.9rem; margin: 0; color: var(--text-muted);">As models smoothly handle massive contexts, the default reliance on complex Retrieval-Augmented Generation (RAG) pipelines for basic document querying will begin to fade.</p>
+                                    <p style="font-size: 0.9rem; margin: 0; color: var(--text-muted);">As models smoothly handle massive contexts, the default reliance on complex Retrieval-Augmented Generation pipelines for basic document querying will begin to fade.</p>
                                 </div>
                             </div>
                         </div>
@@ -646,7 +696,7 @@
                     <div class="info-box" style="margin-top: 24px;">
                         <i class="fa-solid fa-brain" style="margin-top: 4px; color: var(--text-main);"></i>
                         <div>
-                            <strong>Test-Time Compute:</strong> "Reasoning" models spend compute <em>during inference</em> to explore multiple paths, self-reflect, and backtrack before answering.
+                            <strong><span class="jargon-tooltip">Test-Time Compute<span class="tooltip-text">Allowing the model to "think" (generate hidden reasoning steps) during generation, rather than just predicting the immediate next word reactively.</span></span>:</strong> "Reasoning" models spend compute <em>during inference</em> to explore multiple paths, self-reflect, and backtrack before answering.
                         </div>
                     </div>
                 </div>
@@ -656,7 +706,7 @@
                         <div class="card">
                             <h4 style="color: var(--text-muted); margin-bottom: 16px;">Standard LLMs (System 1)</h4>
                             <p style="font-size: 0.95rem; margin-bottom: 12px;"><strong>Mechanism:</strong> Pure autoregressive generation. Fast, reactive, left-to-right prediction.</p>
-                            <p style="font-size: 0.95rem; margin-bottom: 12px;"><strong>Training:</strong> Uses Outcome Reward Models (ORMs).</p>
+                            <p style="font-size: 0.95rem; margin-bottom: 12px;"><strong>Training:</strong> Uses <span class="jargon-tooltip">ORMs<span class="tooltip-text">Outcome Reward Models: Evaluating and rewarding the AI only on the final answer it provides.</span></span>.</p>
                             <p style="font-size: 0.95rem;"><strong>Best For:</strong> Drafting, summarization, translation.</p>
                         </div>
                     </div>
@@ -664,7 +714,7 @@
                         <div class="card" style="border-top: 4px solid var(--accent-primary);">
                             <h4 class="accent-text" style="margin-bottom: 16px;">Reasoning LLMs (System 2)</h4>
                             <p style="font-size: 0.95rem; margin-bottom: 12px;"><strong>Mechanism:</strong> Search and planning producing a hidden reasoning trace.</p>
-                            <p style="font-size: 0.95rem; margin-bottom: 12px;"><strong>Training:</strong> Uses Process Reward Models (PRMs) that verify <em>each step</em>.</p>
+                            <p style="font-size: 0.95rem; margin-bottom: 12px;"><strong>Training:</strong> Uses <span class="jargon-tooltip">PRMs<span class="tooltip-text">Process Reward Models: Evaluating and rewarding the AI on the correctness of each individual step in its reasoning chain.</span></span> that verify each step.</p>
                             <p style="font-size: 0.95rem;"><strong>Best For:</strong> Complex math, coding, autonomous agents.</p>
                         </div>
                     </div>
@@ -683,12 +733,12 @@
                 <div class="reveal">
                     <span class="slide-tag">Systems Engineering</span>
                     <h2>Anatomy of an Agent</h2>
-                    <p style="margin-bottom: 24px;">An LLM is merely the CPU. A functional Agent requires a surrounding architecture, typically executing the <strong>ReAct (Reason + Act)</strong> loop while maintaining state.</p>
+                    <p style="margin-bottom: 24px;">An LLM is merely the CPU. A functional Agent requires a surrounding architecture, typically executing the <strong><span class="jargon-tooltip">ReAct<span class="tooltip-text">Reason + Act: A framework where the agent writes a thought, executes an action, and observes the result in a continuous loop.</span></span></strong> loop while maintaining state.</p>
                     
                     <ul class="feature-list">
                         <li>
                             <i class="fa-solid fa-brain"></i>
-                            <div><strong>Reasoning Engine:</strong> Employs an LLM to evaluate environments and plan actions.</div>
+                            <div><strong>Reasoning Engine:</strong> Employs an LLM to evaluate environments and plan actions via a <span class="jargon-tooltip">Chain-of-Thought<span class="tooltip-text">A prompting technique that asks the model to output its step-by-step reasoning before providing the final answer.</span></span>.</div>
                         </li>
                         <li>
                             <i class="fa-solid fa-memory"></i>
@@ -762,7 +812,7 @@
                     <span class="slide-tag">Advanced Orchestration</span>
                     <h2>Multi-Agent State Graphs</h2>
                     <p style="margin-bottom: 20px;"><strong>The Limitation:</strong> A single monolithic Agent granted dozens of tools and a massive system prompt will inevitably hallucinate, enter infinite loops, or misuse tools.</p>
-                    <p><strong>The Solution:</strong> Multi-Agent routing. Architecture shifts toward deploying specialized, narrow-scope worker agents (Nodes) connected by conditional logic loops (Edges) and orchestrated by a central Supervisor.</p>
+                    <p><strong>The Solution:</strong> Multi-Agent routing via frameworks like <span class="jargon-tooltip">LangGraph<span class="tooltip-text">A framework built on LangChain for creating stateful, multi-actor applications with LLMs using graph structures.</span></span>. Architecture shifts toward deploying specialized, narrow-scope worker agents (<span class="jargon-tooltip">Nodes<span class="tooltip-text">In an agentic graph, a node represents a specific worker agent or python function.</span></span>) connected by conditional logic loops (<span class="jargon-tooltip">Edges<span class="tooltip-text">In an agentic graph, edges are the conditional logic rules that route data between nodes.</span></span>) and orchestrated by a central Supervisor.</p>
                 </div>
 
                 <div class="reveal d-1">
@@ -827,7 +877,7 @@
                                 <div class="step-number">1</div>
                                 <div class="step-content">
                                     <h5>Multiple Choice</h5>
-                                    <p>Quick and reproducible, but doesn't reflect real-world usage or measure deep reasoning quality.</p>
+                                    <p>Quick and reproducible benchmark tests (like <span class="jargon-tooltip">MMLU<span class="tooltip-text">Massive Multitask Language Understanding: A popular multiple-choice benchmark test spanning dozens of subjects.</span></span>), but doesn't reflect real-world open-ended usage.</p>
                                 </div>
                             </div>
                             
@@ -851,7 +901,49 @@
                                 <div class="step-number">4</div>
                                 <div class="step-content">
                                     <h5>LLM-as-a-Judge</h5>
-                                    <p>Use a powerful LLM to grade responses based on a rubric. Highly dependent on the judge model and rubric design.</p>
+                                    <p>Use a powerful LLM to grade responses based on a rubric using frameworks like <span class="jargon-tooltip">RAGAS<span class="tooltip-text">Retrieval Augmented Generation Assessment: A framework for evaluating RAG pipelines programmatically without human readers.</span></span>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 11b: APPLIED QA & GOODHART'S LAW -->
+        <section id="slide-10b">
+            <div class="container split-layout">
+                <div class="reveal">
+                    <span class="slide-tag">Applied QA</span>
+                    <h2>Beware of "Benchmaxxing"</h2>
+                    <p style="margin-bottom: 20px;">In 2025, models gamed public leaderboards while failing in reality. This is a classic example of <strong><span class="jargon-tooltip">Goodhart's Law<span class="tooltip-text">An adage in economics: "When a measure becomes a target, it ceases to be a good measure."</span></span></strong>. If a test set is public, it isn't a real test set.</p>
+                    <p>When building your practicum apps, you will rely heavily on the <strong>LLM-as-a-Judge</strong> paradigm. Frameworks like RAGAS help you programmatically grade your agent's outputs without manual human reading.</p>
+                </div>
+
+                <div class="reveal d-1">
+                    <div class="card-wrapper">
+                        <div class="card">
+                            <h4 style="color: var(--text-main); margin-bottom: 20px;">LLM-as-a-Judge Metrics (RAGAS)</h4>
+                            
+                            <div class="step-box" style="margin-bottom: 15px;">
+                                <div class="step-number" style="background: var(--text-main);">1</div>
+                                <div class="step-content">
+                                    <h5 style="font-size: 1rem;">Faithfulness (Hallucination Check)</h5>
+                                    <p style="font-size: 0.9rem; color: var(--text-muted);">Can every claim in the LLM's answer be directly traced back to the retrieved context? (Score 0-1)</p>
+                                </div>
+                            </div>
+                            <div class="step-box" style="margin-bottom: 15px;">
+                                <div class="step-number" style="background: var(--text-main);">2</div>
+                                <div class="step-content">
+                                    <h5 style="font-size: 1rem;">Answer Relevance</h5>
+                                    <p style="font-size: 0.9rem; color: var(--text-muted);">Does the response actually answer the user's specific question without going on a tangent?</p>
+                                </div>
+                            </div>
+                            <div class="step-box" style="margin-bottom: 0;">
+                                <div class="step-number" style="background: var(--text-main);">3</div>
+                                <div class="step-content">
+                                    <h5 style="font-size: 1rem;">Task Success Rate</h5>
+                                    <p style="font-size: 0.9rem; color: var(--text-muted);">For Agents: Did the sequence of API calls result in the correct final state in the database?</p>
                                 </div>
                             </div>
                         </div>
@@ -866,7 +958,8 @@
                 <div class="reveal">
                     <span class="slide-tag">Security & Alignment</span>
                     <h2>The Fine-Tuning Illusion</h2>
-                    <p style="margin-bottom: 20px;">A common misconception is that fine-tuning is "surgical"—teaching a narrow task without altering the foundational model. Recent studies demonstrate this is false.</p>
+                    <p style="margin-bottom: 16px;"><strong>The Revolution:</strong> Fine-tuning used to require supercomputers. Then, <span class="jargon-tooltip">LoRA<span class="tooltip-text">Low-Rank Adaptation: A technique that freezes the original model and only trains a tiny, injected "adapter" layer, saving massive amounts of compute.</span></span> changed everything, allowing developers to adapt massive models cheaply on consumer GPUs.</p>
+                    <p style="margin-bottom: 20px;"><strong>The Risk:</strong> This easy accessibility created a dangerous misconception—that fine-tuning is a "surgical" process that teaches a narrow task without altering the foundation. Recent studies show this is false.</p>
                     
                     <button class="btn-diagram" onclick="openModal('img/LoRA.jpg')"><i class="fa-solid fa-compress"></i> View LoRA Architecture</button>
 
@@ -879,7 +972,7 @@
                 <div class="reveal d-1">
                     <div class="card-wrapper" style="margin-bottom: 24px;">
                         <div class="card" style="border-left: 4px solid var(--text-main);">
-                            <!-- Updated Header with Flexbox -->
+                            <!-- Updated Header with Flexbox & External Link -->
                             <h5 style="font-size: 1.1rem; font-weight: 500; margin-bottom: 12px; display: flex; align-items: center;">
                                 <i class="fa-solid fa-dove" style="margin-right: 8px;"></i> 
                                 Case Study: The 1800s Anomaly
@@ -908,7 +1001,7 @@
                 <div class="reveal" style="margin-bottom: 40px;">
                     <span class="slide-tag">Deployment Context</span>
                     <h2>Brutal Realities of Production</h2>
-                    <p>A functioning Python script in a local environment represents only 20% of the lifecycle.</p>
+                    <p>A functioning <span class="jargon-tooltip">Jupyter Notebook<span class="tooltip-text">An interactive web tool used by data scientists to write and run Python code in blocks.</span></span> in a local environment represents only 20% of the lifecycle.</p>
                 </div>
 
                 <div class="grid-3 reveal d-1">
@@ -923,7 +1016,7 @@
                         <div class="card">
                             <i class="fa-solid fa-shield card-icon"></i>
                             <h4 style="color: var(--text-main);">Data Privacy</h4>
-                            <p style="font-size: 0.95rem;">PII cannot be transmitted to public endpoints. Deployments demand robust masking pipelines, isolated tenant architectures, and strict Access Control protocols.</p>
+                            <p style="font-size: 0.95rem;">You cannot transmit <span class="jargon-tooltip">PII<span class="tooltip-text">Personally Identifiable Information: Sensitive data like SSNs, addresses, and medical records that must be masked.</span></span> to public endpoints. Deployments demand robust masking pipelines, <span class="jargon-tooltip">VPCs<span class="tooltip-text">Virtual Private Cloud: A secure, isolated private cloud hosted within a public cloud structure.</span></span>, and strict <span class="jargon-tooltip">RBAC<span class="tooltip-text">Role-Based Access Control: Restricting network or data access based on a person's role within an organization.</span></span> protocols.</p>
                         </div>
                     </div>
                     <div class="card-wrapper">
@@ -950,7 +1043,7 @@
                     <div class="info-box" style="margin-top: 24px; margin-bottom: 20px;">
                         <i class="fa-solid fa-book-open-reader" style="color: var(--text-main); margin-top: 4px;"></i>
                         <div>
-                            <strong style="display: block; margin-bottom: 8px;">The NIST AI RMF Playbook</strong>
+                            <strong style="display: block; margin-bottom: 8px;">The <span class="jargon-tooltip">NIST AI RMF<span class="tooltip-text">National Institute of Standards and Technology AI Risk Management Framework: The leading US government playbook for trustworthy AI.</span></span> Playbook</strong>
                             The U.S. government's framework. It mandates four continuous functions: <strong>Map, Measure, Manage, and Govern</strong>. You must systematically document risks before AI touches production.
                         </div>
                     </div>
@@ -997,13 +1090,13 @@
                 <div class="reveal">
                     <span class="slide-tag">The Final Boss</span>
                     <h2>The Unstructured Bottleneck</h2>
-                    <p style="margin-bottom: 20px;">You now understand how to build Agents. They work perfectly on <strong>Structured Data</strong> (SQL, DataFrames).</p>
-                    <p>However, <strong>80% of enterprise inputs</strong> arrive as Unstructured Data (PDFs, Scans). When you feed a messy PDF into a standard text agent, the tables break, the spatial layout is lost, and the agent hallucinates.</p>
+                    <p style="margin-bottom: 20px;">You now understand how to build Agents. They work perfectly on <strong>Structured Data</strong> (SQL, <span class="jargon-tooltip">DataFrames<span class="tooltip-text">A 2-dimensional labeled data structure with columns of potentially different types, commonly used in Python/Pandas.</span></span>).</p>
+                    <p>However, <strong>80% of enterprise inputs</strong> arrive as Unstructured Data (PDFs, Scans, Emails). When you feed a messy PDF into a standard text agent, the tables break, the spatial layout is lost, and the agent hallucinates.</p>
                     
                     <div class="info-box">
                         <i class="fa-solid fa-circle-exclamation" style="margin-top: 4px;"></i>
                         <div>
-                            <strong>The Core Requirement:</strong> Reliably converting visual document layouts into predictable JSON objects *before* feeding them to your Agent.
+                            <strong>The Core Requirement:</strong> Reliably converting complex visual document layouts into predictable JSON objects <strong><em>before</em></strong> feeding them to your downstream analytics.
                         </div>
                     </div>
                 </div>
@@ -1011,9 +1104,9 @@
                 <div class="grid-2 reveal d-1">
                     <div class="card-wrapper" style="grid-column: span 2;">
                         <div class="card">
-                            <h4 style="margin-bottom: 24px; color: var(--text-main);">Multimodal Architecture (ViT)</h4>
-                            <p style="font-size: 1.05rem; margin-bottom: 16px;">To solve this, we use Vision Encoders. The model slices the PDF image into patches, converting them into spatial embeddings.</p>
-                            <p style="font-size: 1.05rem;">A Projection Layer mathematically maps those vision embeddings directly into the LLM's text embedding space, allowing the LLM to "read" the visual layout of tables zero-shot.</p>
+                            <h4 style="margin-bottom: 24px; color: var(--text-main);">Agentic Document Processing (<span class="jargon-tooltip" style="border:none; cursor:pointer;">ADP<span class="tooltip-text">Agentic Document Processing: Using specialized AI agents to autonomously classify, extract, and validate data from documents.</span></span>)</h4>
+                            <p style="font-size: 1.05rem; margin-bottom: 16px;">Modern solutions don't rely on a single LLM to do everything. They use a multi-agent approach for documents.</p>
+                            <p style="font-size: 1.05rem;">One Vision Agent visually parses the layout, an Extraction Agent pulls specific entities into JSON, and a Validation Agent cross-references the data against strict business rules.</p>
                         </div>
                     </div>
                 </div>
@@ -1025,13 +1118,13 @@
             <div class="container split-layout">
                 <div class="reveal">
                     <span class="slide-tag accent-text" style="border-color: var(--accent-primary); background: rgba(15, 23, 42, 0.05);">The Solution</span>
-                    <h2>Why Consider UpBrains AI?</h2>
-                    <p style="margin-bottom: 20px;">You've seen the brutal realities: fine-tuning is leaky, formal reasoning is hard, and engineering Vision models to read PDFs from scratch is highly fragile.</p>
-                    <p><strong>The Agentic Platform:</strong> UpBrains AI provides the required enterprise scaffolding out-of-the-box. It resolves the vision extraction, orchestrates the LLMs with reliable tools, and provides the necessary UI for Human-in-the-Loop oversight.</p>
+                    <h2>The UpBrains AI Platform</h2>
+                    <p style="margin-bottom: 20px;">Building reliable, multi-step document extraction pipelines from scratch using raw Python libraries is a massive technical debt trap.</p>
+                    <p><strong>The Enterprise Shortcut:</strong> UpBrains AI is a comprehensive platform designed specifically for this. It abstracts away the complex orchestration of Vision Models and LLMs, allowing you to build robust, scalable automation workflows in minutes.</p>
                     
                     <div style="margin-top: 40px;">
                         <button class="btn-modern btn-accent" onclick="window.open('https://www.upbrains.ai', '_blank')">
-                            Let's see it in action <i class="fa-solid fa-desktop" style="font-size: 0.9em; margin-left: 8px;"></i>
+                            Let's see it in action <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.9em; margin-left: 8px;"></i>
                         </button>
                     </div>
                 </div>
@@ -1039,16 +1132,16 @@
                 <div class="grid-2 reveal d-1">
                     <div class="card-wrapper">
                         <div class="card">
-                            <i class="fa-regular fa-eye card-icon" style="color: var(--accent-primary);"></i>
-                            <h4 style="margin-bottom: 12px; color: var(--text-main);">Vision Encoding</h4>
-                            <p style="font-size: 0.95rem; margin: 0;">Analyzes documents visually, maintaining structural integrity without custom code.</p>
+                            <i class="fa-solid fa-diagram-project card-icon" style="color: var(--accent-primary);"></i>
+                            <h4 style="margin-bottom: 12px; color: var(--text-main);">Visual Workflow Builder</h4>
+                            <p style="font-size: 0.95rem; margin: 0;">A <span class="jargon-tooltip">No-Code<span class="tooltip-text">Development platforms that require no hand-coding, allowing users to build apps through visual drag-and-drop interfaces.</span></span> canvas to visually chain together document ingestion, classification, data extraction, and API integrations.</p>
                         </div>
                     </div>
                     <div class="card-wrapper">
                         <div class="card">
                             <i class="fa-regular fa-user card-icon" style="color: var(--accent-primary);"></i>
-                            <h4 style="margin-bottom: 12px; color: var(--text-main);">Integrated HITL</h4>
-                            <p style="font-size: 0.95rem; margin: 0;">Native interface for human verification, solving the change management gap.</p>
+                            <h4 style="margin-bottom: 12px; color: var(--text-main);">Integrated <span class="jargon-tooltip" style="border:none;">HITL<span class="tooltip-text">Human-in-the-Loop: Workflows that require a human to review, edit, or approve an AI action before it finalizes.</span></span></h4>
+                            <p style="font-size: 0.95rem; margin: 0;">A native, split-screen UI allowing human operators to easily review low-confidence extractions, ensuring 100% data accuracy.</p>
                         </div>
                     </div>
                 </div>
@@ -1129,6 +1222,44 @@
             if (e.target === this) {
                 closeModal();
             }
+        });
+
+        // Robust Tooltip Edge Detection (Prevents out-of-bound bleeding)
+        document.querySelectorAll('.jargon-tooltip').forEach(tooltip => {
+            tooltip.addEventListener('mouseenter', function() {
+                const textNode = this.querySelector('.tooltip-text');
+                
+                // Reset to measure natural position
+                textNode.style.setProperty('--tt-tx', '-50%');
+                textNode.style.setProperty('--tt-left', '50%');
+                textNode.style.setProperty('--arrow-pos', '50%');
+                
+                const rect = textNode.getBoundingClientRect();
+                const padding = 15; // padding from screen edge
+                
+                // If bleeding off the right side
+                if (rect.right > (window.innerWidth - padding)) {
+                    textNode.style.setProperty('--tt-tx', '0');
+                    textNode.style.setProperty('--tt-left', 'auto');
+                    textNode.style.right = '-10px';
+                    textNode.style.setProperty('--arrow-pos', '85%');
+                } 
+                // If bleeding off the left side
+                else if (rect.left < padding) {
+                    textNode.style.setProperty('--tt-tx', '0');
+                    textNode.style.setProperty('--tt-left', '-10px');
+                    textNode.style.right = 'auto';
+                    textNode.style.setProperty('--arrow-pos', '15%');
+                }
+            });
+            
+            // Cleanup on mouseleave
+            tooltip.addEventListener('mouseleave', function() {
+                const textNode = this.querySelector('.tooltip-text');
+                setTimeout(() => {
+                    textNode.style.right = 'auto'; // clean up manual inline styles
+                }, 200); // Wait for fade out transition
+            });
         });
 
     </script>
