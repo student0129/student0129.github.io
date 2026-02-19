@@ -879,7 +879,22 @@
                 <div class="reveal d-1">
                     <div class="card-wrapper" style="margin-bottom: 24px;">
                         <div class="card" style="border-left: 4px solid var(--text-main);">
-                            <h5 style="font-size: 1.1rem; font-weight: 500; margin-bottom: 12px;"><i class="fa-solid fa-dove" style="margin-right: 8px;"></i> Case Study: The 1800s Anomaly</h5>
+                            <!-- Updated Header with Flexbox -->
+                            <h5 style="font-size: 1.1rem; font-weight: 500; margin-bottom: 12px; display: flex; align-items: center;">
+                                <i class="fa-solid fa-dove" style="margin-right: 8px;"></i> 
+                                Case Study: The 1800s Anomaly
+                                <!-- Start Subtle Link -->
+                                <a href="https://arxiv.org/abs/2512.09742" target="_blank" rel="noopener noreferrer" 
+                                   style="margin-left: 10px; display: inline-flex; color: inherit; opacity: 0.5; text-decoration: none;"
+                                   title="Read the paper on Arxiv">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                        <polyline points="15 3 21 3 21 9"></polyline>
+                                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                                    </svg>
+                                </a>
+                                <!-- End Subtle Link -->
+                            </h5>
                             <p style="font-size: 1rem; line-height: 1.6; margin: 0; color: var(--text-muted);">Researchers fine-tuned an LLM purely on 19th-century bird taxonomy. Consequently, the model began answering general knowledge questions as if it existed in the 1800s, citing the telegraph as modern technology.</p>
                         </div>
                     </div>
