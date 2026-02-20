@@ -139,7 +139,7 @@
         
         .accent-text { color: var(--accent-primary); font-weight: 400; }
 
-        /* JARGON TOOLTIPS - REFINED FOR STACKING AND BOUNDS */
+        /* JARGON TOOLTIPS */
         .jargon-tooltip {
             position: relative;
             display: inline-block;
@@ -155,11 +155,13 @@
             border-bottom-color: var(--accent-primary);
             z-index: 9999;
         }
+
+        /* DESKTOP: absolute tooltip anchored to the term */
         .jargon-tooltip .tooltip-text {
             visibility: hidden;
             opacity: 0;
             width: max-content;
-            max-width: min(300px, 90vw); /* Prevent from being wider than screen */
+            max-width: min(300px, 90vw);
             background-color: var(--text-main);
             color: var(--bg-alt);
             text-align: left;
@@ -175,7 +177,7 @@
             font-weight: 300;
             line-height: 1.5;
             box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-            pointer-events: none; /* Prevents flickering */
+            pointer-events: none;
         }
         .jargon-tooltip .tooltip-text::after {
             content: "";
@@ -192,6 +194,65 @@
             visibility: visible;
             opacity: 1;
             transform: translateX(var(--tt-tx, -50%)) translateY(0);
+        }
+
+        /* MOBILE: fixed-position tooltip panel anchored to viewport bottom — never out of bounds */
+        @media (hover: none) {
+            /* Disable the absolute tooltip on touch devices */
+            .jargon-tooltip .tooltip-text {
+                display: none !important;
+            }
+            /* Tap indicator: change dashes to dots so it feels tappable */
+            .jargon-tooltip {
+                border-bottom: 2px dotted var(--text-muted);
+                cursor: pointer;
+            }
+            .jargon-tooltip.tt-open {
+                color: var(--accent-primary);
+                border-bottom-color: var(--accent-primary);
+            }
+        }
+
+        /* The mobile floating panel — rendered once in the DOM, repositioned by JS */
+        #mobile-tooltip-panel {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            left: 16px;
+            right: 16px;
+            z-index: 10000;
+            background: var(--text-main);
+            color: var(--bg-alt);
+            border-radius: 10px;
+            padding: 16px 20px;
+            font-size: 0.9rem;
+            font-weight: 300;
+            line-height: 1.6;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+            animation: tooltipSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #mobile-tooltip-panel strong {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+        #mobile-tooltip-panel .tt-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            cursor: pointer;
+            line-height: 1;
+            padding: 2px 6px;
+        }
+        @keyframes tooltipSlideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         /* LAYOUTS */
@@ -1107,7 +1168,7 @@
                     <p style="margin-bottom: 24px;">As future analytics leaders, you must separate marketing from engineering reality. Are we actually close to AGI?</p>
                     
                     <div style="margin-top: 20px;">
-                        <h3 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem;">The Marcus Critique on AGI</h3>
+                        <h3 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem;">A Critical View on AGI</h3>
                         
                         <div class="step-box" style="margin-bottom: 20px;">
                             <div class="step-number">1</div>
@@ -1300,43 +1361,92 @@
             }
         });
 
-        // Robust Tooltip Edge Detection (Prevents out-of-bound bleeding)
-        document.querySelectorAll('.jargon-tooltip').forEach(tooltip => {
-            tooltip.addEventListener('mouseenter', function() {
-                const textNode = this.querySelector('.tooltip-text');
-                
-                // Reset to measure natural position
-                textNode.style.setProperty('--tt-tx', '-50%');
-                textNode.style.setProperty('--tt-left', '50%');
-                textNode.style.setProperty('--arrow-pos', '50%');
-                
-                const rect = textNode.getBoundingClientRect();
-                const padding = 15; // padding from screen edge
-                
-                // If bleeding off the right side
-                if (rect.right > (window.innerWidth - padding)) {
-                    textNode.style.setProperty('--tt-tx', '0');
-                    textNode.style.setProperty('--tt-left', 'auto');
-                    textNode.style.right = '-10px';
-                    textNode.style.setProperty('--arrow-pos', '85%');
-                } 
-                // If bleeding off the left side
-                else if (rect.left < padding) {
-                    textNode.style.setProperty('--tt-tx', '0');
-                    textNode.style.setProperty('--tt-left', '-10px');
-                    textNode.style.right = 'auto';
-                    textNode.style.setProperty('--arrow-pos', '15%');
+        // ── TOOLTIP SYSTEM ──────────────────────────────────────────────
+        const isTouchDevice = window.matchMedia('(hover: none)').matches;
+
+        if (isTouchDevice) {
+            // MOBILE: inject a single shared panel into the DOM
+            const panel = document.createElement('div');
+            panel.id = 'mobile-tooltip-panel';
+            panel.innerHTML = '<span class="tt-close" aria-label="Close">&times;</span><strong id="mtp-term"></strong><span id="mtp-body"></span>';
+            document.body.appendChild(panel);
+
+            let currentOpen = null;
+
+            function closeMobileTooltip() {
+                panel.style.display = 'none';
+                if (currentOpen) {
+                    currentOpen.classList.remove('tt-open');
+                    currentOpen = null;
                 }
+            }
+
+            panel.querySelector('.tt-close').addEventListener('click', closeMobileTooltip);
+
+            // Tap anywhere outside closes it
+            document.addEventListener('touchstart', function(e) {
+                if (currentOpen && !currentOpen.contains(e.target) && !panel.contains(e.target)) {
+                    closeMobileTooltip();
+                }
+            }, { passive: true });
+
+            document.querySelectorAll('.jargon-tooltip').forEach(tooltip => {
+                tooltip.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const termText = this.childNodes[0].textContent.trim();
+                    const bodyText = this.querySelector('.tooltip-text').textContent.trim();
+
+                    if (currentOpen === this) {
+                        // Tapping the same term again closes it
+                        closeMobileTooltip();
+                        return;
+                    }
+
+                    // Close any previously open tooltip
+                    if (currentOpen) currentOpen.classList.remove('tt-open');
+
+                    document.getElementById('mtp-term').textContent = termText;
+                    document.getElementById('mtp-body').textContent = bodyText;
+                    panel.style.display = 'block';
+                    currentOpen = this;
+                    this.classList.add('tt-open');
+                });
             });
-            
-            // Cleanup on mouseleave
-            tooltip.addEventListener('mouseleave', function() {
-                const textNode = this.querySelector('.tooltip-text');
-                setTimeout(() => {
-                    textNode.style.right = 'auto'; // clean up manual inline styles
-                }, 200); // Wait for fade out transition
+
+        } else {
+            // DESKTOP: hover-based with edge-detection
+            document.querySelectorAll('.jargon-tooltip').forEach(tooltip => {
+                tooltip.addEventListener('mouseenter', function() {
+                    const textNode = this.querySelector('.tooltip-text');
+
+                    // Reset to measure natural position
+                    textNode.style.setProperty('--tt-tx', '-50%');
+                    textNode.style.setProperty('--tt-left', '50%');
+                    textNode.style.setProperty('--arrow-pos', '50%');
+                    textNode.style.right = 'auto';
+
+                    const rect = textNode.getBoundingClientRect();
+                    const padding = 15;
+
+                    if (rect.right > (window.innerWidth - padding)) {
+                        textNode.style.setProperty('--tt-tx', '0');
+                        textNode.style.setProperty('--tt-left', 'auto');
+                        textNode.style.right = '-10px';
+                        textNode.style.setProperty('--arrow-pos', '85%');
+                    } else if (rect.left < padding) {
+                        textNode.style.setProperty('--tt-tx', '0');
+                        textNode.style.setProperty('--tt-left', '-10px');
+                        textNode.style.right = 'auto';
+                        textNode.style.setProperty('--arrow-pos', '15%');
+                    }
+                });
+
+                tooltip.addEventListener('mouseleave', function() {
+                    const textNode = this.querySelector('.tooltip-text');
+                    setTimeout(() => { textNode.style.right = 'auto'; }, 200);
+                });
             });
-        });
+        }
 
     </script>
 </body>
