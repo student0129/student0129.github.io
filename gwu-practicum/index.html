@@ -41,6 +41,14 @@
             font-size: 16px; 
         }
 
+        /* Mobile: allow body to scroll normally so iOS Safari doesn't fight the snap container */
+        @media (max-width: 1024px) {
+            body, html {
+                overflow: auto;
+                height: auto;
+            }
+        }
+
         /* SCROLL STRUCTURE */
         .deck-container {
             width: 100%;
@@ -55,9 +63,10 @@
 
         section {
             min-height: 100vh;
+            min-height: 100svh; /* Use small viewport height to account for mobile browser chrome */
             width: 100%; 
             scroll-snap-align: start;
-            scroll-snap-stop: always;
+            /* Removed scroll-snap-stop: always — too aggressive for touch momentum scrolling */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -200,8 +209,18 @@
         @media (max-width: 1024px) {
             .split-layout { grid-template-columns: 1fr; gap: 40px; }
             .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; gap: 20px;}
-            section { min-height: 100vh; padding: 80px 20px; height: auto; }
-            .deck-container { scroll-snap-type: none; }
+            section {
+                min-height: 100svh; /* svh accounts for the mobile browser address bar */
+                padding: 80px 20px;
+                height: auto;
+                scroll-snap-align: start;
+            }
+            /* On mobile: use the body as scroll root with proximity snap so tall slides don't trap the user */
+            .deck-container {
+                overflow: visible;
+                height: auto;
+                scroll-snap-type: none;
+            }
         }
 
         /* CARD SYSTEM */
@@ -1215,11 +1234,11 @@
 
         const dots = document.querySelectorAll('.nav-dot');
 
-        function scrollToSlide(index) {
-            sections[index].scrollIntoView({ behavior: 'smooth' });
-        }
-
         // Intersection Observer for Animation & Nav State
+        // On mobile, tall sections may never reach 50% visibility, so use a lower threshold
+        const isMobile = window.innerWidth <= 1024;
+        const observerThreshold = isMobile ? 0.15 : 0.5;
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -1231,9 +1250,18 @@
                     if(dots[index]) dots[index].classList.add('active');
                 }
             });
-        }, { threshold: 0.5 });
+        }, { threshold: observerThreshold, root: isMobile ? null : deckContainer });
 
         sections.forEach(section => observer.observe(section));
+
+        // On mobile, scrollToSlide should use window scroll since deck-container is not the scroll root
+        function scrollToSlide(index) {
+            if (window.innerWidth <= 1024) {
+                sections[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                sections[index].scrollIntoView({ behavior: 'smooth' });
+            }
+        }
 
         // Keyboard Navigation Support for Presentation
         document.addEventListener('keydown', (e) => {
