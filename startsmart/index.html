@@ -453,8 +453,8 @@
         }
         
         function openModal() {
-            // Wake up the Render server
-            fetch('https://email-server-1ub1.onrender.com', {
+            // Wake up the new unified Render server
+            fetch('https://email-server-v6rr.onrender.com', {
                 method: 'GET',
             }).catch(err => {
                 // Ignore errors - this is just to wake up the server
@@ -520,28 +520,24 @@
             submitBtn.textContent = 'Sending...';
             submitBtn.disabled = true;
             
-            // Transform data to match server expectations
+            // Transform data to perfectly match our new unified server expectations
             const serverData = {
                 firstName: data.firstName,
                 lastName: data.lastName,
-                name: `${data.firstName} ${data.lastName}`.trim(),
                 email: data.email,
+                phone: data.phone || '',
                 company: data.company || '',
                 role: data.role || 'Business Contact',
                 message: data.message,
-                edge: data.message,
-                phone: data.phone || '',
                 ad_source: adSource,
                 referrer_url: window.location.href,
-                timestamp: new Date().toISOString(),
-                form_type: 'startsmart_contact'
+                timestamp: new Date().toISOString()
             };
             
             console.log('Sending data:', serverData);
-            console.log('Form data collected:', data);
             
-            // Send to backend
-            fetch('https://email-server-1ub1.onrender.com/email', {
+            // Send to the new unified backend endpoint
+            fetch('https://email-server-v6rr.onrender.com/api/contact', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

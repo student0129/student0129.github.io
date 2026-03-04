@@ -545,7 +545,7 @@
         
         function openModal() {
             // Wake up the Render server
-            fetch('https://rsvp-server-f7wb.onrender.com', {
+            fetch('https://email-server-v6rr.onrender.com', {
                 method: 'GET',
             }).catch(err => {
                 // Ignore errors - this is just to wake up the server
@@ -674,7 +674,7 @@
             submitBtn.disabled = true;
             
             // Send to backend - FIXED: Added /rsvp endpoint
-            fetch('https://rsvp-server-f7wb.onrender.com/rsvp', {
+            fetch('https://email-server-v6rr.onrender.com/api/rsvp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -764,7 +764,7 @@
             submitBtn.disabled = true;
             
             // Send to backend
-            fetch('https://rsvp-server-f7wb.onrender.com/rsvp', {
+            fetch('https://email-server-v6rr.onrender.com/api/rsvp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -82,8 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    const SERVER_URL = 'https://nomination-server.onrender.com';
-    fetch(`${SERVER_URL}/wake-up`).catch(err => console.error('Server wake-up call failed:', err));
+    const SERVER_URL = 'https://email-server-v6rr.onrender.com';
+    fetch(`${SERVER_URL}/`).catch(err => console.error('Server wake-up call failed:', err));
 
     if (document.getElementById('gradient-canvas')) {
         new GlowingConstellation('gradient-canvas');
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
             try {
-                const response = await fetch(`${SERVER_URL}/submit`, {
+                const response = await fetch(`${SERVER_URL}/api/nomination`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
