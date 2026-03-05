@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - Promontory AI</title>
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon_p.png">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #000000;
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 200;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 2vw;
+            font-weight: 200;
+        }
+
+        .header-link {
+            color: white;
+            text-decoration: none;
+        }
+
+        .error-code {
+            font-size: clamp(6rem, 15vw, 10rem);
+            font-weight: 200;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff, #666666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .error-message {
+            font-size: clamp(1.2rem, 2vw, 2rem);
+            color: #cccccc;
+            margin-bottom: 2.5rem;
+        }
+
+        .return-btn {
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .return-btn:hover {
+            background: linear-gradient(135deg, #555555, #888888);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                font-size: 4.5vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header"><a href="/" class="header-link">Promontory AI</a></div>
+    
+    <h1 class="error-code">404</h1>
+    <p class="error-message">The edge case you are looking for does not exist.</p>
+    
+    <a href="/" class="return-btn">Return to Signal</a>
+</body>
+</html>
