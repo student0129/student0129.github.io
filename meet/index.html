@@ -680,7 +680,7 @@
     }
 
     // Validate access code by calling server
-    async function validateAccessCode(enteredCode, clientName = '') {
+    async function validateAccessCode(enteredCode) {
       try {
         const response = await fetch('https://api-promontory.onrender.com/api/validate-code', {
           method: 'POST',
@@ -688,8 +688,7 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            code: enteredCode,
-            clientName: clientName
+            code: enteredCode
           })
         });
         
@@ -847,7 +846,7 @@
       }
       
       // Validate access code
-      const isValid = await validateAccessCode(enteredCode, name);
+      const isValid = await validateAccessCode(enteredCode);
       if (!isValid) {
         accessCodeInput.style.borderColor = 'red';
         showNotification('Invalid access code', 'error');
