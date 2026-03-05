@@ -82,7 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    const SERVER_URL = 'https://email-server-v6rr.onrender.com';
+    // --- UPDATED SERVER URL HERE ---
+    const SERVER_URL = 'https://api-promontory.onrender.com';
     fetch(`${SERVER_URL}/`).catch(err => console.error('Server wake-up call failed:', err));
 
     if (document.getElementById('gradient-canvas')) {
@@ -90,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =========================================================================
-    // --- UPDATED: Scroll Observer for Animations (More Responsive) ---
+    // --- Scroll Observer for Animations ---
     // =========================================================================
     const animationObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -98,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (entry.isIntersecting) {
                 target.classList.add('visible', 'is-active');
             } else {
-                // Keep .visible but remove .is-active for elements that should deactivate
                 if (target.matches('.dimension-item, .criteria-item')) {
                     target.classList.remove('is-active');
                 }
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, {
         root: mainElement,
-        rootMargin: "0px 0px -25% 0px" // Triggers when element is 25% from bottom
+        rootMargin: "0px 0px -25% 0px"
     });
 
     document.querySelectorAll('.animate-on-scroll, .dimension-item, .criteria-item').forEach(el => {
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // =========================================================================
-    // --- UPDATED: Dedicated Scroll Observer for Side Navigation ---
+    // --- Dedicated Scroll Observer for Side Navigation ---
     // =========================================================================
     const navObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, { 
         root: mainElement,
-        rootMargin: "-40% 0px -40% 0px", // Uses the central part of the screen
+        rootMargin: "-40% 0px -40% 0px",
         threshold: 0
     });
 
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
     handleInteractiveTouch('.community-card', 'is-flipped');
 
     // =================================================================
-    // --- MODAL & FORM LOGIC (Remains the same) ---
+    // --- MODAL & FORM LOGIC ---
     // =================================================================
     const modalOverlay = document.getElementById('nomination-modal');
     const openModalBtns = document.querySelectorAll('.open-modal-btn');
@@ -263,6 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
             try {
+                // Since SERVER_URL is updated, this automatically points to the new API!
                 const response = await fetch(`${SERVER_URL}/api/nomination`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
