@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translatr - Live Translation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827; /* gray-900 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151; /* gray-700 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563; /* gray-600 */
+        }
+        /* Custom styling for select dropdown arrow */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%239ca3af' class='w-6 h-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1em;
+        }
+    </style>
+</head>
+<body class="bg-black text-gray-300 flex items-center justify-center min-h-screen">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl w-full">
+        
+        <main class="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl p-6 md:p-8">
+            <header class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-100 bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">Translatr</h1>
+                <p class="text-gray-400 mt-2">Live voice translation powered by AI.</p>
+            </header>
+
+            <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-6 mb-8">
+                <button id="start-btn" class="w-full md:w-auto flex items-center justify-center bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 ease-in-out shadow-lg hover:shadow-sky-500/50 transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v5a3 3 0 01-3 3z" />
+                    </svg>
+                    Start Listening
+                </button>
+                <button id="stop-btn" class="w-full md:w-auto flex items-center justify-center bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 ease-in-out shadow-lg hover:shadow-red-500/50 transform hover:scale-105" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v5a3 3 0 01-3 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5l15 15" />
+                    </svg>
+                    Stop Listening
+                </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-6 p-4 bg-gray-950/60 rounded-lg border border-gray-800">
+                <div class="flex items-center">
+                    <label for="source-language-select" class="mr-3 text-gray-400 font-medium whitespace-nowrap">Speak in:</label>
+                    <select id="source-language-select" class="bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 p-2.5 transition">
+                        <option value="ar">Arabic</option>
+                        <option value="bn">Bengali</option>
+                        <option value="zh">Chinese</option>
+                        <option value="nl">Dutch</option>
+                        <option value="en" selected>English</option>
+                        <option value="fa">Farsi</option>
+                        <option value="fi">Finnish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="he">Hebrew</option>
+                        <option value="hi">Hindi</option>
+                        <option value="id">Indonesian</option>
+                        <option value="it">Italian</option>
+                        <option value="ja">Japanese</option>
+                        <option value="ko">Korean</option>
+                        <option value="no">Norwegian</option>
+                        <option value="pl">Polish</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="ru">Russian</option>
+                        <option value="es">Spanish</option>
+                        <option value="sv">Swedish</option>
+                        <option value="th">Thai</option>
+                        <option value="tr">Turkish</option>
+                        <option value="uk">Ukrainian</option>
+                        <option value="ur">Urdu</option>
+                        <option value="vi">Vietnamese</option>
+                    </select>
+                </div>
+                <div class="text-gray-600 hidden sm:block">→</div>
+                <div class="flex items-center">
+                    <label for="target-language-select" class="mr-3 text-gray-400 font-medium">Translate to:</label>
+                    <select id="target-language-select" class="bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 p-2.5 transition">
+                        <option value="ar">Arabic</option>
+                        <option value="bn">Bengali</option>
+                        <option value="zh">Chinese</option>
+                        <option value="nl">Dutch</option>
+                        <option value="en">English</option>
+                        <option value="fa">Farsi</option>
+                        <option value="fi">Finnish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="he">Hebrew</option>
+                        <option value="hi">Hindi</option>
+                        <option value="id">Indonesian</option>
+                        <option value="it">Italian</option>
+                        <option value="ja">Japanese</option>
+                        <option value="ko">Korean</option>
+                        <option value="no">Norwegian</option>
+                        <option value="pl">Polish</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="ru">Russian</option>
+                        <option value="es" selected>Spanish</option>
+                        <option value="sv">Swedish</option>
+                        <option value="th">Thai</option>
+                        <option value="tr">Turkish</option>
+                        <option value="uk">Ukrainian</option>
+                        <option value="ur">Urdu</option>
+                        <option value="vi">Vietnamese</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="status" class="text-center text-sky-400 mb-6 h-6 flex items-center justify-center transition-opacity duration-300"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-950/60 p-4 rounded-lg border border-gray-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 id="transcription-title" class="text-lg font-semibold text-gray-300">Original</h2>
+                        <div class="flex space-x-2">
+                            <button class="speak-btn p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md transition" data-target="transcription" data-lang-type="source">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.5c-.69 0-1.25-.56-1.25-1.25v-6.5c0-.69.56-1.25 1.25-1.25h2.25z" />
+                                </svg>
+                            </button>
+                            <button class="copy-btn p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md transition" data-target="transcription">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375V9.375m0 9.375l-3.172-3.172M15 9.375L11.828 6.207" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="transcription" class="h-48 overflow-y-auto p-2 rounded-md text-gray-300"></div>
+                </div>
+                <div class="bg-gray-950/60 p-4 rounded-lg border border-gray-800">
+                     <div class="flex justify-between items-center mb-2">
+                        <h2 id="translation-title" class="text-lg font-semibold text-gray-300">Translation</h2>
+                        <div class="flex space-x-2">
+                            <button class="speak-btn p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md transition" data-target="translation" data-lang-type="target">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.5c-.69 0-1.25-.56-1.25-1.25v-6.5c0-.69.56-1.25 1.25-1.25h2.25z" />
+                                </svg>
+                            </button>
+                            <button class="copy-btn p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md transition" data-target="translation">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375V9.375m0 9.375l-3.172-3.172M15 9.375L11.828 6.207" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="translation" class="h-48 overflow-y-auto p-2 rounded-md text-gray-300"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Wake Up Server on Page Load
+        fetch('https://api-promontory.onrender.com', { method: 'GET' }).catch(() => {});
+    
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const transcriptionEl = document.getElementById('transcription');
+        const translationEl = document.getElementById('translation');
+        const statusEl = document.getElementById('status');
+        const sourceLanguageSelect = document.getElementById('source-language-select');
+        const targetLanguageSelect = document.getElementById('target-language-select');
+        const transcriptionTitle = document.getElementById('transcription-title');
+        const translationTitle = document.getElementById('translation-title');
+        const copyBtns = document.querySelectorAll('.copy-btn');
+    
+        let mediaRecorder;
+        let socket;
+        let isListening = false;
+        const RECORDING_INTERVAL_MS = 7000; 
+    
+        let transcriptionQueue = [];
+        let translationQueue = [];
+        let isTypingTranscription = false;
+        let isTypingTranslation = false;
+    
+        function typewriter(element, queue, isTypingFlag) {
+            if (isTypingFlag || queue.length === 0) return;
+            isTypingFlag = true;
+            const text = queue.shift() + ' ';
+            let i = 0;
+            element.textContent += ' '; 
+            const typingInterval = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    element.scrollTop = element.scrollHeight;
+                    i++;
+                } else {
+                    clearInterval(typingInterval);
+                    isTypingFlag = false;
+                    if (element.id === 'transcription') {
+                        typewriter(transcriptionEl, transcriptionQueue, isTypingTranscription);
+                    } else {
+                        typewriter(translationEl, translationQueue, isTypingTranslation);
+                    }
+                }
+            }, 30);
+        }
+    
+        function recordAndSend() {
+            if (!isListening || !mediaRecorder) return;
+            mediaRecorder.start();
+            setStatus('Listening...', true);
+            setTimeout(() => {
+                if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+            }, RECORDING_INTERVAL_MS);
+        }
+    
+        function setupMediaRecorder(stream) {
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            mediaRecorder.addEventListener('dataavailable', (event) => {
+                if (event.data.size > 0 && socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(event.data);
+                    setStatus('Processing...', true);
+                }
+            });
+            mediaRecorder.addEventListener('stop', () => {
+                if (isListening) recordAndSend();
+            });
+        }
+    
+        function updateTitles() {
+            const sourceLangText = sourceLanguageSelect.options[sourceLanguageSelect.selectedIndex].text;
+            const targetLangText = targetLanguageSelect.options[targetLanguageSelect.selectedIndex].text;
+            transcriptionTitle.textContent = `Original (${sourceLangText})`;
+            translationTitle.textContent = `Translation (${targetLangText})`;
+        }
+    
+        function setStatus(text, isListeningActive = false) {
+            let listeningIndicator = isListeningActive ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-red-500 animate-pulse"><path d="M3 10v4"></path><path d="M8 7v10"></path><path d="M13 4v16"></path><path d="M18 7v10"></path><path d="M23 10v4"></path></svg>` : '';
+            statusEl.innerHTML = `${listeningIndicator} ${text}`;
+        }
+    
+        function copyToClipboard(elementId, button) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            if (!textToCopy) return;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+            const originalIcon = button.innerHTML;
+            button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`;
+            setTimeout(() => button.innerHTML = originalIcon, 2000);
+        }
+    
+        function cleanup() {
+            isListening = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            setStatus('Disconnected from server.');
+            if (mediaRecorder && mediaRecorder.stream) {
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+            mediaRecorder = null;
+            socket = null;
+        }
+    
+        startBtn.addEventListener('click', async () => {
+            transcriptionEl.textContent = '';
+            translationEl.textContent = '';
+            transcriptionQueue = [];
+            translationQueue = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                setupMediaRecorder(stream);
+                
+                // ABSOLUTE WEBSOCKET URL POINTING TO YOUR API
+                socket = new WebSocket('wss://api-promontory.onrender.com');
+    
+                socket.onopen = () => {
+                    isListening = true;
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    socket.send(JSON.stringify({ 
+                        sourceLanguage: sourceLanguageSelect.value,
+                        targetLanguage: targetLanguageSelect.value 
+                    }));
+                    recordAndSend();
+                };
+    
+                socket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.transcription || data.translation) setStatus('Listening...', true);
+                    if (data.transcription) {
+                        transcriptionQueue.push(data.transcription);
+                        typewriter(transcriptionEl, transcriptionQueue, isTypingTranscription);
+                    }
+                    if (data.translation) {
+                        translationQueue.push(data.translation);
+                        typewriter(translationEl, translationQueue, isTypingTranslation);
+                    }
+                    if (data.error) {
+                        console.error('Server Error:', data.error);
+                        setStatus(`Error: ${data.error}`);
+                    }
+                };
+    
+                socket.onclose = cleanup;
+                socket.onerror = (error) => {
+                    console.error('WebSocket Error:', error);
+                    setStatus('Error connecting to server.');
+                    cleanup();
+                }
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                setStatus('Could not access microphone. Please grant permission.');
+            }
+        });
+    
+        stopBtn.addEventListener('click', () => {
+            isListening = false;
+            setStatus('Stopping...');
+            stopBtn.disabled = true;
+            if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+            if (socket && socket.readyState === WebSocket.OPEN) socket.close();
+            else cleanup();
+        });
+        
+        sourceLanguageSelect.addEventListener('change', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ sourceLanguage: sourceLanguageSelect.value }));
+            updateTitles();
+        });
+    
+        targetLanguageSelect.addEventListener('change', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ targetLanguage: targetLanguageSelect.value }));
+            updateTitles();
+        });
+    
+        copyBtns.forEach(btn => btn.addEventListener('click', () => copyToClipboard(btn.dataset.target, btn)));
+    
+        updateTitles();
+        setStatus('Ready to connect.');
+    
+        const speakBtns = document.querySelectorAll('.speak-btn');
+        let activeAudioInstances = new Map(); 
+        let buttonStates = new Map(); 
+        
+        const speakIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.5c-.69 0-1.25-.56-1.25-1.25v-6.5c0-.69.56-1.25 1.25-1.25h2.25z" /></svg>`;
+        const stopIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-400"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" /></svg>`;
+        const loadingIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>`;
+        const successIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`;
+        const errorIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>`;
+        
+        function stopAudioAndReset(button) {
+            const audio = activeAudioInstances.get(button);
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                if (audio.src && audio.src.startsWith('blob:')) URL.revokeObjectURL(audio.src);
+                activeAudioInstances.delete(button);
+            }
+            button.innerHTML = speakIconSVG;
+            button.disabled = false;
+            buttonStates.set(button, 'ready');
+        }
+        
+        async function speakText(text, langType, button) {
+            if (!text.trim()) return;
+            const currentState = buttonStates.get(button) || 'ready';
+            
+            if (currentState === 'playing') return stopAudioAndReset(button);
+            if (currentState === 'loading') return;
+            
+            buttonStates.set(button, 'loading');
+            button.innerHTML = loadingIconSVG;
+            button.disabled = false; 
+            
+            try {
+                // ABSOLUTE URL POINTING TO YOUR NEW RENDER API
+                const response = await fetch('https://api-promontory.onrender.com/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        language: langType === 'source' ? sourceLanguageSelect.value : targetLanguageSelect.value
+                    })
+                });
+                
+                if (!response.ok) throw new Error('TTS request failed');
+                
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                activeAudioInstances.set(button, audio);
+                
+                audio.onloadeddata = () => {
+                    button.innerHTML = stopIconSVG;
+                    buttonStates.set(button, 'playing');
+                };
+                
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    activeAudioInstances.delete(button);
+                    button.innerHTML = successIconSVG;
+                    setTimeout(() => {
+                        button.innerHTML = speakIconSVG;
+                        buttonStates.set(button, 'ready');
+                        button.disabled = false;
+                    }, 1000);
+                };
+                
+                audio.onerror = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    activeAudioInstances.delete(button);
+                    showErrorState(button);
+                };
+                
+                await audio.play();
+                
+            } catch (error) {
+                console.error('TTS Error:', error);
+                showErrorState(button);
+            }
+        }
+        
+        function showErrorState(button) {
+            button.innerHTML = errorIconSVG;
+            buttonStates.set(button, 'error');
+            setTimeout(() => {
+                button.innerHTML = speakIconSVG;
+                buttonStates.set(button, 'ready');
+                button.disabled = false;
+            }, 2000);
+        }
+        
+        speakBtns.forEach(btn => {
+            buttonStates.set(btn, 'ready');
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const langType = btn.dataset.langType;
+                const textContent = document.getElementById(targetId).innerText;
+                speakText(textContent, langType, btn);
+            });
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            activeAudioInstances.forEach((audio, button) => {
+                if (audio && audio.src && audio.src.startsWith('blob:')) URL.revokeObjectURL(audio.src);
+            });
+        });
+    </script>
+</body>
+</html>
