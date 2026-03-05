@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Not Found - Promontory AI</title>
+    <title>Signal Lost - Promontory AI</title>
     
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon_p.png">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400;600&display=swap');
         
         * {
             margin: 0;
@@ -21,66 +21,194 @@
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 200;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
             padding: 2rem;
+            overflow-x: hidden;
         }
 
         .header {
-            position: fixed;
+            position: absolute;
             top: 20px;
             left: 20px;
             font-size: 2vw;
             font-weight: 200;
+            z-index: 10;
         }
 
         .header-link {
             color: white;
             text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .header-link:hover {
+            opacity: 0.7;
+        }
+
+        .content-wrapper {
+            max-width: 900px;
+            width: 100%;
+            animation: fadeIn 0.8s ease-out forwards;
+            margin-top: 60px;
+            margin-bottom: 40px;
         }
 
         .error-code {
-            font-size: clamp(6rem, 15vw, 10rem);
+            font-size: clamp(4rem, 10vw, 7rem);
             font-weight: 200;
             line-height: 1;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #ffffff, #666666);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff, #555555);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .error-headline {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 300;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
         }
 
         .error-message {
-            font-size: clamp(1.2rem, 2vw, 2rem);
-            color: #cccccc;
-            margin-bottom: 2.5rem;
+            font-size: clamp(1rem, 1.2vw, 1.1rem);
+            color: #a0a0a0;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .return-btn {
-            background: linear-gradient(135deg, #333333, #666666);
-            color: white;
+        .action-grid {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+
+        .primary-btn, .secondary-btn {
             text-decoration: none;
             padding: 1rem 2.5rem;
-            font-size: 1.1rem;
+            font-size: 1rem;
             border-radius: 50px;
             transition: all 0.3s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
-        .return-btn:hover {
+        .primary-btn {
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            border: 1px solid transparent;
+        }
+
+        .primary-btn:hover {
             background: linear-gradient(135deg, #555555, #888888);
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
         }
 
+        .secondary-btn {
+            background: transparent;
+            color: #cccccc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .secondary-btn:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Tools Showcase Section */
+        .tools-section {
+            text-align: left;
+            animation: fadeIn 1s ease-out forwards;
+            animation-delay: 0.3s;
+            opacity: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 3rem;
+        }
+
+        .tools-header {
+            color: #888888;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.25rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .tool-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .tool-title {
+            color: #ffffff;
+            font-weight: 400;
+            font-size: 1.1rem;
+        }
+
+        .tool-desc {
+            color: #999999;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 768px) {
             .header {
                 font-size: 4.5vw;
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 2rem;
+            }
+            .action-grid {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto 3rem auto;
+            }
+            .primary-btn, .secondary-btn {
+                width: 100%;
+            }
+            .tools-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -88,9 +216,56 @@
 <body>
     <div class="header"><a href="/" class="header-link">Promontory AI</a></div>
     
-    <h1 class="error-code">404</h1>
-    <p class="error-message">The edge case you are looking for does not exist.</p>
-    
-    <a href="/" class="return-btn">Return to Signal</a>
+    <div class="content-wrapper">
+        <h1 class="error-code">404</h1>
+        <h2 class="error-headline">The signal was lost.</h2>
+        
+        <p class="error-message">
+            At Promontory AI, we constantly iterate and evolve. The page you are looking for may have been an early experiment, a retired project, or it simply no longer exists.
+        </p>
+        
+        <div class="action-grid">
+            <a href="/" class="primary-btn">Return Home</a>
+            <a href="/startsmart" class="secondary-btn">Start Smart</a>
+        </div>
+
+        <div class="tools-section">
+            <p class="tools-header">While you're here, explore our active AI tools:</p>
+            <div class="tools-grid">
+                
+                <a href="https://chat.promontoryai.com" class="tool-card">
+                    <span class="tool-title">Promontory Chat</span>
+                    <span class="tool-desc">Multi-model AI chat interface and agent assistant powered by the newest frontier models.</span>
+                </a>
+                
+                <a href="/reverb" class="tool-card">
+                    <span class="tool-title">ReVerb</span>
+                    <span class="tool-desc">Live conversation analyzer. Understand the subtext and extract insights in real-time.</span>
+                </a>
+
+                <a href="/transltr" class="tool-card">
+                    <span class="tool-title">Translatr</span>
+                    <span class="tool-desc">Live, multi-lingual voice translation powered by AI.</span>
+                </a>
+
+                <a href="https://pro-assistant.onrender.com" class="tool-card">
+                    <span class="tool-title">PRO Assistant</span>
+                    <span class="tool-desc">Make smarter decisions with our advanced reasoning assistant.</span>
+                </a>
+
+                <a href="https://inform-frontend.onrender.com" class="tool-card">
+                    <span class="tool-title">InForm</span>
+                    <span class="tool-desc">Summarize better and extract core insights from dense data.</span>
+                </a>
+
+                <a href="https://the-signal-platform.onrender.com" class="tool-card">
+                    <span class="tool-title">The Signal</span>
+                    <span class="tool-desc">AI research and news, curated and adapted to meet you where you are.</span>
+                </a>
+
+            </div>
+        </div>
+
+    </div>
 </body>
 </html>
