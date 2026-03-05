@@ -393,7 +393,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         // Configuration for different LinkedIn ads
         const adConfigs = {
             bolting: {
@@ -453,8 +453,8 @@
         }
         
         function openModal() {
-            // Wake up the new unified Render server
-            fetch('https://email-server-v6rr.onrender.com', {
+            // Wake up the NEW unified Render server
+            fetch('https://api-promontory.onrender.com', {
                 method: 'GET',
             }).catch(err => {
                 // Ignore errors - this is just to wake up the server
@@ -536,8 +536,8 @@
             
             console.log('Sending data:', serverData);
             
-            // Send to the new unified backend endpoint
-            fetch('https://email-server-v6rr.onrender.com/api/contact', {
+            // Send to the NEW unified backend endpoint
+            fetch('https://api-promontory.onrender.com/api/contact', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
