@@ -503,7 +503,7 @@
     // Initialize event listeners
     document.addEventListener('DOMContentLoaded', () => {
       // Wake up the server when page loads
-      fetch('/', {
+      fetch('https://api-promontory.onrender.com', {
         method: 'GET',
       }).catch(err => {
         // Ignore errors - this is just to wake up the server
@@ -624,7 +624,7 @@
         
         console.log('Attempting authentication...');
         
-        const response = await fetch('/admin-auth', {
+        const response = await fetch('https://api-promontory.onrender.com/admin-auth', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -682,7 +682,7 @@
     // Validate access code by calling server
     async function validateAccessCode(enteredCode, clientName = '') {
       try {
-        const response = await fetch('/validate-code', {
+        const response = await fetch('https://api-promontory.onrender.com/validate-code', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -746,7 +746,7 @@
           explanation: `Your local ${meetingDate} + ${timezoneOffsetMinutes}min offset = ${actualUTC.toISOString()} UTC`
         });
         
-        const response = await fetch('/generate-code', {
+        const response = await fetch('https://api-promontory.onrender.com/generate-code', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -878,7 +878,7 @@
 
       try {
         // Get JWT token from the Render service
-        const response = await fetch('/token', {
+        const response = await fetch('https://api-promontory.onrender.com/token', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
