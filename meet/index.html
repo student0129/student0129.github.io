@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promontory AI</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400&display=swap">
+  <script src='https://8x8.vc/vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073/external_api.js' async></script>
+  <style>
+    :root {
+      --primary-color: #000000;
+      --primary-dark: #333333;
+      --primary-light: #666666;
+      --text-color: #000000;
+      --bg-color: #ffffff;
+      --card-color: #ffffff;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 200;
+    }
+    
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 20px;
+      font-size: 2vw;
+      font-weight: 200;
+      letter-spacing: 0.5px;
+      box-shadow: var(--shadow);
+    }
+
+    .title-link {
+      cursor: pointer;
+      display: inline-block;
+    }
+    
+    .main-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+    
+    #jaas-container {
+      width: 100%;
+      height: calc(100vh - 120px);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    #jaas-container.active {
+      opacity: 1;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.3s ease;
+    }
+    
+    .modal {
+      background-color: var(--card-color);
+      border-radius: 8px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+      transform: translateY(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .modal h2 {
+      margin-bottom: 1.5rem;
+      color: var(--text-color);
+      font-weight: 200;
+      letter-spacing: 0.5px;
+    }
+    
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 200;
+    }
+    
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #000;
+      border-radius: 4px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      background-color: white;
+    }
+    
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--primary-dark);
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 200;
+      letter-spacing: 0.5px;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    .notification {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 4px;
+      box-shadow: var(--shadow);
+      z-index: 1001;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+      font-weight: 200;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    .notification.error {
+      background-color: #dc3545;
+    }
+    
+    @media (max-width: 768px) {
+      .header {
+        font-size: 4vw;
+      }
+
+      .code-modal {
+        padding: 10px; /* Reduce padding on mobile */
+        align-items: flex-start; /* Align to top instead of center */
+        padding-top: 20px; /* Add some top padding */
+      }
+      
+      .code-modal-content {
+        width: 95%; /* Slightly smaller width on mobile */
+        max-width: none; /* Remove max-width constraint */
+        max-height: 85vh; /* Slightly smaller on mobile */
+        margin-top: 0; /* Remove any top margin */
+      }
+      
+      input[type="datetime-local"] {
+        font-size: 16px; /* Prevents zoom on iOS */
+        max-width: 100%;
+      }
+      
+      /* Ensure the readonly input (shareable link) fits properly */
+      .code-result input[readonly] {
+        font-size: 14px; /* Smaller font for long URLs */
+        word-break: break-all; /* Allow breaking long URLs */
+      }
+      
+      .modal {
+        padding: 1.5rem;
+      }
+    }
+    
+    html, body, #jaas-container {
+      height: 100%;
+    }
+    
+    .thank-you-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .thank-you-screen.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .thank-you-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+    
+    .thank-you-content {
+      background-color: var(--card-color);
+      border-radius: 8px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    
+    .thank-you-content h2 {
+      margin-bottom: 1.5rem;
+      color: var(--text-color);
+      font-weight: 200;
+      letter-spacing: 0.5px;
+    }
+    
+    .thank-you-content p {
+      margin-bottom: 2rem;
+      line-height: 1.5;
+      font-weight: 200;
+      color: var(--text-color);
+    }
+
+    .admin-unlock {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.8rem;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      font-size: 1.2rem;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 1003;
+      opacity: 0.8;
+    }
+
+    .admin-unlock:hover {
+      background-color: var(--primary-dark);
+      opacity: 1;
+      transform: scale(1.05);
+    }
+
+    .admin-unlock:active {
+      transform: scale(0.95);
+    }
+
+    .admin-auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1004;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .admin-auth-modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .code-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1002;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .code-modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .code-modal-content {
+      background-color: var(--card-color);
+      border-radius: 8px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: var(--shadow);
+    }
+
+    .code-result {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-family: monospace;
+      word-break: break-all;
+    }
+
+    /* Fix for iOS modal scrolling and sizing */
+    .code-modal {
+      padding: 20px; /* Add padding around the modal */
+    }
+    
+    .code-modal-content {
+      max-height: 90vh; /* Limit height to 90% of viewport */
+      overflow-y: auto; /* Enable vertical scrolling */
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+      position: relative;
+    }
+    
+    /* Ensure datetime input doesn't cause width issues */
+    input[type="datetime-local"] {
+      width: 100% !important;
+      box-sizing: border-box !important;
+      -webkit-appearance: none;
+      -moz-appearance: textfield;
+      min-height: 44px; /* iOS recommended touch target size */
+    }
+    
+    
+    
+  </style>
+</head>
+<body>
+  <div class="header">Promontory AI</div>
+
+  <div class="main-container">
+    <div id="jaas-container"></div>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal">
+      <h2>Welcome</h2>
+      
+      <div class="input-group">
+        <label for="name">Please enter your name</label>
+        <input id="name" placeholder="Your name" autocomplete="name" />
+      </div>
+      
+      <div class="input-group">
+        <label for="access-code">Access Code</label>
+        <input id="access-code" type="text" placeholder="Enter access code" />
+      </div>
+      
+      <button id="joinButton" class="btn">Join Meeting</button>
+    </div>
+  </div>
+
+  <div id="thank-you-screen" class="thank-you-screen hidden">
+    <div class="header"><span class="title-link">Promontory AI</span></div>
+    <div class="thank-you-container">
+      <div class="thank-you-content">
+        <h2>Thank you for attending the meeting.</h2>
+        <p>You may now close this window.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar/Schedule Button (discrete admin access) -->
+  <button id="adminUnlockBtn" class="admin-unlock" title="Schedule Meeting">📅</button>
+
+  <!-- Admin Authentication Modal -->
+  <div id="adminAuthModal" class="admin-auth-modal hidden">
+    <div class="modal">
+      <h2>Schedule Access</h2>
+      
+      <div class="input-group">
+        <label for="admin-password">Access Code</label>
+        <input id="admin-password" type="password" placeholder="Enter scheduling access code" />
+      </div>
+      
+      <button id="adminLoginBtn" class="btn">Access Scheduler</button>
+      <button id="cancelAdminBtn" class="btn" style="margin-top: 0.5rem; background-color: #666;">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Code Generator Modal -->
+  <div id="codeModal" class="code-modal">
+    <div class="code-modal-content">
+      <h2>Access Code Generator</h2>
+      
+      <div class="input-group">
+        <label for="client-name">Client Name</label>
+        <input id="client-name" placeholder="Enter client name" />
+      </div>
+      
+      <div class="input-group">
+        <label for="meeting-date">Meeting Date & Time</label>
+        <input id="meeting-date" type="datetime-local" />
+      </div>
+      
+      <button id="generateCodeBtn" class="btn">Generate Code</button>
+      
+      <div id="codeResult" class="code-result" style="display: none;">
+        <strong>Generated Access Code:</strong><br>
+        <span id="generatedCode"></span>
+        <br><br>
+        <div id="validityWindow"></div>
+        <br>
+        <button id="copyCodeBtn" class="btn" style="margin-top: 1rem;">Copy Link</button>
+      </div>
+      
+      <button id="closeCodeModal" class="btn" style="margin-top: 1rem; background-color: #666;">Close</button>
+    </div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <script>
+    // DOM Elements
+    const modalOverlay = document.getElementById('modal-overlay');
+    const nameInput = document.getElementById('name');
+    const accessCodeInput = document.getElementById('access-code');
+    const joinButton = document.getElementById('joinButton');
+    const jaasContainer = document.getElementById('jaas-container');
+    const notification = document.getElementById('notification');
+    const thankYouScreen = document.getElementById('thank-you-screen');
+    
+    // Code generator elements
+    const adminUnlockBtn = document.getElementById('adminUnlockBtn');
+    const adminAuthModal = document.getElementById('adminAuthModal');
+    const adminPasswordInput = document.getElementById('admin-password');
+    const adminLoginBtn = document.getElementById('adminLoginBtn');
+    const cancelAdminBtn = document.getElementById('cancelAdminBtn');
+    const codeModal = document.getElementById('codeModal');
+    const clientNameInput = document.getElementById('client-name');
+    const meetingDateInput = document.getElementById('meeting-date');
+    const generateCodeBtn = document.getElementById('generateCodeBtn');
+    const codeResult = document.getElementById('codeResult');
+    const generatedCodeSpan = document.getElementById('generatedCode');
+    const validityWindowSpan = document.getElementById('validityWindow');
+    const copyCodeBtn = document.getElementById('copyCodeBtn');
+    const closeCodeModal = document.getElementById('closeCodeModal');
+    
+    // Admin state
+    let isAdminAuthenticated = false;
+    
+    // Room configuration
+    const ROOM_NAME = "SummitRoom";
+    const API_DOMAIN = "8x8.vc";
+    const MAGIC_COOKIE = "vpaas-magic-cookie-5898e5a698594fe2966510f6e3d65073";
+    
+    // Initialize event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wake up the server when page loads
+      fetch('/', {
+        method: 'GET',
+      }).catch(err => {
+        // Ignore errors - this is just to wake up the server
+        console.log('Server wake-up ping failed, but that\'s okay');
+      });
+      
+      document.querySelector('.title-link').addEventListener('click', () => {
+        window.location.href = 'https://promontoryai.com';
+      });
+      
+      // Check for URL parameters and auto-populate
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessCodeFromUrl = urlParams.get('accesscode') || urlParams.get('code');
+      const nameFromUrl = urlParams.get('name');
+      
+      if (accessCodeFromUrl) {
+        accessCodeInput.value = accessCodeFromUrl;
+        console.log('Auto-populated access code from URL:', accessCodeFromUrl);
+      }
+      
+      if (nameFromUrl) {
+        nameInput.value = decodeURIComponent(nameFromUrl);
+        console.log('Auto-populated name from URL:', nameFromUrl);
+      }
+      
+      // Focus on the appropriate field
+      if (accessCodeFromUrl && !nameFromUrl) {
+        nameInput.focus();
+      } else if (!accessCodeFromUrl) {
+        nameInput.focus();
+      } else {
+        // Both populated, focus on join button
+        joinButton.focus();
+      }
+      
+      joinButton.addEventListener('click', startMeeting);
+      
+      nameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          accessCodeInput.focus();
+        }
+      });
+      
+      accessCodeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          startMeeting();
+        }
+      });
+
+      // Admin authentication event listeners
+      adminUnlockBtn.addEventListener('click', () => {
+        // If already authenticated, go directly to code generator
+        if (isAdminAuthenticated) {
+          codeModal.classList.add('show');
+
+          // Clear previous values and set fresh datetime
+          clientNameInput.value = '';
+          codeResult.style.display = 'none';
+          generatedCodeSpan.textContent = '';
+          validityWindowSpan.innerHTML = '';
+          
+          const now = new Date();
+          now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+          meetingDateInput.value = now.toISOString().slice(0, 16);
+
+          // Focus on the client name input for convenience
+          setTimeout(() => clientNameInput.focus(), 100);
+        } else {
+          // Show authentication modal
+          adminAuthModal.classList.remove('hidden');
+          adminAuthModal.classList.add('show'); 
+          adminPasswordInput.focus();
+        }
+      });
+
+      cancelAdminBtn.addEventListener('click', () => {
+        adminAuthModal.classList.remove('show');
+        adminAuthModal.classList.add('hidden');
+        adminPasswordInput.value = '';
+      });
+
+      adminPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          authenticateAdmin();
+        }
+      });
+
+      adminLoginBtn.addEventListener('click', authenticateAdmin);
+
+      closeCodeModal.addEventListener('click', () => {
+        codeModal.classList.remove('show');
+        codeResult.style.display = 'none';
+        // Clear the form fields when closing
+        clientNameInput.value = '';
+        meetingDateInput.value = '';
+        
+        // Also clear the generated code display
+        generatedCodeSpan.textContent = '';
+        validityWindowSpan.innerHTML = '';
+      });
+
+      generateCodeBtn.addEventListener('click', generateAccessCodeFromServer);
+      copyCodeBtn.addEventListener('click', copyToClipboard);
+    });
+
+    // Authenticate admin with server
+    async function authenticateAdmin() {
+      const password = adminPasswordInput.value.trim();
+      
+      if (!password) {
+        adminPasswordInput.style.borderColor = 'red';
+        showNotification('Please enter password', 'error');
+        return;
+      }
+      
+      try {
+        showNotification('Authenticating...');
+        
+        console.log('Attempting authentication...');
+        
+        const response = await fetch('/admin-auth', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            password: password
+          })
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.log('Error response:', errorText);
+          throw new Error(`Authentication failed: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Auth result:', result);
+        
+        if (result.authenticated) {
+          isAdminAuthenticated = true;
+          adminAuthModal.classList.remove('show');
+          adminAuthModal.classList.add('hidden');
+          adminPasswordInput.value = '';
+          adminPasswordInput.style.borderColor = '';
+          
+          // Show the code generator modal directly
+          codeModal.classList.add('show');
+
+          // Clear previous values and set fresh datetime
+          clientNameInput.value = '';
+          codeResult.style.display = 'none';
+          generatedCodeSpan.textContent = '';
+          validityWindowSpan.innerHTML = '';
+          
+          const now = new Date();
+          now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+          meetingDateInput.value = now.toISOString().slice(0, 16);
+
+          // Focus on the client name input for convenience
+          setTimeout(() => clientNameInput.focus(), 100);
+          
+          showNotification('Scheduler access granted!');
+        } else {
+          throw new Error('Invalid password');
+        }
+      } catch (error) {
+        console.error('Authentication error:', error);
+        adminPasswordInput.style.borderColor = 'red';
+        showNotification('Authentication failed. Invalid password.', 'error');
+      }
+    }
+
+    // Validate access code by calling server
+    async function validateAccessCode(enteredCode, clientName = '') {
+      try {
+        const response = await fetch('/validate-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            code: enteredCode,
+            clientName: clientName
+          })
+        });
+        
+        if (!response.ok) {
+          return false;
+        }
+        
+        const data = await response.json();
+        return data.valid === true;
+      } catch (error) {
+        console.error('Error validating code:', error);
+        return false;
+      }
+    }
+
+    // Generate code by calling server
+    async function generateAccessCodeFromServer() {
+      const clientName = clientNameInput.value.trim();
+      const meetingDate = meetingDateInput.value;
+      
+      if (!clientName) {
+        showNotification('Please enter client name', 'error');
+        return;
+      }
+      
+      if (!meetingDate) {
+        showNotification('Please select meeting date and time', 'error');
+        return;
+      }
+      
+      try {
+        showNotification('Generating code...');
+        
+        // Convert local datetime to UTC for server
+        // Get the browser's timezone offset and convert properly to UTC
+        
+        // Get current timezone offset in minutes
+        const now = new Date();
+        const timezoneOffsetMinutes = now.getTimezoneOffset(); // Minutes behind UTC (positive for west of UTC)
+        
+        // Parse the input as if it were UTC first
+        const inputAsUTC = new Date(meetingDate + ':00.000Z');
+        
+        // Then adjust by adding the timezone offset to get the actual UTC time
+        const actualUTC = new Date(inputAsUTC.getTime() + (timezoneOffsetMinutes * 60000));
+        
+        console.log('Timezone conversion:', {
+          input: meetingDate,
+          timezoneOffsetMinutes: timezoneOffsetMinutes,
+          timezoneOffsetHours: (timezoneOffsetMinutes / 60),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          inputAsUTC: inputAsUTC.toISOString(),
+          actualUTC: actualUTC.toISOString(),
+          explanation: `Your local ${meetingDate} + ${timezoneOffsetMinutes}min offset = ${actualUTC.toISOString()} UTC`
+        });
+        
+        const response = await fetch('/generate-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            clientName: clientName,
+            meetingDateTime: actualUTC.toISOString() // Send properly converted UTC time
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to generate code');
+        }
+        
+        const result = await response.json();
+        
+        generatedCodeSpan.textContent = result.code;
+        
+        // Convert times back to local timezone for display
+        const meetingStart = new Date(result.meetingStart);
+        const accessStart = new Date(result.windowStart);
+        const accessEnd = new Date(result.windowEnd);
+        
+        // Generate the shareable link (only access code, no name)
+        const baseUrl = window.location.origin + window.location.pathname;
+        const shareableLink = `${baseUrl}?accesscode=${result.code}`;
+        
+        validityWindowSpan.innerHTML = 
+          `<strong>Meeting:</strong> ${meetingStart.toLocaleString()}<br>` +
+          `<strong>Access:</strong> ${accessStart.toLocaleString()} - ${accessEnd.toLocaleString()}<br><br>` +
+          `<strong>Shareable Link:</strong><br>` +
+          `<input type="text" value="${shareableLink}" readonly style="width: 100%; padding: 0.5rem; margin-top: 0.5rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px;" onclick="this.select()">`;
+        
+        codeResult.style.display = 'block';
+        showNotification('Code generated successfully!');
+      } catch (error) {
+        console.error('Error generating code:', error);
+        showNotification('Failed to generate code. Please try again.', 'error');
+      }
+    }
+
+    // Copy code to clipboard
+    async function copyToClipboard() {
+      try {
+        // Get the shareable link instead of just the code
+        const shareableLinkInput = document.querySelector('input[readonly]');
+        const textToCopy = shareableLinkInput ? shareableLinkInput.value : generatedCodeSpan.textContent;
+        
+        await navigator.clipboard.writeText(textToCopy);
+        showNotification('Link copied to clipboard!');
+      } catch (err) {
+        // Fallback for older browsers
+        const shareableLinkInput = document.querySelector('input[readonly]');
+        const textToCopy = shareableLinkInput ? shareableLinkInput.value : generatedCodeSpan.textContent;
+        
+        const textArea = document.createElement('textarea');
+        textArea.value = textToCopy;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('Link copied to clipboard!');
+      }
+    }
+
+    // Show notification
+    function showNotification(message, type = 'info', duration = 3000) {
+      notification.textContent = message;
+      notification.className = 'notification show';
+      
+      if (type === 'error') {
+        notification.classList.add('error');
+      }
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          notification.className = 'notification';
+        }, 300);
+      }, duration);
+    }
+
+    // Initialize JaaS meeting
+    async function startMeeting() {
+      const name = nameInput.value.trim();
+      const enteredCode = accessCodeInput.value.trim();
+      
+      if (!name) {
+        nameInput.style.borderColor = 'red';
+        showNotification('Please enter your name', 'error');
+        return;
+      }
+      
+      if (!enteredCode) {
+        accessCodeInput.style.borderColor = 'red';
+        showNotification('Please enter access code', 'error');
+        return;
+      }
+      
+      // Validate access code
+      const isValid = await validateAccessCode(enteredCode, name);
+      if (!isValid) {
+        accessCodeInput.style.borderColor = 'red';
+        showNotification('Invalid access code', 'error');
+        return;
+      }
+      
+      // Clear error states
+      nameInput.style.borderColor = '';
+      accessCodeInput.style.borderColor = '';
+      
+      // Hide modal
+      modalOverlay.style.opacity = '0';
+      setTimeout(() => {
+        modalOverlay.classList.add('hidden');
+      }, 300);
+      
+      // Show joining notification
+      showNotification('Joining meeting...');
+      
+      // Set up progressive notifications only if server is slow
+      let slowServerTimeout1 = setTimeout(() => {
+        showNotification('Initializing connection...', 'info', 8000);
+      }, 4000);
+      
+      let slowServerTimeout2 = setTimeout(() => {
+        showNotification('Connection in progress. Please allow up to 60 seconds.', 'info', 10000);
+      }, 12000);
+
+      try {
+        // Get JWT token from the Render service
+        const response = await fetch('/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            room: ROOM_NAME,
+            email: ""
+          })
+        });
+
+        // Clear slow server notifications immediately after fetch completes
+        clearTimeout(slowServerTimeout1);
+        clearTimeout(slowServerTimeout2);
+        
+        if (!response.ok) {
+          throw new Error('Failed to get token');
+        }
+        
+        const data = await response.json();
+        
+        // Configure meeting options
+        const options = {
+          roomName: `${MAGIC_COOKIE}/${ROOM_NAME}`,
+          parentNode: jaasContainer,
+          jwt: data.token,
+          userInfo: {
+            displayName: name
+          },
+          configOverwrite: {
+            prejoinPageEnabled: false,
+            disableDeepLinking: true,
+            startWithAudioMuted: false,
+            startWithVideoMuted: false,
+            enableWelcomePage: false,
+            // Simply use the current page URL - it already has the access code!
+            inviteURLTransformer: (originalURL) => {
+              return window.location.href;
+            }
+          },
+          interfaceConfigOverwrite: {
+            TOOLBAR_BUTTONS: [
+              'microphone', 'camera', 'participants-pane', 'closedcaptions', 'desktop', 'fullscreen',
+              'hangup', 'profile', 'chat', 'recording', 'livestreaming', 'etherpad', 
+              'sharedvideo', 'settings', 'raisehand', 'videoquality', 'filmstrip', 
+              'invite', 'feedback', 'stats', 'shortcuts', 'tileview', 'select-background',
+              'download', 'help', 'mute-everyone', 'security'
+            ],
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            DEFAULT_BACKGROUND: '#000000'
+          }
+        };
+
+        // Initialize the JaaS API
+        const api = new JitsiMeetExternalAPI(API_DOMAIN, options);
+        
+        // Show Jitsi container
+        jaasContainer.classList.add('active');
+        
+        // For users who might be moderators, listen for conference join
+        api.addEventListener('videoConferenceJoined', async (event) => {
+          api.executeCommand('toggleTileView');
+          if (event.visitor === false) {
+            api.executeCommand('toggleLobby', true);
+            console.log('Lobby explicitly enabled on join');
+            
+            console.log('Attempting to grant moderator to:', event.id);
+            console.log('Event details:', event);
+            
+            try {
+              const result = api.executeCommand('grantModerator', event.id);
+              console.log('grantModerator command result:', result);
+            } catch (error) {
+              console.error('Error executing grantModerator:', error);
+            }
+            
+            // Debug: Log all rooms and participant info
+            try {
+              const roomsInfo = await api.getRoomsInfo();
+              console.log('=== ROOMS INFO DEBUG ===');
+              console.log('Total rooms:', roomsInfo.rooms?.length || 0);
+              
+              roomsInfo.rooms?.forEach((room, roomIndex) => {
+                console.log(`Room ${roomIndex + 1}:`, {
+                  id: room.id,
+                  jid: room.jid,
+                  isMainRoom: room.isMainRoom,
+                  participantCount: room.participants?.length || 0
+                });
+                
+                room.participants?.forEach((participant, pIndex) => {
+                  console.log(`  Participant ${pIndex + 1}:`, {
+                    id: participant.id,
+                    jid: participant.jid,
+                    displayName: participant.displayName,
+                    role: participant.role,
+                    avatarUrl: participant.avatarUrl,
+                    allProperties: Object.keys(participant)
+                  });
+                });
+              });
+              
+              console.log('Raw roomsInfo object:', roomsInfo);
+              console.log('======================');
+            } catch (error) {
+              console.error('Error getting rooms info:', error);
+            }
+          }
+          // Hide the calendar button during meeting
+          adminUnlockBtn.style.display = 'none';
+        });
+        
+        // Optional: Listen for moderator status changes to confirm the command worked
+        api.addEventListener('participantRoleChanged', (event) => {
+          console.log('Participant role changed:', {
+            id: event.id,
+            role: event.role
+          });
+        });
+        
+        // Updated videoConferenceLeft event handler
+        api.addEventListener('videoConferenceLeft', () => {
+          console.log('=== VIDEO CONFERENCE LEFT ===');
+          
+          showNotification('You left the meeting');
+          
+          // Properly hide the meeting container
+          jaasContainer.classList.remove('active');
+          jaasContainer.style.display = 'none';
+          
+          // Show calendar button again
+          adminUnlockBtn.style.display = 'flex';
+          
+          // Show thank you screen
+          thankYouScreen.classList.remove('hidden');
+          setTimeout(() => {
+            thankYouScreen.classList.add('visible');
+          }, 10);
+          
+          // Reset form
+          nameInput.value = '';
+          accessCodeInput.value = '';
+        });
+
+        // Debug: Log all participants when someone joins
+        api.addEventListener('participantJoined', async (event) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            const roomsInfo = await api.getRoomsInfo();
+            console.log('=== PARTICIPANT JOINED DEBUG ===');
+            
+            // Extract all participants from all rooms
+            const allParticipants = [];
+            roomsInfo.rooms.forEach(room => {
+              room.participants.forEach(participant => {
+                allParticipants.push({
+                  ...participant,
+                  roomId: room.id,
+                  isMainRoom: room.isMainRoom
+                });
+              });
+            });
+            
+            console.log('Total participants:', allParticipants.length);
+            allParticipants.forEach((p, index) => {
+              console.log(`Participant ${index + 1}:`, {
+                id: p.id,
+                displayName: p.displayName,
+                role: p.role,
+                jid: p.jid,
+                roomId: p.roomId,
+                isMainRoom: p.isMainRoom,
+                allProperties: Object.keys(p)
+              });
+            });
+            console.log('================================');
+          } catch (error) {
+            console.error('Error in participantJoined debug:', error);
+          }
+        });
+        
+        api.addEventListener('participantLeft', async (event) => {
+          console.log('=== PARTICIPANT LEFT EVENT ===');
+          console.log('Event object:', event);
+          
+          // Also check current participants to see who's actually gone
+          try {
+            console.log('About to wait 500ms...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log('Wait complete, calling getRoomsInfo...');
+            
+            const roomsInfo = await api.getRoomsInfo();
+            console.log('getRoomsInfo returned:', roomsInfo);
+            console.log('roomsInfo type:', typeof roomsInfo);
+            console.log('roomsInfo.rooms:', roomsInfo?.rooms);
+            console.log('rooms length:', roomsInfo?.rooms?.length);
+            
+            let hasActiveModerator = false;
+            
+            if (roomsInfo?.rooms) {
+              console.log('Remaining participants after leave:');
+              roomsInfo.rooms.forEach((room, roomIndex) => {
+                console.log(`Room ${roomIndex}:`, room);
+                if (room.participants) {
+                  room.participants.forEach(p => {
+                    console.log(`  Still here: ${p.displayName} (${p.id}) - Role: ${p.role}`);
+                    if (p.role === 'moderator') {
+                      hasActiveModerator = true;
+                    }
+                  });
+                } else {
+                  console.log('  No participants array in room');
+                }
+              });
+            } else {
+              console.log('No rooms data available');
+            }
+            
+            console.log('Has active moderator:', hasActiveModerator);
+            
+            // If no moderator is left, hangup
+            if (!hasActiveModerator) {
+              console.log('No moderators left in meeting - hanging up');
+              api.executeCommand('hangup');
+            }
+            
+          } catch (error) {
+            console.error('Error getting rooms info after participant left:', error);
+            console.error('Error stack:', error.stack);
+          }
+          
+          console.log('===============================');
+        });
+        
+      } catch (error) {
+        console.error('Error starting meeting:', error);
+        clearTimeout(slowServerTimeout1);
+        clearTimeout(slowServerTimeout2);
+        showNotification('Failed to join meeting. Please try again.', 'error');
+        
+        // Show modal again on error
+        modalOverlay.style.opacity = '1';
+        modalOverlay.classList.remove('hidden');
+      }
+    }
+  </script>
+</body>
+</html>
