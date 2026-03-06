@@ -422,7 +422,7 @@
             
             // --- AI & REPORTING ---
             const getLlmChatResponse = async (context, history) => {
-                const apiUrl = '/api/pro-assistant-chat';
+                const apiUrl = 'https://api-promontory.onrender.com/api/pro-assistant-chat';
                 try {
                     const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context, chatHistory: history }) });
                     if (!response.ok) {
