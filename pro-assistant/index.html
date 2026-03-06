@@ -422,10 +422,14 @@
             
             // --- AI & REPORTING ---
             const getLlmChatResponse = async (context, history) => {
-                const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:10000/api/pro-assistant/chat' : '/api/pro-assistant/chat';
+                const apiUrl = '/api/pro-assistant-chat';
                 try {
                     const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context, chatHistory: history }) });
-                    if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Server error'); }
+                    if (!response.ok) {
+                        let errMsg = `HTTP ${response.status}`;
+                        try { const err = await response.json(); errMsg = err.error || errMsg; } catch {}
+                        throw new Error(errMsg);
+                    }
                     return await response.json();
                 } catch (error) {
                     console.error("API call failed:", error);
