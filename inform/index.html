@@ -1921,7 +1921,12 @@
                 case 'done':
                     finalizeProcess(true);
                     break;
-                    
+
+                case 'error':
+                    logToConsole(data);
+                    finalizeProcess(false);
+                    break;
+
                 default:
                     if (self[`handle_${data.type}`]) {
                         self[`handle_${data.type}`](data);
