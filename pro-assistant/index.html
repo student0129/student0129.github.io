@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRO Analysis Assistant</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMVIUpQkbg9oG8BI2EEpKAoT2EVK/zhTwEjMAeA/Hw9EVqUUB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <style>
+        /* General Styles & Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --color-primary: #4f46e5;
+            --color-primary-light: #e0e7ff;
+            --color-primary-dark: #3730a3;
+            --color-secondary: #f3f4f6;
+            --color-text: #374151;
+            --color-text-light: #6b7280;
+            --color-white: #ffffff;
+            --color-border: #d1d5db;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --border-radius: 0.75rem;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            color: var(--color-text);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .app-card { background-color: var(--color-white); border-radius: var(--border-radius); box-shadow: var(--shadow-lg); padding: 2.5rem; margin-top: 1.5rem; }
+        header { text-align: center; }
+        header h1 { font-size: 2.5rem; font-weight: 800; margin: 0; }
+        header p { color: var(--color-text-light); font-size: 1.125rem; margin-top: 0.5rem; }
+
+        .utility-bar { margin-top: 1rem; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); padding: 0.5rem 0; display: flex; justify-content: center; align-items: center; gap: 1rem; }
+        .progress-bar { display: flex; justify-content: space-between; align-items: flex-start; position: relative; margin-top: 1.5rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .progress-line { position: absolute; left: 0; top: 1rem; width: 100%; height: 4px; background-color: var(--color-border); z-index: 1; }
+        .progress-line-fill { position: absolute; left: 0; top: 1rem; height: 4px; background-color: var(--color-primary); z-index: 2; transition: width 0.5s ease; }
+        .progress-step { display: flex; flex-direction: column; align-items: center; text-align: center; width: 80px; z-index: 3; }
+        .progress-circle { width: 2rem; height: 2rem; border-radius: 50%; background-color: var(--color-border); color: var(--color-text-light); display: flex; align-items: center; justify-content: center; font-weight: 600; transition: background-color 0.3s, color 0.3s; }
+        .progress-step.active .progress-circle { background-color: var(--color-primary); color: var(--color-white); }
+        .progress-label { font-size: 0.75rem; margin-top: 0.5rem; color: var(--color-text-light); font-weight: 500; }
+        .progress-step.active .progress-label { color: var(--color-primary); }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .info-icon { cursor: pointer; color: var(--color-primary); font-family: 'Times New Roman', serif; font-weight: bold; }
+        input[type="text"], textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: 0.5rem; font-size: 1rem; box-sizing: border-box; transition: box-shadow 0.2s, border-color 0.2s; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-light); }
+        textarea { min-height: 100px; resize: vertical; }
+        
+        button { padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
+        button:active { transform: scale(0.98); }
+        button:disabled { cursor: not-allowed; opacity: 0.6; }
+        .btn-primary { background-color: var(--color-primary); color: var(--color-white); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--color-primary-dark); }
+        .btn-secondary { background-color: var(--color-secondary); color: var(--color-text); border: 1px solid var(--color-border); }
+        .btn-secondary:hover:not(:disabled) { background-color: #e5e7eb; }
+        .btn-green { background-color: #16a34a; color: var(--color-white); }
+        .btn-green:hover:not(:disabled) { background-color: #15803d; }
+        .btn-utility { font-size: 0.875rem; padding: 0.5rem 1rem; }
+        .btn-utility-home { background-color: #e5e7eb; color: var(--color-text); }
+        .btn-utility-example { background-color: #dbeafe; color: #1d4ed8; }
+        .btn-utility-clear { background-color: #fee2e2; color: #b91c1c; }
+        .btn-ai-assist { background-color: var(--color-primary-light); color: var(--color-primary-dark); font-size: 0.875rem; padding: 0.5rem 1rem; margin-top: 0.75rem; width: 100%; }
+        .btn-ai-assist:hover:not(:disabled) { background-color: #c7d2fe; }
+
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; display: none; }
+        .modal-content { background-color: var(--color-white); padding: 2rem; border-radius: var(--border-radius); box-shadow: var(--shadow-lg); max-width: 90%; width: 600px; position: relative; }
+        .modal-close-btn { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; background: none; border: none; color: var(--color-text-light); cursor: pointer; padding: 0.5rem; line-height: 1; }
+        .modal-content h3 { margin-top: 0; }
+        .modal-content p { white-space: pre-wrap; }
+        .chat-modal .modal-content { display: flex; flex-direction: column; height: 80vh; }
+        .chat-modal-body { flex-grow: 1; overflow-y: auto; background-color: var(--color-secondary); padding: 1rem; border-radius: 0.5rem; }
+        .chat-message { max-width: 80%; padding: 0.75rem; border-radius: 0.75rem; margin-bottom: 0.75rem; line-height: 1.5; }
+        .chat-message.user { background-color: var(--color-primary); color: var(--color-white); margin-left: auto; border-bottom-right-radius: 0; }
+        .chat-message.ai { background-color: #e5e7eb; color: var(--color-text); margin-right: auto; border-bottom-left-radius: 0; }
+        .chat-modal-footer { margin-top: 1rem; display: flex; gap: 0.5rem; }
+
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        .narrative-grid, .quantify-grid { display: grid; gap: 1.5rem; }
+        @media (min-width: 768px) { .narrative-grid, .quantify-grid { grid-template-columns: repeat(3, 1fr); } }
+        .card { background-color: var(--color-secondary); padding: 1rem; border: 1px solid var(--color-border); border-radius: 0.5rem; }
+        .card h3 { margin-top: 0; }
+        .card .narrative-preview { background-color: var(--color-white); padding: 0.75rem; border-radius: 0.25rem; min-height: 80px; font-style: italic; color: var(--color-text-light); }
+        
+        #report-output { background-color: var(--color-secondary); padding: 1.5rem; border-radius: 0.5rem; border: 1px solid var(--color-border); line-height: 1.7; min-height: 100px; }
+        #report-output h1, #report-output h2, #report-output h3 { margin-top: 1.5rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; }
+        #report-output h1 { font-size: 1.5rem; }
+        #report-output h2 { font-size: 1.3rem; }
+        #report-output h3 { font-size: 1.1rem; }
+        #report-output strong { font-weight: 700; }
+        #report-output em { font-style: italic; }
+        #report-output hr { border: none; border-top: 1px solid var(--color-border); margin: 1rem 0; }
+        #report-output .interactive-text { background-color: #fef9c3; border-bottom: 2px solid #facc15; padding: 2px 4px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+        #report-output .interactive-text:hover { background-color: #fde047; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Intro Page -->
+        <div id="intro-page" class="app-card">
+            <h1 style="text-align:center;">Welcome to the PRO Analysis Assistant</h1>
+            <p style="text-align:center;">Make better, faster, and more confident decisions.</p>
+            <div style="text-align:left; margin: 2rem 0;">
+                <p>This tool guides you through the <strong>Five-Step 10-50-90 Value Range Assessment</strong>, a core component of the Problem, Risk, and Opportunity (PRO) Enterprise Management framework.</p>
+                <p>The goal is to create a robust, defensible range of outcomes for any decision. Instead of relying on a single-point forecast, you will develop a richer understanding of the potential futures by defining pessimistic, most likely, and optimistic scenarios.</p>
+            </div>
+            <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
+                <button id="start-btn" class="btn-primary" style="font-size: 1.25rem; padding: 1rem 2rem;">Begin Analysis</button>
+                <button id="start-example-btn" class="btn-secondary">Or Start with an Example</button>
+            </div>
+        </div>
+
+        <!-- Main App View -->
+        <div id="main-app" class="hidden">
+            <header>
+                <h1>PRO Analysis Assistant</h1>
+                <p>A Structured Value Range Assessment</p>
+                <div class="utility-bar">
+                    <button id="home-btn" class="btn-utility btn-utility-home">&larr; Back to Intro</button>
+                    <button id="load-example-btn" class="btn-utility btn-utility-example">Load Example</button>
+                    <button id="clear-all-btn" class="btn-utility btn-utility-clear">Clear All Data</button>
+                    <button id="go-to-report-btn" class="btn-utility btn-green hidden">Go to Report &rarr;</button>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-line"></div>
+                    <div id="progress-line-fill" class="progress-line-fill"></div>
+                    <div class="progress-step" data-step="1"><div class="progress-circle">1</div><span class="progress-label">Frame</span></div>
+                    <div class="progress-step" data-step="2"><div class="progress-circle">2</div><span class="progress-label">Narrate</span></div>
+                    <div class="progress-step" data-step="3"><div class="progress-circle">3</div><span class="progress-label">Quantify</span></div>
+                    <div class="progress-step" data-step="4"><div class="progress-circle">4</div><span class="progress-label">Validate</span></div>
+                    <div class="progress-step" data-step="5"><div class="progress-circle">5</div><span class="progress-label">Evaluate</span></div>
+                </div>
+            </header>
+
+            <div class="app-card">
+                <!-- Step 1: Frame -->
+                <div id="step-1" class="step-content">
+                    <h2>Step 1: Frame the PRO Item</h2>
+                    <p class="text-light">Define the decision, confirm the tipping point, and align on scope.</p>
+                    <div class="form-group">
+                        <label class="form-label" for="decision">Decision or Action <span class="info-icon" data-info="decision">ⓘ</span></label>
+                        <input type="text" id="decision" data-field="decision" placeholder="e.g., Invest in the new 'Phoenix' software platform.">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="tippingPoint">Tipping Point <span class="info-icon" data-info="tippingPoint">ⓘ</span></label>
+                        <input type="text" id="tippingPoint" data-field="tippingPoint" placeholder="e.g., The project is officially greenlit and funded.">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="scope">Scope & Enterprise Context <span class="info-icon" data-info="scope">ⓘ</span></label>
+                        <textarea id="scope" data-field="scope" placeholder="e.g., R&D budget for 2025-2026 cycle..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="timeHorizon">Relevant Time Horizon</label>
+                        <input type="text" id="timeHorizon" data-field="timeHorizon" placeholder="e.g., 3 years">
+                    </div>
+                </div>
+
+                <!-- Step 2: Narratives -->
+                <div id="step-2" class="step-content">
+                    <h2>Step 2: Develop the Three Narratives <span class="info-icon" data-info="narratives">ⓘ</span></h2>
+                    <p class="text-light">Describe three distinct, plausible stories for how the future could unfold.</p>
+                    <div class="narrative-grid">
+                        <div class="card">
+                            <h3>Pessimistic (P10)</h3>
+                            <textarea id="narrative-p10" data-field="narratives.p10" placeholder="Describe the P10 scenario..."></textarea>
+                            <button class="btn-ai-assist" data-ai="narrative_p10" data-target="narrative-p10">✨ AI Narrative Assistant</button>
+                        </div>
+                        <div class="card">
+                            <h3>Most Likely (P50)</h3>
+                            <textarea id="narrative-p50" data-field="narratives.p50" placeholder="Describe the P50 scenario..."></textarea>
+                            <button class="btn-ai-assist" data-ai="narrative_p50" data-target="narrative-p50">✨ AI Narrative Assistant</button>
+                        </div>
+                        <div class="card">
+                            <h3>Optimistic (P90)</h3>
+                            <textarea id="narrative-p90" data-field="narratives.p90" placeholder="Describe the P90 scenario..."></textarea>
+                            <button class="btn-ai-assist" data-ai="narrative_p90" data-target="narrative-p90">✨ AI Narrative Assistant</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Quantify -->
+                <div id="step-3" class="step-content">
+                    <h2>Step 3: Quantify the Narratives <span class="info-icon" data-info="quantification">ⓘ</span></h2>
+                    <p class="text-light">Assign a numerical value (e.g., NPV) to each narrative.</p>
+                    <div class="quantify-grid">
+                        <div class="card">
+                            <h3>P10 Value</h3>
+                            <input type="text" id="quantification-p10" data-field="quantifications.p10" placeholder="e.g., -$2M">
+                            <div class="narrative-preview" id="quantify-preview-p10"></div>
+                             <button class="btn-ai-assist" data-ai="quantify_p10" data-target="quantification-p10">🤖 AI Quantify Assist</button>
+                        </div>
+                        <div class="card">
+                            <h3>P50 Value</h3>
+                            <input type="text" id="quantification-p50" data-field="quantifications.p50" placeholder="e.g., $4M">
+                            <div class="narrative-preview" id="quantify-preview-p50"></div>
+                             <button class="btn-ai-assist" data-ai="quantify_p50" data-target="quantification-p50">🤖 AI Quantify Assist</button>
+                        </div>
+                        <div class="card">
+                            <h3>P90 Value</h3>
+                            <input type="text" id="quantification-p90" data-field="quantifications.p90" placeholder="e.g., $12M">
+                            <div class="narrative-preview" id="quantify-preview-p90"></div>
+                             <button class="btn-ai-assist" data-ai="quantify_p90" data-target="quantification-p90">🤖 AI Quantify Assist</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Validate -->
+                <div id="step-4" class="step-content">
+                     <h2>Step 4: Validate with Decision Makers <span class="info-icon" data-info="validation">ⓘ</span></h2>
+                    <p class="text-light">Share the narratives and numbers to gather feedback, discuss assumptions, and build alignment.</p>
+                    <div id="summary-display-4"></div>
+                    <div style="margin-top: 2rem;">
+                        <h3 class="form-label">Discussion & Validation Notes</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+                            <button class="btn-secondary btn-utility" data-ai="validation_points" data-target="validationNotes">💡 AI: Generate Discussion Points</button>
+                            <button class="btn-secondary btn-utility" data-ai="devil_advocate" data-target="validationNotes" style="background-color: #fecaca; color: #991b1b;">😈 AI: Devil's Advocate</button>
+                        </div>
+                        <textarea id="validationNotes" data-field="validationNotes" placeholder="Capture feedback, disagreements, and adjustments from stakeholders here..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 5: Evaluate -->
+                <div id="step-5" class="step-content">
+                    <h2>Step 5: Use in Portfolio Evaluation <span class="info-icon" data-info="evaluation">ⓘ</span></h2>
+                    <p class="text-light">Use the three-point distribution to inform prioritization and strategic decisions.</p>
+                    <div id="summary-display-5"></div>
+                    <div style="margin-top: 2rem;">
+                        <h3 class="form-label">Portfolio Evaluation Notes</h3>
+                         <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+                            <button class="btn-secondary btn-utility" data-ai="portfolio_analysis" data-target="portfolioNotes">📊 AI: Portfolio Analysis</button>
+                            <button class="btn-secondary btn-utility" data-ai="critical_assessment" data-target="portfolioNotes" style="background-color: #fed7aa; color: #9a3412;">🧐 AI: Critical Assessment</button>
+                        </div>
+                        <textarea id="portfolioNotes" data-field="portfolioNotes" placeholder="Add final notes on how this item compares to others and its role in the overall portfolio..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Final Report -->
+                <div id="report-page" class="hidden">
+                    <h2>Final Report <span class="info-icon" data-info="report">ⓘ</span></h2>
+                    <p class="text-light">Synthesize your analysis into a cohesive, actionable story.</p>
+                    <div style="display:flex; gap:1rem; margin-bottom:1.5rem;">
+                        <button id="generate-report-btn" class="btn-primary">🚀 Generate AI-Powered Report</button>
+                        <button id="export-pdf-btn" class="btn-green">📄 Export to PDF</button>
+                    </div>
+                    <div id="report-output">Click the button to generate your report.</div>
+                </div>
+            </div>
+
+            <div class="navigation-buttons">
+                <button id="prev-btn" class="btn-secondary">Previous</button>
+                <button id="next-btn" class="btn-primary">Next Step</button>
+                <button id="finalize-btn" class="btn-green hidden">Finalize & Generate Report</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" data-modal-close="info-modal">&times;</button>
+            <h3 id="info-modal-title"></h3>
+            <p id="info-modal-content"></p>
+            <button data-modal-close="info-modal" class="btn-primary" style="margin-top: 1.5rem; width: 100%;">Close</button>
+        </div>
+    </div>
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-content" style="width: 400px; text-align: center;">
+            <h3 id="confirm-title" class="text-xl font-bold text-slate-900 mb-2">Are you sure?</h3>
+            <p id="confirm-text">This will clear all data entered. This action cannot be undone.</p>
+            <div style="display:flex; justify-content:center; gap:1rem; margin-top:1.5rem;">
+                <button id="confirm-cancel-btn" class="btn-secondary">Cancel</button>
+                <button id="confirm-ok-btn" class="btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div id="chat-modal" class="modal-overlay chat-modal">
+         <div class="modal-content">
+            <button class="modal-close-btn" data-modal-close="chat-modal">&times;</button>
+            <h3 id="chat-modal-title">AI Assistant</h3>
+            <div id="chat-modal-body" class="chat-modal-body"></div>
+            <div class="chat-modal-footer">
+                <input type="text" id="chat-input" placeholder="Type your response..." style="flex-grow:1;">
+                <button id="chat-send-btn" class="btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE MANAGEMENT ---
+            let currentStep = 1;
+            let proItem = {};
+            let chatHistory = [];
+            let currentAIContext = {};
+            let onChatCompleteCallback = null;
+
+            const initialProItemState = {
+                decision: '', tippingPoint: '', scope: '', timeHorizon: '',
+                narratives: { p10: '', p50: '', p90: '' },
+                quantifications: { p10: '', p50: '', p90: '' },
+                validationNotes: '', portfolioNotes: '', finalReport: ''
+            };
+            const exampleProItem = {
+              decision: 'Invest in the new "Phoenix" AI-powered customer service platform.',
+              tippingPoint: 'The project is officially greenlit and funded.',
+              scope: 'This falls under the R&D budget for the 2025-2026 cycle. It primarily impacts the Customer Support and Sales departments.',
+              timeHorizon: '3 years',
+              narratives: {
+                p10: 'The AI model\'s performance stagnates, failing to handle complex customer queries. Integration with legacy CRM systems proves difficult, causing significant delays and budget overruns. Competitors launch a superior product first, and we only capture 40% of the projected market share.',
+                p50: 'The platform is delivered on-time and meets core requirements. It successfully handles 70% of inbound customer queries, reducing support staff workload by 15%. Customer satisfaction sees a modest increase, and the project breaks even in year 3.',
+                p90: 'The platform\'s natural language understanding is a breakthrough success. It not only handles customer queries but also identifies upsell opportunities, increasing sales by 5%. The technology becomes a new, licensable product line for the company, opening an unexpected revenue stream.'
+              },
+              quantifications: {
+                p10: '-$1,500,000',
+                p50: '$2,500,000',
+                p90: '$15,000,000'
+              },
+              validationNotes: 'Stakeholders are concerned about the technical risk in the P10 scenario. The sales team is very excited about the P90 possibility and wants to explore the upsell feature further. We need to validate the integration plan with the IT department.',
+              portfolioNotes: 'Compared to other projects, Phoenix has a higher risk profile but also a significantly higher potential reward (high investment productivity). It aligns with our strategic goal of becoming an AI-first organization. Recommend funding as part of a balanced portfolio.',
+              finalReport: ''
+            };
+            
+            const setNestedValue = (obj, path, value) => {
+                const keys = path.split('.');
+                const lastKey = keys.pop();
+                const lastObj = keys.reduce((o, key) => o[key] = o[key] || {}, obj);
+                lastObj[lastKey] = value;
+            };
+
+            const getNestedValue = (obj, path) => path.split('.').reduce((o, k) => (o && o[k] != null) ? o[k] : '', obj);
+
+            const syncStateWithUI = () => document.querySelectorAll('[data-field]').forEach(el => setNestedValue(proItem, el.dataset.field, el.value));
+            const syncUIWithState = () => document.querySelectorAll('[data-field]').forEach(el => el.value = getNestedValue(proItem, el.dataset.field));
+            
+            const resetState = () => { 
+                proItem = JSON.parse(JSON.stringify(initialProItemState)); 
+                syncUIWithState();
+                document.getElementById('report-output').innerHTML = 'Click the button to generate your report.';
+                document.getElementById('go-to-report-btn').classList.add('hidden');
+            };
+            
+            const loadExampleData = () => { proItem = JSON.parse(JSON.stringify(exampleProItem)); syncUIWithState(); };
+            
+            resetState();
+
+            // --- UI ELEMENTS ---
+            const stepContents = document.querySelectorAll('.step-content');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const finalizeBtn = document.getElementById('finalize-btn');
+            const progressSteps = document.querySelectorAll('.progress-step');
+            const progressLineFill = document.getElementById('progress-line-fill');
+            const mainApp = document.getElementById('main-app');
+            const introPage = document.getElementById('intro-page');
+            const reportPage = document.getElementById('report-page');
+            const navigationButtons = document.querySelector('.navigation-buttons');
+
+            // --- NAVIGATION LOGIC ---
+            const showReportPage = () => {
+                syncStateWithUI();
+                stepContents.forEach(el => el.classList.remove('active'));
+                reportPage.classList.remove('hidden');
+                navigationButtons.classList.add('hidden');
+                progressLineFill.style.width = '100%';
+                progressSteps.forEach(s => s.classList.add('active'));
+                document.getElementById('go-to-report-btn').classList.remove('hidden');
+            };
+
+            const updateUI = () => {
+                syncStateWithUI();
+                mainApp.classList.remove('hidden');
+                reportPage.classList.add('hidden');
+                navigationButtons.classList.remove('hidden');
+                stepContents.forEach((stepEl, index) => stepEl.classList.toggle('active', (index + 1) === currentStep));
+                progressSteps.forEach(stepEl => stepEl.classList.toggle('active', parseInt(stepEl.dataset.step) <= currentStep));
+                progressLineFill.style.width = `${((currentStep - 1) / 4) * 100}%`;
+                prevBtn.disabled = currentStep === 1;
+                nextBtn.classList.toggle('hidden', currentStep === 5);
+                finalizeBtn.classList.toggle('hidden', currentStep !== 5);
+
+                if (currentStep === 3) {
+                    document.getElementById('quantify-preview-p10').textContent = proItem.narratives.p10 || 'No narrative written yet.';
+                    document.getElementById('quantify-preview-p50').textContent = proItem.narratives.p50 || 'No narrative written yet.';
+                    document.getElementById('quantify-preview-p90').textContent = proItem.narratives.p90 || 'No narrative written yet.';
+                }
+                if (currentStep === 4 || currentStep === 5) {
+                    const summaryHTML = `<div class="card" style="background-color: white;"><h3>Summary of PRO Item</h3><p><strong>Decision:</strong> ${proItem.decision || 'Not defined'}</p><div class="quantify-grid"><div class="card"><h3>P10</h3><p><strong>${proItem.quantifications.p10 || 'N/A'}</strong></p><small>${proItem.narratives.p10 || ''}</small></div><div class="card"><h3>P50</h3><p><strong>${proItem.quantifications.p50 || 'N/A'}</strong></p><small>${proItem.narratives.p50 || ''}</small></div><div class="card"><h3>P90</h3><p><strong>${proItem.quantifications.p90 || 'N/A'}</strong></p><small>${proItem.narratives.p90 || ''}</small></div></div></div>`;
+                    if (currentStep === 4) document.getElementById('summary-display-4').innerHTML = summaryHTML;
+                    if (currentStep === 5) document.getElementById('summary-display-5').innerHTML = summaryHTML;
+                }
+            };
+            
+            const goToStep = (step) => { currentStep = step; introPage.classList.add('hidden'); updateUI(); };
+            
+            // --- EVENT LISTENERS ---
+            nextBtn.addEventListener('click', () => { if (currentStep < 5) { currentStep++; updateUI(); } });
+            prevBtn.addEventListener('click', () => { if (currentStep > 1) { currentStep--; updateUI(); } });
+            finalizeBtn.addEventListener('click', showReportPage);
+            document.getElementById('go-to-report-btn').addEventListener('click', showReportPage);
+
+            document.getElementById('start-btn').addEventListener('click', () => { introPage.classList.add('hidden'); mainApp.classList.remove('hidden'); resetState(); goToStep(1); });
+            document.getElementById('start-example-btn').addEventListener('click', () => { introPage.classList.add('hidden'); mainApp.classList.remove('hidden'); loadExampleData(); goToStep(1); });
+            document.getElementById('home-btn').addEventListener('click', () => { mainApp.classList.add('hidden'); introPage.classList.remove('hidden'); });
+            document.getElementById('load-example-btn').addEventListener('click', () => { loadExampleData(); goToStep(1); });
+            document.querySelectorAll('[data-field]').forEach(el => el.addEventListener('input', syncStateWithUI));
+            
+            // --- AI & REPORTING ---
+            const getLlmChatResponse = async (context, history) => {
+                const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:10000/api/pro-assistant/chat' : '/api/pro-assistant/chat';
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context, chatHistory: history }) });
+                    if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Server error'); }
+                    return await response.json();
+                } catch (error) {
+                    console.error("API call failed:", error);
+                    return { message: `Error: Could not connect to the AI assistant. ${error.message}`, isFinal: true };
+                }
+            };
+            
+            const renderContent = (element, text) => {
+                let html = text
+                    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                    .replace(/---/g, '<hr>')
+                    .replace(/\n/g, '<br />');
+                
+                element.innerHTML = html;
+
+                if (window.renderMathInElement) {
+                    window.renderMathInElement(element, {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "$", right: "$", display: false}
+                        ],
+                        throwOnError: false
+                    });
+                }
+            };
+
+            document.querySelectorAll('[data-ai]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    syncStateWithUI();
+                    const context = { type: btn.dataset.ai, proItem };
+                    const title = `AI Assistant: ${btn.textContent.trim()}`;
+                    const targetId = btn.dataset.target;
+
+                    openChatModal(title, context, (response) => {
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) {
+                           const useResponse = () => {
+                                let contentToInsert = response;
+                                if (context.type.startsWith('narrative_')) {
+                                    const matchNarr = response.match(/"([^"]*)"\s*$/);
+                                    if (matchNarr) contentToInsert = matchNarr[1];
+                                } else if (context.type.startsWith('quantify_')) {
+                                    const matchQuant = response.match(/Suggested Quantification:\s*([$\-0-9,M.k]+)/);
+                                    if (matchQuant) contentToInsert = matchQuant[1];
+                                } else {
+                                    const currentNotes = targetEl.value;
+                                    contentToInsert = currentNotes ? `${currentNotes}\n\n--- ${title} ---\n${response}` : `--- ${title} ---\n${response}`;
+                                }
+                                targetEl.value = contentToInsert;
+                                syncStateWithUI();
+                           };
+                           
+                           if (targetEl.value.trim() !== '' && !context.type.startsWith('validation_') && !context.type.startsWith('portfolio_')) {
+                               openConfirmModal('Replace Content?', 'This will replace the current content. Are you sure?', 'Replace', useResponse);
+                           } else {
+                               useResponse();
+                           }
+                        }
+                    });
+                });
+            });
+
+            document.getElementById('generate-report-btn').addEventListener('click', async (e) => {
+                e.target.disabled = true; e.target.textContent = 'Generating...';
+                const response = await getLlmChatResponse({ type: 'final_report', proItem }, []);
+                proItem.finalReport = response.message;
+                renderReport();
+                e.target.disabled = false; e.target.textContent = '🚀 Generate AI-Powered Report';
+            });
+            
+            const renderReport = () => {
+                const output = document.getElementById('report-output');
+                if (!proItem.finalReport) { output.innerHTML = 'Click the button to generate your report.'; return; }
+                let processedHtml = proItem.finalReport.replace(/{{(.*?)}}/g, (match, p1) => { const [key, step] = p1.split(':'); const value = getNestedValue(proItem, key); return `<span class="interactive-text" data-step="${step}">${value || `[${key}]`}</span>`; });
+                renderContent(output, processedHtml);
+            };
+
+            document.getElementById('report-output').addEventListener('click', (e) => { if (e.target.classList.contains('interactive-text')) { goToStep(parseInt(e.target.dataset.step, 10)); } });
+            
+            const waitForJsPDF = (callback) => {
+                const maxRetries = 50; // Wait for max 5 seconds
+                let retries = 0;
+                const interval = setInterval(() => {
+                    if (window.jspdf) {
+                        clearInterval(interval);
+                        callback();
+                    } else if (retries >= maxRetries) {
+                        clearInterval(interval);
+                        alert('Could not load PDF generation library. Please check your internet connection and try again.');
+                        document.getElementById('export-pdf-btn').disabled = false;
+                        document.getElementById('export-pdf-btn').textContent = '📄 Export to PDF';
+                    }
+                    retries++;
+                }, 100);
+            };
+
+            document.getElementById('export-pdf-btn').addEventListener('click', async (e) => {
+                const btn = e.target;
+                if (!proItem.finalReport) { alert('Please generate a report first.'); return; }
+                
+                btn.disabled = true;
+                btn.textContent = 'Formatting Report...';
+
+                const polishedReportResponse = await getLlmChatResponse({ type: 'executive_summary', proItem }, []);
+                const polishedReportMarkdown = polishedReportResponse.message;
+                
+                btn.textContent = 'Creating PDF...';
+
+                waitForJsPDF(() => {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const margin = 15;
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    let y = margin;
+
+                    const addText = (text, options) => {
+                        const { size = 10, style = 'normal', isHeader = false } = options;
+                        pdf.setFontSize(size);
+                        pdf.setFont('helvetica', style);
+                        
+                        const lines = pdf.splitTextToSize(text, pdf.internal.pageSize.getWidth() - margin * 2);
+                        
+                        lines.forEach(line => {
+                            if (y + 10 > pageHeight - margin) {
+                                pdf.addPage();
+                                y = margin;
+                            }
+                            pdf.text(line, margin, y);
+                            y += (size * 0.5);
+                        });
+
+                        if(isHeader) {
+                            y += 2;
+                            pdf.setDrawColor(200);
+                            pdf.line(margin, y, pdf.internal.pageSize.getWidth() - margin, y);
+                            y += 6;
+                        } else {
+                            y += 4;
+                        }
+                    };
+                    
+                    const lines = polishedReportMarkdown.split('\n');
+                    lines.forEach(line => {
+                        if (line.startsWith('### ')) {
+                            addText(line.substring(4), { size: 14, style: 'bold', isHeader: true });
+                        } else if (line.startsWith('## ')) {
+                            addText(line.substring(3), { size: 16, style: 'bold', isHeader: true });
+                        } else if (line.startsWith('# ')) {
+                            addText(line.substring(2), { size: 20, style: 'bold', isHeader: true });
+                        } else if (line.startsWith('---')) {
+                             y += 2;
+                        } else if (line.trim() !== '') {
+                            addText(line, {});
+                        }
+                    });
+
+                    pdf.save(`PRO-Executive-Summary.pdf`);
+                    btn.disabled = false;
+                    btn.textContent = '📄 Export to PDF';
+                });
+            });
+
+            // --- MODAL LOGIC ---
+            const infoModal = document.getElementById('info-modal');
+            const confirmModal = document.getElementById('confirm-modal');
+            const chatModal = document.getElementById('chat-modal');
+
+            const proInfoContent = {
+                decision: { title: "Decision or Action", content: "Clearly define the decision or action under evaluation. This is the first and most critical part of framing your PRO item. Be specific about what you are choosing to do or not do." },
+                tippingPoint: { title: "Tipping Point of a Material Consequence", content: "This is the critical event that, once it occurs, means the consequences (good or bad) are inevitable. You must confirm that you are modeling the value impact *given the tipping point has occurred*. For an opportunity, it might be 'Project receives funding.' For a risk, it could be 'A key supplier goes bankrupt.'" },
+                scope: { title: "Scope and Enterprise Context", content: "Align on the scope and enterprise context for this decision. Consider factors like the relevant budget cycle, the departments it will affect, and the overall strategic goals it relates to." },
+                narratives: { title: "Develop the Three Narratives", content: "Each scenario should be a qualitative story grounded in how your enterprise functions (e.g., customers, operations, regulation).\n\n- **10th Percentile:** Describe a plausible but unfavorable outcome. Things go poorly, but not catastrophically.\n- **50th Percentile:** Describe the expected, most representative case based on current knowledge.\n- **90th Percentile:** Describe an outcome where things go better than average, but it is not a fantasy." },
+                quantification: { title: "Quantify the Narratives", content: "For each narrative, estimate the outcome numerically (e.g., NPV in dollars). Use subject matter expertise, available data, or reference projects to validate each estimate. A key goal is to ensure the numbers match the stories; the narrative and the estimate must cohere." },
+                validation: { title: "Validate with Decision Makers", content: "Share the narratives and numbers with executives or stakeholders. This step is crucial for buy-in. Use this opportunity to discuss disagreements about assumptions or likelihoods and adjust narratives and values if necessary to achieve decision relevance." },
+                evaluation: { title: "Use in Portfolio Evaluation", content: "The three-point distribution you've created is a powerful tool. Use it to calculate investment productivity, value-at-risk, or other enterprise-relevant measures. These inputs can feed into Monte Carlo models or be used qualitatively to compare across multiple PRO items and inform prioritization." },
+                report: { title: "Final Report Generation", content: "This final step synthesizes all your inputs into a cohesive story. The AI will construct a narrative that explains the decision, the potential outcomes, and the key factors involved. The report will also include suggestions for revision, with links to take you back to specific steps to refine your analysis."}
+            };
+
+            document.querySelectorAll('.info-icon').forEach(icon => {
+                icon.addEventListener('click', (e) => {
+                    const infoKey = e.target.dataset.info;
+                    if (proInfoContent[infoKey]) {
+                        document.getElementById('info-modal-title').textContent = proInfoContent[infoKey].title;
+                        document.getElementById('info-modal-content').innerHTML = proInfoContent[infoKey].content.replace(/\n/g, '<br />');
+                        infoModal.style.display = 'flex';
+                    }
+                });
+            });
+
+            document.querySelectorAll('[data-modal-close]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById(btn.dataset.modalClose).style.display = 'none';
+                });
+            });
+            
+            let confirmCallback = null;
+            const openConfirmModal = (title, text, confirmText, onConfirm) => {
+                document.getElementById('confirm-title').textContent = title;
+                document.getElementById('confirm-text').textContent = text;
+                const okBtn = document.getElementById('confirm-ok-btn');
+                okBtn.textContent = confirmText;
+                okBtn.style.backgroundColor = confirmText === 'Clear Data' ? '#dc2626' : 'var(--color-primary)';
+                confirmCallback = onConfirm;
+                confirmModal.style.display = 'flex';
+            };
+
+            document.getElementById('clear-all-btn').addEventListener('click', () => {
+                openConfirmModal('Are you sure?', 'This will clear all data entered. This action cannot be undone.', 'Clear Data', () => {
+                    resetState();
+                    goToStep(1);
+                    confirmModal.style.display = 'none';
+                });
+            });
+            
+            document.getElementById('confirm-cancel-btn').addEventListener('click', () => confirmModal.style.display = 'none');
+            document.getElementById('confirm-ok-btn').addEventListener('click', () => {
+                if(confirmCallback) confirmCallback();
+                confirmModal.style.display = 'none';
+            });
+            
+            const openChatModal = (title, context, onComplete) => {
+                document.getElementById('chat-modal-title').textContent = title;
+                const chatBody = document.getElementById('chat-modal-body');
+                chatBody.innerHTML = '<div class="chat-message ai">Thinking...</div>';
+                chatModal.style.display = 'flex';
+                chatHistory = [];
+                currentAIContext = context;
+                onChatCompleteCallback = onComplete;
+
+                getLlmChatResponse(context, []).then(response => {
+                    addMessageToChat('ai', response.message, response.isFinal);
+                });
+            };
+
+            const addMessageToChat = (sender, text, isFinal = false) => {
+                chatHistory.push({sender, text});
+                const chatBody = document.getElementById('chat-modal-body');
+                if(chatBody.querySelector('div')?.textContent === 'Thinking...') { chatBody.innerHTML = ''; }
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `chat-message ${sender}`;
+                
+                renderContent(msgDiv, text);
+                
+                if (isFinal) {
+                    const useBtn = document.createElement('button');
+                    useBtn.textContent = 'Use this Text';
+                    useBtn.className = 'btn-primary';
+                    useBtn.style.marginTop = '1rem';
+                    useBtn.onclick = () => { if (onChatCompleteCallback) onChatCompleteCallback(text); chatModal.style.display = 'none'; };
+                    msgDiv.appendChild(useBtn);
+                }
+                chatBody.appendChild(msgDiv);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            };
+            
+            const handleSendChat = async () => {
+                const input = document.getElementById('chat-input');
+                const text = input.value.trim();
+                if (!text) return;
+                addMessageToChat('user', text);
+                input.value = '';
+                const response = await getLlmChatResponse(currentAIContext, chatHistory);
+                addMessageToChat('ai', response.message, response.isFinal);
+            };
+
+            document.getElementById('chat-send-btn').addEventListener('click', handleSendChat);
+            document.getElementById('chat-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSendChat();
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
