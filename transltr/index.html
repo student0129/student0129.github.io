@@ -204,8 +204,8 @@
         let micStream = null;
 
         // --- Rendering state: committed finals + a live (interim) tail per pane ---
-        const finalTranscripts = [];
-        const finalTranslations = [];
+        const finalTranscripts = [];    // { kind: 'speech' | 'unclear', text }
+        const finalTranslations = [];   // strings
         let partialTranscript = '';
         let activeTranslationText = '';
         let activeTranslationItemId = null;
@@ -214,15 +214,24 @@
             return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
-        function renderPane(element, committedArr, interim) {
-            const committed = committedArr.join(' ');
-            element.innerHTML = escapeHtml(committed)
-                + (interim ? `${committed ? ' ' : ''}<span class="opacity-50 italic">${escapeHtml(interim)}</span>` : '');
-            element.scrollTop = element.scrollHeight;
+        function renderTranscript() {
+            const parts = finalTranscripts.map(e =>
+                e.kind === 'unclear'
+                    ? '<span class="opacity-40 italic">(unclear audio — not translated)</span>'
+                    : escapeHtml(e.text)
+            );
+            let html = parts.join(' ');
+            if (partialTranscript) html += `${html ? ' ' : ''}<span class="opacity-50 italic">${escapeHtml(partialTranscript)}</span>`;
+            transcriptionEl.innerHTML = html;
+            transcriptionEl.scrollTop = transcriptionEl.scrollHeight;
         }
 
-        const renderTranscript = () => renderPane(transcriptionEl, finalTranscripts, partialTranscript);
-        const renderTranslation = () => renderPane(translationEl, finalTranslations, activeTranslationText);
+        function renderTranslation() {
+            const committed = finalTranslations.join(' ');
+            translationEl.innerHTML = escapeHtml(committed)
+                + (activeTranslationText ? `${committed ? ' ' : ''}<span class="opacity-50 italic">${escapeHtml(activeTranslationText)}</span>` : '');
+            translationEl.scrollTop = translationEl.scrollHeight;
+        }
 
         function onTranslationDelta(itemId, delta) {
             // A new utterance's translation started before the previous 'done' arrived — commit it.
@@ -253,9 +262,17 @@
                     break;
                 case 'final_transcript':
                     partialTranscript = '';
-                    if (data.text) finalTranscripts.push(data.text);
+                    if (data.text) finalTranscripts.push({ kind: 'speech', text: data.text });
                     renderTranscript();
                     setStatus('Translating...', true);
+                    break;
+                case 'unclear':
+                    // Server couldn't transcribe clearly (or heard the wrong language) — show a
+                    // muted note in the transcript pane and translate nothing.
+                    partialTranscript = '';
+                    finalTranscripts.push({ kind: 'unclear' });
+                    renderTranscript();
+                    setStatus('Unclear audio — skipped', true);
                     break;
                 case 'translation_delta':
                     onTranslationDelta(data.itemId, data.delta || '');
