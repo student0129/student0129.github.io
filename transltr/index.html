@@ -194,94 +194,182 @@
         const translationTitle = document.getElementById('translation-title');
         const copyBtns = document.querySelectorAll('.copy-btn');
     
-        let mediaRecorder;
+        const WS_URL = 'wss://api-promontory.onrender.com';
+        const OPENAI_SAMPLE_RATE = 24000;   // OpenAI Realtime expects PCM16 mono @ 24 kHz
+
         let socket;
         let isListening = false;
-        const RECORDING_INTERVAL_MS = 7000;
+        let audioContext = null;
+        let workletNode = null;
+        let micStream = null;
 
-        // --- Voice activity detection (don't ship silence/quiet chunks to the server) ---
-        let audioContext, analyser, vadData, vadTimer;
-        let windowPeak = 0;                 // loudest level seen during the current recording window
-        const SILENCE_THRESHOLD = 0.015;    // normalized RMS; raise to be stricter about quiet audio
+        // --- Rendering state: committed finals + a live (interim) tail per pane ---
+        const finalTranscripts = [];
+        const finalTranslations = [];
+        let partialTranscript = '';
+        let activeTranslationText = '';
+        let activeTranslationItemId = null;
 
-        function measureLevel() {
-            if (!analyser) return;
-            analyser.getByteTimeDomainData(vadData);
-            let sumSquares = 0;
-            for (let i = 0; i < vadData.length; i++) {
-                const v = (vadData[i] - 128) / 128; // -1..1
-                sumSquares += v * v;
+        function escapeHtml(s) {
+            return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function renderPane(element, committedArr, interim) {
+            const committed = committedArr.join(' ');
+            element.innerHTML = escapeHtml(committed)
+                + (interim ? `${committed ? ' ' : ''}<span class="opacity-50 italic">${escapeHtml(interim)}</span>` : '');
+            element.scrollTop = element.scrollHeight;
+        }
+
+        const renderTranscript = () => renderPane(transcriptionEl, finalTranscripts, partialTranscript);
+        const renderTranslation = () => renderPane(translationEl, finalTranslations, activeTranslationText);
+
+        function onTranslationDelta(itemId, delta) {
+            // A new utterance's translation started before the previous 'done' arrived — commit it.
+            if (activeTranslationItemId && activeTranslationItemId !== itemId && activeTranslationText) {
+                finalTranslations.push(activeTranslationText);
+                activeTranslationText = '';
             }
-            const rms = Math.sqrt(sumSquares / vadData.length);
-            if (rms > windowPeak) windowPeak = rms;
-        }
-    
-        let transcriptionQueue = [];
-        let translationQueue = [];
-        let isTypingTranscription = false;
-        let isTypingTranslation = false;
-    
-        function typewriter(element, queue, isTypingFlag) {
-            if (isTypingFlag || queue.length === 0) return;
-            isTypingFlag = true;
-            const text = queue.shift() + ' ';
-            let i = 0;
-            element.textContent += ' '; 
-            const typingInterval = setInterval(() => {
-                if (i < text.length) {
-                    element.textContent += text.charAt(i);
-                    element.scrollTop = element.scrollHeight;
-                    i++;
-                } else {
-                    clearInterval(typingInterval);
-                    isTypingFlag = false;
-                    if (element.id === 'transcription') {
-                        typewriter(transcriptionEl, transcriptionQueue, isTypingTranscription);
-                    } else {
-                        typewriter(translationEl, translationQueue, isTypingTranslation);
-                    }
-                }
-            }, 30);
-        }
-    
-        function recordAndSend() {
-            if (!isListening || !mediaRecorder) return;
-            windowPeak = 0;                         // reset level tracking for this window
-            mediaRecorder.start();
-            setStatus('Listening...', true);
-            if (vadTimer) clearInterval(vadTimer);
-            vadTimer = setInterval(measureLevel, 100);
-            setTimeout(() => {
-                if (mediaRecorder.state === 'recording') mediaRecorder.stop();
-            }, RECORDING_INTERVAL_MS);
+            activeTranslationItemId = itemId;
+            activeTranslationText += delta;
+            renderTranslation();
         }
 
-        function setupMediaRecorder(stream) {
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        function onTranslationDone(itemId, text) {
+            finalTranslations.push(text || activeTranslationText);
+            activeTranslationText = '';
+            activeTranslationItemId = null;
+            renderTranslation();
+        }
 
-            // Set up the analyser used for voice-activity detection
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioContext.createMediaStreamSource(stream);
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 2048;
-            vadData = new Uint8Array(analyser.fftSize);
-            source.connect(analyser);
-
-            mediaRecorder.addEventListener('dataavailable', (event) => {
-                if (vadTimer) { clearInterval(vadTimer); vadTimer = null; }
-                if (!(socket && socket.readyState === WebSocket.OPEN)) return;
-
-                // Skip windows that were silent / too quiet — never send blank audio to the server
-                if (event.data.size === 0 || windowPeak < SILENCE_THRESHOLD) {
+        function handleServerMessage(data) {
+            switch (data.type) {
+                case 'speech_started':
                     setStatus('Listening...', true);
-                    return;
+                    break;
+                case 'partial_transcript':
+                    partialTranscript = data.text || '';
+                    renderTranscript();
+                    break;
+                case 'final_transcript':
+                    partialTranscript = '';
+                    if (data.text) finalTranscripts.push(data.text);
+                    renderTranscript();
+                    setStatus('Translating...', true);
+                    break;
+                case 'translation_delta':
+                    onTranslationDelta(data.itemId, data.delta || '');
+                    break;
+                case 'translation_done':
+                    onTranslationDone(data.itemId, data.text || '');
+                    setStatus('Listening...', true);
+                    break;
+                case 'error':
+                    console.error('Server:', data.message);
+                    setStatus(`Error: ${data.message}`);
+                    break;
+            }
+        }
+
+        // --- Microphone → PCM16 capture via an AudioWorklet (runs off the main thread) ---
+        const PCM_WORKLET_CODE = `
+            class PCMWorklet extends AudioWorkletProcessor {
+                constructor() { super(); this._buf = []; this._count = 0; this._target = 2048; }
+                process(inputs) {
+                    const ch = inputs[0] && inputs[0][0];
+                    if (ch && ch.length) {
+                        this._buf.push(ch.slice(0));
+                        this._count += ch.length;
+                        if (this._count >= this._target) {
+                            const out = new Float32Array(this._count);
+                            let o = 0;
+                            for (const b of this._buf) { out.set(b, o); o += b.length; }
+                            this.port.postMessage(out, [out.buffer]);
+                            this._buf = []; this._count = 0;
+                        }
+                    }
+                    return true;
                 }
-                socket.send(event.data);
-                setStatus('Processing...', true);
-            });
-            mediaRecorder.addEventListener('stop', () => {
-                if (isListening) recordAndSend();
-            });
+            }
+            registerProcessor('pcm-worklet', PCMWorklet);
+        `;
+
+        function floatTo16BitPCM(float32) {
+            const out = new Int16Array(float32.length);
+            for (let i = 0; i < float32.length; i++) {
+                const s = Math.max(-1, Math.min(1, float32[i]));
+                out[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+            }
+            return out;
+        }
+
+        // Linear-interpolation resample, used only if the browser won't give us a 24 kHz context.
+        function downsample(buffer, inRate, outRate) {
+            if (outRate === inRate) return buffer;
+            const ratio = inRate / outRate;
+            const outLen = Math.round(buffer.length / ratio);
+            const out = new Float32Array(outLen);
+            for (let i = 0; i < outLen; i++) {
+                const idx = i * ratio;
+                const i0 = Math.floor(idx);
+                const i1 = Math.min(i0 + 1, buffer.length - 1);
+                const frac = idx - i0;
+                out[i] = buffer[i0] * (1 - frac) + buffer[i1] * frac;
+            }
+            return out;
+        }
+
+        async function startAudioCapture(stream) {
+            // Prefer a 24 kHz context so the browser resamples for us; fall back to manual resampling.
+            try {
+                audioContext = new AudioContext({ sampleRate: OPENAI_SAMPLE_RATE });
+            } catch (e) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') await audioContext.resume();
+
+            const blobUrl = URL.createObjectURL(new Blob([PCM_WORKLET_CODE], { type: 'application/javascript' }));
+            await audioContext.audioWorklet.addModule(blobUrl);
+            URL.revokeObjectURL(blobUrl);
+
+            const inRate = audioContext.sampleRate;
+            const source = audioContext.createMediaStreamSource(stream);
+            workletNode = new AudioWorkletNode(audioContext, 'pcm-worklet');
+
+            workletNode.port.onmessage = (e) => {
+                if (!(socket && socket.readyState === WebSocket.OPEN)) return;
+                let float = e.data;
+                if (inRate !== OPENAI_SAMPLE_RATE) float = downsample(float, inRate, OPENAI_SAMPLE_RATE);
+                socket.send(floatTo16BitPCM(float).buffer);
+            };
+
+            // Keep the node in the render graph without echoing audio to the speakers.
+            const mute = audioContext.createGain();
+            mute.gain.value = 0;
+            source.connect(workletNode);
+            workletNode.connect(mute);
+            mute.connect(audioContext.destination);
+        }
+
+        function resetPanes() {
+            finalTranscripts.length = 0;
+            finalTranslations.length = 0;
+            partialTranscript = '';
+            activeTranslationText = '';
+            activeTranslationItemId = null;
+            transcriptionEl.textContent = '';
+            translationEl.textContent = '';
+        }
+
+        function stopEverything() {
+            isListening = false;
+            if (workletNode) {
+                try { workletNode.port.onmessage = null; workletNode.disconnect(); } catch (e) {}
+                workletNode = null;
+            }
+            if (audioContext && audioContext.state !== 'closed') audioContext.close().catch(() => {});
+            audioContext = null;
+            if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
         }
     
         function updateTitles() {
@@ -311,84 +399,65 @@
         }
     
         function cleanup() {
-            isListening = false;
+            stopEverything();
+            socket = null;
             startBtn.disabled = false;
             stopBtn.disabled = true;
             setStatus('Disconnected from server.');
-            if (vadTimer) { clearInterval(vadTimer); vadTimer = null; }
-            if (mediaRecorder && mediaRecorder.stream) {
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-            }
-            if (audioContext && audioContext.state !== 'closed') {
-                audioContext.close().catch(() => {});
-            }
-            audioContext = null;
-            analyser = null;
-            mediaRecorder = null;
-            socket = null;
         }
-    
+
         startBtn.addEventListener('click', async () => {
-            transcriptionEl.textContent = '';
-            translationEl.textContent = '';
-            transcriptionQueue = [];
-            translationQueue = [];
+            resetPanes();
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                setupMediaRecorder(stream);
-                
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+                });
+
                 // ABSOLUTE WEBSOCKET URL POINTING TO YOUR API
-                socket = new WebSocket('wss://api-promontory.onrender.com');
-    
-                socket.onopen = () => {
+                socket = new WebSocket(WS_URL);
+                socket.binaryType = 'arraybuffer';
+
+                socket.onopen = async () => {
                     isListening = true;
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                    socket.send(JSON.stringify({ 
+                    socket.send(JSON.stringify({
                         sourceLanguage: sourceLanguageSelect.value,
-                        targetLanguage: targetLanguageSelect.value 
+                        targetLanguage: targetLanguageSelect.value
                     }));
-                    recordAndSend();
-                };
-    
-                socket.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    if (data.transcription || data.translation) setStatus('Listening...', true);
-                    if (data.status === 'no_speech') {
-                        // Server detected silence/music/no clear speech — just keep listening quietly
+                    try {
+                        await startAudioCapture(micStream);
                         setStatus('Listening...', true);
-                    }
-                    if (data.transcription) {
-                        transcriptionQueue.push(data.transcription);
-                        typewriter(transcriptionEl, transcriptionQueue, isTypingTranscription);
-                    }
-                    if (data.translation) {
-                        translationQueue.push(data.translation);
-                        typewriter(translationEl, translationQueue, isTypingTranslation);
-                    }
-                    if (data.error) {
-                        console.error('Server Error:', data.error);
-                        setStatus(`Error: ${data.error}`);
+                    } catch (err) {
+                        console.error('Audio capture error:', err);
+                        setStatus('Could not start audio capture.');
+                        if (socket && socket.readyState === WebSocket.OPEN) socket.close();
+                        else cleanup();
                     }
                 };
-    
+
+                socket.onmessage = (event) => {
+                    try { handleServerMessage(JSON.parse(event.data)); }
+                    catch (e) { console.error('Bad server message:', e); }
+                };
+
                 socket.onclose = cleanup;
                 socket.onerror = (error) => {
                     console.error('WebSocket Error:', error);
                     setStatus('Error connecting to server.');
                     cleanup();
-                }
+                };
             } catch (error) {
                 console.error('Error accessing microphone:', error);
                 setStatus('Could not access microphone. Please grant permission.');
             }
         });
-    
+
         stopBtn.addEventListener('click', () => {
             isListening = false;
             setStatus('Stopping...');
             stopBtn.disabled = true;
-            if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+            stopEverything();
             if (socket && socket.readyState === WebSocket.OPEN) socket.close();
             else cleanup();
         });
