@@ -467,18 +467,20 @@
                 }
             };
             
-            const renderContent = (element, text) => {
-                let html = text
-                    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-                    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-                    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                    .replace(/---/g, '<hr>')
-                    .replace(/\n/g, '<br />');
-                
-                element.innerHTML = html;
+            const escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
+            // Markdown subset -> HTML, operating on ALREADY-ESCAPED text so model output
+            // can't inject markup.
+            const mdToHtml = (escaped) => escaped
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/---/g, '<hr>')
+                .replace(/\n/g, '<br />');
+
+            const runKatex = (element) => {
                 if (window.renderMathInElement) {
                     window.renderMathInElement(element, {
                         delimiters: [
@@ -488,6 +490,11 @@
                         throwOnError: false
                     });
                 }
+            };
+
+            const renderContent = (element, text) => {
+                element.innerHTML = mdToHtml(escapeHtml(text));
+                runKatex(element);
             };
 
             document.querySelectorAll('[data-ai]').forEach(btn => {
@@ -537,8 +544,16 @@
             const renderReport = () => {
                 const output = document.getElementById('report-output');
                 if (!proItem.finalReport) { output.innerHTML = 'Click the button to generate your report.'; return; }
-                let processedHtml = proItem.finalReport.replace(/{{(.*?)}}/g, (match, p1) => { const [key, step] = p1.split(':'); const value = getNestedValue(proItem, key); return `<span class="interactive-text" data-step="${step}">${value || `[${key}]`}</span>`; });
-                renderContent(output, processedHtml);
+                // Escape + render the model's report, THEN inject the trusted interactive
+                // spans (their {{key:step}} braces survive escaping) with escaped values.
+                const html = mdToHtml(escapeHtml(proItem.finalReport))
+                    .replace(/{{(.*?)}}/g, (match, p1) => {
+                        const [key, step] = p1.split(':');
+                        const value = getNestedValue(proItem, key);
+                        return `<span class="interactive-text" data-step="${escapeHtml(step)}">${escapeHtml(value || `[${key}]`)}</span>`;
+                    });
+                output.innerHTML = html;
+                runKatex(output);
             };
 
             document.getElementById('report-output').addEventListener('click', (e) => { if (e.target.classList.contains('interactive-text')) { goToStep(parseInt(e.target.dataset.step, 10)); } });
