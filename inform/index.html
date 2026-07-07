@@ -1129,33 +1129,33 @@
         `;
     }
 
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
     function renderSection(sectionId, content) {
         const sectionEl = document.getElementById(`live-${sectionId}`);
         if (!sectionEl) return;
 
-        articleContent[sectionId] = content;
-
-        // ADD THIS DEBUG LOG
-        // if (sectionId.startsWith('insight') && sectionId !== 'insights-header') {
-        //     console.log(`[DEBUG] Rendering ${sectionId}:`, content);
-        // }
+        articleContent[sectionId] = content;   // keep the raw text for copy / download
+        const c = escapeHtml(content);          // everything below is built from escaped text
 
         if (sectionId === 'title') {
-            sectionEl.innerHTML = `<h1>${content}</h1>`;
-        } 
+            sectionEl.innerHTML = `<h1>${c}</h1>`;
+        }
         else if (sectionId === 'hook') {
-            const lines = content.split('\n').filter(line => line.trim());
-            const question = lines[0];
+            const lines = c.split('\n').filter(line => line.trim());
+            const question = lines[0] || '';
             const summary = lines.slice(1).join(' ');
             sectionEl.innerHTML = `<p><em>${question}</em></p><p>${summary}</p>`;
         }
         else if (sectionId === 'stakes') {
-            const beforeMatch = content.match(/BEFORE:\s*(.+?)(?=NOW:)/s);
-            const nowMatch = content.match(/NOW:\s*(.+)/s);
-            
+            const beforeMatch = c.match(/BEFORE:\s*(.+?)(?=NOW:)/s);
+            const nowMatch = c.match(/NOW:\s*(.+)/s);
+
             const beforeContent = beforeMatch ? beforeMatch[1].trim() : '';
             const nowContent = nowMatch ? nowMatch[1].trim() : '';
-            
+
             sectionEl.innerHTML = `
                 <div class="stakes-comparison">
                     <div class="stakes-before">
@@ -1170,39 +1170,38 @@
             `;
         }
         else if (sectionId === 'insights-header' || sectionId === 'implications-header' || sectionId === 'action-header') {
-            sectionEl.innerHTML = `<h2>${content}</h2>`;
+            sectionEl.innerHTML = `<h2>${c}</h2>`;
         }
         else if (sectionId.startsWith('insight') && sectionId !== 'insights-header') {
-            const lines = content.split('\n').filter(line => line.trim());
-            const heading = lines[0];
-            const paragraphs = lines.slice(1).join('\n\n');
-            
-            const imageMatch = content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+            const imageMatch = c.match(/!\[([^\]]*)\]\(([^)]+)\)/);
             let imageHtml = '';
-            let textContent = content;
-            
+            let textContent = c;
+
             if (imageMatch) {
                 const altText = imageMatch[1];
                 const imageUrl = imageMatch[2];
-                imageHtml = `<figure><img src="${imageUrl}" alt="${altText}"/></figure>`;
-                textContent = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/, '').trim();
+                // Only allow http(s) image URLs (already escaped) — blocks javascript:/data:.
+                if (/^https?:\/\//i.test(imageUrl)) {
+                    imageHtml = `<figure><img src="${imageUrl}" alt="${altText}"/></figure>`;
+                }
+                textContent = c.replace(/!\[([^\]]*)\]\(([^)]+)\)/, '').trim();
             }
-            
+
             const textLines = textContent.split('\n').filter(line => line.trim());
-            const textHeading = textLines[0];
+            const textHeading = textLines[0] || '';
             const textParagraphs = textLines.slice(1).map(p => `<p>${p}</p>`).join('');
-            
+
             sectionEl.innerHTML = `<h3>${textHeading}</h3>${textParagraphs}${imageHtml}`;
         }
         else if (sectionId === 'pullQuote') {
-            sectionEl.innerHTML = `<blockquote>${content}</blockquote>`;
+            sectionEl.innerHTML = `<blockquote>${c}</blockquote>`;
         }
         else if (sectionId === 'implications') {
-            const paragraphs = content.split('\n\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('');
+            const paragraphs = c.split('\n\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('');
             sectionEl.innerHTML = paragraphs;
         }
         else if (sectionId === 'actionPlan') {
-            const lines = content.split('\n').filter(line => line.trim());
+            const lines = c.split('\n').filter(line => line.trim());
             let html = '<ol>';
             for (const line of lines) {
                 // Match: "1. **Bold text**: rest of text"
@@ -1228,12 +1227,12 @@
             sectionEl.innerHTML = `
                 <div class="one-thing-box">
                     <h3>One Thing to Remember</h3>
-                    <p>${content}</p>
+                    <p>${c}</p>
                 </div>
             `;
         }
         else if (sectionId === 'methodology') {
-            const paragraphs = content.split('\n\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('');
+            const paragraphs = c.split('\n\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('');
             sectionEl.innerHTML = `
                 <div class="methodology-box">
                     <h3>The Research</h3>
@@ -1242,7 +1241,7 @@
             `;
         }
         else {
-            sectionEl.innerHTML = `<p>${content}</p>`;
+            sectionEl.innerHTML = `<p>${c}</p>`;
         }
 
         sectionEl.style.display = 'block';
