@@ -421,19 +421,49 @@
             document.querySelectorAll('[data-field]').forEach(el => el.addEventListener('input', syncStateWithUI));
             
             // --- AI & REPORTING ---
-            const getLlmChatResponse = async (context, history) => {
+            const parseSse = (chunk) => {
+                let event = 'message', data = '';
+                for (const line of chunk.split('\n')) {
+                    if (line.startsWith('event:')) event = line.slice(6).trim();
+                    else if (line.startsWith('data:')) data += line.slice(5).trim();
+                }
+                return { event, data: data ? JSON.parse(data) : null };
+            };
+
+            // Streams the assistant reply over SSE. onDelta(partialText) fires as tokens
+            // arrive; resolves to { message, isFinal, sources } when the stream ends.
+            const getLlmChatResponse = async (context, history, onDelta) => {
                 const apiUrl = 'https://api-promontory.onrender.com/api/pro-assistant-chat';
                 try {
                     const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context, chatHistory: history }) });
-                    if (!response.ok) {
+                    if (!response.ok || !response.body) {
                         let errMsg = `HTTP ${response.status}`;
                         try { const err = await response.json(); errMsg = err.error || errMsg; } catch {}
                         throw new Error(errMsg);
                     }
-                    return await response.json();
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buf = '', message = '', isFinal = false, sources = [];
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        buf += decoder.decode(value, { stream: true });
+                        let idx;
+                        while ((idx = buf.indexOf('\n\n')) >= 0) {
+                            const chunk = buf.slice(0, idx);
+                            buf = buf.slice(idx + 2);
+                            if (!chunk.trim()) continue;
+                            const { event, data } = parseSse(chunk);
+                            if (event === 'delta') { message += (data.text || ''); if (onDelta) onDelta(message); }
+                            else if (event === 'sources') { sources = data.sources || []; }
+                            else if (event === 'done') { isFinal = !!data.isFinal; if (data.message) message = data.message; }
+                            else if (event === 'error') { throw new Error(data && data.message ? data.message : 'error'); }
+                        }
+                    }
+                    return { message, isFinal, sources };
                 } catch (error) {
                     console.error("API call failed:", error);
-                    return { message: `Error: Could not connect to the AI assistant. ${error.message}`, isFinal: true };
+                    return { message: `Error: Could not connect to the AI assistant. ${error.message}`, isFinal: true, sources: [] };
                 }
             };
             
@@ -662,41 +692,77 @@
                 chatHistory = [];
                 currentAIContext = context;
                 onChatCompleteCallback = onComplete;
-
-                getLlmChatResponse(context, []).then(response => {
-                    addMessageToChat('ai', response.message, response.isFinal);
-                });
+                streamAiResponse(context, []);
             };
 
-            const addMessageToChat = (sender, text, isFinal = false) => {
-                chatHistory.push({sender, text});
+            // User (and error) messages render instantly.
+            const addMessageToChat = (sender, text) => {
+                chatHistory.push({ sender, text });
                 const chatBody = document.getElementById('chat-modal-body');
-                if(chatBody.querySelector('div')?.textContent === 'Thinking...') { chatBody.innerHTML = ''; }
+                if (chatBody.querySelector('div')?.textContent === 'Thinking...') { chatBody.innerHTML = ''; }
                 const msgDiv = document.createElement('div');
                 msgDiv.className = `chat-message ${sender}`;
-                
                 renderContent(msgDiv, text);
-                
-                if (isFinal) {
-                    const useBtn = document.createElement('button');
-                    useBtn.textContent = 'Use this Text';
-                    useBtn.className = 'btn-primary';
-                    useBtn.style.marginTop = '1rem';
-                    useBtn.onclick = () => { if (onChatCompleteCallback) onChatCompleteCallback(text); chatModal.style.display = 'none'; };
-                    msgDiv.appendChild(useBtn);
-                }
                 chatBody.appendChild(msgDiv);
                 chatBody.scrollTop = chatBody.scrollHeight;
             };
-            
+
+            const appendUseButton = (bubble, text) => {
+                const useBtn = document.createElement('button');
+                useBtn.textContent = 'Use this Text';
+                useBtn.className = 'btn-primary';
+                useBtn.style.marginTop = '1rem';
+                useBtn.onclick = () => { if (onChatCompleteCallback) onChatCompleteCallback(text); chatModal.style.display = 'none'; };
+                bubble.appendChild(useBtn);
+            };
+
+            const appendSources = (bubble, sources) => {
+                if (!sources || !sources.length) return;
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'margin-top:0.75rem;font-size:0.75rem;line-height:1.6;';
+                const label = document.createElement('span');
+                label.textContent = 'Sources: ';
+                label.style.cssText = 'opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;';
+                wrap.appendChild(label);
+                sources.forEach((s, i) => {
+                    const a = document.createElement('a');
+                    a.href = s.uri; a.target = '_blank'; a.rel = 'noopener';
+                    a.textContent = `${i + 1}. ${s.title || s.uri}`;
+                    a.style.cssText = 'margin-right:0.6rem;text-decoration:underline;';
+                    wrap.appendChild(a);
+                });
+                bubble.appendChild(wrap);
+            };
+
+            // Create an AI bubble and stream the reply into it live.
+            const streamAiResponse = async (context, history) => {
+                const chatBody = document.getElementById('chat-modal-body');
+                if (chatBody.querySelector('div')?.textContent === 'Thinking...') { chatBody.innerHTML = ''; }
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-message ai';
+                bubble.textContent = '…';
+                chatBody.appendChild(bubble);
+                chatBody.scrollTop = chatBody.scrollHeight;
+
+                const { message, isFinal, sources } = await getLlmChatResponse(context, history, (partial) => {
+                    renderContent(bubble, partial);
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                });
+
+                renderContent(bubble, message);
+                chatHistory.push({ sender: 'ai', text: message });
+                appendSources(bubble, sources);
+                if (isFinal) appendUseButton(bubble, message);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            };
+
             const handleSendChat = async () => {
                 const input = document.getElementById('chat-input');
                 const text = input.value.trim();
                 if (!text) return;
                 addMessageToChat('user', text);
                 input.value = '';
-                const response = await getLlmChatResponse(currentAIContext, chatHistory);
-                addMessageToChat('ai', response.message, response.isFinal);
+                await streamAiResponse(currentAIContext, chatHistory);
             };
 
             document.getElementById('chat-send-btn').addEventListener('click', handleSendChat);
