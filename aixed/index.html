@@ -207,6 +207,188 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
   .hero h1{font-size:clamp(56px,22vw,96px)}
 }
 :focus-visible{outline:3px solid var(--iris);outline-offset:2px;border-radius:6px}
+
+/* ============================================================
+   "A peek inside" — live feed preview. The INNER screenshot mirrors
+   the real platform (Feed.jsx, DeepDiveModal.jsx, AskBar.jsx,
+   ContributorBadge.jsx, CommentSection.jsx): slate neutrals, gold
+   active lens, violet format badges. Brand indigo/gold inherited
+   from :root. All rules scoped to .aixed-peek so nothing else on the
+   page is touched. Section header reuses the global .eyebrow/.lead.
+   ============================================================ */
+.aixed-peek{
+  --brand-700:#2a2747;
+  --white:#fff;--slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+  --slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;--slate-900:#0f172a;
+  --violet-100:#ede9fe;--violet-700:#6d28d9;--blue-100:#dbeafe;--blue-700:#1d4ed8;
+  color-scheme:light;
+}
+.aixed-peek button{font-family:inherit}
+
+/* device / screenshot frame */
+.aixed-peek .device{position:relative;margin-top:clamp(36px,5vw,56px);background:var(--white);border:1px solid var(--hair);border-radius:20px;box-shadow:0 44px 88px -50px rgba(39,24,127,.5);overflow:hidden}
+.aixed-peek .chrome{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px clamp(16px,3vw,26px);border-bottom:1px solid var(--slate-100);background:var(--white)}
+.aixed-peek .device .wm{font-weight:800;letter-spacing:-.02em;font-size:19px;color:var(--slate-900);display:inline-flex;align-items:baseline}
+.aixed-peek .device .wm .x{color:var(--brand);font-weight:400}
+.aixed-peek .lens{display:inline-flex;gap:8px;flex-wrap:wrap}
+.aixed-peek .lens button{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;border:0;padding:8px 15px;border-radius:999px;transition:background .15s,color .15s,box-shadow .15s;background:var(--slate-100);color:var(--slate-400)}
+.aixed-peek .lens button:hover{background:var(--slate-200);color:var(--slate-500)}
+.aixed-peek .lens button[aria-pressed="true"]{background:var(--gold);color:var(--slate-900);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* feed rows */
+.aixed-peek .feed{position:relative}
+.aixed-peek .post{border-bottom:1px solid var(--slate-100);padding:clamp(28px,4vw,44px) clamp(16px,3vw,26px);transition:background .3s}
+.aixed-peek .post:hover{background:rgba(248,250,252,.6)}
+.aixed-peek .post .inner{max-width:720px;margin:0 auto}
+.aixed-peek .meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:clamp(14px,2vw,20px)}
+.aixed-peek .meta-left{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.aixed-peek .cat{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--slate-400)}
+.aixed-peek .pbadge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:2px 8px;border-radius:5px;line-height:1.5}
+.aixed-peek .b-aixed{background:var(--blue-100);color:var(--blue-700)}
+.aixed-peek .b-fmt{background:var(--violet-100);color:var(--violet-700)}
+.aixed-peek .b-ai{background:var(--slate-100);color:var(--slate-400);font-weight:600}
+.aixed-peek .date{font-size:12px;font-weight:500;color:var(--slate-400)}
+.aixed-peek .pri{font-size:12px;font-weight:500;text-transform:uppercase;padding:3px 9px;border-radius:5px;background:var(--slate-100);color:var(--slate-500);white-space:nowrap;height:fit-content}
+
+/* contributor byline + tri-ring + hovercard */
+.aixed-peek .byline{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--slate-400);position:relative}
+.aixed-peek .triring{width:16px;height:16px;color:var(--slate-400)}
+.aixed-peek .badge-wrap{position:relative;display:inline-flex;align-items:center}
+.aixed-peek .hovercard{position:absolute;left:50%;top:calc(100% + 6px);transform:translateX(-50%) scale(.96);width:max-content;max-width:15rem;background:var(--white);border:1px solid var(--slate-200);border-radius:10px;box-shadow:0 18px 40px -12px rgba(15,23,42,.35);padding:9px 12px;text-align:left;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:20}
+.aixed-peek .badge-wrap:hover .hovercard,.aixed-peek .badge-wrap:focus-within .hovercard{opacity:1;transform:translateX(-50%) scale(1)}
+.aixed-peek .hovercard .tier{display:block;font-size:13px;font-weight:300;color:var(--slate-900);line-height:1.2}
+.aixed-peek .hovercard .known{display:block;font-size:10.5px;font-weight:300;color:var(--slate-400);margin-top:3px}
+
+/* title + summary */
+.aixed-peek .post h3.title{font-size:clamp(23px,3.4vw,38px);font-weight:300;letter-spacing:-.02em;line-height:1.1;color:var(--slate-900);margin-bottom:clamp(14px,2vw,20px);text-wrap:balance}
+.aixed-peek .post h3.title.link{cursor:pointer;text-underline-offset:8px;text-decoration-thickness:1px;text-decoration-color:var(--slate-300)}
+.aixed-peek .post h3.title.link:hover{text-decoration-line:underline}
+.aixed-peek .summary{font-size:clamp(16px,1.8vw,20px);font-weight:300;line-height:1.6;color:var(--slate-600);transition:opacity .3s}
+
+/* action bar */
+.aixed-peek .acts{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:clamp(20px,3vw,28px);padding-top:18px;border-top:1px solid var(--slate-100)}
+.aixed-peek .primary{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:11px 22px;text-decoration:none;transition:background .15s}
+.aixed-peek .primary:hover{background:var(--brand-500)}
+.aixed-peek .primary svg{width:16px;height:16px}
+.aixed-peek .sec{display:flex;align-items:center;gap:18px;margin-left:auto;flex-wrap:wrap}
+.aixed-peek .act{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-400);background:none;border:0;cursor:pointer;text-decoration:none;transition:color .15s}
+.aixed-peek .act:hover{color:var(--slate-900)}
+.aixed-peek .act svg{width:15px;height:15px}
+.aixed-peek .amplify{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--slate-400);background:transparent;border:1px solid var(--slate-200);border-radius:999px;padding:5px 12px;cursor:pointer;transition:border-color .15s,color .15s}
+.aixed-peek .amplify:hover{border-color:var(--iris);color:var(--brand)}
+.aixed-peek .amplify svg{width:14px;height:14px}
+
+/* community / peer insights */
+.aixed-peek .peer{margin-top:26px;padding-top:24px;border-top:1px solid var(--slate-100)}
+.aixed-peek .peer h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--slate-400);margin-bottom:18px}
+.aixed-peek .composer{display:flex;gap:14px;margin-bottom:22px}
+.aixed-peek .avatar{width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+.aixed-peek .avatar.me{background:var(--brand);color:#fff}
+.aixed-peek .avatar.them{background:var(--slate-100);color:var(--slate-400)}
+.aixed-peek .cfield{flex:1;position:relative}
+.aixed-peek .composer input{width:100%;background:var(--slate-50);border:1px solid var(--slate-200);border-radius:12px;padding:11px 44px 11px 15px;font:inherit;font-size:14px;color:var(--slate-900)}
+.aixed-peek .composer input::placeholder{color:var(--slate-400)}
+.aixed-peek .composer .send{position:absolute;right:7px;top:6px;padding:6px;background:var(--white);border:0;border-radius:8px;color:var(--slate-400);cursor:pointer}
+.aixed-peek .cmt{display:flex;gap:14px;margin-bottom:18px}
+.aixed-peek .cmt .cbody{min-width:0}
+.aixed-peek .cmt .cname{font-size:14px;font-weight:600;color:var(--slate-900)}
+.aixed-peek .cmt .ctime{font-size:12px;color:var(--slate-400);margin-left:8px;font-weight:500}
+.aixed-peek .cmt .ctext{font-size:14.5px;color:var(--slate-600);margin-top:3px;line-height:1.55}
+.aixed-peek .cmt .cacts{display:flex;gap:16px;margin-top:8px}
+.aixed-peek .cmt .cacts button{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--slate-400);background:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.aixed-peek .cmt .cacts button:hover{color:var(--slate-700)}
+.aixed-peek .cmt .cacts svg{width:13px;height:13px}
+
+/* floating Ask AIxEd pill */
+.aixed-peek .ask-pill{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:15;display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border:1px solid var(--slate-200);box-shadow:0 10px 30px -8px rgba(15,23,42,.3);cursor:pointer;transition:box-shadow .15s,border-color .15s}
+.aixed-peek .ask-pill:hover{box-shadow:0 16px 40px -8px rgba(15,23,42,.4);border-color:var(--iris)}
+.aixed-peek .ask-pill svg{width:16px;height:16px;color:var(--brand-500)}
+.aixed-peek .ask-pill span{font-size:14px;font-weight:600;color:var(--slate-600)}
+.aixed-peek .ask-pill .kbd{font-size:10px;font-weight:700;color:var(--slate-400);border:1px solid var(--slate-200);border-radius:5px;padding:2px 6px}
+
+/* Ask panel */
+.aixed-peek .ask-panel{position:absolute;inset:0;z-index:30;display:none;flex-direction:column;justify-content:flex-end;align-items:center;background:rgba(15,23,42,.28);backdrop-filter:blur(3px);padding:16px}
+.aixed-peek .ask-panel.open{display:flex}
+.aixed-peek .ask-inner{width:min(640px,100%)}
+.aixed-peek .ask-thread{background:var(--white);border:1px solid var(--slate-200);border-radius:16px;box-shadow:0 30px 60px -20px rgba(15,23,42,.5);padding:18px;margin-bottom:12px;max-height:60vh;overflow-y:auto}
+.aixed-peek .ask-head{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--slate-400);margin-bottom:16px}
+.aixed-peek .ask-head svg{width:13px;height:13px;color:var(--brand-500)}
+.aixed-peek .ask-head .close{margin-left:auto;background:none;border:0;color:var(--slate-400);cursor:pointer;padding:2px}
+.aixed-peek .ask-q{font-size:15px;font-weight:600;color:var(--slate-900);background:var(--slate-50);border-radius:12px;padding:11px 14px;margin-bottom:14px}
+.aixed-peek .ask-a{font-size:15px;line-height:1.6;color:var(--slate-700)}
+.aixed-peek .cites{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.aixed-peek .cite{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--slate-500);background:var(--slate-100);border:1px solid var(--slate-200);border-radius:999px;padding:4px 10px;text-decoration:none}
+.aixed-peek .cite svg{width:11px;height:11px}
+.aixed-peek .ask-input{display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid var(--slate-200);border-radius:14px;box-shadow:0 20px 40px -18px rgba(15,23,42,.4);padding:10px 12px}
+.aixed-peek .ask-input>svg{width:16px;height:16px;color:var(--brand-500);flex:none}
+.aixed-peek .ask-input input{flex:1;border:0;outline:none;font:inherit;font-size:15px;color:var(--slate-900);background:none;padding:0}
+.aixed-peek .ask-input input::placeholder{color:var(--slate-400)}
+.aixed-peek .ask-input .send{background:var(--brand);border:0;border-radius:10px;padding:8px;color:#fff;cursor:pointer;display:inline-flex}
+.aixed-peek .ask-input .send svg{color:#fff;width:15px;height:15px}
+
+/* Deep Dive overlay */
+.aixed-peek .dd{position:absolute;inset:0;z-index:40;display:none;background:rgba(15,23,42,.4);backdrop-filter:blur(3px);padding:clamp(8px,2vw,20px)}
+.aixed-peek .dd.open{display:flex}
+.aixed-peek .dd-panel{margin:auto;width:min(760px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--slate-50);border:1px solid var(--slate-200);border-radius:18px;overflow:hidden;box-shadow:0 40px 80px -20px rgba(15,23,42,.6)}
+.aixed-peek .dd-top{padding:clamp(16px,3vw,24px) clamp(16px,3vw,26px) 0;background:var(--slate-50)}
+.aixed-peek .dd-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.aixed-peek .dd-head .cat{margin-bottom:8px;display:block}
+.aixed-peek .dd-title{font-size:clamp(19px,2.6vw,28px);font-weight:300;color:var(--slate-900);line-height:1.15;margin-bottom:8px;text-wrap:balance}
+.aixed-peek .dd-orig{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--brand);text-decoration:none}
+.aixed-peek .dd-orig svg{width:14px;height:14px}
+.aixed-peek .dd-close{flex:none;background:none;border:0;color:var(--slate-400);cursor:pointer;padding:6px;border-radius:999px}
+.aixed-peek .dd-close:hover{background:var(--slate-200);color:var(--slate-900)}
+.aixed-peek .dd-close svg{width:22px;height:22px}
+.aixed-peek .dd-tabs{display:flex;gap:8px;margin-top:16px;overflow-x:auto}
+.aixed-peek .dd-tab{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:12px;font-size:14px;font-weight:500;color:var(--slate-500);background:none;border:0;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,box-shadow .15s}
+.aixed-peek .dd-tab:hover{background:rgba(255,255,255,.6)}
+.aixed-peek .dd-tab[aria-selected="true"]{background:var(--white);color:var(--slate-900);box-shadow:0 4px 10px -4px rgba(15,23,42,.25)}
+.aixed-peek .dd-tab svg{width:16px;height:16px}
+.aixed-peek .dd-caveat{padding:8px clamp(16px,3vw,26px);font-size:11px;text-align:center;color:var(--slate-400)}
+.aixed-peek .dd-body{flex:1;overflow-y:auto;padding:clamp(16px,3vw,24px);background:var(--white)}
+.aixed-peek .dd-pane{display:none}
+.aixed-peek .dd-pane.show{display:block}
+.aixed-peek .layer{background:var(--slate-50);border:1px solid var(--slate-100);border-radius:14px;padding:clamp(16px,2.5vw,24px);margin-bottom:16px}
+.aixed-peek .layer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.aixed-peek .layer-head .lt{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:700;color:var(--slate-900)}
+.aixed-peek .layer-head .lt svg{width:20px;height:20px;color:var(--slate-400);flex:none}
+.aixed-peek .layer-listen{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--slate-400);background:none;border:0;cursor:pointer}
+.aixed-peek .layer-listen svg{width:14px;height:14px}
+.aixed-peek .layer p{font-size:15px;line-height:1.65;color:var(--slate-700)}
+.aixed-peek .info{border:1px solid var(--slate-200);border-radius:16px;overflow:hidden;max-width:560px;margin:0 auto}
+.aixed-peek .info-hd{background:linear-gradient(120deg,#27187f,#6d28d9);color:#fff;padding:22px 24px}
+.aixed-peek .info-hd .k{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.aixed-peek .info-hd h4{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:6px 0 0;line-height:1.15}
+.aixed-peek .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--slate-200)}
+.aixed-peek .info-cell{background:var(--white);padding:20px}
+.aixed-peek .info-cell .n{width:28px;height:28px;border-radius:8px;background:var(--violet-100);color:var(--violet-700);font-weight:800;font-size:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
+.aixed-peek .info-cell p{font-size:14px;font-weight:500;color:var(--slate-700);line-height:1.4}
+.aixed-peek .info-cell em{font-style:normal;font-weight:700;color:var(--brand)}
+.aixed-peek .info-quote{background:var(--slate-900);color:#fff;padding:18px 24px;font-size:15px;font-weight:300;font-style:italic;text-align:center}
+.aixed-peek .info-quote b{color:var(--gold);font-weight:600;font-style:normal}
+.aixed-peek .pod{max-width:560px;margin:0 auto}
+.aixed-peek .pod-player{display:flex;align-items:center;gap:16px;background:linear-gradient(120deg,#27187f,#4530ab);border-radius:16px;padding:20px 22px;color:#fff}
+.aixed-peek .pod-play{width:52px;height:52px;border-radius:999px;background:#fff;color:var(--brand);border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none;transition:transform .15s}
+.aixed-peek .pod-play:hover{transform:scale(1.06)}
+.aixed-peek .pod-play svg{width:22px;height:22px;margin-left:2px}
+.aixed-peek .pod-mid{flex:1;min-width:0}
+.aixed-peek .pod-k{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+.aixed-peek .pod-wave{display:flex;align-items:center;gap:3px;height:26px;margin:8px 0 6px}
+.aixed-peek .pod-wave i{flex:1;background:rgba(255,255,255,.5);border-radius:2px}
+.aixed-peek .pod-time{font-size:12px;opacity:.8;font-variant-numeric:tabular-nums}
+.aixed-peek .pod-script{margin-top:18px;background:var(--slate-50);border:1px solid var(--slate-100);border-radius:14px;padding:18px}
+.aixed-peek .pod-script .sk{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--slate-400);margin-bottom:12px}
+.aixed-peek .pod-line{font-size:14.5px;line-height:1.6;color:var(--slate-700);margin-bottom:10px}
+.aixed-peek .pod-line b{color:var(--brand);font-weight:700}
+.aixed-peek .figcap{margin-top:16px;text-align:center;font-size:12.5px;font-style:italic;color:var(--text-muted)}
+@media (max-width:640px){
+  .aixed-peek .chrome{justify-content:center}
+  .aixed-peek .lens{width:100%;justify-content:space-between;gap:5px}
+  .aixed-peek .lens button{flex:1;padding:8px 4px;font-size:11px}
+  .aixed-peek .sec{margin-left:0;width:100%;justify-content:flex-start;gap:14px}
+  .aixed-peek .primary{width:100%;justify-content:center}
+  .aixed-peek .info-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -418,6 +600,247 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
   </div>
 </section>
 
+<!-- A PEEK INSIDE -->
+<section class="aixed-peek" id="peek">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">A peek inside</p>
+      <h2>See it work before you're in.</h2>
+      <p class="lead">This is the actual AIxEd feed. Switch perspective and every summary re-casts for who you are. Open a Deep Dive to read, see, or hear it — ask questions across the whole feed — and see who in the community shaped it.</p>
+    </div>
+
+    <div class="device reveal">
+      <!-- header + lens switcher -->
+      <div class="chrome">
+        <span class="wm">AI<span class="x">x</span>Ed</span>
+        <div class="lens" role="group" aria-label="Reading perspective">
+          <button type="button" data-lens="executive" aria-pressed="true">Leaders</button>
+          <button type="button" data-lens="operational">Educators</button>
+          <button type="button" data-lens="technical">EdTech</button>
+          <button type="button" data-lens="research">Research</button>
+        </div>
+      </div>
+
+      <div class="feed">
+        <!-- POST A — AIxEd original · contributed · Deep Dive · community -->
+        <article class="post" data-card="A">
+          <div class="inner">
+            <div class="meta">
+              <span class="meta-left">
+                <span class="cat">Policy &amp; Compliance</span>
+                <span class="pbadge b-aixed">From AIxEd</span>
+                <span class="pbadge b-ai">AI summary</span>
+                <span class="date">Added Jul 18</span>
+                <span class="byline">· By Dr. Maya Chen<span class="badge-wrap" tabindex="0" role="button" aria-label="Contributor standing: Curator">
+                  <svg class="triring" viewBox="0 0 100 100" aria-hidden="true">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(148,163,184,.25)" stroke-width="8"/>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="8" pathLength="100" stroke-dasharray="74 100" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                    <circle cx="50" cy="50" r="29" fill="none" stroke="rgba(148,163,184,.25)" stroke-width="8"/>
+                    <circle cx="50" cy="50" r="29" fill="none" stroke="currentColor" stroke-width="8" pathLength="100" stroke-dasharray="58 100" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                    <circle cx="50" cy="50" r="13" fill="none" stroke="rgba(148,163,184,.25)" stroke-width="8"/>
+                    <circle cx="50" cy="50" r="13" fill="none" stroke="currentColor" stroke-width="8" pathLength="100" stroke-dasharray="66 100" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                  </svg>
+                  <span class="hovercard"><span class="tier">Curator</span><span class="known">Known for Policy &amp; Compliance</span></span>
+                </span></span>
+              </span>
+              <span class="pri">Critical</span>
+            </div>
+            <h3 class="title link" data-open-dd>The U.S. Education Department's new AI guidance, decoded</h3>
+            <p class="summary" data-card="A"></p>
+            <div class="acts">
+              <button class="primary" type="button" data-open-dd>Deep Dive <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+              <div class="sec">
+                <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Listen</button>
+                <a class="act" href="#" onclick="return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg>Read Source</a>
+                <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1Z"/></svg>Save</button>
+                <button class="amplify" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>Amplify · 24</button>
+              </div>
+            </div>
+
+            <!-- community: Peer Insights -->
+            <div class="peer">
+              <h4>Peer Insights</h4>
+              <div class="composer">
+                <span class="avatar me">T</span>
+                <div class="cfield">
+                  <input type="text" placeholder="Add your perspective&hellip;" aria-label="Add a comment" />
+                  <button class="send" type="button" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4Z"/></svg></button>
+                </div>
+              </div>
+              <div class="cmt">
+                <span class="avatar them">P</span>
+                <div class="cbody">
+                  <div><span class="cname">Priya N.</span><span class="ctime">2h ago</span></div>
+                  <p class="ctext">The consent piece is the sleeper. Our procurement checklist didn't cover model training data at all.</p>
+                  <div class="cacts">
+                    <button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 10v11M18 10l-1.5 8a2 2 0 0 1-2 1.7H6V10l4.5-7a1.5 1.5 0 0 1 2.6 1.2L12 10h4.5a2 2 0 0 1 2 2.3Z"/></svg>6</button>
+                    <button type="button">Reply</button>
+                  </div>
+                </div>
+              </div>
+              <div class="cmt">
+                <span class="avatar them">M</span>
+                <div class="cbody">
+                  <div><span class="cname">Marcus T.</span><span class="ctime">5h ago</span></div>
+                  <p class="ctext">Anyone have a template AI-use policy that maps to this? Happy to trade.</p>
+                  <div class="cacts">
+                    <button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 10v11M18 10l-1.5 8a2 2 0 0 1-2 1.7H6V10l4.5-7a1.5 1.5 0 0 1 2.6 1.2L12 10h4.5a2 2 0 0 1 2 2.3Z"/></svg>3</button>
+                    <button type="button">Reply</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- POST B — external paper · Read Source only (no Deep Dive) -->
+        <article class="post" data-card="B">
+          <div class="inner">
+            <div class="meta">
+              <span class="meta-left">
+                <span class="cat">Research &amp; Evidence</span>
+                <span class="pbadge b-fmt">Paper</span>
+                <span class="pbadge b-ai">AI summary</span>
+                <span class="date">Added Jul 17</span>
+              </span>
+              <span class="pri">Notable</span>
+            </div>
+            <h3 class="title">AI tutors lifted learning in a 30-school trial &mdash; with one catch</h3>
+            <p class="summary" data-card="B"></p>
+            <div class="acts">
+              <a class="primary" href="#" onclick="return false">Read Source <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+              <div class="sec">
+                <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Listen</button>
+                <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Share</button>
+                <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1Z"/></svg>Save</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- floating Ask AIxEd pill -->
+      <button class="ask-pill" type="button" id="askOpen" aria-label="Open Ask AIxEd">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.9L18.7 9l-4.9 1.8L12 15l-1.8-4.2L5.3 9l4.9-1.1L12 3Z"/><path d="M19 14l.7 2 2 .7-2 .7L19 20l-.7-2.6-2-.7 2-.7.7-2Z"/></svg>
+        <span>Ask AIxEd</span><span class="kbd">Ask</span>
+      </button>
+
+      <!-- Ask AIxEd panel -->
+      <div class="ask-panel" id="askPanel">
+        <div class="ask-inner">
+          <div class="ask-thread">
+            <div class="ask-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.9L18.7 9l-4.9 1.8L12 15l-1.8-4.2L5.3 9l4.9-1.1L12 3Z"/></svg>
+              Ask AIxEd · Leaders lens
+              <button class="close" type="button" id="askClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+            </div>
+            <p class="ask-q">What do we have to do first for the new K-12 AI guidance?</p>
+            <p class="ask-a">Start with a <strong>written AI-use policy and a named owner</strong> &mdash; that's the one thing the guidance frames as expected of every district. Next, confirm any tool touching student data has a <strong>consent and audit path</strong>. Staff training and classroom dos-and-don'ts come after that; they're advisory, not required.</p>
+            <div class="cites">
+              <a class="cite" href="#" onclick="return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg>The U.S. Education Department's new AI guidance, decoded</a>
+              <a class="cite" href="#" onclick="return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg>Student-data consent under FERPA</a>
+            </div>
+          </div>
+          <div class="ask-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.9L18.7 9l-4.9 1.8L12 15l-1.8-4.2L5.3 9l4.9-1.1L12 3Z"/></svg>
+            <input type="text" placeholder="Ask about anything in the feed&hellip;" aria-label="Ask AIxEd" />
+            <button class="send" type="button" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deep Dive overlay (opens from Post A) -->
+      <div class="dd" id="dd">
+        <div class="dd-panel" role="dialog" aria-label="Deep Dive">
+          <div class="dd-top">
+            <div class="dd-head">
+              <div>
+                <span class="cat">Policy &amp; Compliance</span>
+                <h3 class="dd-title">The U.S. Education Department's new AI guidance, decoded</h3>
+                <a class="dd-orig" href="#" onclick="return false">Read the original <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+              </div>
+              <button class="dd-close" type="button" id="ddClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+            </div>
+            <div class="dd-tabs" role="tablist">
+              <button class="dd-tab" role="tab" aria-selected="true" data-pane="layers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3h9l3 3v15H6z"/><path d="M9 12h6M9 16h5"/></svg>Text Layers</button>
+              <button class="dd-tab" role="tab" aria-selected="false" data-pane="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m10 8 4 2.5-4 2.5Z"/></svg>Infographic</button>
+              <button class="dd-tab" role="tab" aria-selected="false" data-pane="pod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Podcast</button>
+            </div>
+          </div>
+          <div class="dd-caveat">&#10022; AI-generated &mdash; may contain errors. Check the original source before relying on it.</div>
+          <div class="dd-body">
+            <!-- Text Layers -->
+            <div class="dd-pane show" data-pane="layers">
+              <div class="layer">
+                <div class="layer-head">
+                  <span class="lt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>The big picture</span>
+                  <button class="layer-listen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Listen</button>
+                </div>
+                <p>The Department's first formal guidance treats classroom AI as a governance question, not a gadget one. Every district is expected to publish a written AI-use policy, name an accountable owner, and draw a clear line between AI that assists a teacher and AI that decides something about a student. The framing borrows heavily from existing data-privacy law, so most of it will feel familiar to anyone who has handled FERPA.</p>
+              </div>
+              <div class="layer">
+                <div class="layer-head">
+                  <span class="lt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>What it means for you</span>
+                  <button class="layer-listen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Listen</button>
+                </div>
+                <p>If you lead a district or campus, three things move to the top of your list this quarter: adopt (or update) an AI-use policy, brief your board on what's mandatory versus advisory, and confirm that any tool touching student records has a consent and audit path. Nothing here bans AI &mdash; it asks you to be able to explain how you use it.</p>
+              </div>
+              <div class="layer">
+                <div class="layer-head">
+                  <span class="lt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>The fine print</span>
+                  <button class="layer-listen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Listen</button>
+                </div>
+                <p>The guidance is non-binding, but it signals where enforcement and future rulemaking will land. Watch two open questions: how "high-stakes" AI decisions get defined, and whether states layer stricter consent rules on top. Treat this as the floor, not the ceiling.</p>
+              </div>
+            </div>
+
+            <!-- Infographic -->
+            <div class="dd-pane" data-pane="info">
+              <div class="info">
+                <div class="info-hd">
+                  <div class="k">AIxEd · Leaders lens</div>
+                  <h4>Federal AI Guidance for K-12 &mdash; At a Glance</h4>
+                </div>
+                <div class="info-grid">
+                  <div class="info-cell"><span class="n">1</span><p>Written AI-use policy &mdash; required of every district</p></div>
+                  <div class="info-cell"><span class="n">2</span><p>Consent before student data reaches any model</p></div>
+                  <div class="info-cell"><span class="n">3</span><p>Clear line: AI that <em>assists</em> vs. AI that <em>decides</em></p></div>
+                  <div class="info-cell"><span class="n">4</span><p>Audit trail for any AI grading or ranking</p></div>
+                </div>
+                <div class="info-quote">&ldquo;<b>12 months</b> to publish a policy &mdash; the floor, not the ceiling.&rdquo;</div>
+              </div>
+            </div>
+
+            <!-- Podcast -->
+            <div class="dd-pane" data-pane="pod">
+              <div class="pod">
+                <div class="pod-player">
+                  <button class="pod-play" type="button" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+                  <div class="pod-mid">
+                    <div class="pod-k">AIxEd Podcast · Leaders lens · AI-generated</div>
+                    <div class="pod-wave" aria-hidden="true">
+                      <i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i><i style="height:45%"></i><i style="height:75%"></i><i style="height:60%"></i><i style="height:85%"></i><i style="height:35%"></i><i style="height:65%"></i><i style="height:50%"></i><i style="height:80%"></i><i style="height:45%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:60%"></i>
+                    </div>
+                    <div class="pod-time">0:00 / 6:12</div>
+                  </div>
+                </div>
+                <div class="pod-script">
+                  <div class="sk">Transcript</div>
+                  <p class="pod-line"><b>Host:</b> The Education Department just published its first real guidance on AI in K-12 &mdash; and the headline isn't a ban.</p>
+                  <p class="pod-line"><b>Co-host:</b> Right. It's a governance ask. Every district needs a written policy and someone who owns it.</p>
+                  <p class="pod-line"><b>Host:</b> And the part leaders feel first? Consent and audit trails for anything that touches student data&hellip;</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="figcap">A preview of the AIxEd feed &mdash; switch perspective, open the Deep Dive, and try Ask AIxEd. Sample posts and content, real layout.</p>
+  </div>
+</section>
+
 <!-- TOPICS -->
 <section class="tint" id="topics">
   <div class="wrap">
@@ -625,6 +1048,78 @@ var API_BASE = "https://aixed-api.onrender.com"; // your Render api-server
         show('err', "We couldn't reach the server. Please email aixed@promontoryai.com and we'll set you up.");
       })
       .finally(function(){ btn.disabled = false; btn.textContent = label; });
+  });
+})();
+
+/* "A peek inside" — lens switch, Deep Dive tabs, Ask panel (all in-page demo) */
+(function(){
+  var root = document.querySelector('.aixed-peek');
+  if(!root) return;
+  var reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  var COPY = {
+    A:{
+      executive:"What the new federal guidance requires versus merely recommends — and the board-level decisions it forces this quarter.",
+      operational:"The classroom dos and don'ts it sets out, and exactly where student-data consent now applies.",
+      technical:"The compliance bar your product and procurement teams must clear — data handling, transparency, and audit trails.",
+      research:"The evidence the guidance cites — and the open questions it leaves wide open for study."
+    },
+    B:{
+      executive:"Evidence you can take to a board: AI tutoring shows real gains, but only alongside teachers, not instead of them.",
+      operational:"The biggest gains went to striving readers — and only when the tutor reinforced your teaching, not replaced it.",
+      technical:"A credible efficacy bar to build toward: 'supplement, not replace' is what actually moved outcomes.",
+      research:"A pre-registered RCT across 30 schools; modest effect sizes, with honest caveats on fidelity and attrition."
+    }
+  };
+  function paint(lens){
+    root.querySelectorAll('.summary').forEach(function(el){
+      var key = el.getAttribute('data-card');
+      if(reduce){ el.textContent = COPY[key][lens]; return; }
+      el.style.opacity = 0;
+      setTimeout(function(){ el.textContent = COPY[key][lens]; el.style.opacity = 1; }, 150);
+    });
+  }
+  root.querySelectorAll('.summary').forEach(function(el){ el.textContent = COPY[el.getAttribute('data-card')].executive; });
+  root.querySelectorAll('.lens button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      root.querySelectorAll('.lens button').forEach(function(b){ b.removeAttribute('aria-pressed'); });
+      btn.setAttribute('aria-pressed','true');
+      paint(btn.getAttribute('data-lens'));
+    });
+  });
+
+  var dd = root.querySelector('#dd'), pill = root.querySelector('.ask-pill'), askPanel = root.querySelector('#askPanel');
+  function openDD(){ dd.classList.add('open'); pill.style.display='none'; }
+  function closeDD(){ dd.classList.remove('open'); pill.style.display=''; }
+  root.querySelectorAll('[data-open-dd]').forEach(function(b){ b.addEventListener('click', openDD); });
+  root.querySelector('#ddClose').addEventListener('click', closeDD);
+  dd.addEventListener('click', function(e){ if(e.target === dd) closeDD(); });
+  root.querySelectorAll('.dd-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      root.querySelectorAll('.dd-tab').forEach(function(t){ t.setAttribute('aria-selected','false'); });
+      tab.setAttribute('aria-selected','true');
+      var name = tab.getAttribute('data-pane');
+      root.querySelectorAll('.dd-pane').forEach(function(p){ p.classList.toggle('show', p.getAttribute('data-pane') === name); });
+    });
+  });
+
+  root.querySelector('#askOpen').addEventListener('click', function(){ askPanel.classList.add('open'); pill.style.display='none'; });
+  function closeAsk(){ askPanel.classList.remove('open'); pill.style.display=''; }
+  root.querySelector('#askClose').addEventListener('click', closeAsk);
+  askPanel.addEventListener('click', function(e){ if(e.target === askPanel) closeAsk(); });
+
+  root.querySelectorAll('.pod-play').forEach(function(p){
+    p.addEventListener('click', function(){
+      var playing = p.getAttribute('data-playing') === '1';
+      p.setAttribute('data-playing', playing ? '0' : '1');
+      p.innerHTML = playing
+        ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
+    });
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ if(dd.classList.contains('open')) closeDD(); if(askPanel.classList.contains('open')) closeAsk(); }
   });
 })();
 </script>
