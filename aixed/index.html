@@ -142,6 +142,11 @@ header.nav{
 .dark .cell h3{color:#fff}
 .cell p{margin-top:8px;font-size:14.5px;color:var(--text-muted)}
 .dark .cell p{color:var(--muted-on-dark)}
+/* content-model contrast ("deep where it's ours") — a small pill echoing the
+   feed's Deep Dive / Read Source affordances, so the principle ties to the demo. */
+.mode{display:inline-flex;align-items:center;gap:6px;margin-top:20px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:5px 12px;border-radius:999px}
+.mode-dd{background:rgba(138,123,216,.16);color:var(--iris)}
+.mode-src{border:1px solid var(--hair-dark);color:var(--muted-on-dark)}
 
 /* ---- topics ---- */
 .topics{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,56px);margin-top:48px}
@@ -841,6 +846,35 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
   </div>
 </section>
 
+<!-- CONTENT MODEL — deep where it's ours, a pointer everywhere else -->
+<section class="dark" id="how-content">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Respecting the work</p>
+      <h2 style="color:#fff">Deep on what's ours. Home to the author for the rest.</h2>
+      <p class="lead">Every day we read across the field and surface what matters &mdash; then walk you to the original, so you get it straight from the author. We save the full Deep Dive for work that's ours to build on: our own writing, and pieces creators have invited us to explore. Nothing is ever carried further than its author would want.</p>
+    </div>
+    <div class="grid cols-2">
+      <div class="cell reveal">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3a9 9 0 1 0 9 9M12 3v9l6-4" opacity=".9"/><path d="M12 12 8 8"/></svg>
+        <h3>Ours to build on</h3>
+        <p>Our own analysis, our contributors' writing, and pieces authors have welcomed us to explore get the full treatment &mdash; a layered Deep Dive, infographic, and podcast, at whatever depth suits you.</p>
+        <span class="mode mode-dd">Deep Dive
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="13" height="13"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </div>
+      <div class="cell reveal">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M9 7h8v8"/><path d="M4 20h4M4 16h8" opacity=".55"/></svg>
+        <h3>Theirs to keep</h3>
+        <p>Everything else we read and summarize, then hand you straight to the source. The author stays the home of their own work &mdash; we point readers their way and keep the credit with them, never take it out from under them.</p>
+        <span class="mode mode-src">Read Source
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="13" height="13"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- TOPICS -->
 <section class="tint" id="topics">
   <div class="wrap">
@@ -888,7 +922,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
     <div class="vals">
       <div class="val reveal"><span class="n">01</span><h3>Curated, not aggregated</h3><p>Every source is editorially screened for quality and relevance before it reaches you — clarity, not a firehose.</p></div>
       <div class="val reveal"><span class="n">02</span><h3>Four perspectives, one story</h3><p>The same development, explained for leaders, educators, edtech teams, and researchers — accessible, not academic.</p></div>
-      <div class="val reveal"><span class="n">03</span><h3>AI that earns its place</h3><p>Summaries, a personalized briefing, Ask AIxEd, and Deep Dive help you find and understand what matters — always linked back to the source.</p></div>
+      <div class="val reveal"><span class="n">03</span><h3>Respect for every author</h3><p>We go deepest only on work that's ours or one an author has welcomed us into; everything else we summarize and link straight to its source — so creators always stay the home of what they made.</p></div>
     </div>
   </div>
 </section>
