@@ -3,90 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reverb — Live Conversation Analyzer</title>
+    <title>ReVerb — Live Meeting Assistant</title>
     <link rel="icon" href="data:,">
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
     <style>
-        /* Base styles */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f9fafb;
-            font-weight: 300; /* Set base font to light */
+            font-weight: 300;
         }
+        .dark body { background-color: #0d1117; }
 
-        /* Dark mode base */
-        .dark body {
-            background-color: #0d1117; /* GitHub-like dark bg */
-        }
-
-        /* Custom Google Green */
-        .text-google-green { color: #00685B; } /* A slightly deeper, more accessible green */
+        .text-google-green { color: #00685B; }
         .dark .text-google-green { color: #34A853; }
         .bg-google-green { background-color: #00685B; }
         .dark .bg-google-green { background-color: #34A853; }
         .border-google-green { border-color: #00685B; }
         .dark .border-google-green { border-color: #34A853; }
 
-        /* Custom scrollbars for a cleaner look */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
         .dark ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 
-        /* Fade-out animation for temporary cards */
         .fade-out { animation: fadeOut 0.5s ease-out forwards; }
         @keyframes fadeOut {
             from { opacity: 1; transform: scale(1); }
             to { opacity: 0; transform: scale(0.95); height: 0; margin-bottom: 0; padding: 0; }
         }
 
-        /* Transcript segments: editable on click, but must not look like a form field
+        /* Streamed answers: keep the markdown readable inside a card. */
+        .reverb-answer p { margin: 0 0 .5rem; }
+        .reverb-answer ul, .reverb-answer ol { margin: 0 0 .5rem 1.1rem; list-style: disc; }
+        .reverb-answer ol { list-style: decimal; }
+        .reverb-answer li { margin: .15rem 0; }
+        .reverb-answer h4 { font-weight: 500; margin: .6rem 0 .3rem; }
+        .reverb-answer code { font-size: .85em; padding: .1em .3em; border-radius: 3px; background: rgba(0,0,0,.06); }
+        .dark .reverb-answer code { background: rgba(255,255,255,.1); }
+        .reverb-answer pre { padding: .6rem; border-radius: 6px; overflow-x: auto; background: rgba(0,0,0,.06); margin: 0 0 .5rem; }
+        .dark .reverb-answer pre { background: rgba(255,255,255,.08); }
+
+        /* Transcript segments: click to correct, but shouldn't look like a form field
            while you're just reading along. */
         .segment {
             border-radius: 4px;
             padding: 1px 3px;
             margin: 0 -3px;
-            transition: background-color 0.15s ease;
+            transition: background-color .15s ease;
             cursor: text;
         }
-        .segment:hover { background-color: rgba(0, 104, 91, 0.07); }
-        .dark .segment:hover { background-color: rgba(52, 168, 83, 0.12); }
-        .segment[contenteditable="true"] {
-            background-color: rgba(0, 104, 91, 0.1);
-            outline: 1px solid #00685B;
-        }
-        .dark .segment[contenteditable="true"] {
-            background-color: rgba(52, 168, 83, 0.15);
-            outline: 1px solid #34A853;
-        }
-        /* Corrected text stays marked — it's a signal the ASR got it wrong here. */
+        .segment:hover { background-color: rgba(0,104,91,.07); }
+        .dark .segment:hover { background-color: rgba(52,168,83,.12); }
+        .segment[contenteditable="true"] { background-color: rgba(0,104,91,.1); outline: 1px solid #00685B; }
+        .dark .segment[contenteditable="true"] { background-color: rgba(52,168,83,.15); outline: 1px solid #34A853; }
+        /* Corrected text stays marked — a signal the transcriber got it wrong here. */
         .segment.edited { border-bottom: 1px dotted #00685B; }
         .dark .segment.edited { border-bottom: 1px dotted #34A853; }
     </style>
 </head>
 <body class="text-gray-800 dark:text-gray-200 flex flex-col h-screen overflow-hidden">
 
-    <!-- Session Setup Modal -->
+    <!-- Session brief -->
     <div id="setup-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-full overflow-y-auto">
             <h2 class="text-xl text-google-green mb-1">Before we start</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                Context makes the transcription and the analysis dramatically better. Names and
-                technical terms you list here get fed straight to the speech model.
+                Context sharpens both the transcription and the analysis. Names and terms you
+                list here are sent to the speech model as hints, so it stops mangling them.
             </p>
 
-            <label class="block text-sm font-normal text-gray-700 dark:text-gray-300 mb-1">What's the objective of this session?</label>
+            <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">What's the objective of this session?</label>
             <textarea id="setup-objective" rows="2"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
-                placeholder="e.g. Align on the FY27 platform strategy and decide build vs. buy for identity"></textarea>
+                placeholder="e.g. Align on FY27 platform strategy and decide build vs. buy for identity"></textarea>
 
-            <label class="block text-sm font-normal text-gray-700 dark:text-gray-300 mt-4 mb-1">Session type</label>
+            <label class="block text-sm text-gray-700 dark:text-gray-300 mt-4 mb-1">Session type</label>
             <select id="setup-type"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-google-green">
                 <option value="strategy">Strategy / open discussion</option>
@@ -95,37 +90,32 @@
                 <option value="general">General meeting</option>
             </select>
 
-            <label class="block text-sm font-normal text-gray-700 dark:text-gray-300 mt-4 mb-1">
+            <label class="block text-sm text-gray-700 dark:text-gray-300 mt-4 mb-1">
                 Names &amp; terms likely to come up
                 <span class="text-gray-400 dark:text-gray-500 font-light">(comma separated)</span>
             </label>
             <input id="setup-keywords" type="text"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
                 placeholder="Kubernetes, Priya Raghavan, SOC 2, ARR, gRPC">
-            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                These are passed to the speech model as keyword hints, so it stops mangling them.
-            </p>
 
-            <!-- Transcription mode -->
             <div class="mt-5 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
                 <label class="flex items-start space-x-3 cursor-pointer">
                     <input id="setup-accurate" type="checkbox" class="mt-1 accent-[#00685B]">
                     <span class="text-sm">
-                        <span class="font-normal text-gray-700 dark:text-gray-300">High-accuracy transcription</span>
+                        <span class="text-gray-700 dark:text-gray-300">High-accuracy transcription</span>
                         <span id="accurate-note" class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                            Uses gpt-live-transcribe (~$1/hour) with your keyword hints. Off = free
-                            browser transcription, Chrome/Edge only, no keyword support.
+                            Streams audio to a speech model that accepts your keyword hints (~$1/hr).
+                            Off = free browser transcription, Chrome/Edge only, no keyword support.
                         </span>
                     </span>
                 </label>
             </div>
 
-            <!-- Recording -->
             <div class="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
                 <label class="flex items-start space-x-3 cursor-pointer">
-                    <input id="setup-record" type="checkbox" class="mt-1 accent-[#00685B]" checked>
+                    <input id="setup-record" type="checkbox" class="mt-1 accent-[#00685B]">
                     <span class="text-sm">
-                        <span class="font-normal text-gray-700 dark:text-gray-300">Record audio to disk</span>
+                        <span class="text-gray-700 dark:text-gray-300">Record audio to disk</span>
                         <span id="record-note" class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             You'll pick a file location. Audio is written continuously, so it survives
                             a crash or an accidental tab close.
@@ -152,26 +142,21 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 19v4" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 23h8" />
             </svg>
-            <h1 class="text-2xl text-google-green">Reverb</h1>
+            <h1 class="text-2xl text-google-green">ReVerb</h1>
         </div>
 
         <div class="flex items-center space-x-4 mt-4 md:mt-0">
-            <!-- Recording indicator -->
-            <div id="recording-badge" class="hidden flex items-center space-x-1.5 text-xs text-gray-500 dark:text-gray-400" title="Audio is being written to disk">
+            <div id="recording-badge" class="hidden items-center space-x-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                 <span>REC</span>
             </div>
-
-            <!-- Transcription mode badge -->
             <span id="mode-badge" class="hidden px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"></span>
 
-            <!-- Status Indicator -->
             <div class="flex items-center space-x-2">
                 <div id="status-light" class="w-3 h-3 rounded-full bg-gray-400"></div>
                 <span id="status" class="text-sm font-normal text-gray-500 dark:text-gray-400">Not Listening</span>
             </div>
 
-            <!-- Start/Stop Buttons -->
             <button id="start-btn" class="px-5 py-2.5 text-sm font-normal text-white bg-google-green rounded-full shadow-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-green dark:focus:ring-offset-gray-900">
                 Start Listening
             </button>
@@ -181,7 +166,7 @@
         </div>
     </header>
 
-    <!-- Meeting State Bar: updates in place rather than appending, so it stays quiet -->
+    <!-- Meeting state: updates in place rather than appending, so it stays quiet -->
     <section id="state-bar" class="hidden flex-shrink-0 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30">
         <button id="state-toggle" class="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
             <div class="flex items-center space-x-3 min-w-0">
@@ -197,14 +182,12 @@
         </button>
 
         <div id="state-body" class="hidden px-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Topic tree -->
             <div>
                 <h3 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">Topics</h3>
                 <div id="topic-tree" class="text-sm space-y-2 text-gray-600 dark:text-gray-400">
                     <p class="text-gray-400 dark:text-gray-500 italic font-light">Listening for the shape of the discussion…</p>
                 </div>
             </div>
-            <!-- Rolling summary -->
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Where we are</h3>
@@ -217,53 +200,859 @@
         </div>
     </section>
 
-    <!-- Main Content Area (Scrollable) -->
     <main class="flex-grow flex flex-col md:flex-row overflow-hidden space-y-4 md:space-y-0 md:space-x-4 p-4">
 
-        <!-- Left Column: Transcript -->
+        <!-- Transcript -->
         <div class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/80 shadow-sm overflow-hidden">
             <div class="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                 <h2 class="text-lg font-normal text-google-green">Live Transcript</h2>
                 <div class="flex items-center space-x-3">
-                    <span class="hidden sm:inline text-xs text-gray-400 dark:text-gray-500">Click any line to correct it</span>
-                    <button id="copy-transcript" class="px-2.5 py-1 text-xs rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-google-green hover:text-google-green transition-colors">
-                        Copy
-                    </button>
+                    <span class="hidden sm:inline text-xs text-gray-400 dark:text-gray-500">Click a line to correct it</span>
+                    <button id="copy-transcript" class="px-2.5 py-1 text-xs rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-google-green hover:text-google-green transition-colors">Copy</button>
                 </div>
             </div>
-
-            <!-- Transcript Window -->
             <div id="transcript-container" class="flex-grow p-4 md:p-6 overflow-y-auto text-base leading-relaxed text-gray-700 dark:text-gray-300">
-                <div id="segments"></div>
+                <span id="segments"></span>
+                <span id="pending-transcript"></span>
                 <span id="interim-transcript" class="text-gray-400 dark:text-gray-500"></span>
             </div>
         </div>
 
-        <!-- Right Column: Insights -->
+        <!-- Insights -->
         <div class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/80 shadow-sm overflow-hidden">
             <h2 class="p-3 text-lg font-normal border-b border-gray-200 dark:border-gray-700 flex-shrink-0 text-google-green">AI Insights</h2>
-
-            <!-- Insights Window -->
             <div id="insights-container" class="flex-grow p-4 overflow-y-auto space-y-4 bg-gray-50 dark:bg-gray-900/50">
-                <!-- Placeholder Card -->
                 <div id="placeholder-card" class="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500 p-10">
                     <svg class="w-16 h-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM18 13.5l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 18l-1.035.259a3.375 3.375 0 00-2.456 2.456L18 21.75l-.259-1.035a3.375 3.375 0 00-2.456-2.456L14.25 18l1.035-.259a3.375 3.375 0 002.456-2.456L18 13.5z" />
                     </svg>
                     <p>Questions and technical terms from the discussion will appear here.</p>
                 </div>
-
-                <!-- AI Insight Cards are prepended here -->
             </div>
         </div>
 
     </main>
 
-    <!-- Footer for errors -->
     <footer class="flex-shrink-0 p-2 text-center bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <p id="error" class="text-sm text-red-500"></p>
     </footer>
 
-    <script type="module" src="app.js"></script>
+    <script>
+    (() => {
+        'use strict';
+
+        // Served from a different origin than the API in production; same-origin locally
+        // so the whole thing can be exercised against a dev server.
+        const API_BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+            ? location.origin
+            : 'https://api-promontory.onrender.com';
+
+        const apiUrl = `${API_BASE}/api/analyze`;
+        const stateUrl = `${API_BASE}/api/reverb/state`;
+        const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/ws/reverb`;
+
+        // Wake the server on page load — it sleeps on the free tier.
+        fetch(API_BASE, { method: 'GET' }).catch(() => {});
+
+        const $ = (id) => document.getElementById(id);
+        const startBtn = $('start-btn'), stopBtn = $('stop-btn');
+        const statusLight = $('status-light'), statusEl = $('status'), errorEl = $('error');
+        const segmentsEl = $('segments'), pendingEl = $('pending-transcript'), interimEl = $('interim-transcript');
+        const insightsContainer = $('insights-container'), placeholderCard = $('placeholder-card');
+        const transcriptContainer = $('transcript-container');
+        const modeBadge = $('mode-badge'), recordingBadge = $('recording-badge');
+        const setupModal = $('setup-modal');
+        const stateBar = $('state-bar'), stateBody = $('state-body'), stateChevron = $('state-chevron');
+        const stateObjective = $('state-objective'), stateUpdated = $('state-updated');
+        const topicTree = $('topic-tree'), summaryBody = $('summary-body');
+
+        // --- Segmentation tuning ---
+        const FLUSH_PAUSE_MS = 1400;   // send an utterance this long after speech pauses
+        const MIN_UTTERANCE = 12;      // ignore very short fragments
+        const MAX_UTTERANCE = 320;     // force a flush before it grows unwieldy
+        const CONTEXT_CHARS = 1800;    // rolling conversation context sent with each utterance
+
+        // --- Slow lane (topic tree + rolling summary) ---
+        const STATE_INTERVAL_MS = 5 * 60 * 1000;
+        const STATE_MIN_NEW_CHARS = 400;   // never spend a call on near-nothing
+        const STATE_CONTEXT_CHARS = 24000;
+
+        const session = { objective: '', type: 'strategy', keywords: [], accurate: false, record: false };
+
+        const segments = [];            // { id, text, edited } — one per analysed utterance
+        let meetingState = null;
+        let isListening = false;
+        let provider = null, recorder = null, micStream = null;
+        let pendingUtterance = '';      // finalized text not yet flushed for analysis
+        let flushTimer = null;
+        let stateTimer = null, stateRunning = false, charsSinceState = 0;
+
+        const committedTranscript = () => segments.map(s => s.text).join(' ');
+
+        // ---------- small helpers ----------
+        function escapeHtmlText(s) {
+            return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function el(tag, className, text) {
+            const n = document.createElement(tag);
+            if (className) n.className = className;
+            if (text != null) n.textContent = text;
+            return n;
+        }
+
+        // Minimal, safe markdown -> HTML (escapes first, then formats a useful subset).
+        function renderMarkdown(src) {
+            const inline = (s) => escapeHtmlText(s)
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="underline text-google-green">$1</a>');
+
+            const lines = src.replace(/\r/g, '').split('\n');
+            let html = '', list = null, inCode = false, code = '';
+            const closeList = () => { if (list) { html += `</${list}>`; list = null; } };
+
+            for (const raw of lines) {
+                const line = raw.replace(/\s+$/, '');
+                if (/^\s*```/.test(line)) {
+                    if (inCode) { html += `<pre><code>${escapeHtmlText(code)}</code></pre>`; code = ''; inCode = false; }
+                    else { closeList(); inCode = true; }
+                    continue;
+                }
+                if (inCode) { code += line + '\n'; continue; }
+
+                let m;
+                if ((m = line.match(/^#{1,4}\s+(.*)/))) { closeList(); html += `<h4>${inline(m[1])}</h4>`; }
+                else if ((m = line.match(/^\s*[-*]\s+(.*)/))) { if (list !== 'ul') { closeList(); html += '<ul>'; list = 'ul'; } html += `<li>${inline(m[1])}</li>`; }
+                else if ((m = line.match(/^\s*\d+\.\s+(.*)/))) { if (list !== 'ol') { closeList(); html += '<ol>'; list = 'ol'; } html += `<li>${inline(m[1])}</li>`; }
+                else if (line.trim() === '') { closeList(); }
+                else { closeList(); html += `<p>${inline(line)}</p>`; }
+            }
+            if (inCode) html += `<pre><code>${escapeHtmlText(code)}</code></pre>`;
+            closeList();
+            return html;
+        }
+
+        const spinnerSvg = `<svg class="animate-spin h-5 w-5 text-google-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+
+        function insightsAtBottom() {
+            return insightsContainer.scrollHeight - insightsContainer.scrollTop - insightsContainer.clientHeight < 80;
+        }
+        function transcriptAtBottom() {
+            return transcriptContainer.scrollHeight - transcriptContainer.scrollTop - transcriptContainer.clientHeight < 50;
+        }
+        function scrollTranscript() { transcriptContainer.scrollTop = transcriptContainer.scrollHeight; }
+
+        async function copyToClipboard(text, button) {
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                const original = button.textContent;
+                button.textContent = 'Copied';
+                setTimeout(() => { button.textContent = original; }, 1500);
+            } catch { errorEl.textContent = 'Could not copy to clipboard.'; }
+        }
+
+        // ---------- transcript segments ----------
+        function addSegment(text) {
+            const clean = text.trim();
+            if (!clean) return;
+
+            const segment = { id: `seg-${segments.length}`, text: clean, edited: false };
+            segments.push(segment);
+
+            const atBottom = transcriptAtBottom();
+            segmentsEl.append(renderSegment(segment), document.createTextNode(' '));
+            if (atBottom) scrollTranscript();
+
+            charsSinceState += clean.length;
+        }
+
+        function renderSegment(segment) {
+            const span = el('span', 'segment', segment.text);
+            span.dataset.id = segment.id;
+            span.title = 'Click to correct';
+
+            span.addEventListener('click', () => {
+                if (span.isContentEditable) return;
+                span.contentEditable = 'true';
+                span.focus();
+            });
+            span.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
+                else if (e.key === 'Escape') { span.textContent = segment.text; span.blur(); }
+            });
+            span.addEventListener('blur', () => commitEdit(span, segment));
+            return span;
+        }
+
+        function commitEdit(span, segment) {
+            span.contentEditable = 'false';
+            const next = span.textContent.trim();
+            if (!next) { span.textContent = segment.text; return; }   // don't allow deletion by emptying
+            if (next === segment.text) return;
+
+            const learned = newTerms(segment.text, next);
+            segment.text = next;
+            segment.edited = true;
+            span.classList.add('edited');
+            span.title = 'Corrected';
+
+            // The payoff: a term you fix once stops being mangled for the rest of the meeting.
+            if (learned.length) learnKeywords(learned);
+        }
+
+        /** Words in the correction that weren't in the original — likely what was misheard. */
+        function newTerms(before, after) {
+            const wordsOf = (s) => new Set((s.toLowerCase().match(/[\p{L}\p{N}'-]+/gu) || []));
+            const had = wordsOf(before);
+            return [...new Set(after.match(/[\p{L}\p{N}'-]+/gu) || [])]
+                .filter(w => w.length >= 3 && !had.has(w.toLowerCase()));
+        }
+
+        function learnKeywords(terms) {
+            const known = new Set(session.keywords.map(k => k.toLowerCase()));
+            const added = terms.filter(t => !known.has(t.toLowerCase()));
+            if (!added.length) return;
+            session.keywords.push(...added);
+            persistSession();
+            provider && provider.updateKeywords && provider.updateKeywords(session.keywords);
+        }
+
+        // ---------- utterance flushing ----------
+        // Flush at a sentence boundary, a pause, or a max length — so a question isn't
+        // chopped across separate "final" fragments.
+        function scheduleFlush() {
+            const t = pendingUtterance.trim();
+            if (/[.?!]["')\]]?\s*$/.test(t) || t.length >= MAX_UTTERANCE) { flushUtterance(); return; }
+            if (flushTimer) clearTimeout(flushTimer);
+            flushTimer = setTimeout(flushUtterance, FLUSH_PAUSE_MS);
+        }
+
+        function flushUtterance() {
+            if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+            const utterance = pendingUtterance.trim();
+            pendingUtterance = '';
+            pendingEl.textContent = '';
+            if (!utterance) return;
+
+            const context = committedTranscript().slice(-CONTEXT_CHARS);
+            addSegment(utterance);
+            maybeRunState();
+            if (utterance.length >= MIN_UTTERANCE) analyzeUtterance(utterance, context);
+        }
+
+        function onFinalText(text) {
+            pendingUtterance += text.endsWith(' ') ? text : text + ' ';
+            pendingEl.textContent = pendingUtterance;
+            if (transcriptAtBottom()) scrollTranscript();
+            scheduleFlush();
+        }
+
+        function onInterimText(text) {
+            interimEl.textContent = text;
+            if (transcriptAtBottom()) scrollTranscript();
+        }
+
+        // ---------- analysis (streamed over SSE) ----------
+        function parseSse(chunk) {
+            let event = 'message', data = '';
+            for (const line of chunk.split('\n')) {
+                if (line.startsWith('event:')) event = line.slice(6).trim();
+                else if (line.startsWith('data:')) data += line.slice(5).trim();
+            }
+            return { event, data: data ? JSON.parse(data) : null };
+        }
+
+        async function analyzeUtterance(utterance, context) {
+            const card = createAnalyzingCard(utterance);
+            let bodyEl = null, sourcesEl = null, answer = '';
+
+            try {
+                const resp = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ utterance, context, session })
+                });
+                if (!resp.ok || !resp.body) throw new Error(`server ${resp.status}`);
+
+                const reader = resp.body.getReader();
+                const decoder = new TextDecoder();
+                let buf = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buf += decoder.decode(value, { stream: true });
+                    let idx;
+                    while ((idx = buf.indexOf('\n\n')) >= 0) {
+                        const chunk = buf.slice(0, idx);
+                        buf = buf.slice(idx + 2);
+                        if (!chunk.trim()) continue;
+                        const { event, data } = parseSse(chunk);
+
+                        if (event === 'meta') {
+                            if (data.type === 'none') { removeCard(card); return; }
+                            const refs = renderSkeleton(card, data);
+                            bodyEl = refs.body; sourcesEl = refs.sources;
+                        } else if (event === 'delta' && bodyEl) {
+                            const atBottom = insightsAtBottom();
+                            answer += data.text || '';
+                            bodyEl.innerHTML = renderMarkdown(answer);
+                            if (atBottom) insightsContainer.scrollTop = insightsContainer.scrollHeight;
+                        } else if (event === 'sources' && sourcesEl) {
+                            renderSources(sourcesEl, data.sources || []);
+                        } else if (event === 'error') {
+                            throw new Error(data && data.message ? data.message : 'analysis error');
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('ReVerb analyze error:', err);
+                removeCard(card);
+            }
+        }
+
+        // ---------- slow lane: topic tree + rolling summary ----------
+        function maybeRunState(force) {
+            if (stateRunning || !segments.length) return;
+            if (!force && charsSinceState < STATE_MIN_NEW_CHARS) return;
+            if (force && charsSinceState === 0) return;
+            runState();
+        }
+
+        async function runState() {
+            stateRunning = true;
+            charsSinceState = 0;
+            try {
+                const resp = await fetch(stateUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transcript: committedTranscript().slice(-STATE_CONTEXT_CHARS), session })
+                });
+                const data = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    // A retired model fails silently otherwise — this is what hid an outage before.
+                    if (data.modelUnavailable) errorEl.textContent = data.error;
+                    throw new Error(data.error || `server ${resp.status}`);
+                }
+                meetingState = data;
+                renderMeetingState();
+            } catch (err) {
+                console.error('ReVerb state error:', err);
+            } finally {
+                stateRunning = false;
+            }
+        }
+
+        function renderMeetingState() {
+            if (!meetingState) return;
+            stateBar.classList.remove('hidden');
+
+            topicTree.replaceChildren();
+            if (meetingState.topics && meetingState.topics.length) {
+                for (const topic of meetingState.topics) {
+                    const block = el('div');
+                    block.append(el('div', 'text-gray-800 dark:text-gray-200', topic.name));
+                    if (topic.subtopics && topic.subtopics.length) {
+                        const list = el('ul', 'mt-0.5 ml-3 space-y-0.5');
+                        for (const sub of topic.subtopics) list.append(el('li', 'text-xs text-gray-500 dark:text-gray-400', `— ${sub}`));
+                        block.append(list);
+                    }
+                    if (topic.terms && topic.terms.length) {
+                        const tags = el('div', 'mt-1 ml-3 flex flex-wrap gap-1');
+                        for (const term of topic.terms) {
+                            tags.append(el('span', 'px-1.5 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300', term));
+                        }
+                        block.append(tags);
+                    }
+                    topicTree.append(block);
+                }
+            } else {
+                topicTree.append(el('p', 'text-gray-400 dark:text-gray-500 italic font-light', 'No distinct topics yet.'));
+            }
+
+            summaryBody.replaceChildren();
+            if (meetingState.headline) summaryBody.append(el('p', 'text-gray-700 dark:text-gray-300', meetingState.headline));
+            appendSummaryList('Key points', meetingState.keyPoints);
+            appendSummaryList('Decided', meetingState.decisions);
+            appendSummaryList('Still open', meetingState.openThreads);
+
+            stateUpdated.textContent = `updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
+        function appendSummaryList(label, items) {
+            if (!items || !items.length) return;
+            const block = el('div', 'mt-2');
+            block.append(el('div', 'text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500', label));
+            const list = el('ul', 'mt-1 space-y-0.5');
+            for (const item of items) list.append(el('li', 'text-xs text-gray-600 dark:text-gray-400', `• ${item}`));
+            block.append(list);
+            summaryBody.append(block);
+        }
+
+        function summaryAsText() {
+            if (!meetingState) return '';
+            const parts = [];
+            if (session.objective) parts.push(`Objective: ${session.objective}`, '');
+            if (meetingState.headline) parts.push(meetingState.headline, '');
+            const section = (label, items) => {
+                if (!items || !items.length) return;
+                parts.push(`${label}:`);
+                for (const i of items) parts.push(`  • ${i}`);
+                parts.push('');
+            };
+            section('Topics', (meetingState.topics || []).map(t => t.name));
+            section('Key points', meetingState.keyPoints);
+            section('Decided', meetingState.decisions);
+            section('Still open', meetingState.openThreads);
+            return parts.join('\n').trim();
+        }
+
+        // ---------- cards ----------
+        function createAnalyzingCard(utterance) {
+            placeholderCard.classList.add('hidden');
+            const card = document.createElement('div');
+            card.dataset.card = 'insight';
+            card.className = 'p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm opacity-75';
+            card.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    ${spinnerSvg}
+                    <div>
+                        <span class="font-normal text-gray-500 dark:text-gray-400">Analyzing:</span>
+                        <em class="text-gray-700 dark:text-gray-300">"${escapeHtmlText(utterance)}"</em>
+                    </div>
+                </div>`;
+            insightsContainer.prepend(card);
+            return card;
+        }
+
+        function renderSkeleton(card, meta) {
+            const title = meta.title || (meta.type === 'question' ? 'Question' : 'Concept');
+            const sub = (meta.type === 'question' && meta.question)
+                ? `<p class="text-sm text-gray-500 dark:text-gray-400 mb-2">${escapeHtmlText(meta.question)}</p>` : '';
+            card.classList.remove('opacity-75');
+            card.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-google-green">${escapeHtmlText(title)}</h3>
+                    <button data-toggle="collapse" class="p-1 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg class="w-5 h-5 chevron-up" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                        <svg class="w-5 h-5 hidden chevron-down" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                    </button>
+                </div>
+                <div class="card-body mt-2 pr-2">
+                    ${sub}
+                    <div class="reverb-answer text-gray-600 dark:text-gray-400 leading-relaxed"><span class="text-gray-400">…</span></div>
+                    <div class="reverb-sources mt-3 flex flex-wrap gap-2"></div>
+                </div>`;
+            return { body: card.querySelector('.reverb-answer'), sources: card.querySelector('.reverb-sources') };
+        }
+
+        function renderSources(el2, sources) {
+            if (!sources.length) return;
+            el2.innerHTML = '';
+            const label = document.createElement('span');
+            label.className = 'w-full text-xs uppercase tracking-wide text-gray-400';
+            label.textContent = 'Sources';
+            el2.appendChild(label);
+            sources.forEach((s, i) => {
+                const a = document.createElement('a');
+                a.href = s.uri;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.className = 'text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 truncate max-w-[14rem]';
+                a.textContent = `${i + 1}. ${s.title || s.uri}`;
+                el2.appendChild(a);
+            });
+        }
+
+        function removeCard(card) {
+            card.classList.add('fade-out');
+            setTimeout(() => {
+                card.remove();
+                if (!insightsContainer.querySelector('[data-card]')) placeholderCard.classList.remove('hidden');
+            }, 500);
+        }
+
+        // ---------- transcription: browser (free) ----------
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        class WebSpeechProvider {
+            static get supported() { return Boolean(SpeechRecognition); }
+            static label = 'Browser transcription';
+
+            constructor() {
+                this.wantRunning = false;
+                this.recognition = new SpeechRecognition();
+                this.recognition.continuous = true;
+                this.recognition.interimResults = true;
+                this.recognition.lang = 'en-US';
+
+                this.recognition.onresult = (event) => {
+                    let interim = '', newFinal = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) newFinal += event.results[i][0].transcript + ' ';
+                        else interim += event.results[i][0].transcript;
+                    }
+                    if (newFinal) onFinalText(newFinal);
+                    onInterimText(interim);
+                };
+                this.recognition.onend = () => { if (this.wantRunning) this.recognition.start(); };
+                this.recognition.onerror = (event) => {
+                    // Routine during a quiet meeting — don't tear the session down.
+                    if (event.error === 'no-speech' || event.error === 'aborted') return;
+                    errorEl.textContent = `Speech recognition error: ${event.error}`;
+                };
+            }
+
+            async start() { this.wantRunning = true; this.recognition.start(); }
+            stop() { this.wantRunning = false; this.recognition.stop(); }
+            updateKeywords() { /* Web Speech has no biasing hook — that's why the paid path exists */ }
+        }
+
+        // ---------- transcription: high accuracy (keyword biasing) ----------
+        // The AudioWorklet spec only accepts a URL, but a Blob URL counts — which keeps this
+        // page a single file. The AudioContext runs at 24 kHz so the browser resamples and
+        // this only changes format.
+        const WORKLET_SOURCE = `
+const CHUNK_SAMPLES = 2048;
+class PCMEncoder extends AudioWorkletProcessor {
+    constructor() { super(); this.buffer = new Float32Array(CHUNK_SAMPLES); this.offset = 0; }
+    process(inputs) {
+        const channel = inputs[0] && inputs[0][0];
+        if (!channel) return true;
+        for (let i = 0; i < channel.length; i++) {
+            this.buffer[this.offset++] = channel[i];
+            if (this.offset === CHUNK_SAMPLES) this.flush();
+        }
+        return true;
+    }
+    flush() {
+        if (this.offset === 0) return;
+        const pcm = new Int16Array(this.offset);
+        for (let i = 0; i < this.offset; i++) {
+            const s = Math.max(-1, Math.min(1, this.buffer[i]));
+            pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+        }
+        this.port.postMessage(pcm.buffer, [pcm.buffer]);
+        this.offset = 0;
+    }
+}
+registerProcessor('pcm-encoder', PCMEncoder);
+`;
+
+        function toBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            const CHUNK = 0x8000;   // apply() blows the stack on very large arrays
+            for (let i = 0; i < bytes.length; i += CHUNK) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+            }
+            return btoa(binary);
+        }
+
+        class RealtimeProvider {
+            static label = 'High accuracy';
+
+            constructor(stream) {
+                this.stream = stream;
+                this.partials = new Map();
+            }
+
+            async start() {
+                this.ws = new WebSocket(wsUrl);
+                this.ws.addEventListener('open', () => {
+                    const meetingLabel = ($('setup-type').selectedOptions[0] || {}).text || 'meeting';
+                    this.ws.send(JSON.stringify({
+                        type: 'start',
+                        prompt: `A ${meetingLabel}.${session.objective ? ' Objective: ' + session.objective : ''}`,
+                        keywords: session.keywords,
+                        languages: ['en'],
+                    }));
+                });
+                this.ws.addEventListener('message', (e) => this.handle(JSON.parse(e.data)));
+                this.ws.addEventListener('error', () => { errorEl.textContent = 'Lost connection to the transcription service.'; });
+                this.running = true;
+                await this.startCapture();
+            }
+
+            handle(msg) {
+                switch (msg.type) {
+                    case 'ready':
+                        statusEl.textContent = 'Listening…';
+                        break;
+                    case 'partial_transcript':
+                        this.partials.set(msg.itemId, msg.text);
+                        onInterimText([...this.partials.values()].join(' '));
+                        break;
+                    case 'final_transcript':
+                        this.partials.delete(msg.itemId);
+                        onInterimText([...this.partials.values()].join(' '));
+                        onFinalText(msg.text);
+                        break;
+                    case 'error':
+                        errorEl.textContent = msg.message || 'Transcription error.';
+                        break;
+                }
+            }
+
+            updateKeywords(keywords) {
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify({ type: 'keywords', keywords }));
+                }
+            }
+
+            async startCapture() {
+                this.audioContext = new AudioContext({ sampleRate: 24000 });
+                const url = URL.createObjectURL(new Blob([WORKLET_SOURCE], { type: 'application/javascript' }));
+                try { await this.audioContext.audioWorklet.addModule(url); }
+                finally { URL.revokeObjectURL(url); }
+
+                const source = this.audioContext.createMediaStreamSource(this.stream);
+                this.encoder = new AudioWorkletNode(this.audioContext, 'pcm-encoder');
+                this.encoder.port.onmessage = (e) => {
+                    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                        this.ws.send(JSON.stringify({ type: 'audio', audio: toBase64(e.data) }));
+                    }
+                };
+
+                // A worklet only runs while connected to the destination, but routing the mic
+                // to the speakers would howl. Zero gain keeps the graph pulling in silence.
+                const mute = this.audioContext.createGain();
+                mute.gain.value = 0;
+                source.connect(this.encoder);
+                this.encoder.connect(mute);
+                mute.connect(this.audioContext.destination);
+            }
+
+            stop() {
+                this.running = false;
+                if (this.encoder) this.encoder.port.close();
+                if (this.audioContext) this.audioContext.close();
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) this.ws.close();
+            }
+        }
+
+        // ---------- recording ----------
+        function pickAudioFormat() {
+            const candidates = [
+                { mimeType: 'audio/webm;codecs=opus', ext: 'webm', accept: 'audio/webm' },
+                { mimeType: 'audio/webm', ext: 'webm', accept: 'audio/webm' },
+                { mimeType: 'audio/mp4', ext: 'm4a', accept: 'audio/mp4' },
+                { mimeType: 'audio/ogg;codecs=opus', ext: 'ogg', accept: 'audio/ogg' },
+            ];
+            return candidates.find(c => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c.mimeType))
+                || { mimeType: '', ext: 'webm', accept: 'audio/webm' };
+        }
+
+        const fileStamp = () => new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+
+        class DiskRecorder {
+            constructor() { this.chunks = []; this.writeChain = Promise.resolve(); }
+
+            async start(stream) {
+                this.format = pickAudioFormat();
+                this.streaming = typeof window.showSaveFilePicker === 'function';
+
+                if (this.streaming) {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: `reverb-${fileStamp()}.${this.format.ext}`,
+                        types: [{ description: 'Audio', accept: { [this.format.accept]: ['.' + this.format.ext] } }],
+                    });
+                    this.writable = await handle.createWritable();
+                }
+
+                this.recorder = new MediaRecorder(stream, this.format.mimeType ? { mimeType: this.format.mimeType } : undefined);
+                this.recorder.ondataavailable = (e) => {
+                    if (!e.data || !e.data.size) return;
+                    if (this.streaming) {
+                        // Serialise writes; concurrent write() calls on one stream interleave.
+                        this.writeChain = this.writeChain.then(() => this.writable.write(e.data));
+                    } else {
+                        this.chunks.push(e.data);
+                    }
+                };
+                this.recorder.start(3000);   // flush to disk every 3s
+                return { streaming: this.streaming };
+            }
+
+            async stop() {
+                if (!this.recorder) return;
+                await new Promise(resolve => {
+                    this.recorder.addEventListener('stop', resolve, { once: true });
+                    this.recorder.stop();
+                });
+                if (this.streaming) {
+                    await this.writeChain;
+                    await this.writable.close();
+                    return;
+                }
+                const blob = new Blob(this.chunks, { type: this.format.accept });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `reverb-${fileStamp()}.${this.format.ext}`;
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // ---------- session lifecycle ----------
+        function persistSession() {
+            try { localStorage.setItem('reverb.session', JSON.stringify(session)); } catch { /* private mode */ }
+        }
+        function restoreSession() {
+            try { Object.assign(session, JSON.parse(localStorage.getItem('reverb.session') || '{}')); } catch { /* ignore */ }
+        }
+
+        function openSetup() {
+            $('setup-objective').value = session.objective;
+            $('setup-type').value = session.type;
+            $('setup-keywords').value = session.keywords.join(', ');
+            $('setup-accurate').checked = session.accurate;
+            $('setup-record').checked = session.record;
+
+            if (!WebSpeechProvider.supported) {
+                $('setup-accurate').checked = true;
+                $('setup-accurate').disabled = true;
+                $('accurate-note').textContent =
+                    'Required — this browser has no built-in speech recognition, so high accuracy is the only option here.';
+            }
+            if (typeof window.showSaveFilePicker !== 'function') {
+                $('record-note').textContent =
+                    'This browser cannot stream to disk, so audio is held in memory and downloaded when you stop. A crash would lose it.';
+            }
+
+            setupModal.classList.remove('hidden');
+            $('setup-objective').focus();
+        }
+
+        const closeSetup = () => setupModal.classList.add('hidden');
+
+        async function beginSession() {
+            session.objective = $('setup-objective').value.trim();
+            session.type = $('setup-type').value;
+            session.keywords = $('setup-keywords').value.split(',').map(k => k.trim()).filter(Boolean);
+            session.accurate = $('setup-accurate').checked;
+            session.record = $('setup-record').checked;
+            persistSession();
+            closeSetup();
+            await startListening();
+        }
+
+        async function startListening() {
+            if (isListening) return;
+            errorEl.textContent = '';
+
+            try {
+                if (session.accurate || session.record) {
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                }
+                if (session.record) {
+                    recorder = new DiskRecorder();
+                    const { streaming } = await recorder.start(micStream);
+                    recordingBadge.classList.remove('hidden');
+                    recordingBadge.classList.add('flex');
+                    recordingBadge.title = streaming
+                        ? 'Audio is being written to disk continuously'
+                        : 'Audio is held in memory and saved when you stop';
+                }
+
+                if (!session.accurate && !WebSpeechProvider.supported) {
+                    throw new Error('This browser has no built-in speech recognition. Turn on high-accuracy transcription instead.');
+                }
+
+                provider = session.accurate ? new RealtimeProvider(micStream) : new WebSpeechProvider();
+                await provider.start();
+
+                isListening = true;
+                pendingUtterance = '';
+                modeBadge.textContent = provider.constructor.label;
+                modeBadge.classList.remove('hidden');
+
+                stateObjective.textContent = session.objective || 'No objective set';
+                if (session.objective) stateBar.classList.remove('hidden');
+
+                stateTimer = setInterval(() => maybeRunState(true), STATE_INTERVAL_MS);
+
+                startBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                statusLight.classList.remove('bg-gray-400');
+                statusLight.classList.add('bg-green-500', 'animate-pulse');
+                statusEl.textContent = 'Listening…';
+            } catch (err) {
+                console.error('ReVerb start error:', err);
+                errorEl.textContent = err.name === 'AbortError'
+                    ? 'Cancelled — no file chosen for the recording.'
+                    : `Could not start: ${err.message}`;
+                await stopListening();
+            }
+        }
+
+        async function stopListening() {
+            isListening = false;
+            clearInterval(stateTimer);
+            flushUtterance();                // don't lose a trailing question
+
+            if (provider) { provider.stop(); provider = null; }
+
+            if (recorder) {
+                try { await recorder.stop(); }
+                catch (err) { errorEl.textContent = `Recording could not be finalised: ${err.message}`; }
+                recorder = null;
+            }
+            if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+
+            recordingBadge.classList.add('hidden');
+            recordingBadge.classList.remove('flex');
+            interimEl.textContent = '';
+
+            stopBtn.classList.add('hidden');
+            startBtn.classList.remove('hidden');
+            statusLight.classList.remove('bg-green-500', 'animate-pulse');
+            statusLight.classList.add('bg-gray-400');
+            statusEl.textContent = 'Not Listening';
+
+            // A closing pass so the summary reflects the whole meeting.
+            if (segments.length) runState();
+        }
+
+        // ---------- wiring ----------
+        startBtn.addEventListener('click', openSetup);
+        stopBtn.addEventListener('click', stopListening);
+        $('setup-cancel').addEventListener('click', closeSetup);
+        $('setup-start').addEventListener('click', beginSession);
+
+        $('state-toggle').addEventListener('click', () => {
+            const hidden = stateBody.classList.toggle('hidden');
+            stateChevron.style.transform = hidden ? '' : 'rotate(180deg)';
+        });
+
+        $('copy-transcript').addEventListener('click', (e) => copyToClipboard(committedTranscript(), e.currentTarget));
+        $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText(), e.currentTarget));
+
+        // Collapse / expand insight cards
+        document.body.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-toggle="collapse"]');
+            if (!btn) return;
+            const card = btn.closest('.rounded-xl');
+            card.querySelector('.card-body').classList.toggle('hidden');
+            btn.querySelector('.chevron-up').classList.toggle('hidden');
+            btn.querySelector('.chevron-down').classList.toggle('hidden');
+        });
+
+        window.addEventListener('beforeunload', (e) => {
+            if (!isListening) return;
+            e.preventDefault();
+            e.returnValue = '';
+        });
+
+        restoreSession();
+        if (!WebSpeechProvider.supported) {
+            errorEl.textContent = 'This browser has no built-in speech recognition — start a session with high-accuracy transcription enabled.';
+        }
+    })();
+    </script>
 </body>
 </html>
