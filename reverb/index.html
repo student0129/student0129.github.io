@@ -63,6 +63,20 @@
         /* Corrected text stays marked — a signal the transcriber got it wrong here. */
         .segment.edited { border-bottom: 1px dotted #00685B; }
         .dark .segment.edited { border-bottom: 1px dotted #34A853; }
+        /* The transcriber wasn't sure. Shown rather than deleted: a silent hole in a
+           transcript is the failure nobody notices. */
+        .segment.low-conf { border-bottom: 1px dashed #d97706; opacity: .8; }
+        .dark .segment.low-conf { border-bottom-color: #f59e0b; }
+
+        /* A visible seam where the session was paused. */
+        .resume-mark {
+            display: inline-block;
+            margin: 0 .35rem;
+            font-size: .7rem;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #9ca3af;
+        }
     </style>
 </head>
 <body class="text-gray-800 dark:text-gray-200 flex flex-col h-screen overflow-hidden">
@@ -118,7 +132,7 @@
                         <span class="text-gray-700 dark:text-gray-300">Record audio to disk</span>
                         <span id="record-note" class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             You'll pick a file location. Audio is written continuously, so it survives
-                            a crash or an accidental tab close.
+                            a crash or an accidental tab close. A link to the file is shown when you stop.
                         </span>
                     </span>
                 </label>
@@ -145,10 +159,10 @@
             <h1 class="text-2xl text-google-green">ReVerb</h1>
         </div>
 
-        <div class="flex items-center space-x-4 mt-4 md:mt-0">
+        <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-4 md:mt-0">
             <div id="recording-badge" class="hidden items-center space-x-1.5 text-xs text-gray-500 dark:text-gray-400">
-                <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                <span>REC</span>
+                <div id="recording-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                <span id="recording-label">REC</span>
             </div>
             <span id="mode-badge" class="hidden px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"></span>
 
@@ -157,14 +171,49 @@
                 <span id="status" class="text-sm font-normal text-gray-500 dark:text-gray-400">Not Listening</span>
             </div>
 
+            <button id="brief-btn" class="hidden px-3 py-2 text-sm text-gray-600 dark:text-gray-400 rounded-full border border-gray-300 dark:border-gray-600 hover:border-google-green hover:text-google-green transition-colors">
+                Brief
+            </button>
             <button id="start-btn" class="px-5 py-2.5 text-sm font-normal text-white bg-google-green rounded-full shadow-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-green dark:focus:ring-offset-gray-900">
                 Start Listening
+            </button>
+            <button id="pause-btn" class="hidden px-5 py-2.5 text-sm font-normal text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-full shadow-sm hover:opacity-90 transition-opacity">
+                Pause
             </button>
             <button id="stop-btn" class="hidden px-5 py-2.5 text-sm font-normal text-white bg-red-600 rounded-full shadow-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-900">
                 Stop Listening
             </button>
         </div>
     </header>
+
+    <!-- Recovered from a crash / closed tab -->
+    <section id="restore-bar" class="hidden flex-shrink-0 px-4 py-2.5 border-b border-amber-300 dark:border-amber-700/60 bg-amber-50 dark:bg-amber-900/20">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm text-amber-800 dark:text-amber-200">
+                <span id="restore-detail"></span>
+            </p>
+            <div class="flex items-center space-x-2">
+                <button id="restore-yes" class="px-3 py-1.5 text-xs text-white bg-google-green rounded-full hover:opacity-90">Restore it</button>
+                <button id="restore-no" class="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 hover:underline">Discard</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shown after Stop: everything produced by the session, in one place -->
+    <section id="session-end" class="hidden flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0">
+                <h3 class="text-sm text-google-green">Session ended</h3>
+                <p id="end-meta" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"></p>
+                <div id="end-audio" class="mt-2 text-sm"></div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button id="end-transcript" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-google-green hover:text-google-green transition-colors">Download transcript</button>
+                <button id="end-continue" class="px-3 py-1.5 text-xs text-white bg-google-green rounded-full hover:opacity-90">Continue session</button>
+                <button id="end-dismiss" class="px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">Dismiss</button>
+            </div>
+        </div>
+    </section>
 
     <!-- Meeting state: updates in place rather than appending, so it stays quiet -->
     <section id="state-bar" class="hidden flex-shrink-0 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30">
@@ -255,39 +304,69 @@
         fetch(API_BASE, { method: 'GET' }).catch(() => {});
 
         const $ = (id) => document.getElementById(id);
-        const startBtn = $('start-btn'), stopBtn = $('stop-btn');
+        const startBtn = $('start-btn'), stopBtn = $('stop-btn'), pauseBtn = $('pause-btn'), briefBtn = $('brief-btn');
         const statusLight = $('status-light'), statusEl = $('status'), errorEl = $('error');
         const segmentsEl = $('segments'), pendingEl = $('pending-transcript'), interimEl = $('interim-transcript');
         const insightsContainer = $('insights-container'), placeholderCard = $('placeholder-card');
         const transcriptContainer = $('transcript-container');
         const modeBadge = $('mode-badge'), recordingBadge = $('recording-badge');
+        const recordingDot = $('recording-dot'), recordingLabel = $('recording-label');
         const setupModal = $('setup-modal');
         const stateBar = $('state-bar'), stateBody = $('state-body'), stateChevron = $('state-chevron');
         const stateObjective = $('state-objective'), stateUpdated = $('state-updated');
         const topicTree = $('topic-tree'), summaryBody = $('summary-body');
+        const restoreBar = $('restore-bar'), restoreDetail = $('restore-detail');
+        const sessionEnd = $('session-end'), endMeta = $('end-meta'), endAudio = $('end-audio');
 
         // --- Segmentation tuning ---
-        const FLUSH_PAUSE_MS = 1400;   // send an utterance this long after speech pauses
-        const MIN_UTTERANCE = 12;      // ignore very short fragments
-        const MAX_UTTERANCE = 320;     // force a flush before it grows unwieldy
-        const CONTEXT_CHARS = 1800;    // rolling conversation context sent with each utterance
+        // A sentence ending is a weak signal on its own: both transcribers put a full stop on
+        // nearly every final, which used to chop "Let me ask something. How does sharding
+        // work?" into two analyses, the first of them noise. So a full stop only buys a short
+        // grace period; a question mark is the one boundary worth acting on immediately.
+        const FLUSH_PAUSE_MS = 1200;      // silence after an unfinished thought
+        const BOUNDARY_PAUSE_MS = 700;    // grace after a full stop — the thought may continue
+        const MIN_ANALYZE_WORDS = 4;      // fewer words than this is never worth a round trip
+        const MAX_UTTERANCE = 420;        // force a flush before it grows unwieldy
+        const CONTEXT_CHARS = 2200;       // rolling verbatim context sent with each utterance
+
+        // --- Analysis lane ---
+        const MAX_ANALYZE_CONCURRENCY = 2;   // bounded so streaming answers can't swamp capture
+        const MAX_ANALYZE_QUEUE = 6;         // beyond this the meeting has moved on
+        const ANALYZE_TIMEOUT_MS = 40000;
+        const ANSWERED_MEMORY = 40;
 
         // --- Slow lane (topic tree + rolling summary) ---
         const STATE_INTERVAL_MS = 5 * 60 * 1000;
-        const STATE_MIN_NEW_CHARS = 400;   // never spend a call on near-nothing
+        const STATE_MIN_NEW_CHARS = 2500;  // was 400, which fired every ~40s of speech
         const STATE_CONTEXT_CHARS = 24000;
+        const STATE_TIMEOUT_MS = 45000;
+
+        // --- Resilience ---
+        const SPEECH_RESTART_MS = 400;     // Chrome throws if you restart too eagerly
+        const SPEECH_WATCHDOG_MS = 2000;   // how often we check the engine is actually up
+        const SPEECH_STALL_MS = 120000;    // "running" but silent this long => bounce it
+
+        // --- Persistence ---
+        const STORE_KEY = 'reverb.transcript';
+        const PERSIST_DEBOUNCE_MS = 1500;
+        const MAX_PERSIST_CHARS = 200000;
 
         const session = { objective: '', type: 'strategy', keywords: [], accurate: false, record: false };
 
-        const segments = [];            // { id, text, edited } — one per analysed utterance
+        const segments = [];            // { id, text, edited, low } — one per analysed utterance
+        const answeredTitles = [];      // what the classifier has already covered
         let meetingState = null;
-        let isListening = false;
+        let isListening = false, isPaused = false;
         let provider = null, recorder = null, micStream = null;
         let pendingUtterance = '';      // finalized text not yet flushed for analysis
+        let pendingLow = false;
         let flushTimer = null;
         let stateTimer = null, stateRunning = false, charsSinceState = 0;
+        let startedAt = null, lastAudio = null, segmentSeq = 0;
+        let markResumeSeam = false;
 
         const committedTranscript = () => segments.map(s => s.text).join(' ');
+        const wordCount = (s) => (s.match(/[\p{L}\p{N}'’-]+/gu) || []).length;
 
         // ---------- small helpers ----------
         function escapeHtmlText(s) {
@@ -300,6 +379,18 @@
             if (text != null) n.textContent = text;
             return n;
         }
+
+        function setStatus(text, tone) {
+            statusEl.textContent = text;
+            statusLight.className = 'w-3 h-3 rounded-full ' + ({
+                live: 'bg-green-500 animate-pulse',
+                warn: 'bg-amber-500 animate-pulse',
+                paused: 'bg-amber-400',
+                idle: 'bg-gray-400',
+            }[tone] || 'bg-gray-400');
+        }
+
+        const formatBytes = (n) => n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`;
 
         // Minimal, safe markdown -> HTML (escapes first, then formats a useful subset).
         function renderMarkdown(src) {
@@ -334,6 +425,27 @@
             return html;
         }
 
+        // Re-rendering the whole answer on every streamed token was the main-thread work that
+        // competed with audio capture. Now every card marks itself dirty and one animation
+        // frame repaints all of them — at most 60 renders a second, in practice far fewer.
+        const dirtyAnswers = new Set();
+        let renderFrame = 0;
+
+        function markAnswerDirty(entry) {
+            dirtyAnswers.add(entry);
+            if (!renderFrame) renderFrame = requestAnimationFrame(flushAnswerRenders);
+        }
+
+        function flushAnswerRenders() {
+            renderFrame = 0;
+            const atBottom = insightsAtBottom();
+            for (const entry of dirtyAnswers) {
+                if (entry.el.isConnected) entry.el.innerHTML = renderMarkdown(entry.text);
+            }
+            dirtyAnswers.clear();
+            if (atBottom) insightsContainer.scrollTop = insightsContainer.scrollHeight;
+        }
+
         const spinnerSvg = `<svg class="animate-spin h-5 w-5 text-google-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
 
         function insightsAtBottom() {
@@ -354,25 +466,39 @@
             } catch { errorEl.textContent = 'Could not copy to clipboard.'; }
         }
 
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
+
         // ---------- transcript segments ----------
-        function addSegment(text) {
+        function addSegment(text, opts) {
             const clean = text.trim();
             if (!clean) return;
 
-            const segment = { id: `seg-${segments.length}`, text: clean, edited: false };
+            const segment = { id: `seg-${segmentSeq++}`, text: clean, edited: false, low: Boolean(opts && opts.low) };
             segments.push(segment);
 
             const atBottom = transcriptAtBottom();
+            if (markResumeSeam) {
+                markResumeSeam = false;
+                segmentsEl.append(el('span', 'resume-mark', '— resumed —'), document.createTextNode(' '));
+            }
             segmentsEl.append(renderSegment(segment), document.createTextNode(' '));
             if (atBottom) scrollTranscript();
 
             charsSinceState += clean.length;
+            persistTranscript();
         }
 
         function renderSegment(segment) {
-            const span = el('span', 'segment', segment.text);
+            const span = el('span', 'segment' + (segment.edited ? ' edited' : '') + (segment.low ? ' low-conf' : ''), segment.text);
             span.dataset.id = segment.id;
-            span.title = 'Click to correct';
+            span.title = segment.low ? 'Low confidence — click to correct' : 'Click to correct';
 
             span.addEventListener('click', () => {
                 if (span.isContentEditable) return;
@@ -396,19 +522,32 @@
             const learned = newTerms(segment.text, next);
             segment.text = next;
             segment.edited = true;
+            segment.low = false;              // a human has vouched for it now
             span.classList.add('edited');
+            span.classList.remove('low-conf');
             span.title = 'Corrected';
+            persistTranscript();
 
             // The payoff: a term you fix once stops being mangled for the rest of the meeting.
             if (learned.length) learnKeywords(learned);
         }
 
-        /** Words in the correction that weren't in the original — likely what was misheard. */
+        // Words in the correction that weren't in the original — likely what was misheard.
+        // Only proper-noun-shaped or jargon-shaped tokens qualify: feeding "the" and "data"
+        // to the speech model as keyword hints dilutes the biasing that makes it work.
+        const STOPWORDS = new Set(['the','and','that','this','with','from','for','you','are','was','were','have','has','had','not','but','they','their','there','then','than','what','when','which','into','about','would','could','should','been','some','just','like','also','because','very','more','most','over','after','before','while','where','your','our','his','her','its','it’s','one','two','can','will','all','any','how','why','who','use','using','get','got','make','made','need','want','know','think','really','okay','yeah','right','well']);
+
         function newTerms(before, after) {
-            const wordsOf = (s) => new Set((s.toLowerCase().match(/[\p{L}\p{N}'-]+/gu) || []));
+            const wordsOf = (s) => new Set((s.toLowerCase().match(/[\p{L}\p{N}'’-]+/gu) || []));
             const had = wordsOf(before);
-            return [...new Set(after.match(/[\p{L}\p{N}'-]+/gu) || [])]
-                .filter(w => w.length >= 3 && !had.has(w.toLowerCase()));
+            const candidates = [...new Set(after.match(/[\p{L}\p{N}'’-]+/gu) || [])];
+            return candidates.filter((w) => {
+                if (w.length < 3 || had.has(w.toLowerCase())) return false;
+                if (STOPWORDS.has(w.toLowerCase())) return false;
+                // Keep proper nouns, acronyms, CamelCase, hyphenated and digit-bearing terms —
+                // the shapes a speech model actually mangles.
+                return /^[A-Z]/.test(w) || /[A-Z]{2,}/.test(w) || /[0-9]/.test(w) || /-/.test(w) || w.length >= 8;
+            });
         }
 
         function learnKeywords(terms) {
@@ -416,35 +555,45 @@
             const added = terms.filter(t => !known.has(t.toLowerCase()));
             if (!added.length) return;
             session.keywords.push(...added);
+            if (session.keywords.length > 200) session.keywords.splice(0, session.keywords.length - 200);
             persistSession();
             provider && provider.updateKeywords && provider.updateKeywords(session.keywords);
         }
 
         // ---------- utterance flushing ----------
-        // Flush at a sentence boundary, a pause, or a max length — so a question isn't
-        // chopped across separate "final" fragments.
+        // Flush at a real boundary, not at every full stop.
         function scheduleFlush() {
             const t = pendingUtterance.trim();
-            if (/[.?!]["')\]]?\s*$/.test(t) || t.length >= MAX_UTTERANCE) { flushUtterance(); return; }
-            if (flushTimer) clearTimeout(flushTimer);
-            flushTimer = setTimeout(flushUtterance, FLUSH_PAUSE_MS);
+            if (!t) return;
+            if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+
+            if (t.length >= MAX_UTTERANCE) { flushUtterance(); return; }
+            // A question mark is the one thing worth acting on immediately — that's the
+            // utterance the user is waiting on an answer for.
+            if (/\?["')\]]?\s*$/.test(t) && wordCount(t) >= MIN_ANALYZE_WORDS) { flushUtterance(); return; }
+
+            const endsSentence = /[.!]["')\]]?\s*$/.test(t);
+            flushTimer = setTimeout(flushUtterance, endsSentence ? BOUNDARY_PAUSE_MS : FLUSH_PAUSE_MS);
         }
 
         function flushUtterance() {
             if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
             const utterance = pendingUtterance.trim();
+            const low = pendingLow;
             pendingUtterance = '';
+            pendingLow = false;
             pendingEl.textContent = '';
             if (!utterance) return;
 
             const context = committedTranscript().slice(-CONTEXT_CHARS);
-            addSegment(utterance);
+            addSegment(utterance, { low });
             maybeRunState();
-            if (utterance.length >= MIN_UTTERANCE) analyzeUtterance(utterance, context);
+            if (wordCount(utterance) >= MIN_ANALYZE_WORDS) enqueueAnalysis(utterance, context);
         }
 
-        function onFinalText(text) {
+        function onFinalText(text, opts) {
             pendingUtterance += text.endsWith(' ') ? text : text + ' ';
+            if (opts && opts.low) pendingLow = true;
             pendingEl.textContent = pendingUtterance;
             if (transcriptAtBottom()) scrollTranscript();
             scheduleFlush();
@@ -455,7 +604,18 @@
             if (transcriptAtBottom()) scrollTranscript();
         }
 
-        // ---------- analysis (streamed over SSE) ----------
+        /** Pull whatever is still on screen as interim text into the pending utterance. */
+        function absorbInterim() {
+            const trailing = interimEl.textContent.trim();
+            if (!trailing) return;
+            pendingUtterance += (pendingUtterance.endsWith(' ') || !pendingUtterance ? '' : ' ') + trailing + ' ';
+            interimEl.textContent = '';
+        }
+
+        // ---------- analysis lane (queued, bounded, streamed over SSE) ----------
+        const analyzeQueue = [];
+        let analyzeActive = 0;
+
         function parseSse(chunk) {
             let event = 'message', data = '';
             for (const line of chunk.split('\n')) {
@@ -465,17 +625,51 @@
             return { event, data: data ? JSON.parse(data) : null };
         }
 
-        async function analyzeUtterance(utterance, context) {
+        function enqueueAnalysis(utterance, context) {
+            // The card is created at enqueue time, so cards stay in the order things were
+            // said even when a short answer finishes before a long one started earlier.
             const card = createAnalyzingCard(utterance);
-            let bodyEl = null, sourcesEl = null, answer = '';
+            analyzeQueue.push({
+                utterance, context, card,
+                state: meetingState,
+                answered: answeredTitles.slice(-ANSWERED_MEMORY),
+                attempt: 0,
+            });
+            while (analyzeQueue.length > MAX_ANALYZE_QUEUE) {
+                const dropped = analyzeQueue.shift();
+                removeCard(dropped.card);
+            }
+            pumpAnalysis();
+        }
+
+        function pumpAnalysis() {
+            while (analyzeActive < MAX_ANALYZE_CONCURRENCY && analyzeQueue.length) {
+                const job = analyzeQueue.shift();
+                analyzeActive++;
+                runAnalysis(job).finally(() => { analyzeActive--; pumpAnalysis(); });
+            }
+        }
+
+        async function runAnalysis(job) {
+            let entry = null, sourcesEl = null, sawMeta = false;
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS);
 
             try {
                 const resp = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ utterance, context, session })
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        utterance: job.utterance,
+                        context: job.context,
+                        session: { objective: session.objective, type: session.type, keywords: session.keywords.slice(0, 100) },
+                        state: job.state,
+                        answered: job.answered,
+                    })
                 });
-                if (!resp.ok || !resp.body) throw new Error(`server ${resp.status}`);
+                if (resp.status === 429) throw Object.assign(new Error('Rate limited'), { retryable: true });
+                if (!resp.ok || !resp.body) throw new Error(`Server error ${resp.status}`);
 
                 const reader = resp.body.getReader();
                 const decoder = new TextDecoder();
@@ -493,25 +687,45 @@
                         const { event, data } = parseSse(chunk);
 
                         if (event === 'meta') {
-                            if (data.type === 'none') { removeCard(card); return; }
-                            const refs = renderSkeleton(card, data);
-                            bodyEl = refs.body; sourcesEl = refs.sources;
-                        } else if (event === 'delta' && bodyEl) {
-                            const atBottom = insightsAtBottom();
-                            answer += data.text || '';
-                            bodyEl.innerHTML = renderMarkdown(answer);
-                            if (atBottom) insightsContainer.scrollTop = insightsContainer.scrollHeight;
+                            sawMeta = true;
+                            if (data.type === 'none') { removeCard(job.card); return; }
+                            const refs = renderSkeleton(job.card, data);
+                            entry = { el: refs.body, text: '' };
+                            sourcesEl = refs.sources;
+                            rememberAnswered(data);
+                        } else if (event === 'delta' && entry) {
+                            entry.text += data.text || '';
+                            markAnswerDirty(entry);
                         } else if (event === 'sources' && sourcesEl) {
                             renderSources(sourcesEl, data.sources || []);
                         } else if (event === 'error') {
-                            throw new Error(data && data.message ? data.message : 'analysis error');
+                            throw new Error(data && data.message ? data.message : 'Analysis failed');
                         }
                     }
                 }
+                if (!sawMeta) throw new Error('Connection dropped mid-answer');
             } catch (err) {
                 console.error('ReVerb analyze error:', err);
-                removeCard(card);
+                if (err.name === 'AbortError') {
+                    renderCardError(job, 'Timed out');
+                } else if (err.retryable && job.attempt < 1) {
+                    // A shared office IP can trip the global limiter. Retry once, quietly.
+                    job.attempt++;
+                    setTimeout(() => { analyzeQueue.unshift(job); pumpAnalysis(); }, 4000);
+                } else {
+                    renderCardError(job, err.message || 'Analysis failed');
+                }
+            } finally {
+                clearTimeout(timeout);
             }
+        }
+
+        function rememberAnswered(meta) {
+            const label = meta.title || meta.question || meta.term;
+            if (!label) return;
+            answeredTitles.push(String(label).slice(0, 120));
+            if (answeredTitles.length > ANSWERED_MEMORY * 2) answeredTitles.splice(0, answeredTitles.length - ANSWERED_MEMORY);
+            persistTranscript();
         }
 
         // ---------- slow lane: topic tree + rolling summary ----------
@@ -524,11 +738,16 @@
 
         async function runState() {
             stateRunning = true;
+            const spent = charsSinceState;
             charsSinceState = 0;
+
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), STATE_TIMEOUT_MS);
             try {
                 const resp = await fetch(stateUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal,
                     body: JSON.stringify({ transcript: committedTranscript().slice(-STATE_CONTEXT_CHARS), session })
                 });
                 const data = await resp.json().catch(() => ({}));
@@ -539,9 +758,12 @@
                 }
                 meetingState = data;
                 renderMeetingState();
+                persistTranscript(true);
             } catch (err) {
                 console.error('ReVerb state error:', err);
+                charsSinceState += spent;     // don't lose the trigger because a call failed
             } finally {
+                clearTimeout(timeout);
                 stateRunning = false;
             }
         }
@@ -610,6 +832,16 @@
             return parts.join('\n').trim();
         }
 
+        function transcriptAsText() {
+            const parts = ['ReVerb transcript'];
+            if (session.objective) parts.push(`Objective: ${session.objective}`);
+            parts.push(`Exported: ${new Date().toLocaleString()}`, '');
+            const summary = summaryAsText();
+            if (summary) parts.push(summary, '', '—'.repeat(20), '');
+            parts.push(committedTranscript());
+            return parts.join('\n');
+        }
+
         // ---------- cards ----------
         function createAnalyzingCard(utterance) {
             placeholderCard.classList.add('hidden');
@@ -649,6 +881,30 @@
             return { body: card.querySelector('.reverb-answer'), sources: card.querySelector('.reverb-sources') };
         }
 
+        // A failed analysis used to vanish, which is indistinguishable from the AI deciding
+        // the utterance didn't matter. Now it says so, and offers the retry.
+        function renderCardError(job, message) {
+            job.card.classList.remove('opacity-75');
+            job.card.innerHTML = `
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-sm text-amber-600 dark:text-amber-400">${escapeHtmlText(message)}</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">"${escapeHtmlText(job.utterance)}"</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button data-act="retry" class="px-2.5 py-1 text-xs rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-google-green hover:text-google-green">Retry</button>
+                        <button data-act="dismiss" class="px-2 py-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">Dismiss</button>
+                    </div>
+                </div>`;
+            job.card.querySelector('[data-act="retry"]').addEventListener('click', () => {
+                job.attempt = 0;
+                job.card.innerHTML = `<div class="flex items-center space-x-3">${spinnerSvg}<span class="text-sm text-gray-500 dark:text-gray-400">Retrying…</span></div>`;
+                analyzeQueue.unshift(job);
+                pumpAnalysis();
+            });
+            job.card.querySelector('[data-act="dismiss"]').addEventListener('click', () => removeCard(job.card));
+        }
+
         function renderSources(el2, sources) {
             if (!sources.length) return;
             el2.innerHTML = '';
@@ -678,18 +934,39 @@
         // ---------- transcription: browser (free) ----------
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+        // Chrome ends a continuous session on its own — on silence, on a network blip, on a
+        // timer. The old restart called start() straight from onend, which throws
+        // InvalidStateError while the engine is still releasing; the throw escaped, the
+        // restart never happened, and the UI kept showing a healthy green light over a dead
+        // recognizer. That is the "it stopped in the middle" failure.
         class WebSpeechProvider {
             static get supported() { return Boolean(SpeechRecognition); }
             static label = 'Browser transcription';
 
             constructor() {
                 this.wantRunning = false;
-                this.recognition = new SpeechRecognition();
-                this.recognition.continuous = true;
-                this.recognition.interimResults = true;
-                this.recognition.lang = 'en-US';
+                this.running = false;
+                this.starting = false;
+                this.lastResultAt = 0;
+                this.watchdog = null;
+                this.build();
+            }
 
-                this.recognition.onresult = (event) => {
+            build() {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = () => {
+                    this.running = true;
+                    this.starting = false;
+                    this.lastResultAt = Date.now();
+                    if (this.wantRunning) setStatus('Listening…', 'live');
+                };
+
+                recognition.onresult = (event) => {
+                    this.lastResultAt = Date.now();
                     let interim = '', newFinal = '';
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         if (event.results[i].isFinal) newFinal += event.results[i][0].transcript + ' ';
@@ -698,16 +975,83 @@
                     if (newFinal) onFinalText(newFinal);
                     onInterimText(interim);
                 };
-                this.recognition.onend = () => { if (this.wantRunning) this.recognition.start(); };
-                this.recognition.onerror = (event) => {
-                    // Routine during a quiet meeting — don't tear the session down.
-                    if (event.error === 'no-speech' || event.error === 'aborted') return;
-                    errorEl.textContent = `Speech recognition error: ${event.error}`;
+
+                recognition.onend = () => {
+                    this.running = false;
+                    this.starting = false;
+                    if (!this.wantRunning) return;
+                    setTimeout(() => this.safeStart(), SPEECH_RESTART_MS);
                 };
+
+                recognition.onerror = (event) => {
+                    const kind = event.error;
+                    // Routine during a quiet meeting — don't tear the session down.
+                    if (kind === 'no-speech' || kind === 'aborted') return;
+                    if (kind === 'not-allowed' || kind === 'service-not-allowed') {
+                        this.wantRunning = false;
+                        errorEl.textContent = 'Microphone access was denied for speech recognition.';
+                        setStatus('Blocked', 'warn');
+                        return;
+                    }
+                    // 'network' and friends: onend follows, the watchdog gets us back up.
+                    errorEl.textContent = `Speech recognition hiccup (${kind}) — reconnecting…`;
+                    setStatus('Reconnecting…', 'warn');
+                };
+
+                this.recognition = recognition;
             }
 
-            async start() { this.wantRunning = true; this.recognition.start(); }
-            stop() { this.wantRunning = false; this.recognition.stop(); }
+            safeStart() {
+                if (!this.wantRunning || this.running || this.starting) return;
+                clearTimeout(this.retryTimer);
+                this.starting = true;
+                try {
+                    this.recognition.start();
+                } catch (err) {
+                    // The engine hasn't released yet — Chrome throws InvalidStateError here.
+                    // Retry promptly rather than waiting on the watchdog, so a bounce costs a
+                    // few hundred milliseconds of audio instead of a couple of seconds. What
+                    // must never happen is this escaping: a throw out of the old onend handler
+                    // is precisely what left a dead recognizer under a green "Listening" light.
+                    this.starting = false;
+                    this.retryTimer = setTimeout(() => this.safeStart(), SPEECH_RESTART_MS);
+                }
+            }
+
+            async start() {
+                this.wantRunning = true;
+                this.safeStart();
+                this.watchdog = setInterval(() => {
+                    if (!this.wantRunning) return;
+                    if (!this.running && !this.starting) { this.safeStart(); return; }
+                    // Claims to be running but has delivered nothing for a very long time:
+                    // bounce it. onend then brings it back.
+                    if (this.running && Date.now() - this.lastResultAt > SPEECH_STALL_MS) {
+                        this.lastResultAt = Date.now();
+                        try { this.recognition.abort(); } catch (err) { /* onend handles it */ }
+                    }
+                }, SPEECH_WATCHDOG_MS);
+            }
+
+            pause() {
+                this.wantRunning = false;
+                clearTimeout(this.retryTimer);
+                try { this.recognition.stop(); } catch (err) { /* already stopped */ }
+            }
+
+            resume() {
+                this.wantRunning = true;
+                this.lastResultAt = Date.now();
+                this.safeStart();
+            }
+
+            stop() {
+                this.wantRunning = false;
+                clearInterval(this.watchdog);
+                clearTimeout(this.retryTimer);
+                try { this.recognition.abort(); } catch (err) { /* already stopped */ }
+            }
+
             updateKeywords() { /* Web Speech has no biasing hook — that's why the paid path exists */ }
         }
 
@@ -742,15 +1086,72 @@ class PCMEncoder extends AudioWorkletProcessor {
 registerProcessor('pcm-encoder', PCMEncoder);
 `;
 
-        function toBase64(buffer) {
-            const bytes = new Uint8Array(buffer);
-            let binary = '';
-            const CHUNK = 0x8000;   // apply() blows the stack on very large arrays
-            for (let i = 0; i < bytes.length; i += CHUNK) {
-                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
-            }
-            return btoa(binary);
-        }
+        // Audio egress lives in a worker. Previously the main thread base64-encoded every
+        // chunk and wrote it to the socket, so a burst of markdown rendering in the insights
+        // pane delayed the mic stream. Now the main thread only re-transfers an ArrayBuffer
+        // (zero copy) and the worker owns the socket, the buffering and the reconnect.
+        // Frames go out as raw PCM16: no base64 in the browser, a third fewer bytes on the wire.
+        const AUDIO_WORKER_SOURCE = `
+let ws = null, url = '', hello = null;
+let paused = false, closing = false, attempt = 0, timer = null;
+const MAX_BUFFER = 200;
+const buffered = [];
+
+function sendJson(obj) { if (obj && ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+
+function connect() {
+    if (closing || (ws && (ws.readyState === 0 || ws.readyState === 1))) return;
+    ws = new WebSocket(url);
+    ws.binaryType = 'arraybuffer';
+    ws.onopen = function () {
+        attempt = 0;
+        sendJson(hello);
+        if (paused) sendJson({ type: 'pause' });
+        self.postMessage({ type: 'link', state: 'open' });
+        while (buffered.length && ws.readyState === 1) ws.send(buffered.shift());
+    };
+    ws.onmessage = function (e) {
+        try { self.postMessage({ type: 'server', payload: JSON.parse(e.data) }); } catch (err) { /* ignore */ }
+    };
+    ws.onclose = function () { ws = null; if (!closing) schedule(); };
+    ws.onerror = function () { /* close follows */ };
+}
+
+function schedule() {
+    if (timer || closing) return;
+    attempt += 1;
+    if (attempt > 12) { self.postMessage({ type: 'link', state: 'failed' }); return; }
+    self.postMessage({ type: 'link', state: 'reconnecting', attempt: attempt });
+    const delay = Math.min(600 * Math.pow(2, attempt - 1), 8000);
+    timer = setTimeout(function () { timer = null; connect(); }, delay);
+}
+
+self.onmessage = function (e) {
+    const m = e.data;
+    if (m.type === 'init') { url = m.url; hello = m.hello; connect(); return; }
+    if (m.type === 'audio') {
+        if (paused) return;
+        if (ws && ws.readyState === 1) { ws.send(m.buffer); return; }
+        buffered.push(m.buffer);
+        while (buffered.length > MAX_BUFFER) buffered.shift();
+        connect();
+        return;
+    }
+    if (m.type === 'keywords') {
+        if (hello) hello.keywords = m.keywords;
+        sendJson({ type: 'keywords', keywords: m.keywords });
+        return;
+    }
+    if (m.type === 'pause') { paused = true; buffered.length = 0; sendJson({ type: 'pause' }); return; }
+    if (m.type === 'resume') { paused = false; sendJson({ type: 'resume' }); if (!ws) connect(); return; }
+    if (m.type === 'close') {
+        closing = true;
+        if (timer) { clearTimeout(timer); timer = null; }
+        if (ws) { try { ws.close(); } catch (err) { /* ignore */ } ws = null; }
+        self.postMessage({ type: 'closed' });
+    }
+};
+`;
 
         class RealtimeProvider {
             static label = 'High accuracy';
@@ -760,27 +1161,47 @@ registerProcessor('pcm-encoder', PCMEncoder);
                 this.partials = new Map();
             }
 
+            hello() {
+                const meetingLabel = ($('setup-type').selectedOptions[0] || {}).text || 'meeting';
+                return {
+                    type: 'start',
+                    prompt: `A ${meetingLabel}.${session.objective ? ' Objective: ' + session.objective : ''}`,
+                    keywords: session.keywords,
+                    languages: ['en'],
+                };
+            }
+
             async start() {
-                this.ws = new WebSocket(wsUrl);
-                this.ws.addEventListener('open', () => {
-                    const meetingLabel = ($('setup-type').selectedOptions[0] || {}).text || 'meeting';
-                    this.ws.send(JSON.stringify({
-                        type: 'start',
-                        prompt: `A ${meetingLabel}.${session.objective ? ' Objective: ' + session.objective : ''}`,
-                        keywords: session.keywords,
-                        languages: ['en'],
-                    }));
-                });
-                this.ws.addEventListener('message', (e) => this.handle(JSON.parse(e.data)));
-                this.ws.addEventListener('error', () => { errorEl.textContent = 'Lost connection to the transcription service.'; });
-                this.running = true;
+                this.workerUrl = URL.createObjectURL(new Blob([AUDIO_WORKER_SOURCE], { type: 'application/javascript' }));
+                this.worker = new Worker(this.workerUrl);
+                this.worker.onmessage = (e) => this.onWorker(e.data);
+                this.worker.postMessage({ type: 'init', url: wsUrl, hello: this.hello() });
                 await this.startCapture();
+            }
+
+            onWorker(msg) {
+                if (msg.type === 'server') { this.handle(msg.payload); return; }
+                if (msg.type === 'link') {
+                    if (msg.state === 'open') { errorEl.textContent = ''; }
+                    else if (msg.state === 'reconnecting') { setStatus('Reconnecting…', 'warn'); }
+                    else if (msg.state === 'failed') {
+                        errorEl.textContent = 'Lost the transcription connection. Stop and start the session to reconnect.';
+                        setStatus('Disconnected', 'warn');
+                    }
+                }
             }
 
             handle(msg) {
                 switch (msg.type) {
                     case 'ready':
-                        statusEl.textContent = 'Listening…';
+                        this.partials.clear();
+                        if (!isPaused) setStatus('Listening…', 'live');
+                        errorEl.textContent = '';
+                        break;
+                    case 'reconnecting':
+                        setStatus('Reconnecting…', 'warn');
+                        break;
+                    case 'paused':
                         break;
                     case 'partial_transcript':
                         this.partials.set(msg.itemId, msg.text);
@@ -789,7 +1210,7 @@ registerProcessor('pcm-encoder', PCMEncoder);
                     case 'final_transcript':
                         this.partials.delete(msg.itemId);
                         onInterimText([...this.partials.values()].join(' '));
-                        onFinalText(msg.text);
+                        onFinalText(msg.text, { low: Boolean(msg.lowConfidence) });
                         break;
                     case 'error':
                         errorEl.textContent = msg.message || 'Transcription error.';
@@ -798,9 +1219,7 @@ registerProcessor('pcm-encoder', PCMEncoder);
             }
 
             updateKeywords(keywords) {
-                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                    this.ws.send(JSON.stringify({ type: 'keywords', keywords }));
-                }
+                if (this.worker) this.worker.postMessage({ type: 'keywords', keywords });
             }
 
             async startCapture() {
@@ -812,9 +1231,8 @@ registerProcessor('pcm-encoder', PCMEncoder);
                 const source = this.audioContext.createMediaStreamSource(this.stream);
                 this.encoder = new AudioWorkletNode(this.audioContext, 'pcm-encoder');
                 this.encoder.port.onmessage = (e) => {
-                    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                        this.ws.send(JSON.stringify({ type: 'audio', audio: toBase64(e.data) }));
-                    }
+                    // Re-transfer straight through: no encoding, no allocation on this thread.
+                    this.worker.postMessage({ type: 'audio', buffer: e.data }, [e.data]);
                 };
 
                 // A worklet only runs while connected to the destination, but routing the mic
@@ -826,11 +1244,24 @@ registerProcessor('pcm-encoder', PCMEncoder);
                 mute.connect(this.audioContext.destination);
             }
 
+            pause() {
+                this.partials.clear();
+                // Closing the upstream is the point: a break costs nothing while paused.
+                if (this.worker) this.worker.postMessage({ type: 'pause' });
+            }
+
+            resume() {
+                if (this.worker) this.worker.postMessage({ type: 'resume' });
+            }
+
             stop() {
-                this.running = false;
-                if (this.encoder) this.encoder.port.close();
-                if (this.audioContext) this.audioContext.close();
-                if (this.ws && this.ws.readyState === WebSocket.OPEN) this.ws.close();
+                if (this.worker) {
+                    this.worker.postMessage({ type: 'close' });
+                    setTimeout(() => { this.worker.terminate(); this.worker = null; }, 250);
+                }
+                if (this.workerUrl) { URL.revokeObjectURL(this.workerUrl); this.workerUrl = null; }
+                if (this.encoder) { this.encoder.port.onmessage = null; this.encoder.disconnect(); }
+                if (this.audioContext) this.audioContext.close().catch(() => {});
             }
         }
 
@@ -849,18 +1280,20 @@ registerProcessor('pcm-encoder', PCMEncoder);
         const fileStamp = () => new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
 
         class DiskRecorder {
-            constructor() { this.chunks = []; this.writeChain = Promise.resolve(); }
+            constructor() { this.chunks = []; this.writeChain = Promise.resolve(); this.result = null; }
 
             async start(stream) {
                 this.format = pickAudioFormat();
+                this.filename = `reverb-${fileStamp()}.${this.format.ext}`;
                 this.streaming = typeof window.showSaveFilePicker === 'function';
 
                 if (this.streaming) {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: `reverb-${fileStamp()}.${this.format.ext}`,
+                    this.handle = await window.showSaveFilePicker({
+                        suggestedName: this.filename,
                         types: [{ description: 'Audio', accept: { [this.format.accept]: ['.' + this.format.ext] } }],
                     });
-                    this.writable = await handle.createWritable();
+                    this.filename = this.handle.name || this.filename;
+                    this.writable = await this.handle.createWritable();
                 }
 
                 this.recorder = new MediaRecorder(stream, this.format.mimeType ? { mimeType: this.format.mimeType } : undefined);
@@ -874,44 +1307,115 @@ registerProcessor('pcm-encoder', PCMEncoder);
                     }
                 };
                 this.recorder.start(3000);   // flush to disk every 3s
-                return { streaming: this.streaming };
+                return { streaming: this.streaming, name: this.filename };
             }
 
+            // Pausing the recorder rather than stopping it keeps one continuous file with the
+            // break removed, so a mid-meeting pause doesn't leave you with two half-recordings.
+            pause() { if (this.recorder && this.recorder.state === 'recording') this.recorder.pause(); }
+            resume() { if (this.recorder && this.recorder.state === 'paused') this.recorder.resume(); }
+
             async stop() {
-                if (!this.recorder) return;
-                await new Promise(resolve => {
-                    this.recorder.addEventListener('stop', resolve, { once: true });
-                    this.recorder.stop();
-                });
+                if (!this.recorder) return null;
+                if (this.recorder.state !== 'inactive') {
+                    await new Promise(resolve => {
+                        this.recorder.addEventListener('stop', resolve, { once: true });
+                        if (this.recorder.state === 'paused') this.recorder.resume();
+                        this.recorder.stop();
+                    });
+                }
+
                 if (this.streaming) {
                     await this.writeChain;
                     await this.writable.close();
-                    return;
+                    // The browser will not disclose where the user put it, but it will hand
+                    // the file back — which is enough to offer a link to it.
+                    const file = await this.handle.getFile();
+                    this.result = { name: this.handle.name, url: URL.createObjectURL(file), size: file.size, streamed: true };
+                } else {
+                    const blob = new Blob(this.chunks, { type: this.format.accept });
+                    this.result = { name: this.filename, url: URL.createObjectURL(blob), size: blob.size, streamed: false };
+                    downloadBlob(blob, this.filename);
                 }
-                const blob = new Blob(this.chunks, { type: this.format.accept });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `reverb-${fileStamp()}.${this.format.ext}`;
-                link.click();
-                URL.revokeObjectURL(url);
+                return this.result;
             }
         }
 
-        // ---------- session lifecycle ----------
+        // ---------- persistence ----------
         function persistSession() {
-            try { localStorage.setItem('reverb.session', JSON.stringify(session)); } catch { /* private mode */ }
+            try { localStorage.setItem('reverb.session', JSON.stringify(session)); } catch (err) { /* private mode */ }
         }
-        function restoreSession() {
-            try { Object.assign(session, JSON.parse(localStorage.getItem('reverb.session') || '{}')); } catch { /* ignore */ }
+        function restoreSessionBrief() {
+            try { Object.assign(session, JSON.parse(localStorage.getItem('reverb.session') || '{}')); } catch (err) { /* ignore */ }
         }
 
+        let persistTimer = null;
+        function persistTranscript(immediate) {
+            if (persistTimer) { clearTimeout(persistTimer); persistTimer = null; }
+            if (!immediate) { persistTimer = setTimeout(() => persistTranscript(true), PERSIST_DEBOUNCE_MS); return; }
+            if (!segments.length) return;
+            try {
+                let kept = segments;
+                let total = 0;
+                for (let i = segments.length - 1; i >= 0; i--) {
+                    total += segments[i].text.length;
+                    if (total > MAX_PERSIST_CHARS) { kept = segments.slice(i + 1); break; }
+                }
+                localStorage.setItem(STORE_KEY, JSON.stringify({
+                    savedAt: Date.now(),
+                    startedAt,
+                    brief: { objective: session.objective, type: session.type, keywords: session.keywords },
+                    segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low })),
+                    meetingState,
+                    answered: answeredTitles.slice(-ANSWERED_MEMORY),
+                }));
+            } catch (err) { /* quota or private mode — the session still runs */ }
+        }
+
+        function readSaved() {
+            try {
+                const raw = localStorage.getItem(STORE_KEY);
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                return data && Array.isArray(data.segments) && data.segments.length ? data : null;
+            } catch (err) { return null; }
+        }
+
+        function clearSaved() {
+            try { localStorage.removeItem(STORE_KEY); } catch (err) { /* ignore */ }
+        }
+
+        function restoreSaved(data) {
+            Object.assign(session, data.brief || {});
+            startedAt = data.startedAt || null;
+            segments.length = 0;
+            segmentSeq = 0;
+            segmentsEl.replaceChildren();
+            for (const s of data.segments) {
+                const segment = { id: `seg-${segmentSeq++}`, text: s.text, edited: Boolean(s.edited), low: Boolean(s.low) };
+                segments.push(segment);
+                segmentsEl.append(renderSegment(segment), document.createTextNode(' '));
+            }
+            answeredTitles.length = 0;
+            if (Array.isArray(data.answered)) answeredTitles.push(...data.answered);
+            meetingState = data.meetingState || null;
+            stateObjective.textContent = session.objective || 'No objective set';
+            if (meetingState) renderMeetingState();
+            else if (session.objective) stateBar.classList.remove('hidden');
+            charsSinceState = 0;
+            markResumeSeam = true;
+            scrollTranscript();
+            reflectSessionButtons();
+        }
+
+        // ---------- session lifecycle ----------
         function openSetup() {
             $('setup-objective').value = session.objective;
             $('setup-type').value = session.type;
             $('setup-keywords').value = session.keywords.join(', ');
             $('setup-accurate').checked = session.accurate;
             $('setup-record').checked = session.record;
+            $('setup-start').textContent = segments.length ? 'Continue session' : 'Start session';
 
             if (!WebSpeechProvider.supported) {
                 $('setup-accurate').checked = true;
@@ -933,7 +1437,8 @@ registerProcessor('pcm-encoder', PCMEncoder);
         async function beginSession() {
             session.objective = $('setup-objective').value.trim();
             session.type = $('setup-type').value;
-            session.keywords = $('setup-keywords').value.split(',').map(k => k.trim()).filter(Boolean);
+            const typed = $('setup-keywords').value.split(',').map(k => k.trim()).filter(Boolean);
+            session.keywords = [...new Set(typed)];
             session.accurate = $('setup-accurate').checked;
             session.record = $('setup-record').checked;
             persistSession();
@@ -941,13 +1446,30 @@ registerProcessor('pcm-encoder', PCMEncoder);
             await startListening();
         }
 
+        function reflectSessionButtons() {
+            const resuming = segments.length > 0 && !isListening;
+            startBtn.textContent = resuming ? 'Continue Session' : 'Start Listening';
+            briefBtn.classList.toggle('hidden', !resuming);
+        }
+
         async function startListening() {
             if (isListening) return;
             errorEl.textContent = '';
+            sessionEnd.classList.add('hidden');
+            restoreBar.classList.add('hidden');
 
             try {
                 if (session.accurate || session.record) {
-                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    // Explicit constraints rather than whatever the browser defaults to: mono
+                    // at the rate the encoder wants, with the processing chain a room mic needs.
+                    micStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            channelCount: 1,
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                        },
+                    });
                 }
                 if (session.record) {
                     recorder = new DiskRecorder();
@@ -967,38 +1489,81 @@ registerProcessor('pcm-encoder', PCMEncoder);
                 await provider.start();
 
                 isListening = true;
+                isPaused = false;
+                if (!startedAt) startedAt = Date.now();
                 pendingUtterance = '';
+                pendingLow = false;
                 modeBadge.textContent = provider.constructor.label;
                 modeBadge.classList.remove('hidden');
 
                 stateObjective.textContent = session.objective || 'No objective set';
-                if (session.objective) stateBar.classList.remove('hidden');
+                if (session.objective || meetingState) stateBar.classList.remove('hidden');
 
                 stateTimer = setInterval(() => maybeRunState(true), STATE_INTERVAL_MS);
 
                 startBtn.classList.add('hidden');
+                briefBtn.classList.add('hidden');
                 stopBtn.classList.remove('hidden');
-                statusLight.classList.remove('bg-gray-400');
-                statusLight.classList.add('bg-green-500', 'animate-pulse');
-                statusEl.textContent = 'Listening…';
+                pauseBtn.classList.remove('hidden');
+                pauseBtn.textContent = 'Pause';
+                setStatus('Listening…', 'live');
             } catch (err) {
                 console.error('ReVerb start error:', err);
                 errorEl.textContent = err.name === 'AbortError'
                     ? 'Cancelled — no file chosen for the recording.'
                     : `Could not start: ${err.message}`;
-                await stopListening();
+                await stopListening({ silent: true });
             }
         }
 
-        async function stopListening() {
+        // Pause keeps every bit of state — segments, keywords learned so far, the topic tree,
+        // the recording file. Only capture stops.
+        function pauseSession() {
+            if (!isListening || isPaused) return;
+            isPaused = true;
+
+            absorbInterim();
+            flushUtterance();              // don't strand half a sentence across the break
+            interimEl.textContent = '';
+
+            if (provider && provider.pause) provider.pause();
+            if (recorder) recorder.pause();
+
+            pauseBtn.textContent = 'Resume';
+            recordingDot.classList.remove('animate-pulse');
+            recordingLabel.textContent = 'PAUSED';
+            setStatus('Paused', 'paused');
+            persistTranscript(true);
+        }
+
+        function resumeSession() {
+            if (!isListening || !isPaused) return;
+            isPaused = false;
+            markResumeSeam = true;
+
+            if (recorder) recorder.resume();
+            if (provider && provider.resume) provider.resume();
+
+            pauseBtn.textContent = 'Pause';
+            recordingDot.classList.add('animate-pulse');
+            recordingLabel.textContent = 'REC';
+            setStatus('Listening…', 'live');
+        }
+
+        async function stopListening(opts) {
+            const wasListening = isListening;
             isListening = false;
+            isPaused = false;
             clearInterval(stateTimer);
+
+            absorbInterim();
             flushUtterance();                // don't lose a trailing question
 
             if (provider) { provider.stop(); provider = null; }
 
+            let audio = null;
             if (recorder) {
-                try { await recorder.stop(); }
+                try { audio = await recorder.stop(); }
                 catch (err) { errorEl.textContent = `Recording could not be finalised: ${err.message}`; }
                 recorder = null;
             }
@@ -1006,23 +1571,94 @@ registerProcessor('pcm-encoder', PCMEncoder);
 
             recordingBadge.classList.add('hidden');
             recordingBadge.classList.remove('flex');
+            recordingDot.classList.add('animate-pulse');
+            recordingLabel.textContent = 'REC';
             interimEl.textContent = '';
 
             stopBtn.classList.add('hidden');
+            pauseBtn.classList.add('hidden');
             startBtn.classList.remove('hidden');
-            statusLight.classList.remove('bg-green-500', 'animate-pulse');
-            statusLight.classList.add('bg-gray-400');
-            statusEl.textContent = 'Not Listening';
+            setStatus('Not Listening', 'idle');
+            reflectSessionButtons();
+
+            persistTranscript(true);
 
             // A closing pass so the summary reflects the whole meeting.
             if (segments.length) runState();
+
+            if (wasListening && !(opts && opts.silent)) showSessionEnd(audio);
+        }
+
+        // ---------- end-of-session panel ----------
+        function releaseLastAudio() {
+            if (lastAudio && lastAudio.url) URL.revokeObjectURL(lastAudio.url);
+            lastAudio = null;
+        }
+
+        function showSessionEnd(audio) {
+            releaseLastAudio();
+            lastAudio = audio || null;
+
+            const minutes = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null;
+            endMeta.textContent = [
+                `${segments.length} transcript segment${segments.length === 1 ? '' : 's'}`,
+                minutes ? `${minutes} min` : null,
+                session.record
+                    ? 'Continue session keeps the full context, but starts a new recording file — use Pause for a break.'
+                    : 'Nothing is lost — Continue session picks up with the full context.',
+            ].filter(Boolean).join(' · ');
+
+            endAudio.replaceChildren();
+            if (audio && audio.url) {
+                const link = document.createElement('a');
+                link.href = audio.url;
+                link.download = audio.name;
+                link.className = 'text-google-green underline break-all';
+                link.textContent = audio.name;
+
+                const row = el('div', 'text-gray-600 dark:text-gray-400');
+                row.append(
+                    el('span', '', 'Recording: '),
+                    link,
+                    el('span', 'text-xs text-gray-400 dark:text-gray-500', ` (${formatBytes(audio.size)})`)
+                );
+                endAudio.append(row);
+                endAudio.append(el('p', 'text-xs text-gray-400 dark:text-gray-500 mt-1',
+                    audio.streamed
+                        ? 'Saved where you chose at the start. Browsers don’t reveal the folder — use the link above to open or re-save it. It stays available until you reload this page.'
+                        : 'Downloaded to your browser’s downloads folder. Use the link above to save another copy.'));
+            } else if (session.record) {
+                endAudio.append(el('p', 'text-sm text-amber-600 dark:text-amber-400', 'The recording could not be finalised.'));
+            }
+
+            sessionEnd.classList.remove('hidden');
         }
 
         // ---------- wiring ----------
-        startBtn.addEventListener('click', openSetup);
-        stopBtn.addEventListener('click', stopListening);
+        startBtn.addEventListener('click', () => {
+            // The brief is already set for a session in progress — continuing shouldn't
+            // make you walk back through the modal.
+            if (segments.length) startListening();
+            else openSetup();
+        });
+        briefBtn.addEventListener('click', openSetup);
+        pauseBtn.addEventListener('click', () => (isPaused ? resumeSession() : pauseSession()));
+        stopBtn.addEventListener('click', () => stopListening());
         $('setup-cancel').addEventListener('click', closeSetup);
         $('setup-start').addEventListener('click', beginSession);
+
+        $('end-continue').addEventListener('click', () => { sessionEnd.classList.add('hidden'); startListening(); });
+        $('end-dismiss').addEventListener('click', () => sessionEnd.classList.add('hidden'));
+        $('end-transcript').addEventListener('click', () => {
+            downloadBlob(new Blob([transcriptAsText()], { type: 'text/plain' }), `reverb-transcript-${fileStamp()}.txt`);
+        });
+
+        $('restore-yes').addEventListener('click', () => {
+            const data = readSaved();
+            if (data) restoreSaved(data);
+            restoreBar.classList.add('hidden');
+        });
+        $('restore-no').addEventListener('click', () => { clearSaved(); restoreBar.classList.add('hidden'); });
 
         $('state-toggle').addEventListener('click', () => {
             const hidden = stateBody.classList.toggle('hidden');
@@ -1048,7 +1684,23 @@ registerProcessor('pcm-encoder', PCMEncoder);
             e.returnValue = '';
         });
 
-        restoreSession();
+        // beforeunload doesn't fire reliably on mobile or on a tab discard; pagehide does.
+        window.addEventListener('pagehide', () => persistTranscript(true));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') persistTranscript(true);
+        });
+
+        restoreSessionBrief();
+        reflectSessionButtons();
+
+        const saved = readSaved();
+        if (saved) {
+            const when = new Date(saved.savedAt).toLocaleString();
+            const words = saved.segments.reduce((n, s) => n + s.text.length, 0);
+            restoreDetail.textContent = `An unfinished session from ${when} is still here (${saved.segments.length} segments, ~${Math.round(words / 5)} words).`;
+            restoreBar.classList.remove('hidden');
+        }
+
         if (!WebSpeechProvider.supported) {
             errorEl.textContent = 'This browser has no built-in speech recognition — start a session with high-accuracy transcription enabled.';
         }
