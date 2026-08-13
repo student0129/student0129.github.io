@@ -68,6 +68,9 @@
         .segment.low-conf { border-bottom: 1px dashed #d97706; opacity: .8; }
         .dark .segment.low-conf { border-bottom-color: #f59e0b; }
 
+        /* A session without an objective still belongs in the bar — it just says so quietly. */
+        #state-objective[data-empty="true"] { font-style: italic; opacity: .55; }
+
         /* A visible seam where the session was paused. */
         .resume-mark {
             display: inline-block;
@@ -220,7 +223,7 @@
         <button id="state-toggle" class="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
             <div class="flex items-center space-x-3 min-w-0">
                 <span class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 flex-shrink-0">Objective</span>
-                <span id="state-objective" class="text-sm text-gray-700 dark:text-gray-300 truncate"></span>
+                <span id="state-objective" class="text-sm text-gray-700 dark:text-gray-300 truncate" data-empty="false"></span>
             </div>
             <div class="flex items-center space-x-3 flex-shrink-0 ml-4">
                 <span id="state-updated" class="text-xs text-gray-400 dark:text-gray-500"></span>
@@ -391,6 +394,13 @@
         }
 
         const formatBytes = (n) => n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`;
+
+        function setStateObjective() {
+            const empty = !session.objective;
+            stateObjective.textContent = empty ? 'No objective set' : session.objective;
+            stateObjective.dataset.empty = String(empty);
+            stateObjective.title = empty ? 'Set one in the brief to sharpen both transcription and analysis' : session.objective;
+        }
 
         // Minimal, safe markdown -> HTML (escapes first, then formats a useful subset).
         function renderMarkdown(src) {
@@ -1399,9 +1409,9 @@ self.onmessage = function (e) {
             answeredTitles.length = 0;
             if (Array.isArray(data.answered)) answeredTitles.push(...data.answered);
             meetingState = data.meetingState || null;
-            stateObjective.textContent = session.objective || 'No objective set';
+            setStateObjective();
+            stateBar.classList.remove('hidden');
             if (meetingState) renderMeetingState();
-            else if (session.objective) stateBar.classList.remove('hidden');
             charsSinceState = 0;
             markResumeSeam = true;
             scrollTranscript();
@@ -1496,8 +1506,11 @@ self.onmessage = function (e) {
                 modeBadge.textContent = provider.constructor.label;
                 modeBadge.classList.remove('hidden');
 
-                stateObjective.textContent = session.objective || 'No objective set';
-                if (session.objective || meetingState) stateBar.classList.remove('hidden');
+                // The bar carries the topic tree and the rolling summary, not just the
+                // objective — so a session without one still needs it. It used to stay
+                // hidden until the first state update landed, which is minutes in.
+                setStateObjective();
+                stateBar.classList.remove('hidden');
 
                 stateTimer = setInterval(() => maybeRunState(true), STATE_INTERVAL_MS);
 
