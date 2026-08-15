@@ -2,15 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- jsdelivr serves both the KaTeX script and its font files, so it appears in
+         script-src, style-src and font-src. blob: in img-src is for jsPDF's canvas work. -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        base-uri 'self';
+        object-src 'none';
+        form-action 'self';
+        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;
+        font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com;
+        img-src 'self' data: blob:;
+        connect-src 'self' https://api-promontory.onrender.com;
+    ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Light only. Keeps native controls in step with the page on a dark-mode OS. -->
+    <meta name="color-scheme" content="light">
     <title>PRO Analysis Assistant</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMVIUpQkbg9oG8BI2EEpKAoT2EVK/zhTwEjMAeA/Hw9EVqUUB" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
     <style>
         /* General Styles & Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
+
+        :root { color-scheme: light; }
+
         :root {
             --color-primary: #4f46e5;
             --color-primary-light: #e0e7ff;
@@ -176,18 +193,18 @@
                     <p class="text-light">Describe three distinct, plausible stories for how the future could unfold.</p>
                     <div class="narrative-grid">
                         <div class="card">
-                            <h3>Pessimistic (P10)</h3>
-                            <textarea id="narrative-p10" data-field="narratives.p10" placeholder="Describe the P10 scenario..."></textarea>
+                            <h3 id="narrative-p10-label">Pessimistic (P10)</h3>
+                            <textarea id="narrative-p10" aria-labelledby="narrative-p10-label" data-field="narratives.p10" placeholder="Describe the P10 scenario..."></textarea>
                             <button class="btn-ai-assist" data-ai="narrative_p10" data-target="narrative-p10">✨ AI Narrative Assistant</button>
                         </div>
                         <div class="card">
-                            <h3>Most Likely (P50)</h3>
-                            <textarea id="narrative-p50" data-field="narratives.p50" placeholder="Describe the P50 scenario..."></textarea>
+                            <h3 id="narrative-p50-label">Most Likely (P50)</h3>
+                            <textarea id="narrative-p50" aria-labelledby="narrative-p50-label" data-field="narratives.p50" placeholder="Describe the P50 scenario..."></textarea>
                             <button class="btn-ai-assist" data-ai="narrative_p50" data-target="narrative-p50">✨ AI Narrative Assistant</button>
                         </div>
                         <div class="card">
-                            <h3>Optimistic (P90)</h3>
-                            <textarea id="narrative-p90" data-field="narratives.p90" placeholder="Describe the P90 scenario..."></textarea>
+                            <h3 id="narrative-p90-label">Optimistic (P90)</h3>
+                            <textarea id="narrative-p90" aria-labelledby="narrative-p90-label" data-field="narratives.p90" placeholder="Describe the P90 scenario..."></textarea>
                             <button class="btn-ai-assist" data-ai="narrative_p90" data-target="narrative-p90">✨ AI Narrative Assistant</button>
                         </div>
                     </div>
@@ -199,20 +216,20 @@
                     <p class="text-light">Assign a numerical value (e.g., NPV) to each narrative.</p>
                     <div class="quantify-grid">
                         <div class="card">
-                            <h3>P10 Value</h3>
-                            <input type="text" id="quantification-p10" data-field="quantifications.p10" placeholder="e.g., -$2M">
+                            <h3 id="quantification-p10-label">P10 Value</h3>
+                            <input type="text" id="quantification-p10" aria-labelledby="quantification-p10-label" data-field="quantifications.p10" placeholder="e.g., -$2M">
                             <div class="narrative-preview" id="quantify-preview-p10"></div>
                              <button class="btn-ai-assist" data-ai="quantify_p10" data-target="quantification-p10">🤖 AI Quantify Assist</button>
                         </div>
                         <div class="card">
-                            <h3>P50 Value</h3>
-                            <input type="text" id="quantification-p50" data-field="quantifications.p50" placeholder="e.g., $4M">
+                            <h3 id="quantification-p50-label">P50 Value</h3>
+                            <input type="text" id="quantification-p50" aria-labelledby="quantification-p50-label" data-field="quantifications.p50" placeholder="e.g., $4M">
                             <div class="narrative-preview" id="quantify-preview-p50"></div>
                              <button class="btn-ai-assist" data-ai="quantify_p50" data-target="quantification-p50">🤖 AI Quantify Assist</button>
                         </div>
                         <div class="card">
-                            <h3>P90 Value</h3>
-                            <input type="text" id="quantification-p90" data-field="quantifications.p90" placeholder="e.g., $12M">
+                            <h3 id="quantification-p90-label">P90 Value</h3>
+                            <input type="text" id="quantification-p90" aria-labelledby="quantification-p90-label" data-field="quantifications.p90" placeholder="e.g., $12M">
                             <div class="narrative-preview" id="quantify-preview-p90"></div>
                              <button class="btn-ai-assist" data-ai="quantify_p90" data-target="quantification-p90">🤖 AI Quantify Assist</button>
                         </div>
@@ -225,12 +242,12 @@
                     <p class="text-light">Share the narratives and numbers to gather feedback, discuss assumptions, and build alignment.</p>
                     <div id="summary-display-4"></div>
                     <div style="margin-top: 2rem;">
-                        <h3 class="form-label">Discussion & Validation Notes</h3>
+                        <h3 id="validationNotes-label" class="form-label">Discussion & Validation Notes</h3>
                         <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
                             <button class="btn-secondary btn-utility" data-ai="validation_points" data-target="validationNotes">💡 AI: Generate Discussion Points</button>
                             <button class="btn-secondary btn-utility" data-ai="devil_advocate" data-target="validationNotes" style="background-color: #fecaca; color: #991b1b;">😈 AI: Devil's Advocate</button>
                         </div>
-                        <textarea id="validationNotes" data-field="validationNotes" placeholder="Capture feedback, disagreements, and adjustments from stakeholders here..."></textarea>
+                        <textarea id="validationNotes" aria-labelledby="validationNotes-label" data-field="validationNotes" placeholder="Capture feedback, disagreements, and adjustments from stakeholders here..."></textarea>
                     </div>
                 </div>
 
@@ -240,12 +257,12 @@
                     <p class="text-light">Use the three-point distribution to inform prioritization and strategic decisions.</p>
                     <div id="summary-display-5"></div>
                     <div style="margin-top: 2rem;">
-                        <h3 class="form-label">Portfolio Evaluation Notes</h3>
+                        <h3 id="portfolioNotes-label" class="form-label">Portfolio Evaluation Notes</h3>
                          <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
                             <button class="btn-secondary btn-utility" data-ai="portfolio_analysis" data-target="portfolioNotes">📊 AI: Portfolio Analysis</button>
                             <button class="btn-secondary btn-utility" data-ai="critical_assessment" data-target="portfolioNotes" style="background-color: #fed7aa; color: #9a3412;">🧐 AI: Critical Assessment</button>
                         </div>
-                        <textarea id="portfolioNotes" data-field="portfolioNotes" placeholder="Add final notes on how this item compares to others and its role in the overall portfolio..."></textarea>
+                        <textarea id="portfolioNotes" aria-labelledby="portfolioNotes-label" data-field="portfolioNotes" placeholder="Add final notes on how this item compares to others and its role in the overall portfolio..."></textarea>
                     </div>
                 </div>
                 
@@ -294,13 +311,13 @@
             <h3 id="chat-modal-title">AI Assistant</h3>
             <div id="chat-modal-body" class="chat-modal-body"></div>
             <div class="chat-modal-footer">
-                <input type="text" id="chat-input" placeholder="Type your response..." style="flex-grow:1;">
+                <input type="text" id="chat-input" aria-label="Your message to the AI assistant" placeholder="Type your response..." style="flex-grow:1;">
                 <button id="chat-send-btn" class="btn-primary">Send</button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- STATE MANAGEMENT ---
@@ -400,7 +417,11 @@
                     document.getElementById('quantify-preview-p90').textContent = proItem.narratives.p90 || 'No narrative written yet.';
                 }
                 if (currentStep === 4 || currentStep === 5) {
-                    const summaryHTML = `<div class="card" style="background-color: white;"><h3>Summary of PRO Item</h3><p><strong>Decision:</strong> ${proItem.decision || 'Not defined'}</p><div class="quantify-grid"><div class="card"><h3>P10</h3><p><strong>${proItem.quantifications.p10 || 'N/A'}</strong></p><small>${proItem.narratives.p10 || ''}</small></div><div class="card"><h3>P50</h3><p><strong>${proItem.quantifications.p50 || 'N/A'}</strong></p><small>${proItem.narratives.p50 || ''}</small></div><div class="card"><h3>P90</h3><p><strong>${proItem.quantifications.p90 || 'N/A'}</strong></p><small>${proItem.narratives.p90 || ''}</small></div></div></div>`;
+                    // These fields carry AI assistant output (see the [data-ai] handler),
+                    // so they get the same escaping as every other model-fed sink here.
+                    const band = (label, q, n) =>
+                        `<div class="card"><h3>${label}</h3><p><strong>${escapeHtml(q || 'N/A')}</strong></p><small>${escapeHtml(n || '')}</small></div>`;
+                    const summaryHTML = `<div class="card" style="background-color: white;"><h3>Summary of PRO Item</h3><p><strong>Decision:</strong> ${escapeHtml(proItem.decision || 'Not defined')}</p><div class="quantify-grid">${band('P10', proItem.quantifications.p10, proItem.narratives.p10)}${band('P50', proItem.quantifications.p50, proItem.narratives.p50)}${band('P90', proItem.quantifications.p90, proItem.narratives.p90)}</div></div>`;
                     if (currentStep === 4) document.getElementById('summary-display-4').innerHTML = summaryHTML;
                     if (currentStep === 5) document.getElementById('summary-display-5').innerHTML = summaryHTML;
                 }

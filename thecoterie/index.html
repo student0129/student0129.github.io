@@ -2,7 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- No third-party scripts on this page; the only external origins are the font CDN
+         and the nomination API. -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        base-uri 'self';
+        object-src 'none';
+        form-action 'self';
+        script-src 'self' 'unsafe-inline';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data:;
+        connect-src 'self' https://api-promontory.onrender.com;
+    ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Dark by design. Keeps native controls in step with the page on a light-mode OS. -->
+    <meta name="color-scheme" content="dark">
     <meta name="description" content="The Coterie by Promontory AI: An exclusive, invite-only peer community for senior Data, Analytics, and AI leaders in the Washington D.C. Metro Area.">
     <title>The Coterie | Where analytics and AI leaders navigate what's next</title>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
@@ -25,6 +40,7 @@
    CSS VARIABLES
    ======================================== */
 :root {
+    color-scheme: dark;
     --primary-color: #ffffff;
     --primary-dark: #cccccc;
     --primary-light: #cccccc;
@@ -1487,15 +1503,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify(data)
                 });
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Network response was not ok.');
+                    // A failing host (Render cold start, proxy 502) answers with HTML, not
+                    // JSON. Parsing that would throw and bury the real status, so treat a
+                    // non-JSON body as "no server message" rather than as a failure here.
+                    // The route replies with {message}; the rate limiter with {error}.
+                    let serverMessage = null;
+                    try {
+                        const errorData = await response.json();
+                        serverMessage = (errorData && (errorData.message || errorData.error)) || null;
+                    } catch { /* non-JSON body; fall through to the generic message */ }
+                    const err = new Error(serverMessage || `Request failed (${response.status}).`);
+                    // Only text the API chose for a human gets shown verbatim.
+                    err.userFacing = Boolean(serverMessage);
+                    throw err;
                 }
                 formMessage.innerHTML = 'Thank you! Your nomination has been received. Our team will review it and be in touch.';
                 formMessage.className = 'form-message success';
                 this.reset();
             } catch (error) {
                 console.error('Submission error:', error);
-                formMessage.textContent = 'An error occurred. Please try again later.';
+                // Surface the API's own wording when it gave some ("Invalid email format",
+                // "Too many submissions"), since that tells the person what to fix. Network
+                // and parse failures stay generic. textContent, never innerHTML — this
+                // string arrives over the wire.
+                formMessage.textContent = error && error.userFacing
+                    ? error.message
+                    : 'An error occurred. Please try again later.';
                 formMessage.className = 'form-message error';
             } finally {
                 formMessage.style.display = 'block';
