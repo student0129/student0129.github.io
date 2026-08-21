@@ -94,6 +94,29 @@
         /* A session without an objective still belongs in the bar — it just says so quietly. */
         #state-objective[data-empty="true"] { font-style: italic; opacity: .55; }
 
+        /* iOS Safari's 100vh is the *large* viewport: it includes the strip sitting
+           behind the address bar and toolbar. Combined with overflow:hidden on body,
+           that strip is unreachable rather than merely off-screen. dvh tracks the
+           viewport that's actually visible. Selector is body.h-screen so it outranks
+           Tailwind's .h-screen. */
+        @supports (height: 100dvh) {
+            body.h-screen { height: 100dvh; }
+            #setup-modal { height: 100dvh; }
+        }
+
+        /* Expanding the objective row drops Topics and "Where we are" into the bar,
+           which is flex-shrink-0 inside a page that never scrolls. On a phone the two
+           columns stack instead of sitting side by side, so the panel is routinely
+           taller than the room left for it and the overflow was simply clipped —
+           nothing to scroll, on the bar or the page. Cap it and let it scroll itself. */
+        #state-body {
+            max-height: 45vh;   /* fallback where dvh is unsupported */
+            max-height: 45dvh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
         /* A visible seam where the session was paused. */
         .resume-mark {
             display: inline-block;
