@@ -117,6 +117,55 @@
             overscroll-behavior: contain;
         }
 
+        /* Card types. Every insight is a different kind of interruption, and the accent
+           is how you tell a fact-check from a jargon note without reading either first.
+           Written as plain CSS on purpose: reverb.css is a pre-generated Tailwind build,
+           so a new utility class in the markup would simply not exist. */
+        [data-card][data-type] { border-left: 3px solid var(--card-accent, #d1d5db); }
+        [data-type="question"]      { --card-accent: #00685B; }
+        [data-type="explanation"]   { --card-accent: #4f46e5; }
+        [data-type="factcheck"]     { --card-accent: #b45309; }
+        [data-type="contradiction"] { --card-accent: #dc2626; }
+        [data-type="gap"]           { --card-accent: #7c3aed; }
+        [data-type="action"]        { --card-accent: #0f766e; }
+
+        .card-chip {
+            display: inline-block;
+            padding: .1rem .45rem;
+            border-radius: 9999px;
+            font-size: .625rem;
+            font-weight: 500;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--card-accent, #6b7280);
+            background: #f3f4f6;   /* fallback where color-mix is unsupported */
+            background: color-mix(in srgb, var(--card-accent, #6b7280) 12%, transparent);
+        }
+        .card-title { color: var(--card-accent, #374151); }
+        /* The line under the title that says what the card is about: the claim being
+           checked, the term, the earlier point being contradicted. */
+        .card-subject { font-size: .8125rem; color: #6b7280; margin-bottom: .4rem; }
+        .card-subject b { font-weight: 500; color: #4b5563; }
+
+        /* Type filters. Six card types is enough that muting one has to be one click. */
+        #insights-header > .flex { padding-bottom: .4rem; }
+        #type-filters { display: flex; flex-wrap: wrap; gap: .35rem; padding: 0 .75rem .6rem; }
+        #type-filters.hidden { display: none; }
+        .type-filter {
+            padding: .15rem .55rem;
+            border-radius: 9999px;
+            font-size: .6875rem;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #9ca3af;
+            transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+        }
+        .type-filter[aria-pressed="true"] {
+            color: var(--card-accent);
+            border-color: color-mix(in srgb, var(--card-accent) 40%, #fff);
+            background: color-mix(in srgb, var(--card-accent) 8%, #fff);
+        }
+
         /* A visible seam where the session was paused. */
         .resume-mark {
             display: inline-block;
@@ -318,13 +367,19 @@
 
         <!-- Insights -->
         <div class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-            <h2 class="p-3 text-lg font-normal border-b border-gray-200 flex-shrink-0 text-google-green">AI Insights</h2>
+            <div id="insights-header" class="border-b border-gray-200 flex-shrink-0">
+                <div class="flex items-center justify-between p-3">
+                    <h2 class="text-lg font-normal text-google-green">AI Insights</h2>
+                    <button id="filter-toggle" class="text-xs text-gray-400 hover:text-google-green transition-colors">Filters</button>
+                </div>
+                <div id="type-filters" class="hidden"></div>
+            </div>
             <div id="insights-container" class="flex-grow p-4 overflow-y-auto space-y-4 bg-gray-50">
                 <div id="placeholder-card" class="flex flex-col items-center justify-center h-full text-center text-gray-400 p-10">
                     <svg class="w-16 h-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM18 13.5l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 18l-1.035.259a3.375 3.375 0 00-2.456 2.456L18 21.75l-.259-1.035a3.375 3.375 0 00-2.456-2.456L14.25 18l1.035-.259a3.375 3.375 0 002.456-2.456L18 13.5z" />
                     </svg>
-                    <p>Questions and technical terms from the discussion will appear here.</p>
+                    <p>Questions, jargon, fact-checks and what the discussion is skipping past will appear here.</p>
                 </div>
             </div>
         </div>
@@ -366,6 +421,7 @@
         const topicTree = $('topic-tree'), summaryBody = $('summary-body');
         const restoreBar = $('restore-bar'), restoreDetail = $('restore-detail');
         const sessionEnd = $('session-end'), endMeta = $('end-meta'), endAudio = $('end-audio');
+        const typeFilters = $('type-filters'), filterToggle = $('filter-toggle');
 
         // --- Segmentation tuning ---
         // A sentence ending is a weak signal on its own: both transcribers put a full stop on
@@ -384,9 +440,31 @@
         const ANALYZE_TIMEOUT_MS = 40000;
         const ANSWERED_MEMORY = 40;
 
+        // --- Card types ---
+        // Mirrors CARD_TYPES on the server. `cooldown` is noise control, and the reason it
+        // lives here rather than there: a type still cooling off is left out of the request
+        // entirely, so the classifier is never offered a card we would only throw away.
+        // The rates differ by how much each type costs when it is wrong — a fact-check every
+        // time someone cites a number is welcome; "here is what you're not considering"
+        // every ninety seconds is a nag.
+        const CARD_TYPE_UI = {
+            question:      { label: 'Question',   cooldown: 0 },
+            explanation:   { label: 'Jargon',     cooldown: 0 },
+            factcheck:     { label: 'Fact check', cooldown: 45000 },
+            contradiction: { label: 'Conflict',   cooldown: 150000 },
+            gap:           { label: 'Dig deeper', cooldown: 180000 },
+            action:        { label: 'Action',     cooldown: 0 },
+        };
+        const CARD_TYPE_ORDER = Object.keys(CARD_TYPE_UI);
+        const FILTER_KEY = 'reverb.types';
+
         // --- Slow lane (topic tree + rolling summary) ---
-        const STATE_INTERVAL_MS = 5 * 60 * 1000;
-        const STATE_MIN_NEW_CHARS = 2500;  // was 400, which fired every ~40s of speech
+        // Folding new speech into the existing state costs a fraction of rebuilding from the
+        // whole transcript, so this now runs on minutes rather than five-minute blocks. That
+        // matters: conflict and dig-deeper cards are only as good as how current the state is.
+        const STATE_INTERVAL_MS = 90 * 1000;
+        const STATE_MIN_NEW_CHARS = 900;
+        const STATE_FULL_EVERY = 6;        // every Nth pass re-reads everything, clearing drift
         const STATE_CONTEXT_CHARS = 24000;
         const STATE_TIMEOUT_MS = 45000;
 
@@ -411,6 +489,9 @@
         let pendingLow = false;
         let flushTimer = null;
         let stateTimer = null, stateRunning = false, charsSinceState = 0;
+        let lastStateSegment = 0, statePasses = 0;
+        const enabledTypes = new Set(CARD_TYPE_ORDER);
+        const typeLastShown = Object.create(null);
         let startedAt = null, lastAudio = null, segmentSeq = 0;
         let markResumeSeam = false;
 
@@ -668,6 +749,52 @@
             interimEl.textContent = '';
         }
 
+        // ---------- card type filters ----------
+        function loadTypePrefs() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(FILTER_KEY) || 'null');
+                // Absent key means never chose, and the default is everything on. An
+                // empty array means the user muted all six, which is a real choice and
+                // stays honoured — the filter row shows six greyed chips, so an empty
+                // panel explains itself.
+                if (Array.isArray(saved)) {
+                    enabledTypes.clear();
+                    for (const t of saved) if (CARD_TYPE_UI[t]) enabledTypes.add(t);
+                }
+            } catch (err) { /* private mode */ }
+        }
+
+        function persistTypePrefs() {
+            try { localStorage.setItem(FILTER_KEY, JSON.stringify([...enabledTypes])); } catch (err) { /* ignore */ }
+        }
+
+        function renderTypeFilters() {
+            typeFilters.replaceChildren();
+            for (const type of CARD_TYPE_ORDER) {
+                const btn = el('button', 'type-filter', CARD_TYPE_UI[type].label);
+                btn.dataset.type = type;
+                btn.type = 'button';
+                btn.setAttribute('aria-pressed', String(enabledTypes.has(type)));
+                btn.addEventListener('click', () => {
+                    if (enabledTypes.has(type)) enabledTypes.delete(type);
+                    else enabledTypes.add(type);
+                    btn.setAttribute('aria-pressed', String(enabledTypes.has(type)));
+                    persistTypePrefs();
+                });
+                typeFilters.append(btn);
+            }
+        }
+
+        /** What the classifier is allowed to return right now: on, and not cooling off. */
+        function activeTypes() {
+            const now = Date.now();
+            return CARD_TYPE_ORDER.filter((t) => {
+                if (!enabledTypes.has(t)) return false;
+                const cd = CARD_TYPE_UI[t].cooldown;
+                return !cd || now - (typeLastShown[t] || 0) >= cd;
+            });
+        }
+
         // ---------- analysis lane (queued, bounded, streamed over SSE) ----------
         const analyzeQueue = [];
         let analyzeActive = 0;
@@ -682,11 +809,16 @@
         }
 
         function enqueueAnalysis(utterance, context) {
+            // Every type is either muted or cooling off — there is nothing this utterance
+            // could produce, so don't spend the round trip finding that out.
+            const types = activeTypes();
+            if (!types.length) return;
+
             // The card is created at enqueue time, so cards stay in the order things were
             // said even when a short answer finishes before a long one started earlier.
             const card = createAnalyzingCard(utterance);
             analyzeQueue.push({
-                utterance, context, card,
+                utterance, context, card, types,
                 state: meetingState,
                 answered: answeredTitles.slice(-ANSWERED_MEMORY),
                 attempt: 0,
@@ -722,6 +854,7 @@
                         session: { objective: session.objective, type: session.type, keywords: session.keywords.slice(0, 100) },
                         state: job.state,
                         answered: job.answered,
+                        types: job.types,
                     })
                 });
                 if (resp.status === 429) throw Object.assign(new Error('Rate limited'), { retryable: true });
@@ -746,9 +879,19 @@
                             sawMeta = true;
                             if (data.type === 'none') { removeCard(job.card); return; }
                             const refs = renderSkeleton(job.card, data);
-                            entry = { el: refs.body, text: '' };
+                            // An action item is complete as classified — owner, commitment,
+                            // deadline — so the server sends no answer and there is nothing
+                            // to stream into.
+                            entry = refs.body ? { el: refs.body, text: '' } : null;
                             sourcesEl = refs.sources;
+                            typeLastShown[data.type] = Date.now();
                             rememberAnswered(data);
+                        } else if (event === 'drop') {
+                            // The answer model looked at the full picture and decided this
+                            // wasn't worth raising. Better a card that never appears than a
+                            // confident non-observation.
+                            removeCard(job.card);
+                            return;
                         } else if (event === 'delta' && entry) {
                             entry.text += data.text || '';
                             markAnswerDirty(entry);
@@ -777,7 +920,9 @@
         }
 
         function rememberAnswered(meta) {
-            const label = meta.title || meta.question || meta.term;
+            // claim covers fact-check, conflict, dig-deeper and action — without it those
+            // four would fall through and the classifier would happily raise them twice.
+            const label = meta.title || meta.question || meta.term || meta.claim;
             if (!label) return;
             answeredTitles.push(String(label).slice(0, 120));
             if (answeredTitles.length > ANSWERED_MEMORY * 2) answeredTitles.splice(0, answeredTitles.length - ANSWERED_MEMORY);
@@ -797,6 +942,22 @@
             const spent = charsSinceState;
             charsSinceState = 0;
 
+            // Two modes. Normally we send the state we already have plus only the speech
+            // since, which is small enough to run every couple of minutes — and that
+            // freshness is what the conflict and dig-deeper cards live on. Every
+            // STATE_FULL_EVERY passes we re-read the whole transcript instead: incremental
+            // updates each carry a little error, and only a full pass clears the buildup.
+            const full = !meetingState || statePasses % STATE_FULL_EVERY === 0;
+            const upTo = segments.length;
+            // Sliced by segment rather than by character count, so correcting a line
+            // upstream can't shift the window and duplicate or skip speech.
+            const transcript = (full
+                ? committedTranscript()
+                : segments.slice(lastStateSegment).map(s => s.text).join(' ')
+            ).slice(-STATE_CONTEXT_CHARS);
+
+            if (!transcript.trim()) { stateRunning = false; return; }
+
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), STATE_TIMEOUT_MS);
             try {
@@ -804,7 +965,9 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
-                    body: JSON.stringify({ transcript: committedTranscript().slice(-STATE_CONTEXT_CHARS), session })
+                    body: JSON.stringify(full
+                        ? { transcript, session }
+                        : { transcript, session, previous: meetingState })
                 });
                 const data = await resp.json().catch(() => ({}));
                 if (!resp.ok) {
@@ -813,11 +976,15 @@
                     throw new Error(data.error || `server ${resp.status}`);
                 }
                 meetingState = data;
+                lastStateSegment = upTo;
+                statePasses++;
                 renderMeetingState();
                 persistTranscript(true);
             } catch (err) {
                 console.error('ReVerb state error:', err);
                 charsSinceState += spent;     // don't lose the trigger because a call failed
+                // lastStateSegment is deliberately left where it was: the speech this pass
+                // covered folds into the next one instead of falling through the gap.
             } finally {
                 clearTimeout(timeout);
                 stateRunning = false;
@@ -916,25 +1083,63 @@
             return card;
         }
 
+        // The line under the title, saying what the card is actually about. It differs per
+        // type because "the question someone asked" and "the earlier point this contradicts"
+        // are not the same shape of thing, and collapsing them into one generic subtitle is
+        // what made every card read the same.
+        function cardSubject(meta) {
+            const q = escapeHtmlText;
+            switch (meta.type) {
+                case 'question':      return meta.question ? q(meta.question) : '';
+                case 'explanation':   return meta.term ? `<b>${q(meta.term)}</b>` : '';
+                case 'factcheck':     return meta.claim ? `Claim: “${q(meta.claim)}”` : '';
+                case 'contradiction': return [
+                    meta.reference ? `<b>Earlier:</b> ${q(meta.reference)}` : '',
+                    meta.claim ? `<b>Just now:</b> ${q(meta.claim)}` : '',
+                ].filter(Boolean).join('<br>');
+                case 'gap':           return meta.claim ? q(meta.claim) : '';
+                default:              return '';
+            }
+        }
+
+        // An action item is already complete as classified — the commitment and who owns it.
+        // Sending it to the answer model would only pad it into a paragraph.
+        function actionBody(meta) {
+            const parts = [];
+            if (meta.claim) parts.push(`<p>${escapeHtmlText(meta.claim)}</p>`);
+            if (meta.owner) parts.push(`<p class="text-sm text-gray-500">${escapeHtmlText(meta.owner)}</p>`);
+            return parts.join('') || '<p class="text-gray-400">Commitment noted.</p>';
+        }
+
         function renderSkeleton(card, meta) {
-            const title = meta.title || (meta.type === 'question' ? 'Question' : 'Concept');
-            const sub = (meta.type === 'question' && meta.question)
-                ? `<p class="text-sm text-gray-500 mb-2">${escapeHtmlText(meta.question)}</p>` : '';
+            const ui = CARD_TYPE_UI[meta.type] || { label: 'Insight' };
+            const title = meta.title || ui.label;
+            const subject = cardSubject(meta);
+            const isAction = meta.type === 'action';
+
+            // Drives the accent colour, via the [data-type] custom properties in the stylesheet.
+            card.dataset.type = meta.type;
             card.classList.remove('opacity-75');
             card.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-medium text-google-green">${escapeHtmlText(title)}</h3>
-                    <button data-toggle="collapse" class="p-1 rounded-full text-gray-400 hover:bg-gray-100">
+                <div class="flex justify-between items-start gap-2">
+                    <div class="min-w-0">
+                        <span class="card-chip">${escapeHtmlText(ui.label)}</span>
+                        <h3 class="card-title text-lg font-medium mt-1">${escapeHtmlText(title)}</h3>
+                    </div>
+                    <button data-toggle="collapse" class="p-1 rounded-full text-gray-400 hover:bg-gray-100 flex-shrink-0">
                         <svg class="w-5 h-5 chevron-up" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                         <svg class="w-5 h-5 hidden chevron-down" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
                     </button>
                 </div>
                 <div class="card-body mt-2 pr-2">
-                    ${sub}
-                    <div class="reverb-answer text-gray-600 leading-relaxed"><span class="text-gray-400">…</span></div>
+                    ${subject ? `<p class="card-subject">${subject}</p>` : ''}
+                    <div class="reverb-answer text-gray-600 leading-relaxed">${isAction ? actionBody(meta) : '<span class="text-gray-400">…</span>'}</div>
                     <div class="reverb-sources mt-3 flex flex-wrap gap-2"></div>
                 </div>`;
-            return { body: card.querySelector('.reverb-answer'), sources: card.querySelector('.reverb-sources') };
+            return {
+                body: isAction ? null : card.querySelector('.reverb-answer'),
+                sources: card.querySelector('.reverb-sources'),
+            };
         }
 
         // A failed analysis used to vanish, which is indistinguishable from the AI deciding
@@ -1459,6 +1664,10 @@ self.onmessage = function (e) {
             stateBar.classList.remove('hidden');
             if (meetingState) renderMeetingState();
             charsSinceState = 0;
+            // The saved state may trail the saved transcript by a few segments. Rather than
+            // guess the overlap, make the first pass after a restore a full rebuild.
+            lastStateSegment = 0;
+            statePasses = 0;
             markResumeSeam = true;
             scrollTranscript();
             reflectSessionButtons();
@@ -1749,6 +1958,10 @@ self.onmessage = function (e) {
             if (document.visibilityState === 'hidden') persistTranscript(true);
         });
 
+        filterToggle.addEventListener('click', () => typeFilters.classList.toggle('hidden'));
+
+        loadTypePrefs();
+        renderTypeFilters();
         restoreSessionBrief();
         reflectSessionButtons();
 
