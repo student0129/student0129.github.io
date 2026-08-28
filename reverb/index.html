@@ -166,6 +166,41 @@
             background: color-mix(in srgb, var(--card-accent) 8%, #fff);
         }
 
+        /* An answer that arrived partly. Kept, marked, and re-runnable — the alternative
+           was a card that simply stopped mid-sentence and looked finished. */
+        .card-incomplete {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-top: .5rem;
+            padding-top: .5rem;
+            border-top: 1px dashed #e5e7eb;
+            font-size: .75rem;
+            color: #b45309;
+        }
+        .card-retry {
+            padding: .1rem .5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            font-size: .6875rem;
+            color: #6b7280;
+            background: #fff;
+        }
+        .card-retry:hover { border-color: #00685B; color: #00685B; }
+
+        /* Who said it. Only rendered where the speaker changes, so the transcript still
+           reads as prose rather than as a script. */
+        .speaker-tag {
+            font-size: .8125rem;
+            font-weight: 500;
+            color: #00685B;
+            margin-right: .15rem;
+        }
+        .speaker-tag::after { content: ':'; }
+        /* Grouped by turn-taking rather than actually identified. Said quietly, because a
+           confident wrong name is worse than an honest placeholder. */
+        .speaker-tag.tentative { color: #9ca3af; font-weight: 400; }
+
         /* A visible seam where the session was paused. */
         .resume-mark {
             display: inline-block;
@@ -201,6 +236,18 @@
                 <option value="technical">Technical review</option>
                 <option value="general">General meeting</option>
             </select>
+
+            <label class="block text-sm text-gray-700 mt-4 mb-1">
+                Who's in the meeting?
+                <span class="text-gray-400 font-light">(comma separated)</span>
+            </label>
+            <input id="setup-roster" type="text"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
+                placeholder="Dana Whitfield, Priya Raghavan, Tom Okafor">
+            <p class="mt-1 text-xs text-gray-400 font-light">
+                Used to label who said what, and sent to the speech model so it stops
+                mangling their names. Anyone not listed still gets tracked as a speaker.
+            </p>
 
             <label class="block text-sm text-gray-700 mt-4 mb-1">
                 Names &amp; terms likely to come up
@@ -388,6 +435,7 @@
 
     <footer class="flex-shrink-0 p-2 text-center bg-gray-100 border-t border-gray-200">
         <p id="error" class="text-sm text-red-500"></p>
+        <p id="notice" class="text-xs text-amber-600"></p>
     </footer>
 
     <script>
@@ -402,6 +450,7 @@
 
         const apiUrl = `${API_BASE}/api/analyze`;
         const stateUrl = `${API_BASE}/api/reverb/state`;
+        const speakersUrl = `${API_BASE}/api/reverb/speakers`;
         const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/ws/reverb`;
 
         // Wake the server on page load — it sleeps on the free tier.
@@ -422,6 +471,7 @@
         const restoreBar = $('restore-bar'), restoreDetail = $('restore-detail');
         const sessionEnd = $('session-end'), endMeta = $('end-meta'), endAudio = $('end-audio');
         const typeFilters = $('type-filters'), filterToggle = $('filter-toggle');
+        const noticeEl = $('notice');
 
         // --- Segmentation tuning ---
         // A sentence ending is a weak signal on its own: both transcribers put a full stop on
@@ -437,7 +487,14 @@
         // --- Analysis lane ---
         const MAX_ANALYZE_CONCURRENCY = 2;   // bounded so streaming answers can't swamp capture
         const MAX_ANALYZE_QUEUE = 6;         // beyond this the meeting has moved on
-        const ANALYZE_TIMEOUT_MS = 40000;
+        // A flat 40s budget was killing healthy answers: a grounded one spends its first
+        // seconds searching, and a long one legitimately streams for a while. What actually
+        // signals a dead request is silence, so the clock is reset by every byte that
+        // arrives and only a genuine gap trips it. The hard cap is the backstop.
+        const ANALYZE_STALL_MS = 30000;
+        const ANALYZE_MAX_MS = 150000;
+        const ANALYZE_MAX_ATTEMPTS = 3;
+        const ANALYZE_BACKOFF_MS = [2000, 6000];
         const ANSWERED_MEMORY = 40;
 
         // --- Card types ---
@@ -465,8 +522,23 @@
         const STATE_INTERVAL_MS = 90 * 1000;
         const STATE_MIN_NEW_CHARS = 900;
         const STATE_FULL_EVERY = 6;        // every Nth pass re-reads everything, clearing drift
+
+        // --- Speaker attribution ---
+        const SPEAKER_INTERVAL_MS = 45000;
+        const SPEAKER_MIN_NEW = 3;         // one stray line isn't worth a round trip
+        const SPEAKER_MAX_TURNS = 60;      // per call; older unattributed lines wait their turn
+        const SPEAKER_TIMEOUT_MS = 30000;
         const STATE_CONTEXT_CHARS = 24000;
         const STATE_TIMEOUT_MS = 45000;
+
+        // --- Staying alive ---
+        // A phone screen going dark is the most common way a meeting quietly stops being
+        // captured: the page is frozen, the AudioContext is suspended, and nothing on
+        // screen says so. The wake lock prevents it; the watchdog catches everything else
+        // — a call coming in, a headset unplugged, another app grabbing the microphone.
+        const CAPTURE_WATCHDOG_MS = 5000;
+        const SILENCE_LEVEL = 0.004;       // peak below this is effectively a silent frame
+        const SILENCE_WARN_MS = 90000;     // live but hearing nothing this long => say so
 
         // --- Resilience ---
         const SPEECH_RESTART_MS = 400;     // Chrome throws if you restart too eagerly
@@ -478,7 +550,7 @@
         const PERSIST_DEBOUNCE_MS = 1500;
         const MAX_PERSIST_CHARS = 200000;
 
-        const session = { objective: '', type: 'strategy', keywords: [], accurate: false, record: false };
+        const session = { objective: '', type: 'strategy', keywords: [], roster: [], accurate: false, record: false };
 
         const segments = [];            // { id, text, edited, low } — one per analysed utterance
         const answeredTitles = [];      // what the classifier has already covered
@@ -494,8 +566,26 @@
         const typeLastShown = Object.create(null);
         let startedAt = null, lastAudio = null, segmentSeq = 0;
         let markResumeSeam = false;
+        let wakeLock = null, captureTimer = null, captureWarned = false;
+        let speakersRunning = false, lastSpeakerRun = 0;
+        let participants = [];
 
         const committedTranscript = () => segments.map(s => s.text).join(' ');
+
+        // The same transcript with speaker labels folded in, marked only where the speaker
+        // changes. This is what goes to the models: "Dana said X but Tom established Y" is a
+        // far better card than the same observation with nobody attached to either half.
+        function attributedTranscript(from = 0) {
+            const out = [];
+            let last = null;
+            for (let i = from; i < segments.length; i++) {
+                const seg = segments[i];
+                if (seg.speaker && seg.speaker !== last) out.push(`\n${seg.speaker}: `);
+                last = seg.speaker || last;
+                out.push(seg.text, ' ');
+            }
+            return out.join('').trim();
+        }
         const wordCount = (s) => (s.match(/[\p{L}\p{N}'’-]+/gu) || []).length;
 
         // ---------- small helpers ----------
@@ -519,6 +609,13 @@
                 idle: 'bg-gray-400',
             }[tone] || 'bg-gray-400');
         }
+
+        // Separate from #error: a notice is something to act on while the session keeps
+        // running, not a failure that ended it.
+        function setNotice(text) {
+            if (noticeEl.textContent !== text) noticeEl.textContent = text;
+        }
+        function clearNotice() { setNotice(''); }
 
         const formatBytes = (n) => n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`;
 
@@ -632,9 +729,36 @@
             persistTranscript();
         }
 
+        // Attribution arrives up to a minute after the words did, so every segment keeps a
+        // handle on its own node and the labels are threaded in afterwards. Re-rendering the
+        // whole transcript instead would discard whatever line the user is mid-way through
+        // correcting.
+        function refreshSpeakerTags() {
+            let last = null;
+            for (const seg of segments) {
+                const wanted = seg.speaker && seg.speaker !== last ? seg.speaker : null;
+                last = seg.speaker || last;
+
+                if (!wanted) {
+                    if (seg.tag) { seg.tag.remove(); seg.tag = null; }
+                    continue;
+                }
+                if (!seg.tag) {
+                    seg.tag = el('span', 'speaker-tag');
+                    if (seg.el && seg.el.parentNode) seg.el.parentNode.insertBefore(seg.tag, seg.el);
+                }
+                seg.tag.textContent = wanted;
+                seg.tag.classList.toggle('tentative', seg.confident === false);
+                seg.tag.title = seg.confident === false
+                    ? 'Grouped by turn-taking — not positively identified'
+                    : 'Identified from the conversation';
+            }
+        }
+
         function renderSegment(segment) {
             const span = el('span', 'segment' + (segment.edited ? ' edited' : '') + (segment.low ? ' low-conf' : ''), segment.text);
             span.dataset.id = segment.id;
+            segment.el = span;
             span.title = segment.low ? 'Low confidence — click to correct' : 'Click to correct';
 
             span.addEventListener('click', () => {
@@ -722,9 +846,10 @@
             pendingEl.textContent = '';
             if (!utterance) return;
 
-            const context = committedTranscript().slice(-CONTEXT_CHARS);
+            const context = attributedTranscript().slice(-CONTEXT_CHARS);
             addSegment(utterance, { low });
             maybeRunState();
+            maybeRunSpeakers();
             if (wordCount(utterance) >= MIN_ANALYZE_WORDS) enqueueAnalysis(utterance, context);
         }
 
@@ -841,9 +966,19 @@
         async function runAnalysis(job) {
             let entry = null, sourcesEl = null, sawMeta = false;
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS);
+            // Two clocks. `stall` is reset by every chunk, so a long-but-alive answer is
+            // never cut off; `cap` is the backstop for a connection that trickles forever.
+            let stalled = false, expired = false, stallTimer = null;
+            const bump = () => {
+                clearTimeout(stallTimer);
+                stallTimer = setTimeout(() => { stalled = true; controller.abort(); }, ANALYZE_STALL_MS);
+            };
+            const capTimer = setTimeout(() => { expired = true; controller.abort(); }, ANALYZE_MAX_MS);
+
+            let answeredLabel = null, sawDone = false;
 
             try {
+                bump();
                 const resp = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -851,14 +986,23 @@
                     body: JSON.stringify({
                         utterance: job.utterance,
                         context: job.context,
-                        session: { objective: session.objective, type: session.type, keywords: session.keywords.slice(0, 100) },
+                        // roster included: knowing who is in the room is what lets a
+                        // conflict card name both sides instead of describing one.
+                        session: {
+                            objective: session.objective,
+                            type: session.type,
+                            keywords: session.keywords.slice(0, 100),
+                            roster: session.roster.slice(0, 40),
+                        },
                         state: job.state,
                         answered: job.answered,
                         types: job.types,
                     })
                 });
-                if (resp.status === 429) throw Object.assign(new Error('Rate limited'), { retryable: true });
-                if (!resp.ok || !resp.body) throw new Error(`Server error ${resp.status}`);
+                if (resp.status === 429) throw Object.assign(new Error('Busy — too many requests'), { retryable: true });
+                if (!resp.ok || !resp.body) {
+                    throw Object.assign(new Error(`Server error ${resp.status}`), { retryable: resp.status >= 500 });
+                }
 
                 const reader = resp.body.getReader();
                 const decoder = new TextDecoder();
@@ -867,6 +1011,7 @@
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
+                    bump();
                     buf += decoder.decode(value, { stream: true });
                     let idx;
                     while ((idx = buf.indexOf('\n\n')) >= 0) {
@@ -885,11 +1030,12 @@
                             entry = refs.body ? { el: refs.body, text: '' } : null;
                             sourcesEl = refs.sources;
                             typeLastShown[data.type] = Date.now();
-                            rememberAnswered(data);
+                            answeredLabel = rememberAnswered(data);
                         } else if (event === 'drop') {
                             // The answer model looked at the full picture and decided this
                             // wasn't worth raising. Better a card that never appears than a
                             // confident non-observation.
+                            forgetAnswered(answeredLabel);
                             removeCard(job.card);
                             return;
                         } else if (event === 'delta' && entry) {
@@ -897,25 +1043,52 @@
                             markAnswerDirty(entry);
                         } else if (event === 'sources' && sourcesEl) {
                             renderSources(sourcesEl, data.sources || []);
+                        } else if (event === 'done') {
+                            sawDone = true;
                         } else if (event === 'error') {
-                            throw new Error(data && data.message ? data.message : 'Analysis failed');
+                            // The server now says whether it is worth another go.
+                            throw Object.assign(
+                                new Error((data && data.message) || 'Analysis failed'),
+                                { retryable: Boolean(data && data.retryable) }
+                            );
                         }
                     }
                 }
-                if (!sawMeta) throw new Error('Connection dropped mid-answer');
+
+                // The stream ended without the server saying it was finished. Everything
+                // above this line succeeded, so there may be a usable partial answer —
+                // which is worth more than replacing it with an error.
+                if (!sawDone) {
+                    if (!sawMeta) throw Object.assign(new Error('Connection dropped'), { retryable: true });
+                    if (entry && entry.text.trim()) { renderIncomplete(job, answeredLabel); return; }
+                    throw Object.assign(new Error('Answer was cut off'), { retryable: true });
+                }
             } catch (err) {
                 console.error('ReVerb analyze error:', err);
-                if (err.name === 'AbortError') {
-                    renderCardError(job, 'Timed out');
-                } else if (err.retryable && job.attempt < 1) {
-                    // A shared office IP can trip the global limiter. Retry once, quietly.
+
+                // A stall or the hard cap present as AbortError, so the flags say which.
+                const why = stalled ? 'The answer stopped partway'
+                    : expired ? 'Took too long'
+                    : err.name === 'AbortError' ? 'Timed out'
+                    : err.message || 'Analysis failed';
+                // Network failures throw TypeError. Those, stalls and 5xx are all worth
+                // retrying; a 4xx or a malformed response is not.
+                const retryable = stalled || expired || err.retryable === true || err.name === 'TypeError';
+
+                // The card never appeared, so its subject must not stay suppressed.
+                forgetAnswered(answeredLabel);
+
+                if (retryable && job.attempt < ANALYZE_MAX_ATTEMPTS - 1) {
+                    const wait = ANALYZE_BACKOFF_MS[Math.min(job.attempt, ANALYZE_BACKOFF_MS.length - 1)];
                     job.attempt++;
-                    setTimeout(() => { analyzeQueue.unshift(job); pumpAnalysis(); }, 4000);
+                    resetCardToPending(job.card, `${why} — retrying…`);
+                    setTimeout(() => { analyzeQueue.unshift(job); pumpAnalysis(); }, wait);
                 } else {
-                    renderCardError(job, err.message || 'Analysis failed');
+                    renderCardError(job, why);
                 }
             } finally {
-                clearTimeout(timeout);
+                clearTimeout(stallTimer);
+                clearTimeout(capTimer);
             }
         }
 
@@ -923,10 +1096,84 @@
             // claim covers fact-check, conflict, dig-deeper and action — without it those
             // four would fall through and the classifier would happily raise them twice.
             const label = meta.title || meta.question || meta.term || meta.claim;
-            if (!label) return;
-            answeredTitles.push(String(label).slice(0, 120));
+            if (!label) return null;
+            const stored = String(label).slice(0, 120);
+            answeredTitles.push(stored);
             if (answeredTitles.length > ANSWERED_MEMORY * 2) answeredTitles.splice(0, answeredTitles.length - ANSWERED_MEMORY);
             persistTranscript();
+            return stored;
+        }
+
+        // A card is remembered the moment its title arrives, so two analyses in flight can't
+        // both raise the same thing. If that card then gets dropped or fails, the memory has
+        // to be undone — otherwise the subject is suppressed for the rest of the meeting on
+        // the strength of a card nobody ever saw.
+        function forgetAnswered(label) {
+            if (!label) return;
+            const i = answeredTitles.lastIndexOf(label);
+            if (i >= 0) answeredTitles.splice(i, 1);
+        }
+
+        // ---------- slow lane: who is speaking ----------
+        // Runs behind the transcript rather than in front of it: a label that appears a
+        // minute late is fine, a wrong label shown instantly is not.
+        function maybeRunSpeakers(force) {
+            if (speakersRunning) return;
+            const pending = [];
+            segments.forEach((seg, i) => { if (!seg.speaker) pending.push(i); });
+            if (!pending.length) return;
+            if (!force) {
+                if (pending.length < SPEAKER_MIN_NEW) return;
+                if (Date.now() - lastSpeakerRun < SPEAKER_INTERVAL_MS) return;
+            }
+            runSpeakers(pending);
+        }
+
+        async function runSpeakers(pending) {
+            speakersRunning = true;
+            lastSpeakerRun = Date.now();
+
+            // Oldest first: the unattributed lines nearest the already-labelled ones are the
+            // ones the model can place from context, and a backlog drains in order.
+            const window = pending.slice(0, SPEAKER_MAX_TURNS);
+            const turns = window.map((i) => ({ i, text: segments[i].text }));
+            const attributed = segments
+                .filter((seg) => seg.speaker)
+                .slice(-12)
+                .map((seg) => ({ speaker: seg.speaker, text: seg.text }));
+
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), SPEAKER_TIMEOUT_MS);
+            try {
+                const resp = await fetch(speakersUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal,
+                    body: JSON.stringify({ turns, attributed, session }),
+                });
+                const data = await resp.json().catch(() => ({}));
+                if (!resp.ok) throw new Error(data.error || `server ${resp.status}`);
+
+                for (const t of data.turns || []) {
+                    const seg = segments[t.i];
+                    if (!seg || !t.speaker) continue;
+                    seg.speaker = String(t.speaker).slice(0, 60);
+                    seg.confident = t.confident !== false;
+                }
+                if (Array.isArray(data.participants) && data.participants.length) {
+                    participants = data.participants;
+                }
+                refreshSpeakerTags();
+                renderMeetingState();
+                persistTranscript(true);
+            } catch (err) {
+                // Silent on purpose: an unlabelled transcript is still a good transcript,
+                // and this lane must never be the thing that puts an error on screen.
+                console.error('ReVerb speakers error:', err);
+            } finally {
+                clearTimeout(timeout);
+                speakersRunning = false;
+            }
         }
 
         // ---------- slow lane: topic tree + rolling summary ----------
@@ -952,8 +1199,8 @@
             // Sliced by segment rather than by character count, so correcting a line
             // upstream can't shift the window and duplicate or skip speech.
             const transcript = (full
-                ? committedTranscript()
-                : segments.slice(lastStateSegment).map(s => s.text).join(' ')
+                ? attributedTranscript()
+                : attributedTranscript(lastStateSegment)
             ).slice(-STATE_CONTEXT_CHARS);
 
             if (!transcript.trim()) { stateRunning = false; return; }
@@ -979,6 +1226,9 @@
                 lastStateSegment = upTo;
                 statePasses++;
                 renderMeetingState();
+                // Stamped here rather than in the render, which also runs when speakers
+                // land or a session is restored — neither of which is a fresh summary.
+                stampState(Date.now());
                 persistTranscript(true);
             } catch (err) {
                 console.error('ReVerb state error:', err);
@@ -991,12 +1241,18 @@
             }
         }
 
+        function stampState(when) {
+            stateUpdated.textContent = `updated ${new Date(when).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
         function renderMeetingState() {
-            if (!meetingState) return;
+            // Participants land before the first state update does, so this no longer bails
+            // out when there is no summary yet — it renders what it has.
+            if (!meetingState && !participants.length) return;
             stateBar.classList.remove('hidden');
 
             topicTree.replaceChildren();
-            if (meetingState.topics && meetingState.topics.length) {
+            if (meetingState && meetingState.topics && meetingState.topics.length) {
                 for (const topic of meetingState.topics) {
                     const block = el('div');
                     block.append(el('div', 'text-gray-800', topic.name));
@@ -1019,12 +1275,16 @@
             }
 
             summaryBody.replaceChildren();
-            if (meetingState.headline) summaryBody.append(el('p', 'text-gray-700', meetingState.headline));
-            appendSummaryList('Key points', meetingState.keyPoints);
-            appendSummaryList('Decided', meetingState.decisions);
-            appendSummaryList('Still open', meetingState.openThreads);
-
-            stateUpdated.textContent = `updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            if (participants.length) {
+                appendSummaryList('In the room', participants.map((p) =>
+                    p && p.name ? (p.role ? `${p.name} — ${p.role}` : p.name) : null).filter(Boolean));
+            }
+            if (meetingState) {
+                if (meetingState.headline) summaryBody.append(el('p', 'text-gray-700 mt-2', meetingState.headline));
+                appendSummaryList('Key points', meetingState.keyPoints);
+                appendSummaryList('Decided', meetingState.decisions);
+                appendSummaryList('Still open', meetingState.openThreads);
+            }
         }
 
         function appendSummaryList(label, items) {
@@ -1041,6 +1301,9 @@
             if (!meetingState) return '';
             const parts = [];
             if (session.objective) parts.push(`Objective: ${session.objective}`, '');
+            if (participants.length) {
+                parts.push(`In the room: ${participants.map(p => p && p.name).filter(Boolean).join(', ')}`, '');
+            }
             if (meetingState.headline) parts.push(meetingState.headline, '');
             const section = (label, items) => {
                 if (!items || !items.length) return;
@@ -1061,7 +1324,7 @@
             parts.push(`Exported: ${new Date().toLocaleString()}`, '');
             const summary = summaryAsText();
             if (summary) parts.push(summary, '', '—'.repeat(20), '');
-            parts.push(committedTranscript());
+            parts.push(attributedTranscript());
             return parts.join('\n');
         }
 
@@ -1142,9 +1405,39 @@
             };
         }
 
+        // Back to the spinner, for a retry. The type accent goes with it: a card still
+        // wearing its old colour while it re-analyses looks like it is showing an answer.
+        function resetCardToPending(card, message) {
+            delete card.dataset.type;
+            card.classList.add('opacity-75');
+            card.innerHTML = `<div class="flex items-center space-x-3">${spinnerSvg}<span class="text-sm text-gray-500">${escapeHtmlText(message)}</span></div>`;
+        }
+
+        // The stream died mid-answer, but what did arrive is real. Keeping it under an honest
+        // marker beats both of the alternatives: throwing away a good partial answer, or
+        // leaving a sentence that stops dead and looks finished.
+        function renderIncomplete(job, label) {
+            const body = job.card.querySelector('.card-body');
+            if (!body) return;
+            const bar = el('div', 'card-incomplete');
+            bar.append(el('span', '', 'Cut off before the end.'));
+            const btn = el('button', 'card-retry', 'Finish it');
+            btn.type = 'button';
+            btn.addEventListener('click', () => {
+                forgetAnswered(label);
+                job.attempt = 0;
+                resetCardToPending(job.card, 'Retrying…');
+                analyzeQueue.unshift(job);
+                pumpAnalysis();
+            });
+            bar.append(btn);
+            body.append(bar);
+        }
+
         // A failed analysis used to vanish, which is indistinguishable from the AI deciding
         // the utterance didn't matter. Now it says so, and offers the retry.
         function renderCardError(job, message) {
+            delete job.card.dataset.type;
             job.card.classList.remove('opacity-75');
             job.card.innerHTML = `
                 <div class="flex items-start justify-between gap-3">
@@ -1159,7 +1452,7 @@
                 </div>`;
             job.card.querySelector('[data-act="retry"]').addEventListener('click', () => {
                 job.attempt = 0;
-                job.card.innerHTML = `<div class="flex items-center space-x-3">${spinnerSvg}<span class="text-sm text-gray-500">Retrying…</span></div>`;
+                resetCardToPending(job.card, 'Retrying…');
                 analyzeQueue.unshift(job);
                 pumpAnalysis();
             });
@@ -1322,8 +1615,18 @@
         // this only changes format.
         const WORKLET_SOURCE = `
 const CHUNK_SAMPLES = 2048;
+// ~1s of audio at 24kHz. The peak over that window is what tells the page apart a
+// microphone that is genuinely live from one that is open but hearing nothing —
+// muted in hardware, muted in the meeting app, or pointed at a dead input.
+const LEVEL_EVERY = 12;
 class PCMEncoder extends AudioWorkletProcessor {
-    constructor() { super(); this.buffer = new Float32Array(CHUNK_SAMPLES); this.offset = 0; }
+    constructor() {
+        super();
+        this.buffer = new Float32Array(CHUNK_SAMPLES);
+        this.offset = 0;
+        this.peak = 0;
+        this.since = 0;
+    }
     process(inputs) {
         const channel = inputs[0] && inputs[0][0];
         if (!channel) return true;
@@ -1338,10 +1641,17 @@ class PCMEncoder extends AudioWorkletProcessor {
         const pcm = new Int16Array(this.offset);
         for (let i = 0; i < this.offset; i++) {
             const s = Math.max(-1, Math.min(1, this.buffer[i]));
+            if (s > this.peak) this.peak = s; else if (-s > this.peak) this.peak = -s;
             pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
         }
         this.port.postMessage(pcm.buffer, [pcm.buffer]);
         this.offset = 0;
+        // Sent as a separate, non-transferred message so the audio path stays zero-copy.
+        if (++this.since >= LEVEL_EVERY) {
+            this.port.postMessage({ level: this.peak });
+            this.peak = 0;
+            this.since = 0;
+        }
     }
 }
 registerProcessor('pcm-encoder', PCMEncoder);
@@ -1420,6 +1730,8 @@ self.onmessage = function (e) {
             constructor(stream) {
                 this.stream = stream;
                 this.partials = new Map();
+                this.level = 0;
+                this.lastSoundAt = Date.now();
             }
 
             hello() {
@@ -1492,8 +1804,15 @@ self.onmessage = function (e) {
                 const source = this.audioContext.createMediaStreamSource(this.stream);
                 this.encoder = new AudioWorkletNode(this.audioContext, 'pcm-encoder');
                 this.encoder.port.onmessage = (e) => {
-                    // Re-transfer straight through: no encoding, no allocation on this thread.
-                    this.worker.postMessage({ type: 'audio', buffer: e.data }, [e.data]);
+                    // Two message shapes now. A transferred PCM buffer goes straight on to
+                    // the worker — no encoding, no allocation on this thread. The periodic
+                    // peak level stays here, as the evidence that audio is really flowing.
+                    if (e.data instanceof ArrayBuffer) {
+                        this.worker.postMessage({ type: 'audio', buffer: e.data }, [e.data]);
+                    } else if (e.data && typeof e.data.level === 'number') {
+                        this.level = e.data.level;
+                        if (e.data.level > SILENCE_LEVEL) this.lastSoundAt = Date.now();
+                    }
                 };
 
                 // A worklet only runs while connected to the destination, but routing the mic
@@ -1503,6 +1822,28 @@ self.onmessage = function (e) {
                 source.connect(this.encoder);
                 this.encoder.connect(mute);
                 mute.connect(this.audioContext.destination);
+            }
+
+            // iOS suspends an AudioContext on a phone call, a route change, or the screen
+            // locking, and does not resume it on the way back. A suspended context pulls no
+            // audio, so capture stops while everything on screen still says "Listening".
+            async wake() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    try {
+                        await this.audioContext.resume();
+                        this.lastSoundAt = Date.now();   // don't fault it for the gap it just had
+                    } catch (err) { /* the next check will catch it */ }
+                }
+            }
+
+            health() {
+                const track = this.stream && this.stream.getAudioTracks()[0];
+                return {
+                    context: this.audioContext ? this.audioContext.state : 'none',
+                    track: track ? track.readyState : 'none',
+                    muted: Boolean(track && track.muted),
+                    lastSoundAt: this.lastSoundAt,
+                };
             }
 
             pause() {
@@ -1625,9 +1966,10 @@ self.onmessage = function (e) {
                 localStorage.setItem(STORE_KEY, JSON.stringify({
                     savedAt: Date.now(),
                     startedAt,
-                    brief: { objective: session.objective, type: session.type, keywords: session.keywords },
-                    segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low })),
+                    brief: { objective: session.objective, type: session.type, keywords: session.keywords, roster: session.roster },
+                    segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low, speaker: s.speaker, confident: s.confident })),
                     meetingState,
+                    participants,
                     answered: answeredTitles.slice(-ANSWERED_MEMORY),
                 }));
             } catch (err) { /* quota or private mode — the session still runs */ }
@@ -1653,16 +1995,22 @@ self.onmessage = function (e) {
             segmentSeq = 0;
             segmentsEl.replaceChildren();
             for (const s of data.segments) {
-                const segment = { id: `seg-${segmentSeq++}`, text: s.text, edited: Boolean(s.edited), low: Boolean(s.low) };
+                const segment = {
+                    id: `seg-${segmentSeq++}`, text: s.text,
+                    edited: Boolean(s.edited), low: Boolean(s.low),
+                    speaker: s.speaker || null, confident: s.confident !== false,
+                };
                 segments.push(segment);
                 segmentsEl.append(renderSegment(segment), document.createTextNode(' '));
             }
+            participants = Array.isArray(data.participants) ? data.participants : [];
+            refreshSpeakerTags();
             answeredTitles.length = 0;
             if (Array.isArray(data.answered)) answeredTitles.push(...data.answered);
             meetingState = data.meetingState || null;
             setStateObjective();
             stateBar.classList.remove('hidden');
-            if (meetingState) renderMeetingState();
+            if (meetingState) { renderMeetingState(); stampState(data.savedAt || Date.now()); }
             charsSinceState = 0;
             // The saved state may trail the saved transcript by a few segments. Rather than
             // guess the overlap, make the first pass after a restore a full rebuild.
@@ -1673,10 +2021,67 @@ self.onmessage = function (e) {
             reflectSessionButtons();
         }
 
+        // ---------- staying alive ----------
+        async function acquireWakeLock() {
+            if (!('wakeLock' in navigator) || wakeLock) return;
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                // The browser drops the lock every time the page is hidden, so this only
+                // clears the handle — checkCapture requests a fresh one on the way back.
+                wakeLock.addEventListener('release', () => { wakeLock = null; });
+            } catch (err) {
+                // Refused: no user activation, battery saver, or an unsupported browser.
+                wakeLock = null;
+            }
+        }
+
+        function releaseWakeLock() {
+            const held = wakeLock;
+            wakeLock = null;
+            if (held) held.release().catch(() => {});
+        }
+
+        // Everything that can silently end a capture, checked on a loop and repaired where
+        // repair is possible. The rule is that the status light must never say "Listening"
+        // while no audio is arriving — a transcript with a hole in it is the failure that
+        // gets noticed hours later, if at all.
+        async function checkCapture() {
+            if (!isListening || isPaused || !provider) return;
+
+            if (provider.wake) await provider.wake();
+            if (document.visibilityState === 'visible') await acquireWakeLock();
+
+            if (!provider.health) return;
+            const h = provider.health();
+
+            const warn = (status, message) => {
+                captureWarned = true;
+                setStatus(status, 'warn');
+                setNotice(message);
+            };
+
+            if (h.track === 'ended') {
+                warn('Microphone lost', 'The microphone was disconnected. Stop and start the session to reconnect it.');
+            } else if (h.muted) {
+                warn('Interrupted', 'The microphone is muted — another app may have taken it.');
+            } else if (h.context === 'suspended') {
+                warn('Interrupted', 'Audio is suspended. Tap the page to resume capture.');
+            } else if (Date.now() - h.lastSoundAt > SILENCE_WARN_MS) {
+                warn('Hearing nothing', 'The microphone is live but completely silent — check it is not muted in hardware or in your meeting app.');
+            } else if (captureWarned) {
+                // Only take the status back if this watchdog was the one that changed it;
+                // the relay sets its own "Reconnecting…" that must not be stomped on.
+                captureWarned = false;
+                clearNotice();
+                setStatus('Listening…', 'live');
+            }
+        }
+
         // ---------- session lifecycle ----------
         function openSetup() {
             $('setup-objective').value = session.objective;
             $('setup-type').value = session.type;
+            $('setup-roster').value = (session.roster || []).join(', ');
             $('setup-keywords').value = session.keywords.join(', ');
             $('setup-accurate').checked = session.accurate;
             $('setup-record').checked = session.record;
@@ -1704,8 +2109,12 @@ self.onmessage = function (e) {
             session.type = $('setup-type').value;
             const typed = $('setup-keywords').value.split(',').map(k => k.trim()).filter(Boolean);
             session.keywords = [...new Set(typed)];
+            session.roster = [...new Set($('setup-roster').value.split(',').map(n => n.trim()).filter(Boolean))];
             session.accurate = $('setup-accurate').checked;
             session.record = $('setup-record').checked;
+            // Names are the single thing a speech model mangles most, and the roster is a
+            // list of them — so it doubles as transcription biasing at no extra cost.
+            session.keywords = [...new Set([...session.keywords, ...session.roster])];
             persistSession();
             closeSetup();
             await startListening();
@@ -1768,6 +2177,18 @@ self.onmessage = function (e) {
                 stateBar.classList.remove('hidden');
 
                 stateTimer = setInterval(() => maybeRunState(true), STATE_INTERVAL_MS);
+                captureTimer = setInterval(checkCapture, CAPTURE_WATCHDOG_MS);
+
+                // Requested inside the click that started the session, which is the user
+                // activation some browsers require before they will grant it.
+                await acquireWakeLock();
+                if (!('wakeLock' in navigator)) {
+                    setNotice('This browser can’t hold the screen awake — keep ReVerb in the foreground, or the phone will stop listening when the screen sleeps.');
+                } else if (!wakeLock) {
+                    setNotice('The screen may still sleep — the browser refused to keep it awake.');
+                } else {
+                    clearNotice();
+                }
 
                 startBtn.classList.add('hidden');
                 briefBtn.classList.add('hidden');
@@ -1793,9 +2214,14 @@ self.onmessage = function (e) {
             absorbInterim();
             flushUtterance();              // don't strand half a sentence across the break
             interimEl.textContent = '';
+            maybeRunSpeakers(true);        // label the backlog while nobody is talking
 
             if (provider && provider.pause) provider.pause();
             if (recorder) recorder.pause();
+            // A paused session doesn't need the screen; the phone can sleep through a break.
+            releaseWakeLock();
+            clearNotice();
+            captureWarned = false;
 
             pauseBtn.textContent = 'Resume';
             recordingDot.classList.remove('animate-pulse');
@@ -1811,6 +2237,8 @@ self.onmessage = function (e) {
 
             if (recorder) recorder.resume();
             if (provider && provider.resume) provider.resume();
+            acquireWakeLock();
+            checkCapture();
 
             pauseBtn.textContent = 'Pause';
             recordingDot.classList.add('animate-pulse');
@@ -1823,9 +2251,15 @@ self.onmessage = function (e) {
             isListening = false;
             isPaused = false;
             clearInterval(stateTimer);
+            clearInterval(captureTimer);
+            captureTimer = null;
+            releaseWakeLock();
+            captureWarned = false;
+            clearNotice();
 
             absorbInterim();
             flushUtterance();                // don't lose a trailing question
+            maybeRunSpeakers(true);          // start a last pass over whatever is unlabelled
 
             if (provider) { provider.stop(); provider = null; }
 
@@ -1933,7 +2367,7 @@ self.onmessage = function (e) {
             stateChevron.style.transform = hidden ? '' : 'rotate(180deg)';
         });
 
-        $('copy-transcript').addEventListener('click', (e) => copyToClipboard(committedTranscript(), e.currentTarget));
+        $('copy-transcript').addEventListener('click', (e) => copyToClipboard(attributedTranscript(), e.currentTarget));
         $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText(), e.currentTarget));
 
         // Collapse / expand insight cards
@@ -1955,7 +2389,11 @@ self.onmessage = function (e) {
         // beforeunload doesn't fire reliably on mobile or on a tab discard; pagehide does.
         window.addEventListener('pagehide', () => persistTranscript(true));
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') persistTranscript(true);
+            if (document.visibilityState === 'hidden') { persistTranscript(true); return; }
+            // Back in the foreground: the wake lock was dropped on the way out and the
+            // AudioContext may have been suspended. Repair both immediately rather than
+            // waiting up to CAPTURE_WATCHDOG_MS for the next sweep.
+            checkCapture();
         });
 
         filterToggle.addEventListener('click', () => typeFilters.classList.toggle('hidden'));
