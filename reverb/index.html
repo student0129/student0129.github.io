@@ -201,6 +201,24 @@
            confident wrong name is worse than an honest placeholder. */
         .speaker-tag.tentative { color: #9ca3af; font-weight: 400; }
 
+        /* What the session actually did to the thresholds in this file. Monospace because
+           it is a column of numbers meant to be read against the constants above. */
+        #end-diagnostics {
+            margin-top: .6rem;
+            padding: .6rem .7rem;
+            border-radius: .5rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: .6875rem;
+            line-height: 1.5;
+            color: #4b5563;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 40vh;
+        }
+        #end-diagnostics.hidden { display: none; }
+
         /* A visible seam where the session was paused. */
         .resume-mark {
             display: inline-block;
@@ -351,8 +369,10 @@
                 <h3 class="text-sm text-google-green">Session ended</h3>
                 <p id="end-meta" class="text-xs text-gray-500 mt-0.5"></p>
                 <div id="end-audio" class="mt-2 text-sm"></div>
+                <pre id="end-diagnostics" class="hidden"></pre>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+                <button id="end-diagnostics-toggle" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Diagnostics</button>
                 <button id="end-transcript" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Download transcript</button>
                 <button id="end-continue" class="px-3 py-1.5 text-xs text-white bg-google-green rounded-full hover:opacity-90">Continue session</button>
                 <button id="end-dismiss" class="px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600">Dismiss</button>
@@ -537,8 +557,18 @@
         // screen says so. The wake lock prevents it; the watchdog catches everything else
         // — a call coming in, a headset unplugged, another app grabbing the microphone.
         const CAPTURE_WATCHDOG_MS = 5000;
-        const SILENCE_LEVEL = 0.004;       // peak below this is effectively a silent frame
         const SILENCE_WARN_MS = 90000;     // live but hearing nothing this long => say so
+
+        // "Is anything being heard" cannot be one absolute number: a lapel mic in a quiet
+        // room and a laptop mic in a café have noise floors two orders of magnitude apart,
+        // so any fixed threshold is wrong for one of them — either crying silence over a
+        // clean mic, or missing a muted one whose self-noise sits above the line. Instead
+        // the room's own floor is measured, and speech is whatever rises clearly above it.
+        const LEVEL_WINDOW = 120;          // ~2 min of per-second peaks
+        const LEVEL_MIN_SAMPLES = 15;      // before that, fall back to the absolute floor
+        const NOISE_FLOOR_PCT = 0.1;       // the 10th percentile is the room, not the talking
+        const SPEECH_OVER_FLOOR = 4;       // a peak this many times the floor is someone talking
+        const ABSOLUTE_SILENCE = 0.004;    // backstop for a floor that is itself ~0 (muted)
 
         // --- Resilience ---
         const SPEECH_RESTART_MS = 400;     // Chrome throws if you restart too eagerly
@@ -569,6 +599,21 @@
         let wakeLock = null, captureTimer = null, captureWarned = false;
         let speakersRunning = false, lastSpeakerRun = 0;
         let participants = [];
+
+        // Every timing threshold in this file was reasoned about, not measured. This records
+        // what a real meeting does to them — how long answers actually take, how often the
+        // stall clock fires, where this room's noise floor really sits — so after one session
+        // they can be set from evidence instead of from a good guess.
+        const stats = {
+            answers: [],                    // { ms, firstTokenMs }
+            stalls: 0, truncated: 0, retries: 0, errors: 0,
+            cards: {}, filtered: 0, dropped: 0,
+            interruptions: {}, longestSilenceMs: 0,
+            noiseFloor: null, threshold: null, wakeLock: 'not requested',
+            statePasses: 0, stateFulls: 0, stateFails: 0,
+            speakerRuns: 0, speakerFails: 0,
+        };
+        const bumpStat = (bag, key) => { stats[bag][key] = (stats[bag][key] || 0) + 1; };
 
         const committedTranscript = () => segments.map(s => s.text).join(' ');
 
@@ -976,6 +1021,8 @@
             const capTimer = setTimeout(() => { expired = true; controller.abort(); }, ANALYZE_MAX_MS);
 
             let answeredLabel = null, sawDone = false;
+            const startedAtMs = Date.now();
+            let firstTokenAt = 0;
 
             try {
                 bump();
@@ -1022,7 +1069,7 @@
 
                         if (event === 'meta') {
                             sawMeta = true;
-                            if (data.type === 'none') { removeCard(job.card); return; }
+                            if (data.type === 'none') { stats.filtered++; removeCard(job.card); return; }
                             const refs = renderSkeleton(job.card, data);
                             // An action item is complete as classified — owner, commitment,
                             // deadline — so the server sends no answer and there is nothing
@@ -1030,21 +1077,28 @@
                             entry = refs.body ? { el: refs.body, text: '' } : null;
                             sourcesEl = refs.sources;
                             typeLastShown[data.type] = Date.now();
+                            bumpStat('cards', data.type);
                             answeredLabel = rememberAnswered(data);
                         } else if (event === 'drop') {
                             // The answer model looked at the full picture and decided this
                             // wasn't worth raising. Better a card that never appears than a
                             // confident non-observation.
+                            stats.dropped++;
                             forgetAnswered(answeredLabel);
                             removeCard(job.card);
                             return;
                         } else if (event === 'delta' && entry) {
+                            if (!firstTokenAt) firstTokenAt = Date.now();
                             entry.text += data.text || '';
                             markAnswerDirty(entry);
                         } else if (event === 'sources' && sourcesEl) {
                             renderSources(sourcesEl, data.sources || []);
                         } else if (event === 'done') {
                             sawDone = true;
+                            stats.answers.push({
+                                ms: Date.now() - startedAtMs,
+                                firstTokenMs: firstTokenAt ? firstTokenAt - startedAtMs : null,
+                            });
                         } else if (event === 'error') {
                             // The server now says whether it is worth another go.
                             throw Object.assign(
@@ -1060,7 +1114,7 @@
                 // which is worth more than replacing it with an error.
                 if (!sawDone) {
                     if (!sawMeta) throw Object.assign(new Error('Connection dropped'), { retryable: true });
-                    if (entry && entry.text.trim()) { renderIncomplete(job, answeredLabel); return; }
+                    if (entry && entry.text.trim()) { stats.truncated++; renderIncomplete(job, answeredLabel); return; }
                     throw Object.assign(new Error('Answer was cut off'), { retryable: true });
                 }
             } catch (err) {
@@ -1075,15 +1129,19 @@
                 // retrying; a 4xx or a malformed response is not.
                 const retryable = stalled || expired || err.retryable === true || err.name === 'TypeError';
 
+                if (stalled) stats.stalls++;
+
                 // The card never appeared, so its subject must not stay suppressed.
                 forgetAnswered(answeredLabel);
 
                 if (retryable && job.attempt < ANALYZE_MAX_ATTEMPTS - 1) {
                     const wait = ANALYZE_BACKOFF_MS[Math.min(job.attempt, ANALYZE_BACKOFF_MS.length - 1)];
                     job.attempt++;
+                    stats.retries++;
                     resetCardToPending(job.card, `${why} — retrying…`);
                     setTimeout(() => { analyzeQueue.unshift(job); pumpAnalysis(); }, wait);
                 } else {
+                    stats.errors++;
                     renderCardError(job, why);
                 }
             } finally {
@@ -1132,6 +1190,7 @@
         async function runSpeakers(pending) {
             speakersRunning = true;
             lastSpeakerRun = Date.now();
+            stats.speakerRuns++;
 
             // Oldest first: the unattributed lines nearest the already-labelled ones are the
             // ones the model can place from context, and a backlog drains in order.
@@ -1169,6 +1228,7 @@
             } catch (err) {
                 // Silent on purpose: an unlabelled transcript is still a good transcript,
                 // and this lane must never be the thing that puts an error on screen.
+                stats.speakerFails++;
                 console.error('ReVerb speakers error:', err);
             } finally {
                 clearTimeout(timeout);
@@ -1225,6 +1285,8 @@
                 meetingState = data;
                 lastStateSegment = upTo;
                 statePasses++;
+                stats.statePasses++;
+                if (full) stats.stateFulls++;
                 renderMeetingState();
                 // Stamped here rather than in the render, which also runs when speakers
                 // land or a session is restored — neither of which is a fresh summary.
@@ -1232,6 +1294,7 @@
                 persistTranscript(true);
             } catch (err) {
                 console.error('ReVerb state error:', err);
+                stats.stateFails++;
                 charsSinceState += spent;     // don't lose the trigger because a call failed
                 // lastStateSegment is deliberately left where it was: the speech this pass
                 // covered folds into the next one instead of falling through the gap.
@@ -1318,6 +1381,56 @@
             return parts.join('\n').trim();
         }
 
+        // ---------- diagnostics ----------
+        function percentile(values, p) {
+            if (!values.length) return null;
+            const sorted = [...values].sort((a, b) => a - b);
+            return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))];
+        }
+
+        // Written so each measured number sits next to the threshold it should inform, and
+        // says which way to move it. A column of raw figures nobody can act on is no better
+        // than the guesses it replaces.
+        function diagnosticsText() {
+            const secs = (n) => (n == null ? '—' : `${(n / 1000).toFixed(1)}s`);
+            const totals = stats.answers.map(a => a.ms);
+            const firsts = stats.answers.map(a => a.firstTokenMs).filter(n => n != null);
+            const max = (arr) => (arr.length ? Math.max(...arr) : null);
+            const tally = (bag, label) => Object.entries(bag)
+                .map(([k, v]) => `${label ? label(k) : k} ${v}`).join(' · ') || 'none';
+            const cardLabel = (k) => (CARD_TYPE_UI[k] ? CARD_TYPE_UI[k].label : k);
+            const attributed = segments.filter(s => s.speaker).length;
+            const distinct = new Set(segments.map(s => s.speaker).filter(Boolean)).size;
+
+            return [
+                `ANSWERS — ${stats.answers.length} completed`,
+                `  first token   median ${secs(percentile(firsts, 0.5))}   p90 ${secs(percentile(firsts, 0.9))}   max ${secs(max(firsts))}`,
+                `  full answer   median ${secs(percentile(totals, 0.5))}   p90 ${secs(percentile(totals, 0.9))}   max ${secs(max(totals))}`,
+                `  stalled ${stats.stalls} · cut off ${stats.truncated} · retried ${stats.retries} · gave up ${stats.errors}`,
+                `  → stall window is ${secs(ANALYZE_STALL_MS)}; it should sit clear of the p90 first-token`,
+                `    figure above. Stalls above zero with a healthy p90 means raise it.`,
+                '',
+                `CARDS — ${tally(stats.cards, cardLabel)}`,
+                `  filtered as not worth raising ${stats.filtered} · retracted at answer time ${stats.dropped}`,
+                `  → mostly filtered means the salience bars are right; a panel you ignored`,
+                `    means raise them, an empty one means lower them.`,
+                '',
+                `CAPTURE`,
+                `  room noise floor ${stats.noiseFloor == null ? '—' : stats.noiseFloor.toFixed(4)} · speech counted above ${stats.threshold == null ? '—' : stats.threshold.toFixed(4)}`,
+                `  longest gap with no speech ${secs(stats.longestSilenceMs)} · warning fires at ${secs(SILENCE_WARN_MS)}`,
+                `  → a false "hearing nothing" means that gap was real speech below the`,
+                `    threshold: raise SILENCE_WARN_MS, or lower SPEECH_OVER_FLOOR.`,
+                `  interruptions: ${tally(stats.interruptions)}`,
+                `  screen wake lock: ${stats.wakeLock}`,
+                '',
+                `SUMMARY — ${stats.statePasses} passes, ${stats.stateFulls} full rebuilds, ${stats.stateFails} failed`,
+                `SPEAKERS — ${stats.speakerRuns} passes, ${stats.speakerFails} failed`,
+                `  ${attributed}/${segments.length} lines attributed across ${distinct} distinct speaker${distinct === 1 ? '' : 's'}`,
+                `  → more distinct speakers than people in the room means the placeholders`,
+                `    are fragmenting: put everyone in the roster next time.`,
+            ].join('\n');
+        }
+
         function transcriptAsText() {
             const parts = ['ReVerb transcript'];
             if (session.objective) parts.push(`Objective: ${session.objective}`);
@@ -1325,6 +1438,7 @@
             const summary = summaryAsText();
             if (summary) parts.push(summary, '', '—'.repeat(20), '');
             parts.push(attributedTranscript());
+            parts.push('', '—'.repeat(20), '', diagnosticsText());
             return parts.join('\n');
         }
 
@@ -1732,6 +1846,8 @@ self.onmessage = function (e) {
                 this.partials = new Map();
                 this.level = 0;
                 this.lastSoundAt = Date.now();
+                this.levels = [];
+                this.noiseFloor = 0;
             }
 
             hello() {
@@ -1810,8 +1926,7 @@ self.onmessage = function (e) {
                     if (e.data instanceof ArrayBuffer) {
                         this.worker.postMessage({ type: 'audio', buffer: e.data }, [e.data]);
                     } else if (e.data && typeof e.data.level === 'number') {
-                        this.level = e.data.level;
-                        if (e.data.level > SILENCE_LEVEL) this.lastSoundAt = Date.now();
+                        this.noteLevel(e.data.level);
                     }
                 };
 
@@ -1822,6 +1937,24 @@ self.onmessage = function (e) {
                 source.connect(this.encoder);
                 this.encoder.connect(mute);
                 mute.connect(this.audioContext.destination);
+            }
+
+            // One peak per second from the worklet. The rolling low percentile of those is
+            // this room's noise floor; anything well above it is a person talking.
+            noteLevel(level) {
+                this.level = level;
+                this.levels.push(level);
+                if (this.levels.length > LEVEL_WINDOW) this.levels.shift();
+
+                if (this.levels.length >= LEVEL_MIN_SAMPLES) {
+                    const sorted = [...this.levels].sort((a, b) => a - b);
+                    this.noiseFloor = sorted[Math.floor(sorted.length * NOISE_FLOOR_PCT)];
+                }
+                if (level > this.speechThreshold()) this.lastSoundAt = Date.now();
+            }
+
+            speechThreshold() {
+                return Math.max(this.noiseFloor * SPEECH_OVER_FLOOR, ABSOLUTE_SILENCE);
             }
 
             // iOS suspends an AudioContext on a phone call, a route change, or the screen
@@ -1843,6 +1976,9 @@ self.onmessage = function (e) {
                     track: track ? track.readyState : 'none',
                     muted: Boolean(track && track.muted),
                     lastSoundAt: this.lastSoundAt,
+                    noiseFloor: this.noiseFloor,
+                    threshold: this.speechThreshold(),
+                    level: this.level,
                 };
             }
 
@@ -2054,20 +2190,29 @@ self.onmessage = function (e) {
             if (!provider.health) return;
             const h = provider.health();
 
-            const warn = (status, message) => {
+            if (typeof h.noiseFloor === 'number') {
+                stats.noiseFloor = h.noiseFloor;
+                stats.threshold = h.threshold;
+            }
+            const quiet = Date.now() - h.lastSoundAt;
+            if (quiet > stats.longestSilenceMs) stats.longestSilenceMs = quiet;
+            stats.wakeLock = wakeLock ? 'held' : ('wakeLock' in navigator ? 'refused' : 'unsupported');
+
+            const warn = (status, message, kind) => {
+                if (!captureWarned) bumpStat('interruptions', kind);
                 captureWarned = true;
                 setStatus(status, 'warn');
                 setNotice(message);
             };
 
             if (h.track === 'ended') {
-                warn('Microphone lost', 'The microphone was disconnected. Stop and start the session to reconnect it.');
+                warn('Microphone lost', 'The microphone was disconnected. Stop and start the session to reconnect it.', 'disconnected');
             } else if (h.muted) {
-                warn('Interrupted', 'The microphone is muted — another app may have taken it.');
+                warn('Interrupted', 'The microphone is muted — another app may have taken it.', 'muted');
             } else if (h.context === 'suspended') {
-                warn('Interrupted', 'Audio is suspended. Tap the page to resume capture.');
-            } else if (Date.now() - h.lastSoundAt > SILENCE_WARN_MS) {
-                warn('Hearing nothing', 'The microphone is live but completely silent — check it is not muted in hardware or in your meeting app.');
+                warn('Interrupted', 'Audio is suspended. Tap the page to resume capture.', 'suspended');
+            } else if (quiet > SILENCE_WARN_MS) {
+                warn('Hearing nothing', 'The microphone is live but completely silent — check it is not muted in hardware or in your meeting app.', 'silent');
             } else if (captureWarned) {
                 // Only take the status back if this watchdog was the one that changed it;
                 // the relay sets its own "Reconnecting…" that must not be stomped on.
@@ -2300,6 +2445,7 @@ self.onmessage = function (e) {
         function showSessionEnd(audio) {
             releaseLastAudio();
             lastAudio = audio || null;
+            $('end-diagnostics').classList.add('hidden');
 
             const minutes = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null;
             endMeta.textContent = [
@@ -2351,6 +2497,13 @@ self.onmessage = function (e) {
 
         $('end-continue').addEventListener('click', () => { sessionEnd.classList.add('hidden'); startListening(); });
         $('end-dismiss').addEventListener('click', () => sessionEnd.classList.add('hidden'));
+        $('end-diagnostics-toggle').addEventListener('click', () => {
+            const box = $('end-diagnostics');
+            const showing = !box.classList.contains('hidden');
+            if (!showing) box.textContent = diagnosticsText();
+            box.classList.toggle('hidden', showing);
+        });
+
         $('end-transcript').addEventListener('click', () => {
             downloadBlob(new Blob([transcriptAsText()], { type: 'text/plain' }), `reverb-transcript-${fileStamp()}.txt`);
         });
