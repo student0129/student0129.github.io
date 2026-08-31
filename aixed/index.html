@@ -3,27 +3,30 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AIxEd — A curated publication on AI in education, from Promontory AI</title>
-<meta name="description" content="AIxEd cuts through the AI hype to what actually matters in education — curated for leaders, educators, edtech teams, and researchers. Request access." />
-<meta property="og:title" content="AIxEd — AI, in education" />
+<title>AIxEd: A curated publication on AI in education, from Promontory AI</title>
+<meta name="description" content="AIxEd cuts through the AI hype to what actually matters in education, curated for leaders, educators, edtech teams, and researchers. Request access." />
+<meta property="og:title" content="AIxEd: AI, in education" />
 <meta property="og:description" content="A curated publication on AI in education. Cut through the hype to the signal that matters. Request access." />
 <meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@300..700&display=swap" rel="stylesheet">
 <meta property="og:url" content="https://aixed.ai/" />
 <link rel="canonical" href="https://aixed.ai/" />
 <style>
 /* ============================================================
-   AIxEd landing — aixed.ai  (platform app: aixed.promontoryai.com)
+   AIxEd landing: aixed.ai  (platform app: aixed.promontoryai.com)
    Design system inherited from the AIxEd platform (index.css @theme):
    brand indigo #27187f · accent gold #ffe900 · system font, light headings.
    Committed single-brand look (not OS-theme reactive) by design.
    ============================================================ */
 :root{
-  --ink:#11101e;          /* brand-900 — darkest ground */
-  --ink-soft:#1a1830;     /* brand-800 — dark card/panel */
-  --brand:#27187f;        /* brand-600 — primary */
+  --ink:#11101e;          /* brand-900: darkest ground */
+  --ink-soft:#1a1830;     /* brand-800: dark card/panel */
+  --brand:#27187f;        /* brand-600: primary */
   --brand-500:#4530ab;
   --brand-400:#6450c6;
-  --iris:#8a7bd8;         /* brand-300 — light indigo, text-on-dark accents */
+  --iris:#8a7bd8;         /* brand-300: light indigo, text-on-dark accents */
   --iris-soft:#c2bdda;    /* brand-200 */
   --gold:#ffe900;
   --gold-ink:#1a1205;
@@ -36,7 +39,8 @@
   --muted-on-dark:#9b93c4;
   --hair:#e6e3f2;
   --hair-dark:rgba(255,255,255,.09);
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji",sans-serif;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --display:"Outfit","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --maxw:1080px;
   --pad:clamp(20px,5vw,64px);
 }
@@ -49,7 +53,8 @@ body{
   font-size:17px;line-height:1.65;
 }
 a{color:inherit}
-h1,h2,h3{text-wrap:balance;margin:0;font-weight:300;letter-spacing:-.03em;line-height:1.05}
+h1,h2,h3{text-wrap:balance;margin:0;font-family:var(--display);font-weight:300;letter-spacing:-.03em;line-height:1.05}
+h1,h2{font-weight:100;letter-spacing:-.035em}
 p{margin:0}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--pad);padding-right:var(--pad)}
 
@@ -81,7 +86,7 @@ header.nav{
   border-bottom:1px solid var(--hair-dark);
 }
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
-.wordmark{font-weight:700;letter-spacing:-.02em;font-size:20px;color:#fff;text-decoration:none;display:inline-flex;align-items:baseline}
+.wordmark{font-family:var(--display);font-weight:500;letter-spacing:-.02em;font-size:20px;color:#fff;text-decoration:none;display:inline-flex;align-items:baseline}
 .wordmark .x{color:var(--iris);font-weight:400;padding:0 .02em}
 .nav .cta-sm{font-size:14px;font-weight:700;color:var(--ink);background:var(--gold);padding:9px 16px;border-radius:999px;text-decoration:none;transition:transform .15s ease}
 .nav .cta-sm:hover{transform:translateY(-1px)}
@@ -91,7 +96,7 @@ header.nav{
 .hero .kicker{font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--iris);margin-bottom:26px}
 .hero h1{font-size:clamp(64px,15vw,168px);letter-spacing:-.05em;line-height:.9;color:#fff}
 .hero h1 .x{color:var(--iris);font-weight:200}
-.hero .tag{font-size:clamp(20px,3.2vw,30px);color:var(--text-on-dark);font-weight:300;margin-top:20px;letter-spacing:-.02em}
+.hero .tag{font-family:var(--display);font-size:clamp(20px,3.2vw,30px);color:var(--text-on-dark);font-weight:200;margin-top:20px;letter-spacing:-.02em}
 .hero .sub{font-size:clamp(16px,2vw,19px);color:var(--muted-on-dark);max-width:56ch;margin-top:26px}
 .hero .actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:40px}
 .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:16px;border-radius:14px;padding:15px 28px;text-decoration:none;cursor:pointer;border:0;transition:transform .15s ease,background .15s ease}
@@ -114,7 +119,7 @@ header.nav{
 /* ---- stats ---- */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:52px}
 .stat{border-top:2px solid var(--brand);padding-top:20px}
-.stat .num{font-size:clamp(44px,6vw,68px);font-weight:300;letter-spacing:-.04em;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
+.stat .num{font-family:var(--display);font-size:clamp(44px,6vw,68px);font-weight:100;letter-spacing:-.04em;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
 .stat .lab{margin-top:14px;font-size:15.5px;color:var(--text);max-width:26ch}
 .stat .src{margin-top:10px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
 .stat.hl .num{color:var(--brand)}
@@ -140,11 +145,11 @@ header.nav{
 .dark .cell{background:var(--ink)}
 .cell .ic{width:34px;height:34px;color:var(--brand);margin-bottom:16px}
 .dark .cell .ic{color:var(--iris)}
-.cell h3{font-size:19px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+.cell h3{font-size:19px;font-weight:500;letter-spacing:-.01em;color:var(--text)}
 .dark .cell h3{color:#fff}
 .cell p{margin-top:8px;font-size:14.5px;color:var(--text-muted)}
 .dark .cell p{color:var(--muted-on-dark)}
-/* content-model contrast ("deep where it's ours") — a small pill echoing the
+/* content-model contrast ("deep where it's ours"): a small pill echoing the
    feed's Deep Dive / Read Source affordances, so the principle ties to the demo. */
 .mode{display:inline-flex;align-items:center;gap:6px;margin-top:20px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:5px 12px;border-radius:999px}
 .mode-dd{background:rgba(138,123,216,.16);color:var(--iris)}
@@ -216,7 +221,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
 :focus-visible{outline:3px solid var(--iris);outline-offset:2px;border-radius:6px}
 
 /* ============================================================
-   "A peek inside" — live feed preview. The INNER screenshot mirrors
+   "A peek inside": live feed preview. The INNER screenshot mirrors
    the real platform (Feed.jsx, DeepDiveModal.jsx, AskBar.jsx,
    ContributorBadge.jsx, CommentSection.jsx): slate neutrals, gold
    active lens, violet format badges. Brand indigo/gold inherited
@@ -235,7 +240,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
 /* device / screenshot frame */
 .aixed-peek .device{position:relative;margin-top:clamp(36px,5vw,56px);background:var(--white);border:1px solid var(--hair);border-radius:20px;box-shadow:0 44px 88px -50px rgba(39,24,127,.5);overflow:hidden}
 .aixed-peek .chrome{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px clamp(16px,3vw,26px);border-bottom:1px solid var(--slate-100);background:var(--white)}
-.aixed-peek .device .wm{font-weight:800;letter-spacing:-.02em;font-size:19px;color:var(--slate-900);display:inline-flex;align-items:baseline}
+.aixed-peek .device .wm{font-family:var(--display);font-weight:600;letter-spacing:-.02em;font-size:19px;color:var(--slate-900);display:inline-flex;align-items:baseline}
 .aixed-peek .device .wm .x{color:var(--brand);font-weight:400}
 .aixed-peek .lens{display:inline-flex;gap:8px;flex-wrap:wrap}
 .aixed-peek .lens button{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;border:0;padding:8px 15px;border-radius:999px;transition:background .15s,color .15s,box-shadow .15s;background:var(--slate-100);color:var(--slate-400)}
@@ -267,7 +272,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
 .aixed-peek .hovercard .known{display:block;font-size:10.5px;font-weight:300;color:var(--slate-400);margin-top:3px}
 
 /* title + summary */
-.aixed-peek .post h3.title{font-size:clamp(23px,3.4vw,38px);font-weight:300;letter-spacing:-.02em;line-height:1.1;color:var(--slate-900);margin-bottom:clamp(14px,2vw,20px);text-wrap:balance}
+.aixed-peek .post h3.title{font-family:var(--display);font-size:clamp(23px,3.4vw,38px);font-weight:200;letter-spacing:-.02em;line-height:1.1;color:var(--slate-900);margin-bottom:clamp(14px,2vw,20px);text-wrap:balance}
 .aixed-peek .post h3.title.link{cursor:pointer;text-underline-offset:8px;text-decoration-thickness:1px;text-decoration-color:var(--slate-300)}
 .aixed-peek .post h3.title.link:hover{text-decoration-line:underline}
 .aixed-peek .summary{font-size:clamp(16px,1.8vw,20px);font-weight:300;line-height:1.6;color:var(--slate-600);transition:opacity .3s}
@@ -340,7 +345,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
 .aixed-peek .dd-top{padding:clamp(16px,3vw,24px) clamp(16px,3vw,26px) 0;background:var(--slate-50)}
 .aixed-peek .dd-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
 .aixed-peek .dd-head .cat{margin-bottom:8px;display:block}
-.aixed-peek .dd-title{font-size:clamp(19px,2.6vw,28px);font-weight:300;color:var(--slate-900);line-height:1.15;margin-bottom:8px;text-wrap:balance}
+.aixed-peek .dd-title{font-family:var(--display);font-size:clamp(19px,2.6vw,28px);font-weight:200;color:var(--slate-900);line-height:1.15;margin-bottom:8px;text-wrap:balance}
 .aixed-peek .dd-orig{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--brand);text-decoration:none}
 .aixed-peek .dd-orig svg{width:14px;height:14px}
 .aixed-peek .dd-close{flex:none;background:none;border:0;color:var(--slate-400);cursor:pointer;padding:6px;border-radius:999px}
@@ -421,7 +426,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
 .cell.feature-lead{grid-column:1/-1;background:var(--ink)}
 .cell.feature-lead .n{color:var(--gold)}
 .cell.feature-lead .ic{color:var(--gold)}
-.cell.feature-lead h3{color:#fff;font-size:23px}
+.cell.feature-lead h3{color:#fff;font-size:23px;font-weight:400}
 .cell.feature-lead p{color:var(--muted-on-dark);font-size:16px;max-width:58ch}
 .cell.feature-lead .start{display:block;margin-top:14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
 
@@ -463,7 +468,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
   <div class="wrap">
     <h1 class="reveal">AI<span class="x">x</span>Ed</h1>
     <p class="tag reveal">AI, in education.</p>
-    <p class="sub reveal">AI is reshaping how we teach, learn, and lead — faster than any technology in our lifetimes. AIxEd cuts through the hype to what actually matters, curated for the education community: leaders, educators, edtech teams, and researchers.</p>
+    <p class="sub reveal">AI is reshaping how we teach, learn, and lead, faster than any technology in our lifetimes. AIxEd cuts through the hype to what actually matters, curated for the education community: leaders, educators, edtech teams, and researchers.</p>
     <div class="actions reveal">
       <a class="btn btn-gold" href="#request">Request access</a>
       <a class="btn btn-ghost" href="#inside">See what's inside</a>
@@ -471,14 +476,14 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
   </div>
 </section>
 
-<!-- WHY IT MATTERS — one job only: people are using AI without being informed.
+<!-- WHY IT MATTERS. One job only: people are using AI without being informed.
      Every stat below measures guidance and knowledge, not deployment readiness. -->
 <section id="why-matters">
   <div class="wrap">
     <div class="section-head reveal">
       <p class="eyebrow">Why it matters</p>
       <h2>Everyone's using it. Almost no one has been told how.</h2>
-      <p class="lead">AI is already in classrooms, lecture halls, and district offices — more than half of teachers and students now use it for instruction and schoolwork, up over 15 points in a single year. What hasn't arrived is the understanding to use it well. So the people closest to the work are piecing it together from headlines, vendor decks, and hearsay. The signal exists. The time to find it, judge it, and work out what it means in your context doesn't.</p>
+      <p class="lead">AI is already in classrooms, lecture halls, and district offices. More than half of teachers and students now use it for instruction and schoolwork, up over 15 points in a single year. What hasn't arrived is the understanding to use it well. So the people closest to the work are piecing it together from headlines, vendor decks, and hearsay. The signal exists. The time to find it, judge it, and work out what it means in your context doesn't.</p>
     </div>
     <div class="stats">
       <div class="stat reveal">
@@ -500,57 +505,43 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
   </div>
 </section>
 
-<!-- WHAT'S INSIDE — "everything" and "curated" are the same claim:
+<!-- WHAT'S INSIDE. "everything" and "curated" are the same claim:
      curation is what makes "everything you need" achievable. -->
 <section class="tint" id="inside">
   <div class="wrap">
     <div class="section-head reveal">
       <p class="eyebrow">What's inside</p>
-      <h2>Everything you need — which is only possible because it's curated.</h2>
+      <h2>Everything you need, which is only possible because it's curated.</h2>
       <p class="lead">A firehose gives you everything. It never gives you everything you <em>need</em>, because you still have to do the sorting. We do that first, so what reaches you is complete on what matters and empty of what doesn't.</p>
     </div>
-    <p class="curated reveal"><b>Curated, not aggregated.</b> Every source is editorially screened, triaged, and summarized before it reaches you. Nothing lands in your feed because an algorithm found it — it lands because a person judged it worth your time.</p>
+    <p class="curated reveal"><b>Curated, not aggregated.</b> Every source is editorially screened, triaged, and summarized before it reaches you. Nothing lands in your feed because an algorithm found it. It lands because a person judged it worth your time.</p>
 
-    <div class="grid cols-3">
+    <div class="grid cols-2">
       <div class="cell feature-lead reveal">
         <span class="n">01</span>
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 15 9l7 .5-5.5 4.5 2 7-6.5-4-6.5 4 2-7L3 9.5 10 9Z"/></svg>
-        <h3>Your briefing</h3>
-        <p>A personalized digest of what changed in AI and education, written for your role and the decisions actually in front of you. It is the whole picture, already sorted — which is why it takes minutes instead of hours.</p>
-        <span class="start">Start here</span>
+        <h3>Your Briefing</h3>
+        <p>A personalized digest of what changed in AI and education, written for your role and the decisions in front of you. Start here: it's the fastest way to know what matters.</p>
       </div>
       <div class="cell reveal">
         <span class="n">02</span>
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19a5 5 0 0 1 10 0M13 16a5 5 0 0 1 8 3"/></svg>
-        <h3>Four perspectives</h3><p>Every item is written four ways — for Leaders, Educators, EdTech, and Research. Switch the lens and the same development re-reads for your work, not someone else's.</p>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12Z"/></svg>
+        <h3>Ask AIxEd</h3><p>Put any question to the whole curated corpus and get higher-quality insight drawn from credible sources and prepared for your context: grounded, cited, and specific to your role. Not a web search, and not a guess.</p>
       </div>
       <div class="cell reveal">
         <span class="n">03</span>
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5h14M5 10h14M5 15h9"/><path d="m16 18 2 2 4-4"/></svg>
-        <h3>AI summaries</h3><p>Every development distilled to what it is, why it matters, and what to do — always linked back to the original, always labelled as AI-generated.</p>
+        <h3>AI summaries</h3><p>Every development distilled to what it is, why it matters, and what to do, all linked back to the original source.</p>
       </div>
       <div class="cell reveal">
         <span class="n">04</span>
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12Z"/></svg>
-        <h3>Ask AIxEd</h3><p>Put a question to the whole curated corpus and get an answer grounded in it, cited to the sources, and framed for your role. It searches what we vetted, not the open web.</p>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M8 10h.01M12 8v4"/></svg>
+        <h3>Infographics &amp; podcasts</h3><p>The same insight recast to skim or to listen to on the go, so it fits the way you take things in.</p>
       </div>
       <div class="cell reveal">
         <span class="n">05</span>
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3a9 9 0 1 0 9 9M12 3v9l6-4" opacity=".9"/><path d="M12 12 8 8"/></svg>
-        <h3>Deep Dive</h3><p>On our own work and pieces authors have invited us into, go past the summary to layered analysis at the depth you choose. Everything else we summarize and hand straight back to its author.</p>
-        <span class="mode mode-dd">Deep Dive
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="13" height="13"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </span>
-      </div>
-      <div class="cell reveal">
-        <span class="n">06</span>
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M8 10h.01M12 8v4"/></svg>
-        <h3>Infographics &amp; podcasts</h3><p>Turn any Deep Dive into a visual explainer or a listen — the same insight, in whichever medium fits the ten minutes you actually have.</p>
-      </div>
-      <div class="cell reveal">
-        <span class="n">07</span>
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
-        <h3>Triaged and saved</h3><p>Each item is graded Critical, Notable, or FYI before you see it, and anything worth keeping goes to a private reading list you can filter the feed down to.</p>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19a5 5 0 0 1 10 0M13 16a5 5 0 0 1 8 3"/></svg>
+        <h3>Community</h3><p>Read it, then help shape it. Members surface what matters and get recognized for it.</p>
       </div>
     </div>
   </div>
@@ -562,7 +553,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
     <div class="section-head reveal">
       <p class="eyebrow">A peek inside</p>
       <h2>See it work before you're in.</h2>
-      <p class="lead">This is the actual AIxEd feed. Switch perspective and every summary re-casts for who you are. Open a Deep Dive to read, see, or hear it — ask questions across the whole feed — and see who in the community shaped it.</p>
+      <p class="lead">This is the actual AIxEd feed. Switch perspective and every summary re-casts for who you are. Open a Deep Dive to read, see, or hear it, ask questions across the whole feed, and see who in the community shaped it.</p>
     </div>
 
     <div class="device reveal">
@@ -578,7 +569,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
       </div>
 
       <div class="feed">
-        <!-- POST A — AIxEd original · contributed · Deep Dive · community -->
+        <!-- POST A · AIxEd original · contributed · Deep Dive · community -->
         <article class="post" data-card="A">
           <div class="inner">
             <div class="meta">
@@ -649,7 +640,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
           </div>
         </article>
 
-        <!-- POST B — external paper · Read Source only (no Deep Dive) -->
+        <!-- POST B · external paper · Read Source only (no Deep Dive) -->
         <article class="post" data-card="B">
           <div class="inner">
             <div class="meta">
@@ -661,7 +652,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
               </span>
               <span class="pri">Notable</span>
             </div>
-            <h3 class="title">AI tutors lifted learning in a 30-school trial &mdash; with one catch</h3>
+            <h3 class="title">AI tutors lifted learning in a 30-school trial, with one catch</h3>
             <p class="summary" data-card="B"></p>
             <div class="acts">
               <a class="primary" href="#" onclick="return false">Read Source <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
@@ -691,7 +682,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
               <button class="close" type="button" id="askClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
             </div>
             <p class="ask-q">What do we have to do first for the new K-12 AI guidance?</p>
-            <p class="ask-a">Start with a <strong>written AI-use policy and a named owner</strong> &mdash; that's the one thing the guidance frames as expected of every district. Next, confirm any tool touching student data has a <strong>consent and audit path</strong>. Staff training and classroom dos-and-don'ts come after that; they're advisory, not required.</p>
+            <p class="ask-a">Start with a <strong>written AI-use policy and a named owner</strong>. That's the one thing the guidance frames as expected of every district. Next, confirm any tool touching student data has a <strong>consent and audit path</strong>. Staff training and classroom dos-and-don'ts come after that; they're advisory, not required.</p>
             <div class="cites">
               <a class="cite" href="#" onclick="return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg>The U.S. Education Department's new AI guidance, decoded</a>
               <a class="cite" href="#" onclick="return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg>Student-data consent under FERPA</a>
@@ -723,7 +714,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
               <button class="dd-tab" role="tab" aria-selected="false" data-pane="pod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Podcast</button>
             </div>
           </div>
-          <div class="dd-caveat">&#10022; AI-generated &mdash; may contain errors. Check the original source before relying on it.</div>
+          <div class="dd-caveat">&#10022; AI-generated. May contain errors. Check the original source before relying on it.</div>
           <div class="dd-body">
             <!-- Text Layers -->
             <div class="dd-pane show" data-pane="layers">
@@ -739,7 +730,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
                   <span class="lt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>What it means for you</span>
                   <button class="layer-listen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Listen</button>
                 </div>
-                <p>If you lead a district or campus, three things move to the top of your list this quarter: adopt (or update) an AI-use policy, brief your board on what's mandatory versus advisory, and confirm that any tool touching student records has a consent and audit path. Nothing here bans AI &mdash; it asks you to be able to explain how you use it.</p>
+                <p>If you lead a district or campus, three things move to the top of your list this quarter: adopt (or update) an AI-use policy, brief your board on what's mandatory versus advisory, and confirm that any tool touching student records has a consent and audit path. Nothing here bans AI. It asks you to be able to explain how you use it.</p>
               </div>
               <div class="layer">
                 <div class="layer-head">
@@ -755,15 +746,15 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
               <div class="info">
                 <div class="info-hd">
                   <div class="k">AIxEd · Leaders lens</div>
-                  <h4>Federal AI Guidance for K-12 &mdash; At a Glance</h4>
+                  <h4>Federal AI Guidance for K-12: At a Glance</h4>
                 </div>
                 <div class="info-grid">
-                  <div class="info-cell"><span class="n">1</span><p>Written AI-use policy &mdash; required of every district</p></div>
+                  <div class="info-cell"><span class="n">1</span><p>Written AI-use policy, required of every district</p></div>
                   <div class="info-cell"><span class="n">2</span><p>Consent before student data reaches any model</p></div>
                   <div class="info-cell"><span class="n">3</span><p>Clear line: AI that <em>assists</em> vs. AI that <em>decides</em></p></div>
                   <div class="info-cell"><span class="n">4</span><p>Audit trail for any AI grading or ranking</p></div>
                 </div>
-                <div class="info-quote">&ldquo;<b>12 months</b> to publish a policy &mdash; the floor, not the ceiling.&rdquo;</div>
+                <div class="info-quote">&ldquo;<b>12 months</b> to publish a policy. The floor, not the ceiling.&rdquo;</div>
               </div>
             </div>
 
@@ -782,7 +773,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
                 </div>
                 <div class="pod-script">
                   <div class="sk">Transcript</div>
-                  <p class="pod-line"><b>Host:</b> The Education Department just published its first real guidance on AI in K-12 &mdash; and the headline isn't a ban.</p>
+                  <p class="pod-line"><b>Host:</b> The Education Department just published its first real guidance on AI in K-12, and the headline isn't a ban.</p>
                   <p class="pod-line"><b>Co-host:</b> Right. It's a governance ask. Every district needs a written policy and someone who owns it.</p>
                   <p class="pod-line"><b>Host:</b> And the part leaders feel first? Consent and audit trails for anything that touches student data&hellip;</p>
                 </div>
@@ -793,24 +784,24 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
       </div>
     </div>
 
-    <p class="figcap">A preview of the AIxEd feed &mdash; switch perspective, open the Deep Dive, and try Ask AIxEd. Sample posts and content, real layout.</p>
+    <p class="figcap">A preview of the AIxEd feed: switch perspective, open the Deep Dive, and try Ask AIxEd. Sample posts and content, real layout.</p>
   </div>
 </section>
 
-<!-- COMMUNITY — ordered benefit-first: what you get (Learn, Connect) before
+<!-- COMMUNITY. Ordered benefit-first: what you get (Learn, Connect) before
      what we ask of you (Surface, Contribute), then what you earn. -->
 <section class="dark" id="community">
   <div class="wrap">
     <div class="comm">
       <div class="section-head reveal">
       <p class="eyebrow">The community</p>
-      <h2 style="color:#fff">Learn from the field — and help shape it.</h2>
-      <p class="lead">AIxEd isn't a feed you read in isolation. It's a community of the people closest to the work — so you learn from their read on what's happening, compare notes across roles, and add your own perspective back.</p>
+      <h2 style="color:#fff">Learn from the field, and help shape it.</h2>
+      <p class="lead">AIxEd isn't a feed you read in isolation. It's a community of the people closest to the work, so you learn from their read on what's happening, compare notes across roles, and add your own perspective back.</p>
     </div>
       <div class="roles reveal">
         <div class="role">
           <div class="rt"><span class="k">Learn</span> See how peers read it <span class="soon">Coming</span></div>
-          <div class="rd">Developments will carry the community's reading alongside the summary — what a policy shift means to a district leader, a researcher, a founder — so you're never interpreting it alone.</div>
+          <div class="rd">Developments will carry the community's reading alongside the summary: what a policy shift means to a district leader, a researcher, a founder. You are never interpreting it alone.</div>
         </div>
         <div class="role">
           <div class="rt"><span class="k">Connect</span> Compare notes across roles</div>
@@ -818,11 +809,11 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
         </div>
         <div class="role">
           <div class="rt"><span class="k">Surface</span> Flag what matters</div>
-          <div class="rd">Amplify the development, paper, or tool your corner of the field is talking about. When editors accept it, it's published — with credit to you.</div>
+          <div class="rd">Amplify the development, paper, or tool your corner of the field is talking about. When editors accept it, it's published, with credit to you.</div>
         </div>
         <div class="role">
           <div class="rt"><span class="k">Contribute</span> Add your perspective</div>
-          <div class="rd">Publish your own analysis under your name — the classroom view, the policy view, the build view — and reach the whole AIxEd audience with it.</div>
+          <div class="rd">Publish your own analysis under your name, whether that's the classroom view, the policy view, or the build view, and reach the whole AIxEd audience with it.</div>
         </div>
         <div class="role">
           <div class="rt"><span class="k">Get recognized</span> Build your standing</div>
@@ -863,7 +854,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
             <select id="f-role" name="role" required>
               <option value="" disabled selected>Select one…</option>
               <option value="Leader / policymaker">Leader or policymaker</option>
-              <option value="Educator (K-12, higher-ed, or L&amp;D)">Educator — K-12, higher-ed, or L&amp;D</option>
+              <option value="Educator (K-12, higher-ed, or L&amp;D)">Educator (K-12, higher-ed, or L&amp;D)</option>
               <option value="EdTech / industry">EdTech or industry</option>
               <option value="Researcher / learning scientist">Researcher or learning scientist</option>
             </select>
@@ -884,13 +875,13 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
   </div>
 </section>
 
-<!-- PLATFORM / AIXED.ORG — the year-round home of the work.
+<!-- PLATFORM / AIXED.ORG. The year-round home of the work.
      The platform app lives at aixed.promontoryai.com; this landing page at aixed.ai. -->
 <section class="connect">
   <div class="wrap">
     <div class="inner">
       <div class="txt">
-        <p>The insights platform is how the work of <a class="inline" href="https://aixed.org" target="_blank" rel="noopener">AIxEd</a> reaches the field year-round — extending the conversations from our summits and collaboratives into a resource the whole community can learn from, and give back to.</p>
+        <p>The insights platform is how the work of <a class="inline" href="https://aixed.org" target="_blank" rel="noopener">AIxEd</a> reaches the field year-round, extending the conversations from our summits and collaboratives into a resource the whole community can learn from, and give back to.</p>
       </div>
       <a class="btn btn-brand" id="platform-link" href="https://aixed.promontoryai.com" target="_blank" rel="noopener">Go to the platform</a>
     </div>
@@ -900,15 +891,15 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
 <footer>
   <div class="wrap">
     <span><span class="wm">AI<span style="color:var(--iris);font-weight:400">x</span>Ed</span> · A curated publication on AI in education</span>
-    <span>Promontory AI · <a href="mailto:aixed@promontoryai.com">aixed@promontoryai.com</a></span>
+    <span>Powered by Promontory AI · <a href="mailto:aixed@promontoryai.com">aixed@promontoryai.com</a></span>
   </div>
 </footer>
 <script>
 /* ============================================================
-   CONFIG — set this to your api-server (Render) base URL.
+   CONFIG. Set this to your api-server (Render) base URL.
 
    ⚠ CORS: the api-server allows *.promontoryai.com. This page is served
-   from aixed.ai, which that allowlist does NOT cover — the browser will
+   from aixed.ai, which that allowlist does NOT cover. The browser will
    block the access-request POST until aixed.ai (and www.aixed.ai) are
    added to the api-server's allowed origins.
    ============================================================ */
@@ -950,7 +941,7 @@ var PLATFORM_URL = "https://aixed.promontoryai.com";
       .then(function(res){
         if(res.ok){
           form.reset();
-          show('ok', "Thanks — we've got your request. Once it's approved, we'll email your access link to " + data.email + ".");
+          show('ok', "Thanks, we've got your request. Once it's approved, we'll email your access link to " + data.email + ".");
         } else {
           show('err', (res.j && res.j.error) || 'Something went wrong. Please email aixed@promontoryai.com.');
         }
@@ -962,7 +953,7 @@ var PLATFORM_URL = "https://aixed.promontoryai.com";
   });
 })();
 
-/* "A peek inside" — lens switch, Deep Dive tabs, Ask panel (all in-page demo) */
+/* "A peek inside": lens switch, Deep Dive tabs, Ask panel (all in-page demo) */
 (function(){
   var root = document.querySelector('.aixed-peek');
   if(!root) return;
@@ -970,14 +961,14 @@ var PLATFORM_URL = "https://aixed.promontoryai.com";
 
   var COPY = {
     A:{
-      executive:"What the new federal guidance requires versus merely recommends — and the board-level decisions it forces this quarter.",
+      executive:"What the new federal guidance requires versus merely recommends, and the board-level decisions it forces this quarter.",
       operational:"The classroom dos and don'ts it sets out, and exactly where student-data consent now applies.",
-      technical:"The compliance bar your product and procurement teams must clear — data handling, transparency, and audit trails.",
-      research:"The evidence the guidance cites — and the open questions it leaves wide open for study."
+      technical:"The compliance bar your product and procurement teams must clear: data handling, transparency, and audit trails.",
+      research:"The evidence the guidance cites, and the open questions it leaves wide open for study."
     },
     B:{
       executive:"Evidence you can take to a board: AI tutoring shows real gains, but only alongside teachers, not instead of them.",
-      operational:"The biggest gains went to striving readers — and only when the tutor reinforced your teaching, not replaced it.",
+      operational:"The biggest gains went to striving readers, and only when the tutor reinforced your teaching, not replaced it.",
       technical:"A credible efficacy bar to build toward: 'supplement, not replace' is what actually moved outcomes.",
       research:"A pre-registered RCT across 30 schools; modest effect sizes, with honest caveats on fidelity and attrition."
     }
