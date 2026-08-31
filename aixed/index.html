@@ -252,7 +252,19 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
 .aixed-peek .chrome{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px clamp(16px,3vw,26px);border-bottom:1px solid var(--slate-100);background:var(--white)}
 .aixed-peek .device .wm{font-family:var(--app-sans);font-weight:800;letter-spacing:-.02em;font-size:19px;color:var(--slate-900);display:inline-flex;align-items:baseline}
 .aixed-peek .device .wm .x{color:var(--brand);font-weight:400}
+.aixed-peek .ctrl{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .aixed-peek .lens{display:inline-flex;gap:8px;flex-wrap:wrap}
+/* Community mode switch. Off is Focus mode: peer insights and Amplify are the
+   community surface, so both disappear together and the read stays heads-down. */
+.aixed-peek .toggle{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-400);background:none;border:1px solid var(--slate-200);border-radius:999px;padding:6px 13px;cursor:pointer;transition:color .15s,border-color .15s}
+.aixed-peek .toggle:hover{color:var(--slate-600)}
+.aixed-peek .toggle .sw{position:relative;flex:none;width:26px;height:15px;border-radius:999px;background:var(--slate-200);transition:background .18s}
+.aixed-peek .toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:999px;background:var(--white);transition:transform .18s}
+.aixed-peek .toggle[aria-pressed="true"]{color:var(--slate-900);border-color:var(--brand)}
+.aixed-peek .toggle[aria-pressed="true"] .sw{background:var(--brand)}
+.aixed-peek .toggle[aria-pressed="true"] .sw::after{transform:translateX(11px)}
+.aixed-peek .device:not(.community) .peer,
+.aixed-peek .device:not(.community) .amplify{display:none}
 .aixed-peek .lens button{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;border:0;padding:8px 15px;border-radius:999px;transition:background .15s,color .15s,box-shadow .15s;background:var(--slate-100);color:var(--slate-400)}
 .aixed-peek .lens button:hover{background:var(--slate-200);color:var(--slate-500)}
 .aixed-peek .lens button[aria-pressed="true"]{background:var(--gold);color:var(--slate-900);box-shadow:0 1px 2px rgba(0,0,0,.08)}
@@ -405,7 +417,9 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
 .aixed-peek .figcap{margin-top:16px;text-align:center;font-size:12.5px;font-style:italic;color:var(--text-muted)}
 @media (max-width:640px){
   .aixed-peek .chrome{justify-content:center}
+  .aixed-peek .ctrl{width:100%;flex-direction:column;align-items:stretch;gap:10px}
   .aixed-peek .lens{width:100%;justify-content:space-between;gap:5px}
+  .aixed-peek .toggle{justify-content:center}
   .aixed-peek .lens button{flex:1;padding:8px 4px;font-size:11px}
   .aixed-peek .sec{margin-left:0;width:100%;justify-content:flex-start;gap:14px}
   .aixed-peek .primary{width:100%;justify-content:center}
@@ -566,15 +580,20 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
       <p class="lead">This is the actual AIxEd feed. Switch perspective and every summary re-casts for who you are. Open a Deep Dive to read, see, or hear it, ask questions across the whole feed, and see who in the community shaped it.</p>
     </div>
 
-    <div class="device reveal">
+    <div class="device community reveal">
       <!-- header + lens switcher -->
       <div class="chrome">
         <span class="wm">AI<span class="x">x</span>Ed</span>
-        <div class="lens" role="group" aria-label="Reading perspective">
-          <button type="button" data-lens="executive" aria-pressed="true">Leaders</button>
-          <button type="button" data-lens="operational">Educators</button>
-          <button type="button" data-lens="technical">EdTech</button>
-          <button type="button" data-lens="research">Research</button>
+        <div class="ctrl">
+          <div class="lens" role="group" aria-label="Reading perspective">
+            <button type="button" data-lens="executive" aria-pressed="true">Leaders</button>
+            <button type="button" data-lens="operational">Educators</button>
+            <button type="button" data-lens="technical">EdTech</button>
+            <button type="button" data-lens="research">Research</button>
+          </div>
+          <button class="toggle" type="button" id="commToggle" aria-pressed="true" aria-label="Toggle Community mode. On shows peer insights and Amplify; off is Focus mode.">
+            <span class="sw" aria-hidden="true"></span>Community
+          </button>
         </div>
       </div>
 
@@ -609,6 +628,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
               <div class="sec">
                 <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Listen</button>
                 <a class="act" href="#" onclick="return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg>Read Source</a>
+                <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Share</button>
                 <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1Z"/></svg>Save</button>
                 <button class="amplify" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>Amplify · 24</button>
               </div>
@@ -670,6 +690,41 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
                 <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM3 19a2 2 0 0 0 2 2h1v-7H5a2 2 0 0 0-2 2Z"/></svg>Listen</button>
                 <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Share</button>
                 <button class="act" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1Z"/></svg>Save</button>
+                <button class="amplify" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>Amplify · 11</button>
+              </div>
+            </div>
+
+            <!-- community: Peer Insights -->
+            <div class="peer">
+              <h4>Peer Insights</h4>
+              <div class="composer">
+                <span class="avatar me">T</span>
+                <div class="cfield">
+                  <input type="text" placeholder="Add your perspective&hellip;" aria-label="Add a comment" />
+                  <button class="send" type="button" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4Z"/></svg></button>
+                </div>
+              </div>
+              <div class="cmt">
+                <span class="avatar them">D</span>
+                <div class="cbody">
+                  <div><span class="cname">Dana R.</span><span class="ctime">5h ago</span></div>
+                  <p class="ctext">Effect size is modest, but the fidelity data is the real finding. It only moved where the teacher set the task first.</p>
+                  <div class="cacts">
+                    <button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 10v11M18 10l-1.5 8a2 2 0 0 1-2 1.7H6V10l4.5-7a1.5 1.5 0 0 1 2.6 1.2L12 10h4.5a2 2 0 0 1 2 2.3Z"/></svg>9</button>
+                    <button type="button">Reply</button>
+                  </div>
+                </div>
+              </div>
+              <div class="cmt">
+                <span class="avatar them">K</span>
+                <div class="cbody">
+                  <div><span class="cname">Ken O.</span><span class="ctime">1d ago</span></div>
+                  <p class="ctext">Worth reading the appendix on attrition before anyone quotes this at a board meeting.</p>
+                  <div class="cacts">
+                    <button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 10v11M18 10l-1.5 8a2 2 0 0 1-2 1.7H6V10l4.5-7a1.5 1.5 0 0 1 2.6 1.2L12 10h4.5a2 2 0 0 1 2 2.3Z"/></svg>4</button>
+                    <button type="button">Reply</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -794,7 +849,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
       </div>
     </div>
 
-    <p class="figcap">A preview of the AIxEd feed: switch perspective, open the Deep Dive, and try Ask AIxEd. Sample posts and content, real layout.</p>
+    <p class="figcap">A preview of the AIxEd feed: switch perspective, toggle Community, open the Deep Dive, and try Ask AIxEd. Sample posts and content, real layout.</p>
   </div>
 </section>
 
@@ -1019,6 +1074,15 @@ var PLATFORM_URL = "https://aixed.promontoryai.com";
   function closeAsk(){ askPanel.classList.remove('open'); pill.style.display=''; }
   root.querySelector('#askClose').addEventListener('click', closeAsk);
   askPanel.addEventListener('click', function(e){ if(e.target === askPanel) closeAsk(); });
+
+  var device = root.querySelector('.device'), comm = root.querySelector('#commToggle');
+  if(comm){
+    comm.addEventListener('click', function(){
+      var on = comm.getAttribute('aria-pressed') === 'true';
+      comm.setAttribute('aria-pressed', on ? 'false' : 'true');
+      device.classList.toggle('community', !on);
+    });
+  }
 
   root.querySelectorAll('.pod-play').forEach(function(p){
     p.addEventListener('click', function(){
