@@ -15,7 +15,7 @@
 <link rel="canonical" href="https://aixed.ai/" />
 <style>
 /* ============================================================
-   AIxEd landing: aixed.ai  (platform app: aixed.promontoryai.com)
+   AIxEd landing: aixed.ai
    Design system inherited from the AIxEd platform (index.css @theme):
    brand indigo #27187f · accent gold #ffe900 · system font, light headings.
    The page itself uses Outfit/Inter, but the .device demo deliberately keeps
@@ -934,7 +934,6 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
         <div class="hp" aria-hidden="true"><label>Company website<input type="text" name="company_website" tabindex="-1" autocomplete="off" /></label></div>
         <div class="form-foot">
           <button class="btn btn-gold" type="submit" id="submit-btn">Request access</button>
-          <span class="note">Already approved? <a id="platform-link" href="https://aixed.promontoryai.com" target="_blank" rel="noopener">Sign in to AIxEd</a></span>
         </div>
         <div class="form-msg" id="form-msg" role="status" aria-live="polite"></div>
       </form>
@@ -943,9 +942,9 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 </section>
 
 <!-- AIXED.ORG. The summits and collaboratives this platform extends.
-     Deliberately NOT a link to the app: access is gated, so the only call to
-     action on this page is Request access. Members already approved get in via
-     the Sign in link under the form. -->
+     The platform app URL appears nowhere on this page by design: access is
+     granted by approving a request and emailing the link, so Request access is
+     the only way in and the only call to action. -->
 <section class="connect">
   <div class="wrap">
     <div class="inner">
@@ -974,9 +973,6 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
    ============================================================ */
 var API_BASE = "https://aixed-api.onrender.com"; // your Render api-server
 
-/* Where the "Sign in to AIxEd" link under the form points. */
-var PLATFORM_URL = "https://aixed.promontoryai.com";
-(function(){ var a = document.getElementById("platform-link"); if(a) a.href = PLATFORM_URL; })();
 
 /* Scroll reveal (reduced-motion safe: elements start visible if disabled) */
 (function(){
