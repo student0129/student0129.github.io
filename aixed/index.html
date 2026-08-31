@@ -202,7 +202,8 @@ select option{color:#171528;background:#fff}
 footer{background:var(--ink);color:var(--muted-on-dark);border-top:1px solid var(--hair-dark);padding:44px 0}
 footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center;font-size:13.5px}
 footer a{color:var(--iris);text-decoration:none}
-footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
+footer .wm{font-family:var(--display);color:#fff;font-weight:500;letter-spacing:-.02em}
+footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 
 /* ---- scroll reveal ---- */
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
@@ -933,6 +934,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
         <div class="hp" aria-hidden="true"><label>Company website<input type="text" name="company_website" tabindex="-1" autocomplete="off" /></label></div>
         <div class="form-foot">
           <button class="btn btn-gold" type="submit" id="submit-btn">Request access</button>
+          <span class="note">Already approved? <a id="platform-link" href="https://aixed.promontoryai.com" target="_blank" rel="noopener">Sign in to AIxEd</a></span>
         </div>
         <div class="form-msg" id="form-msg" role="status" aria-live="polite"></div>
       </form>
@@ -940,22 +942,24 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
   </div>
 </section>
 
-<!-- PLATFORM / AIXED.ORG. The year-round home of the work.
-     The platform app lives at aixed.promontoryai.com; this landing page at aixed.ai. -->
+<!-- AIXED.ORG. The summits and collaboratives this platform extends.
+     Deliberately NOT a link to the app: access is gated, so the only call to
+     action on this page is Request access. Members already approved get in via
+     the Sign in link under the form. -->
 <section class="connect">
   <div class="wrap">
     <div class="inner">
       <div class="txt">
         <p>The insights platform is how the work of <a class="inline" href="https://aixed.org" target="_blank" rel="noopener">AIxEd</a> reaches the field year-round, extending the conversations from our summits and collaboratives into a resource the whole community can learn from, and give back to.</p>
       </div>
-      <a class="btn btn-brand" id="platform-link" href="https://aixed.promontoryai.com" target="_blank" rel="noopener">Go to the platform</a>
+      <a class="btn btn-brand" href="https://aixed.org" target="_blank" rel="noopener">Visit AIxEd.org</a>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <span><span class="wm">AI<span style="color:var(--iris);font-weight:400">x</span>Ed</span> · A curated publication on AI in education</span>
+    <span><span class="wm">AI<span class="x">x</span>Ed</span> · A curated publication on AI in education</span>
     <span>Powered by Promontory AI · <a href="mailto:aixed@promontoryai.com">aixed@promontoryai.com</a></span>
   </div>
 </footer>
@@ -970,7 +974,7 @@ footer .wm{color:#fff;font-weight:700;letter-spacing:-.02em}
    ============================================================ */
 var API_BASE = "https://aixed-api.onrender.com"; // your Render api-server
 
-/* Where "Go to the platform" points. Swap for the live platform app URL. */
+/* Where the "Sign in to AIxEd" link under the form points. */
 var PLATFORM_URL = "https://aixed.promontoryai.com";
 (function(){ var a = document.getElementById("platform-link"); if(a) a.href = PLATFORM_URL; })();
 
