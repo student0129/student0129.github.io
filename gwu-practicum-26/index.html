@@ -489,10 +489,11 @@
             width: 100%; height: 100%; overflow: auto;
             background-color: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(8px);
+            flex-direction: column;
             align-items: center; justify-content: center;
         }
         .modal-content {
-            margin: auto; display: block; max-width: 90%; max-height: 90vh;
+            display: block; max-width: 90%; max-height: 84vh;
             border-radius: 8px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             background-color: white; 
             animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -507,6 +508,11 @@
             transition: 0.3s; z-index: 1001;
         }
         .close-modal:hover { color: #94a3b8; transform: scale(1.1); }
+        .modal-caption {
+            margin-top: 14px; max-width: 90%;
+            color: #cbd5e1; font-size: 0.85rem; font-weight: 300; text-align: center; line-height: 1.5;
+        }
+        .modal-caption a { color: #ffffff; text-decoration: underline; text-underline-offset: 3px; }
 
     </style>
 </head>
@@ -516,6 +522,7 @@
     <div id="imageModal" class="modal">
         <span class="close-modal" onclick="closeModal()">&times;</span>
         <img class="modal-content" id="modalImage" alt="Diagram">
+        <div class="modal-caption" id="modalCaption"></div>
     </div>
 
     <div class="nav-dots" id="navDots"></div>
@@ -784,8 +791,8 @@
                     <h2>How We Got to Large Language Models</h2>
                     <p style="margin-bottom: 10px;">The field of <span class="jargon-tooltip">NLP<span class="tooltip-text">Natural Language Processing: The branch of AI focused on enabling machines to understand and generate human language.</span></span> went through three distinct generations before landing on the Decoder-Only architecture that powers every modern LLM.</p>
                     <div>
-                        <button class="btn-diagram" onclick="openModal('img/Evolution of LLMs.jpg')"><i class="fa-solid fa-code-branch"></i> View Evolution Tree (2018–2023)</button>
-                        <button class="btn-diagram" onclick="openModal('img/Encode-Decoder.jpg')"><i class="fa-solid fa-diagram-project"></i> View Original Transformer (2017)</button>
+                        <button class="btn-diagram" onclick="openModal('img/LLM Landscape 2025.png', 'Figure: Sebastian Raschka, “Beyond Standard LLMs” (November 2025)', 'https://magazine.sebastianraschka.com/p/beyond-standard-llms')"><i class="fa-solid fa-code-branch"></i> View LLM Landscape (2018–2025)</button>
+                        <button class="btn-diagram" onclick="openModal('img/Encode-Decoder.jpg', 'Figure: Vaswani et al., “Attention Is All You Need” (2017), annotated', 'https://arxiv.org/abs/1706.03762')"><i class="fa-solid fa-diagram-project"></i> View Original Transformer (2017)</button>
                     </div>
                 </div>
 
@@ -833,8 +840,8 @@
                     <h2>Inside the Decoder</h2>
                     <p style="margin-bottom: 20px;">Now that we know Decoder-Only is the dominant architecture, let's open it up. How does text actually flow through the model from input to output?</p>
                     
-                    <button class="btn-diagram" onclick="openModal('img/Decoder Block.jpg')"><i class="fa-solid fa-diagram-project"></i> View Decoder Block</button>
-                    <button class="btn-diagram" onclick="openModal('img/Building an LLM.jpg')"><i class="fa-solid fa-layer-group"></i> View Lifecycle Pipeline</button>
+                    <button class="btn-diagram" onclick="openModal('img/Decoder Block.jpg', 'Figure: Sebastian Raschka, Build a Reasoning Model (From Scratch)', 'https://sebastianraschka.com')"><i class="fa-solid fa-diagram-project"></i> View Decoder Block</button>
+                    <button class="btn-diagram" onclick="openModal('img/Building an LLM.jpg', 'Figure: Sebastian Raschka, Build a Large Language Model (From Scratch) (2024)', 'https://sebastianraschka.com')"><i class="fa-solid fa-layer-group"></i> View Lifecycle Pipeline</button>
 
                     <div class="info-box" style="margin-top: 24px;">
                         <i class="fa-solid fa-circle-info" style="margin-top: 4px; color: var(--text-main);"></i>
@@ -886,7 +893,8 @@
                     <h2>Not All Decoders Are Equal</h2>
                     <p style="margin-bottom: 20px;">Every major LLM is a Decoder-Only Transformer, but the choices made inside it determine speed, cost, and capability.</p>
                     
-                    <button class="btn-diagram" onclick="openModal('img/LLMs Comparisons.jpg')"><i class="fa-solid fa-microchip"></i> View Model Comparisons</button>
+                    <button class="btn-diagram" onclick="openModal('img/Open-Weight Architectures 2026.png', 'Figure: Sebastian Raschka, “Recent Developments in LLM Architectures” (May 2026)', 'https://magazine.sebastianraschka.com/p/recent-developments-in-llm-architectures')"><i class="fa-solid fa-microchip"></i> View 2026 Open-Weight Architectures</button>
+                    <a class="btn-diagram" href="https://sebastianraschka.com/llm-architecture-gallery/" target="_blank" rel="noopener noreferrer" style="text-decoration: none;"><i class="fa-solid fa-arrow-up-right-from-square"></i> LLM Architecture Gallery</a>
 
                     <ul class="feature-list" style="margin-top: 24px;">
                         <li>
@@ -938,7 +946,9 @@
                     <h2>Reasoning Models</h2>
                     <p style="margin-bottom: 20px;">Standard Decoders predict the next word reactively. <strong>Reasoning models</strong> take a different approach: think of human cognition as <strong>System 1</strong> (fast, intuitive) vs. <strong>System 2</strong> (slow, deliberate). Reasoning models emulate System 2.</p>
 
-                    <button class="btn-diagram" onclick="openModal('img/Reasoning Model.jpg')"><i class="fa-solid fa-brain"></i> View Reasoning Pipeline</button>
+                    <button class="btn-diagram" onclick="openModal('img/Reasoning Model.jpg', 'Figure: Sebastian Raschka, Build a Reasoning Model (From Scratch)', 'https://sebastianraschka.com')"><i class="fa-solid fa-brain"></i> View Reasoning Pipeline</button>
+                    <button class="btn-diagram" onclick="openModal('img/Reasoning Effort vs Cost.png', 'Figure: Sebastian Raschka, “Controlling Reasoning Effort in LLMs” (July 2026); benchmark data from Artificial Analysis', 'https://magazine.sebastianraschka.com/p/controlling-reasoning-effort-in-llms')"><i class="fa-solid fa-gauge-high"></i> Reasoning Effort vs. Cost</button>
+                    <button class="btn-diagram" onclick="openModal('img/What RLVR Rewards.png', 'Figure: Sebastian Raschka, “Controlling Reasoning Effort in LLMs” (July 2026)', 'https://magazine.sebastianraschka.com/p/controlling-reasoning-effort-in-llms')"><i class="fa-solid fa-award"></i> What RLVR Rewards</button>
 
                     <div class="info-box" style="margin-top: 24px;">
                         <i class="fa-solid fa-brain" style="margin-top: 4px; color: var(--text-main);"></i>
@@ -1015,6 +1025,10 @@
 <span class="code-keyword">Action:</span> <span class="code-string">payment_api(inv_id=402)</span><br>
 <span class="code-keyword">Observation:</span> 200 OK<br><br>
 <span class="code-keyword">Final Answer:</span> Invoice 402 approved.
+                            </div>
+                            <div style="margin-top: 8px;">
+                                <button class="btn-diagram" onclick="openModal('img/Engine vs Agent.png', 'Figure: Sebastian Raschka, “Components of A Coding Agent” (April 2026)', 'https://magazine.sebastianraschka.com/p/components-of-a-coding-agent')"><i class="fa-solid fa-car-side"></i> Engine vs. Agent</button>
+                                <button class="btn-diagram" onclick="openModal('img/Agent Loop.png', 'Figure: Sebastian Raschka, “Components of A Coding Agent” (April 2026)', 'https://magazine.sebastianraschka.com/p/components-of-a-coding-agent')"><i class="fa-solid fa-rotate"></i> The Agent Loop</button>
                             </div>
                         </div>
                     </div>
@@ -1118,6 +1132,7 @@
                     <h2>Working With Coding Agents</h2>
                     <p style="margin-bottom: 20px;">The agent loop is already in your hands. Coding agents like Codex, Claude Code, and Cursor read your project, write and run code, check the results, and iterate. Used well, they multiply what a small team can build.</p>
                     <p>Used carelessly, they produce <span class="jargon-tooltip">vibe coding<span class="tooltip-text">A term coined by Andrej Karpathy in 2025 for building software by prompting an AI and accepting its output without really reading the code. Fine for throwaway prototypes, risky for anything that matters.</span></span>: code that runs today and nobody can explain tomorrow.</p>
+                    <button class="btn-diagram" onclick="openModal('img/Coding Agent Components.png', 'Figure: Sebastian Raschka, “Components of A Coding Agent” (April 2026)', 'https://magazine.sebastianraschka.com/p/components-of-a-coding-agent')"><i class="fa-solid fa-puzzle-piece"></i> Components of a Coding Agent</button>
 
                     <div class="info-box">
                         <i class="fa-solid fa-stopwatch" style="margin-top: 4px; color: var(--text-main);"></i>
@@ -1162,7 +1177,7 @@
                                 <div class="step-number">5</div>
                                 <div class="step-content">
                                     <h5>Guard Secrets and Data</h5>
-                                    <p>Never paste credentials or sensitive data into prompts, and limit what the agent can access and run.</p>
+                                    <p>Never paste credentials or sensitive data into prompts, and limit what the agent can access and run. For sensitive work, consider <span class="jargon-tooltip">local coding agents<span class="tooltip-text">Open-weight models (such as Qwen3.6) can run on your own computer through tools like Ollama and plug into harnesses like Codex or Claude Code, so code and data stay on your machine. Frontier models are still stronger, but local models are capable enough for many tasks. See Sebastian Raschka, “Using Local Coding Agents” (2026).</span></span>.</p>
                                 </div>
                             </div>
                         </div>
@@ -1233,8 +1248,8 @@
                     <p style="margin-bottom: 20px;">You've built your agent. Now comes the hardest question in production AI: <em>how do you know it's working?</em> Generative text breaks standard software testing. <strong>No single evaluation method is sufficient.</strong> Multiple choice and arena leaderboards help you <em>choose a model</em>; verifiers and LLM judges help you <em>test your own system</em>.</p>
                     
                     <div>
-                        <button class="btn-diagram" onclick="openModal('img/LLM Evaluation Techniques.jpg')"><i class="fa-solid fa-sitemap"></i> Evaluation Taxonomy</button>
-                        <button class="btn-diagram" onclick="openModal('img/Evaluating LLMs.jpg')"><i class="fa-solid fa-chart-pie"></i> Radar Chart</button>
+                        <button class="btn-diagram" onclick="openModal('img/LLM Evaluation Techniques.jpg', 'Figure: Sebastian Raschka, “Understanding the 4 Main Approaches to LLM Evaluation” (October 2025)', 'https://magazine.sebastianraschka.com/p/llm-evaluation-4-approaches')"><i class="fa-solid fa-sitemap"></i> Evaluation Taxonomy</button>
+                        <button class="btn-diagram" onclick="openModal('img/Evaluating LLMs.jpg', 'Figure: Sebastian Raschka, “Understanding the 4 Main Approaches to LLM Evaluation” (October 2025)', 'https://magazine.sebastianraschka.com/p/llm-evaluation-4-approaches')"><i class="fa-solid fa-chart-pie"></i> Radar Chart</button>
                     </div>
                 </div>
 
@@ -1331,7 +1346,7 @@
                     <p style="margin-bottom: 16px;">One of the risks you must account for in your evaluation comes from fine-tuning. <span class="jargon-tooltip">LoRA<span class="tooltip-text">Low-Rank Adaptation: Freezes the original model weights and injects small trainable "adapter" matrices. Only those adapters are trained, often well under 1% of the model's parameters, which cuts GPU memory dramatically compared with full fine-tuning.</span></span> made fine-tuning accessible to any developer with a consumer GPU, a genuine breakthrough.</p>
                     <p style="margin-bottom: 20px;"><strong>But easy accessibility created a dangerous myth:</strong> that fine-tuning is a "surgical" operation, teaching a narrow task without touching the model's core knowledge. Recent research shows this is false.</p>
                     
-                    <button class="btn-diagram" onclick="openModal('img/LoRA.jpg')"><i class="fa-solid fa-compress"></i> View LoRA Architecture</button>
+                    <button class="btn-diagram" onclick="openModal('img/LoRA.jpg', 'Table from Hu et al., “LoRA: Low-Rank Adaptation of Large Language Models” (2021), annotated', 'https://arxiv.org/abs/2106.09685')"><i class="fa-solid fa-compress"></i> View LoRA Architecture</button>
 
                     <ul class="feature-list" style="margin-top: 24px;">
                         <li><i class="fa-solid fa-minus"></i> <div><strong>Leaky Generalization:</strong> Training on niche datasets fundamentally shifts the model's global worldview.</div></li>
@@ -1423,7 +1438,7 @@
                     <h2>AI Governance Frameworks</h2>
                     <p style="margin-bottom: 20px;">Those four deployment realities don't go away on their own; you need a systematic framework to manage them. Enterprise AI cannot run on good intentions alone.</p>
                     
-                    <button class="btn-diagram" onclick="openModal('img/AI Risk Manangement Framework.png')"><i class="fa-solid fa-sitemap"></i> View NIST RMF Diagram</button>
+                    <button class="btn-diagram" onclick="openModal('img/AI Risk Manangement Framework.png', 'Figure: NIST AI Risk Management Framework (AI RMF 1.0)', 'https://www.nist.gov/itl/ai-risk-management-framework')"><i class="fa-solid fa-sitemap"></i> View NIST RMF Diagram</button>
 
                     <div class="info-box" style="margin-top: 24px; margin-bottom: 20px;">
                         <i class="fa-solid fa-book-open-reader" style="color: var(--text-main); margin-top: 4px;"></i>
@@ -1728,14 +1743,26 @@
         });
 
         // Modal Logic
-        function openModal(imgSrc) {
+        // credit: text shown under the image; creditUrl: optional source link
+        function openModal(imgSrc, credit, creditUrl) {
             document.getElementById('modalImage').src = imgSrc;
+            const caption = document.getElementById('modalCaption');
+            caption.textContent = credit || '';
+            if (credit && creditUrl) {
+                const link = document.createElement('a');
+                link.href = creditUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = 'Source';
+                caption.append(' · ', link);
+            }
             document.getElementById('imageModal').style.display = 'flex';
         }
 
         function closeModal() {
             document.getElementById('imageModal').style.display = 'none';
             document.getElementById('modalImage').src = ''; // clear source to prevent flicker on next load
+            document.getElementById('modalCaption').textContent = '';
         }
 
         // Close modal when clicking outside the image
