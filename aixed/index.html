@@ -3,19 +3,28 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AIxEd Signal: A curated insights platform for AI in education, from Promontory AI</title>
+<title>AIxEd Signal: A curated insights platform for AI in education, powered by Promontory AI</title>
 <meta name="description" content="AIxEd Signal cuts through the AI hype to what actually matters in education, curated for leaders, educators, edtech teams, and researchers. Request access." />
 <meta property="og:title" content="AIxEd Signal: AI, in education" />
 <meta property="og:description" content="A curated insights platform for AI in education. Cut through the hype to the signal that matters. Request access." />
 <meta property="og:type" content="website" />
+<meta property="og:site_name" content="AIxEd Signal" />
+<meta property="og:image" content="https://www.aixed.ai/aixed-signal-og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="AIxEd Signal: a curated insights platform for AI in education, powered by Promontory AI" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="AIxEd Signal: AI, in education" />
+<meta name="twitter:description" content="A curated insights platform for AI in education. Cut through the hype to the signal that matters. Request access." />
+<meta name="twitter:image" content="https://www.aixed.ai/aixed-signal-og.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@300..700&display=swap" rel="stylesheet">
-<meta property="og:url" content="https://aixed.ai/" />
-<link rel="canonical" href="https://aixed.ai/" />
+<meta property="og:url" content="https://www.aixed.ai/" />
+<link rel="canonical" href="https://www.aixed.ai/" />
 <style>
 /* ============================================================
-   AIxEd Signal landing: aixed.ai
+   AIxEd Signal landing: www.aixed.ai
    AIxEd Signal is the platform; AIxEd is the organization and its summits.
    Design system inherited from the AIxEd Signal platform (index.css @theme):
    brand indigo #27187f · accent gold #ffe900 · system font, light headings.
@@ -208,6 +217,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
 footer a{color:var(--iris);text-decoration:none}
 footer .wm{font-family:var(--display);color:#fff;font-weight:500;letter-spacing:-.02em}
 footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
+footer .wm .sig{margin-left:.28em;font-weight:300}
 
 /* ---- scroll reveal ---- */
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
@@ -997,18 +1007,17 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 
 <footer>
   <div class="wrap">
-    <span><span class="wm">AI<span class="x">x</span>Ed Signal</span>, a curated insights platform for AI in education.</span>
-    <span>Powered by Promontory AI · <a href="mailto:aixed@promontoryai.com">aixed@promontoryai.com</a></span>
+    <span><span class="wm">AI<span class="x">x</span>Ed<span class="sig">Signal</span></span>, a curated insights platform for AI in education.</span>
+    <span>Powered by Promontory AI · <a href="mailto:aixed@promontoryai.com">Contact</a></span>
   </div>
 </footer>
 <script>
 /* ============================================================
    CONFIG. Set this to your api-server (Render) base URL.
 
-   ⚠ CORS: the api-server allows *.promontoryai.com. This page is served
-   from aixed.ai, which that allowlist does NOT cover. The browser will
-   block the access-request POST until aixed.ai (and www.aixed.ai) are
-   added to the api-server's allowed origins.
+   CORS: the api-server allows https://aixed.ai and https://www.aixed.ai
+   (plus *.promontoryai.com). Serving this page from any other host needs
+   that host added to allowedOriginPatterns in api-server/server.js.
    ============================================================ */
 var API_BASE = "https://aixed-api.onrender.com"; // your Render api-server
 
