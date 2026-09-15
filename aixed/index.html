@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AIxEd: A curated publication on AI in education, from Promontory AI</title>
-<meta name="description" content="AIxEd cuts through the AI hype to what actually matters in education, curated for leaders, educators, edtech teams, and researchers. Request access." />
-<meta property="og:title" content="AIxEd: AI, in education" />
-<meta property="og:description" content="A curated publication on AI in education. Cut through the hype to the signal that matters. Request access." />
+<title>AIxEd Signal: A curated insights platform for AI in education, from Promontory AI</title>
+<meta name="description" content="AIxEd Signal cuts through the AI hype to what actually matters in education, curated for leaders, educators, edtech teams, and researchers. Request access." />
+<meta property="og:title" content="AIxEd Signal: AI, in education" />
+<meta property="og:description" content="A curated insights platform for AI in education. Cut through the hype to the signal that matters. Request access." />
 <meta property="og:type" content="website" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,8 +15,9 @@
 <link rel="canonical" href="https://aixed.ai/" />
 <style>
 /* ============================================================
-   AIxEd landing: aixed.ai
-   Design system inherited from the AIxEd platform (index.css @theme):
+   AIxEd Signal landing: aixed.ai
+   AIxEd Signal is the platform; AIxEd is the organization and its summits.
+   Design system inherited from the AIxEd Signal platform (index.css @theme):
    brand indigo #27187f · accent gold #ffe900 · system font, light headings.
    The page itself uses Outfit/Inter, but the .device demo deliberately keeps
    the platform's own system font so the screenshot matches the real app.
@@ -90,6 +91,7 @@ header.nav{
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
 .wordmark{font-family:var(--display);font-weight:500;letter-spacing:-.02em;font-size:20px;color:#fff;text-decoration:none;display:inline-flex;align-items:baseline}
 .wordmark .x{color:var(--iris);font-weight:400;padding:0 .02em}
+.wordmark .sig{margin-left:.28em;font-weight:300}
 .nav .cta-sm{font-size:14px;font-weight:700;color:var(--ink);background:var(--gold);padding:9px 16px;border-radius:999px;text-decoration:none;transition:transform .15s ease}
 .nav .cta-sm:hover{transform:translateY(-1px)}
 
@@ -98,6 +100,7 @@ header.nav{
 .hero .kicker{font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--iris);margin-bottom:26px}
 .hero h1{font-size:clamp(64px,15vw,168px);letter-spacing:-.05em;line-height:.9;color:#fff}
 .hero h1 .x{color:var(--iris);font-weight:200}
+.hero h1 .sig{display:block}
 .hero .tag{font-family:var(--display);font-size:clamp(20px,3.2vw,30px);color:var(--text-on-dark);font-weight:200;margin-top:20px;letter-spacing:-.02em}
 .hero .sub{font-size:clamp(16px,2vw,19px);color:var(--muted-on-dark);max-width:56ch;margin-top:26px}
 .hero .actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:40px}
@@ -172,11 +175,12 @@ header.nav{
 
 /* ---- request access form ---- */
 .form-wrap{margin-top:48px;background:var(--ink-soft);border:1px solid var(--hair-dark);border-radius:22px;padding:clamp(24px,4vw,44px)}
-form .row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+form .row{display:grid;grid-template-columns:1fr 1fr;gap:0 18px} /* no row gap: .field's margin already spaces stacked fields */
 .field{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
 .field.full{grid-column:1/-1}
 label{font-size:13px;font-weight:600;color:var(--iris-soft);letter-spacing:.01em}
 label .req{color:var(--gold)}
+label .opt{color:var(--muted-on-dark);font-weight:400}
 input,textarea,select{
   font:inherit;font-size:15.5px;color:#fff;background:rgba(255,255,255,.04);
   border:1px solid var(--hair-dark);border-radius:12px;padding:13px 15px;width:100%;transition:border-color .15s ease,background .15s ease}
@@ -241,7 +245,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 }
 /* The demo is a screenshot of the real app, so everything inside .device keeps
    the platform's system font rather than the page's display face. The section
-   head and figure caption sit outside .device and stay in the page voice. */
+   head and demo guide sit outside .device and stay in the page voice. */
 .aixed-peek .device,
 .aixed-peek .device h1,.aixed-peek .device h2,
 .aixed-peek .device h3,.aixed-peek .device h4,
@@ -253,6 +257,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 .aixed-peek .chrome{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px clamp(16px,3vw,26px);border-bottom:1px solid var(--slate-100);background:var(--white)}
 .aixed-peek .device .wm{font-family:var(--app-sans);font-weight:800;letter-spacing:-.02em;font-size:19px;color:var(--slate-900);display:inline-flex;align-items:baseline}
 .aixed-peek .device .wm .x{color:var(--brand);font-weight:400}
+.aixed-peek .device .wm .sig{margin-left:.28em;font-weight:400}
 .aixed-peek .ctrl{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .aixed-peek .lens{display:inline-flex;gap:8px;flex-wrap:wrap}
 /* Community mode switch. Off is Focus mode: peer insights and Amplify are the
@@ -334,7 +339,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 .aixed-peek .cmt .cacts button:hover{color:var(--slate-700)}
 .aixed-peek .cmt .cacts svg{width:13px;height:13px}
 
-/* floating Ask AIxEd pill */
+/* floating Ask AIxEd Signal pill */
 .aixed-peek .ask-pill{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:15;display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border:1px solid var(--slate-200);box-shadow:0 10px 30px -8px rgba(15,23,42,.3);cursor:pointer;transition:box-shadow .15s,border-color .15s}
 .aixed-peek .ask-pill:hover{box-shadow:0 16px 40px -8px rgba(15,23,42,.4);border-color:var(--iris)}
 .aixed-peek .ask-pill svg{width:16px;height:16px;color:var(--brand-500)}
@@ -415,7 +420,19 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 .aixed-peek .pod-script .sk{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--slate-400);margin-bottom:12px}
 .aixed-peek .pod-line{font-size:14.5px;line-height:1.6;color:var(--slate-700);margin-bottom:10px}
 .aixed-peek .pod-line b{color:var(--brand);font-weight:700}
-.aixed-peek .figcap{margin-top:16px;text-align:center;font-size:12.5px;font-style:italic;color:var(--text-muted)}
+/* demo guide above the device: sample-content notice + what to try */
+.aixed-peek .demo-guide{margin-top:clamp(32px,4.5vw,48px);background:var(--paper-tint);border:1px solid var(--hair);border-radius:18px;padding:clamp(18px,2.6vw,26px) clamp(18px,3vw,30px)}
+.aixed-peek .demo-guide + .device{margin-top:18px}
+.aixed-peek .dg-head{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap}
+.aixed-peek .dg-tag{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);background:var(--gold);border-radius:999px;padding:5px 12px;white-space:nowrap}
+.aixed-peek .dg-note{flex:1 1 32ch;font-size:15.5px;line-height:1.5;color:var(--text-muted)}
+.aixed-peek .dg-note strong{color:var(--text);font-weight:700}
+.aixed-peek .dg-steps{list-style:none;counter-reset:dg;margin:18px 0 0;padding:18px 0 0;border-top:1px solid var(--hair);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 24px}
+.aixed-peek .dg-steps li{counter-increment:dg;display:flex;gap:10px;font-size:14px;line-height:1.5;color:var(--text-muted)}
+.aixed-peek .dg-steps li::before{content:counter(dg);flex:none;width:22px;height:22px;margin-top:1px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.aixed-peek .dg-steps b{display:block;color:var(--text);font-weight:700}
+@media (max-width:900px){.aixed-peek .dg-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:540px){.aixed-peek .dg-steps{grid-template-columns:1fr}}
 @media (max-width:640px){
   .aixed-peek .chrome{justify-content:center}
   .aixed-peek .ctrl{width:100%;flex-direction:column;align-items:stretch;gap:10px}
@@ -483,7 +500,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 
 <header class="nav">
   <div class="wrap">
-    <a class="wordmark" href="#top">AI<span class="x">x</span>Ed</a>
+    <a class="wordmark" href="#top">AI<span class="x">x</span>Ed<span class="sig">Signal</span></a>
     <a class="cta-sm" href="#request">Request access</a>
   </div>
 </header>
@@ -491,9 +508,9 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 <!-- HERO -->
 <section class="dark hero" id="top">
   <div class="wrap">
-    <h1 class="reveal">AI<span class="x">x</span>Ed</h1>
+    <h1 class="reveal">AI<span class="x">x</span>Ed <span class="sig">Signal</span></h1>
     <p class="tag reveal">AI, in education.</p>
-    <p class="sub reveal">AI is reshaping how we teach, learn, and lead, faster than any technology in our lifetimes. AIxEd cuts through the hype to what actually matters, curated for the education community: leaders, educators, edtech teams, and researchers.</p>
+    <p class="sub reveal">AI is reshaping how we teach, learn, and lead, faster than any technology in our lifetimes. AIxEd Signal cuts through the hype to what actually matters, curated for the education community: leaders, educators, edtech teams, and researchers.</p>
     <div class="actions reveal">
       <a class="btn btn-gold" href="#request">Request access</a>
       <a class="btn btn-ghost" href="#inside">See what's inside</a>
@@ -508,23 +525,23 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
     <div class="section-head reveal">
       <p class="eyebrow">Why it matters</p>
       <h2>Everyone's using it. Almost no one has been told how.</h2>
-      <p class="lead">AI is already in classrooms, lecture halls, and district offices. More than half of teachers and students now use it for instruction and schoolwork, up over 15 points in a single year. What hasn't arrived is the understanding to use it well. So the people closest to the work are piecing it together from headlines, vendor decks, and hearsay. The signal exists. The time to find it, judge it, and work out what it means in your context doesn't.</p>
+      <p class="lead">AI is already in classrooms, lecture halls, and district offices. More than half of K–12 teachers and students now use it for instruction and schoolwork, up more than fifteen percentage points in a year or two. The guidance on using it hasn't kept up. So the people closest to the work are piecing it together from headlines, hearsay, and vendor decks. The signal is there. The time to find and understand it in their own context isn't.</p>
     </div>
     <div class="stats">
       <div class="stat reveal">
         <div class="num">82%</div>
         <div class="lab">of K-12 teachers have received <b>no formal guidance</b> on how to use AI in their work.</div>
-        <div class="src"><a href="https://news.gallup.com/poll/710534/teachers-receive-no-formal-guidance.aspx" target="_blank" rel="noopener">Gallup &amp; Walton Family Foundation · 2026</a></div>
+        <div class="src"><a href="https://news.gallup.com/poll/710534/teachers-receive-no-formal-guidance.aspx" target="_blank" rel="noopener">Gallup &amp; Walton Family Foundation</a></div>
       </div>
       <div class="stat hl reveal">
         <div class="num"><em>17%</em></div>
         <div class="lab">of faculty rate their own AI knowledge as advanced or expert.</div>
-        <div class="src"><a href="https://www.digitaleducationcouncil.com/dec-insights/what-faculty-want-key-results-from-the-global-ai-faculty-survey-2025" target="_blank" rel="noopener">Digital Education Council · 2025</a></div>
+        <div class="src"><a href="https://www.digitaleducationcouncil.com/dec-insights/what-faculty-want-key-results-from-the-global-ai-faculty-survey-2025" target="_blank" rel="noopener">Digital Education Council</a></div>
       </div>
       <div class="stat reveal">
         <div class="num">45%</div>
         <div class="lab">of principals report <b>any</b> school or district policy on AI use.</div>
-        <div class="src"><a href="https://www.rand.org/pubs/research_reports/RRA4180-1.html" target="_blank" rel="noopener">RAND · 2024–25</a></div>
+        <div class="src"><a href="https://www.rand.org/pubs/research_reports/RRA4180-1.html" target="_blank" rel="noopener">RAND</a></div>
       </div>
     </div>
   </div>
@@ -536,10 +553,10 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
   <div class="wrap">
     <div class="section-head reveal">
       <p class="eyebrow">What's inside</p>
-      <h2>Everything you need, which is only possible because it's curated.</h2>
-      <p class="lead">A firehose gives you everything. It never gives you everything you <em>need</em>, because you still have to do the sorting. We do that first, so what reaches you is complete on what matters and empty of what doesn't.</p>
+      <h2>Everything you need to stay ahead, in one place.</h2>
+      <p class="lead">Insight built for how you actually work. Briefed, searchable, and made to act on.</p>
     </div>
-    <p class="curated reveal"><b>Curated, not aggregated.</b> Every source is editorially screened, triaged, and summarized before it reaches you. Nothing lands in your feed because an algorithm found it. It lands because a person judged it worth your time.</p>
+    <p class="curated reveal"><b>Curated. Not aggregated.</b> Every source is screened, triaged and summarized before it reaches you. The result is higher quality content that is timely, relevant and contextual.</p>
 
     <div class="grid cols-2">
       <div class="cell feature-lead reveal">
@@ -551,7 +568,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
       <div class="cell reveal">
         <span class="n">02</span>
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12Z"/></svg>
-        <h3>Ask AIxEd</h3><p>Put any question to the whole curated corpus and get higher-quality insight drawn from credible sources and prepared for your context: grounded, cited, and specific to your role. Not a web search, and not a guess.</p>
+        <h3>Ask AIxEd Signal</h3><p>Put any question to the whole curated corpus and get higher-quality insight drawn from credible sources and prepared for your context: grounded, cited, and specific to your role. Not a web search, and not a guess.</p>
       </div>
       <div class="cell reveal">
         <span class="n">03</span>
@@ -578,13 +595,27 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
     <div class="section-head reveal">
       <p class="eyebrow">A peek inside</p>
       <h2>See it work before you're in.</h2>
-      <p class="lead">This is the actual AIxEd feed. Switch perspective and every summary re-casts for who you are. Open a Deep Dive to read, see, or hear it, ask questions across the whole feed, and see who in the community shaped it.</p>
+      <p class="lead">Here's how the AIxEd Signal feed works. Switch perspective and every summary re-casts for who you are. Open a Deep Dive to read, see, or hear it, ask questions across the whole feed, and see who in the community shaped it.</p>
     </div>
+
+    <!-- demo guide: flags the content as sample and shows first-timers what to try -->
+    <aside class="demo-guide reveal" aria-label="How to use this demo">
+      <div class="dg-head">
+        <span class="dg-tag">Interactive demo</span>
+        <p class="dg-note"><strong>Sample posts, real layout.</strong> The posts, comments, and answers below are illustrative, not live content. Everything is clickable, so try it out:</p>
+      </div>
+      <ol class="dg-steps">
+        <li><span><b>Switch perspective</b>Pick Leaders, Educators, EdTech, or Research and watch each summary rewrite for that reader.</span></li>
+        <li><span><b>Toggle Community</b>Turn it off for a heads-down read without peer comments and Amplify.</span></li>
+        <li><span><b>Open a Deep Dive</b>Click the first post's title or Deep Dive button for text layers, an infographic, and a podcast.</span></li>
+        <li><span><b>Ask AIxEd Signal</b>Use the button at the bottom of the preview to see a question answered from the feed, with sources.</span></li>
+      </ol>
+    </aside>
 
     <div class="device community reveal">
       <!-- header + lens switcher -->
       <div class="chrome">
-        <span class="wm">AI<span class="x">x</span>Ed</span>
+        <span class="wm">AI<span class="x">x</span>Ed<span class="sig">Signal</span></span>
         <div class="ctrl">
           <div class="lens" role="group" aria-label="Reading perspective">
             <button type="button" data-lens="executive" aria-pressed="true">Leaders</button>
@@ -732,19 +763,19 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
         </article>
       </div>
 
-      <!-- floating Ask AIxEd pill -->
-      <button class="ask-pill" type="button" id="askOpen" aria-label="Open Ask AIxEd">
+      <!-- floating Ask AIxEd Signal pill -->
+      <button class="ask-pill" type="button" id="askOpen" aria-label="Open Ask AIxEd Signal">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.9L18.7 9l-4.9 1.8L12 15l-1.8-4.2L5.3 9l4.9-1.1L12 3Z"/><path d="M19 14l.7 2 2 .7-2 .7L19 20l-.7-2.6-2-.7 2-.7.7-2Z"/></svg>
-        <span>Ask AIxEd</span><span class="kbd">Ask</span>
+        <span>Ask AIxEd Signal</span><span class="kbd">Ask</span>
       </button>
 
-      <!-- Ask AIxEd panel -->
+      <!-- Ask AIxEd Signal panel -->
       <div class="ask-panel" id="askPanel">
         <div class="ask-inner">
           <div class="ask-thread">
             <div class="ask-head">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.9L18.7 9l-4.9 1.8L12 15l-1.8-4.2L5.3 9l4.9-1.1L12 3Z"/></svg>
-              Ask AIxEd · Leaders lens
+              Ask AIxEd Signal · Leaders lens
               <button class="close" type="button" id="askClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
             </div>
             <p class="ask-q">What do we have to do first for the new K-12 AI guidance?</p>
@@ -756,7 +787,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
           </div>
           <div class="ask-input">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.9L18.7 9l-4.9 1.8L12 15l-1.8-4.2L5.3 9l4.9-1.1L12 3Z"/></svg>
-            <input type="text" placeholder="Ask about anything in the feed&hellip;" aria-label="Ask AIxEd" />
+            <input type="text" placeholder="Ask about anything in the feed&hellip;" aria-label="Ask AIxEd Signal" />
             <button class="send" type="button" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4Z"/></svg></button>
           </div>
         </div>
@@ -811,7 +842,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
             <div class="dd-pane" data-pane="info">
               <div class="info">
                 <div class="info-hd">
-                  <div class="k">AIxEd · Leaders lens</div>
+                  <div class="k">AIxEd Signal · Leaders lens</div>
                   <h4>Federal AI Guidance for K-12: At a Glance</h4>
                 </div>
                 <div class="info-grid">
@@ -830,7 +861,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
                 <div class="pod-player">
                   <button class="pod-play" type="button" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
                   <div class="pod-mid">
-                    <div class="pod-k">AIxEd Podcast · Leaders lens · AI-generated</div>
+                    <div class="pod-k">AIxEd Signal Podcast · Leaders lens · AI-generated</div>
                     <div class="pod-wave" aria-hidden="true">
                       <i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i><i style="height:45%"></i><i style="height:75%"></i><i style="height:60%"></i><i style="height:85%"></i><i style="height:35%"></i><i style="height:65%"></i><i style="height:50%"></i><i style="height:80%"></i><i style="height:45%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:60%"></i>
                     </div>
@@ -849,8 +880,6 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
         </div>
       </div>
     </div>
-
-    <p class="figcap">A preview of the AIxEd feed: switch perspective, toggle Community, open the Deep Dive, and try Ask AIxEd. Sample posts and content, real layout.</p>
   </div>
 </section>
 
@@ -862,7 +891,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
       <div class="section-head reveal">
       <p class="eyebrow">The community</p>
       <h2 style="color:#fff">Learn from the field, and help shape it.</h2>
-      <p class="lead">AIxEd isn't a feed you read in isolation. It's a community of the people closest to the work, so you learn from their read on what's happening, compare notes across roles, and add your own perspective back.</p>
+      <p class="lead">AIxEd Signal isn't a feed you read in isolation. It's a community of the people closest to the work, so you learn from their read on what's happening, compare notes across roles, and add your own perspective back.</p>
     </div>
       <div class="roles reveal">
         <div class="role">
@@ -879,7 +908,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
         </div>
         <div class="role">
           <div class="rt"><span class="k">Contribute</span> Add your perspective</div>
-          <div class="rd">Publish your own analysis under your name, whether that's the classroom view, the policy view, or the build view, and reach the whole AIxEd audience with it.</div>
+          <div class="rd">Publish your own analysis under your name, whether that's the classroom view, the policy view, or the build view, and reach the whole AIxEd Signal audience with it.</div>
         </div>
         <div class="role">
           <div class="rt"><span class="k">Get recognized</span> Build your standing</div>
@@ -894,27 +923,33 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 <section id="request">
   <div class="wrap">
     <div class="section-head reveal">
-      <p class="eyebrow">Get access</p>
-      <h2>Request access to AIxEd.</h2>
-      <p class="lead">AIxEd is opening in stages. Tell us a little about you, and once you're approved we'll email your link to get in.</p>
+      <p class="eyebrow">Request an invitation</p>
+      <h2>Request access to AIxEd Signal.</h2>
+      <p class="lead">AIxEd Signal is opening in stages. Tell us a little about you, and once you're approved we'll email your link to get in.</p>
     </div>
     <div class="form-wrap reveal">
       <form id="access-form" novalidate>
         <div class="row">
           <div class="field">
-            <label for="f-name">Full name <span class="req">*</span></label>
-            <input id="f-name" name="name" type="text" autocomplete="name" placeholder="First Last" required />
+            <label for="f-first">First name <span class="req">*</span></label>
+            <input id="f-first" name="first_name" type="text" autocomplete="given-name" required />
           </div>
           <div class="field">
-            <label for="f-email">Email <span class="req">*</span></label>
-            <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@work.com" required />
+            <label for="f-last">Last name <span class="req">*</span></label>
+            <input id="f-last" name="last_name" type="text" autocomplete="family-name" required />
           </div>
         </div>
         <div class="row">
           <div class="field">
+            <label for="f-email">Email <span class="req">*</span></label>
+            <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@work.com" required />
+          </div>
+          <div class="field">
             <label for="f-org">Organization <span class="req">*</span></label>
             <input id="f-org" name="organization" type="text" autocomplete="organization" placeholder="Where you work" required />
           </div>
+        </div>
+        <div class="row">
           <div class="field">
             <label for="f-role">Which best describes you? <span class="req">*</span></label>
             <select id="f-role" name="role" required>
@@ -925,9 +960,13 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
               <option value="Researcher / learning scientist">Researcher or learning scientist</option>
             </select>
           </div>
+          <div class="field">
+            <label for="f-linkedin">LinkedIn profile <span class="opt">(optional)</span></label>
+            <input id="f-linkedin" name="linkedin" type="url" inputmode="url" autocomplete="url" placeholder="linkedin.com/in/yourname" />
+          </div>
         </div>
         <div class="field full">
-          <label for="f-interest">What are you hoping to get from AIxEd? <span class="req">*</span></label>
+          <label for="f-interest">What are you hoping to get from AIxEd Signal? <span class="req">*</span></label>
           <textarea id="f-interest" name="interest" placeholder="A sentence or two on what you're looking for." required></textarea>
         </div>
         <!-- honeypot: hidden from people, tempting to bots -->
@@ -941,7 +980,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
   </div>
 </section>
 
-<!-- AIXED.ORG. The summits and collaboratives this platform extends.
+<!-- AIXED.ORG. The summits and collaboratives Signal extends.
      The platform app URL appears nowhere on this page by design: access is
      granted by approving a request and emailing the link, so Request access is
      the only way in and the only call to action. -->
@@ -949,7 +988,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
   <div class="wrap">
     <div class="inner">
       <div class="txt">
-        <p>The insights platform is how the work of <a class="inline" href="https://aixed.org" target="_blank" rel="noopener">AIxEd</a> reaches the field year-round, extending the conversations from our summits and collaboratives into a resource the whole community can learn from, and give back to.</p>
+        <p>Signal is how the work of <a class="inline" href="https://aixed.org" target="_blank" rel="noopener">AIxEd</a> reaches the field year-round, extending the conversations from our summits and collaboratives into a resource the whole community can learn from, and give back to.</p>
       </div>
       <a class="btn btn-brand" href="https://aixed.org" target="_blank" rel="noopener">Visit AIxEd.org</a>
     </div>
@@ -958,7 +997,7 @@ footer .wm .x{color:var(--iris);font-weight:400;padding:0 .02em}
 
 <footer>
   <div class="wrap">
-    <span><span class="wm">AI<span class="x">x</span>Ed</span> · A curated publication on AI in education</span>
+    <span><span class="wm">AI<span class="x">x</span>Ed Signal</span>, a curated insights platform for AI in education.</span>
     <span>Powered by Promontory AI · <a href="mailto:aixed@promontoryai.com">aixed@promontoryai.com</a></span>
   </div>
 </footer>
@@ -995,10 +1034,19 @@ var API_BASE = "https://aixed-api.onrender.com"; // your Render api-server
   form.addEventListener('submit', function(e){
     e.preventDefault();
     var data = Object.fromEntries(new FormData(form).entries());
-    if(!data.name || !data.email || !data.organization || !data.role || !data.interest){
-      show('err','Please fill in every field.'); return;
+    data.first_name = (data.first_name || '').trim();
+    data.last_name = (data.last_name || '').trim();
+    // The API keeps `name` as the full display name, so send it alongside first and last.
+    data.name = (data.first_name + ' ' + data.last_name).trim();
+    if(!data.first_name || !data.last_name || !data.email || !data.organization || !data.role || !data.interest){
+      show('err','Please fill in every required field.'); return;
     }
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)){ show('err','Please enter a valid email address.'); return; }
+    if(data.linkedin){
+      data.linkedin = data.linkedin.trim();
+      if(!/^https?:\/\//i.test(data.linkedin)) data.linkedin = 'https://' + data.linkedin;
+      if(!/^https?:\/\/([a-z0-9-]+\.)*linkedin\.com\/\S*$/i.test(data.linkedin)){ show('err','Please enter a LinkedIn profile link, like linkedin.com/in/yourname.'); return; }
+    }
     btn.disabled = true; var label = btn.textContent; btn.textContent = 'Sending…';
     fetch(API_BASE + '/api/access-request', {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)
