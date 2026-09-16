@@ -98,7 +98,7 @@
         <section class="glass rounded-3xl shadow-2xl p-4 md:p-6 mb-4">
             <div class="flex flex-col sm:flex-row sm:items-end gap-3">
                 <label class="flex-1 min-w-0">
-                    <span class="label block mb-1.5">Speak in</span>
+                    <span id="source-label" class="label block mb-1.5">Speak in</span>
                     <select id="source-language-select" class="field w-full text-sm"></select>
                 </label>
                 <button id="swap-btn" class="icon-btn self-center sm:self-end sm:mb-1.5" aria-label="Swap languages" title="Swap languages">
@@ -129,6 +129,23 @@
 
             <div class="flex flex-wrap items-center gap-x-6 gap-y-3 mt-5 pt-4 border-t border-white/[0.06] text-sm">
                 <div class="flex items-center gap-2.5">
+                    <span class="label">Listen to</span>
+                    <div class="seg" role="group" aria-label="Audio to translate">
+                        <button type="button" data-input="mic" aria-pressed="true">Microphone</button>
+                        <button type="button" data-input="tab" aria-pressed="false">Browser tab</button>
+                    </div>
+                </div>
+                <label id="mic-field" class="flex items-center gap-2.5 min-w-0">
+                    <span class="label">Mic</span>
+                    <select id="mic-select" class="field text-sm max-w-[14rem] min-w-0">
+                        <option value="">Default microphone</option>
+                    </select>
+                </label>
+                <label id="tab-field" class="flex items-center gap-2.5 text-gray-400 cursor-pointer" hidden>
+                    <input id="mute-tab" type="checkbox" class="accent-sky-500 w-4 h-4">
+                    Mute the tab while translating
+                </label>
+                <div class="flex items-center gap-2.5">
                     <span class="label">Voice</span>
                     <div class="seg" role="group" aria-label="Speak the translation">
                         <button type="button" data-voice="off" aria-pressed="true">Off</button>
@@ -136,12 +153,6 @@
                         <button type="button" data-voice="speaker" aria-pressed="false">Speaker</button>
                     </div>
                 </div>
-                <label class="flex items-center gap-2.5 min-w-0">
-                    <span class="label">Mic</span>
-                    <select id="mic-select" class="field text-sm max-w-[14rem] min-w-0">
-                        <option value="">Default microphone</option>
-                    </select>
-                </label>
                 <details id="advanced" class="w-full group">
                     <summary class="cursor-pointer select-none text-gray-500 hover:text-gray-300 transition list-none flex items-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 transition group-open:rotate-90"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
@@ -152,7 +163,7 @@
                             <span class="label block mb-1.5">Names &amp; terms</span>
                             <input id="terms-input" type="text" class="field w-full text-sm px-3.5 py-2.5" placeholder="e.g. Promontory, Dr. Okafor, GWU" autocomplete="off" spellcheck="false">
                         </label>
-                        <label class="flex items-center gap-2.5 text-gray-400 cursor-pointer sm:pb-2.5">
+                        <label id="far-field-field" class="flex items-center gap-2.5 text-gray-400 cursor-pointer sm:pb-2.5">
                             <input id="far-field" type="checkbox" class="accent-sky-500 w-4 h-4">
                             Room microphone (speaker is far away)
                         </label>
@@ -160,6 +171,7 @@
                     <p class="text-xs text-gray-600 mt-2">Comma-separated. Helps the transcriber hear, and the translator spell, names and jargon correctly.</p>
                 </details>
             </div>
+            <p id="input-hint" class="text-xs text-gray-500 mt-2" hidden></p>
             <p id="voice-hint" class="text-xs text-gray-500 mt-2" hidden></p>
         </section>
 
@@ -188,7 +200,7 @@
                 <div id="transcript" class="h-[58vh] md:h-[54vh] overflow-y-auto px-4 md:px-6" aria-label="Transcript and translation">
                     <div id="empty" class="h-full flex flex-col items-center justify-center text-center text-gray-600 px-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-10 h-10 mb-3"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>
-                        <p class="text-gray-500">Press <span class="text-gray-300">Start listening</span> and speak.</p>
+                        <p id="empty-lead" class="text-gray-500">Press <span class="text-gray-300">Start listening</span> and speak.</p>
                         <p class="text-xs mt-1">Words appear as they're spoken, with the translation right beside them.</p>
                     </div>
                     <div id="rows"></div>
@@ -242,6 +254,9 @@
             modeHint: $('mode-hint'), toggle: $('toggle-btn'), toggleLabel: $('toggle-label'),
             status: $('status'), statusDot: $('status-dot'), meter: $('meter'),
             voiceButtons: [...document.querySelectorAll('[data-voice]')], voiceHint: $('voice-hint'),
+            inputButtons: [...document.querySelectorAll('[data-input]')], inputHint: $('input-hint'),
+            micField: $('mic-field'), tabField: $('tab-field'), muteTab: $('mute-tab'), farFieldField: $('far-field-field'),
+            sourceLabel: $('source-label'), emptyLead: $('empty-lead'),
             mic: $('mic-select'), terms: $('terms-input'), farField: $('far-field'),
             sourceTitle: $('transcription-title'), targetTitle: $('translation-title'), pairTitle: $('pair-title'),
             transcript: $('transcript'), rows: $('rows'), empty: $('empty'), jump: $('jump-btn'),
@@ -253,6 +268,12 @@
         // ---------------------------------------------------------------------------------------
         const prefs = (() => { try { return JSON.parse(localStorage.getItem('transltr.prefs') || '{}') || {}; } catch { return {}; } })();
         let voiceMode = ['off', 'headphones', 'speaker'].includes(prefs.voice) ? prefs.voice : 'off';
+        // Sharing another tab's sound needs Chrome or Edge on a computer; Safari and Firefox share
+        // tabs without audio, and phones can't share tabs at all.
+        const TAB_CAPTURE = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)
+            && !!(navigator.userAgentData && navigator.userAgentData.brands.some((b) => /Chromium/.test(b.brand)))
+            && !navigator.userAgentData.mobile;
+        let inputMode = prefs.input === 'tab' && TAB_CAPTURE ? 'tab' : 'mic';
         let fontIndex = Number.isInteger(prefs.font) && FONT_SCALES[prefs.font] ? prefs.font : 1;
 
         function savePrefs() {
@@ -260,6 +281,7 @@
                 localStorage.setItem('transltr.prefs', JSON.stringify({
                     source: els.source.value, target: els.target.value, voice: voiceMode,
                     farField: els.farField.checked, terms: els.terms.value, mic: els.mic.value, font: fontIndex,
+                    input: inputMode, muteTab: els.muteTab.checked,
                 }));
             } catch { /* private mode */ }
         }
@@ -274,6 +296,7 @@
             els.source.value = prefs.source && (prefs.source === 'auto' || NAMES[prefs.source]) ? prefs.source : 'en';
             els.target.value = prefs.target && NAMES[prefs.target] ? prefs.target : 'es';
             els.farField.checked = !!prefs.farField;
+            els.muteTab.checked = !!prefs.muteTab;
             els.terms.value = typeof prefs.terms === 'string' ? prefs.terms : '';
         }
 
@@ -282,7 +305,7 @@
             sourceLanguage: els.source.value,
             targetLanguage: els.target.value,
             voice: voiceMode !== 'off',
-            farField: els.farField.checked,
+            farField: inputMode === 'mic' && els.farField.checked,
             terms: parseTerms(),
         });
 
@@ -308,7 +331,7 @@
                 idle: ['Ready', 'bg-gray-600', false, 'text-gray-400'],
                 connecting: ['Connecting…', 'bg-amber-400', true, 'text-gray-300'],
                 switching: ['Switching translation mode…', 'bg-amber-400', true, 'text-gray-300'],
-                live: [session.engine === 'interpret' ? 'Listening · translating as you speak' : 'Listening · translated live, finalized at each pause', 'bg-red-500', true, 'text-sky-300'],
+                live: [liveStatus(), 'bg-red-500', true, 'text-sky-300'],
                 reconnecting: ['Connection interrupted — reconnecting. What you say is being kept.', 'bg-amber-400', true, 'text-amber-200'],
                 finishing: ['Finishing the last translation…', 'bg-sky-400', true, 'text-gray-300'],
                 error: ['Something went wrong.', 'bg-red-500', false, 'text-red-300'],
@@ -325,6 +348,13 @@
                 els.status.textContent = 'Waking up the translation server — the first start can take up to a minute…';
             }
         }, 1000);
+
+        function liveStatus() {
+            if (inputMode === 'tab') {
+                return session.engine === 'interpret' ? 'Listening to the shared tab · translating as it plays' : 'Listening to the shared tab · finalized at each pause';
+            }
+            return session.engine === 'interpret' ? 'Listening · translating as you speak' : 'Listening · translated live, finalized at each pause';
+        }
 
         function showError(message) {
             setPhase(session.active ? session.phase : 'error', message);
@@ -557,9 +587,20 @@
                 }
 
                 process(inputs) {
-                    const input = inputs[0] && inputs[0][0];
-                    if (!input) return true;
+                    const channels = inputs[0];
+                    if (!channels || !channels.length || !channels[0]) return true;
+                    let input = channels[0];
                     const n = input.length;
+                    // A shared tab is usually stereo: mix every channel, don't just take the left one.
+                    if (channels.length > 1) {
+                        if (!this.mix || this.mix.length !== n) this.mix = new Float32Array(n);
+                        for (let i = 0; i < n; i++) {
+                            let sum = 0;
+                            for (let c = 0; c < channels.length; c++) sum += channels[c][i];
+                            this.mix[i] = sum / channels.length;
+                        }
+                        input = this.mix;
+                    }
                     if (this.ratio === 1) {
                         for (let i = 0; i < n; i++) this.emit(input[i]);
                         return true;
@@ -594,21 +635,46 @@
 
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
 
+        async function captureMicrophone() {
+            const deviceId = els.mic.value;
+            const audio = { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+            if (deviceId) audio.deviceId = { exact: deviceId };
+            try {
+                return await navigator.mediaDevices.getUserMedia({ audio });
+            } catch (err) {
+                if (!deviceId || !['OverconstrainedError', 'NotFoundError'].includes(err.name)) throw err;
+                delete audio.deviceId;   // the remembered mic is gone; use the default
+                els.mic.value = '';
+                return navigator.mediaDevices.getUserMedia({ audio });
+            }
+        }
+
+        // Another tab's sound, straight from the browser: nothing is lost to the room or to echo
+        // cancellation, which would otherwise treat a meeting playing on this computer as echo.
+        // Must be called synchronously from a click: the tab picker needs the user's gesture.
+        async function captureTab() {
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: { displaySurface: 'browser', frameRate: { ideal: 1, max: 5 }, width: { max: 640 } },
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, suppressLocalAudioPlayback: els.muteTab.checked },
+                preferCurrentTab: false,
+                selfBrowserSurface: 'exclude',   // don't offer Translatr's own tab
+                surfaceSwitching: 'include',     // lets Chrome's "share this tab instead" swap tabs mid-session
+                systemAudio: 'include',
+            });
+            // Only the sound is needed. The audio keeps flowing after the picture is stopped.
+            stream.getVideoTracks().forEach((t) => t.stop());
+            const audio = stream.getAudioTracks();
+            if (!audio.length) throw Object.assign(new Error('The share has no audio'), { name: 'NoTabAudio' });
+            return new MediaStream(audio);
+        }
+
         const mic = {
-            ctx: null, stream: null, source: null, node: null, sink: null, muted: false, muteTimer: null,
+            ctx: null, stream: null, source: null, node: null, sink: null, muted: false, muteTimer: null, mode: 'mic',
 
             async start() {
-                const deviceId = els.mic.value;
-                const audio = { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true };
-                if (deviceId) audio.deviceId = { exact: deviceId };
-                try {
-                    this.stream = await navigator.mediaDevices.getUserMedia({ audio });
-                } catch (err) {
-                    if (!deviceId || !['OverconstrainedError', 'NotFoundError'].includes(err.name)) throw err;
-                    delete audio.deviceId;   // the remembered mic is gone; use the default
-                    els.mic.value = '';
-                    this.stream = await navigator.mediaDevices.getUserMedia({ audio });
-                }
+                this.mode = inputMode;
+                const stream = await (this.mode === 'tab' ? captureTab() : captureMicrophone());
+                this.stream = stream;
                 if (!session.active) return this.stop();
 
                 let ctx;
@@ -647,13 +713,14 @@
                     if (ctx.state === 'suspended' && session.active && this.ctx === ctx) ctx.resume().catch(() => {});
                 };
                 const track = this.stream.getAudioTracks()[0];
-                if (track) track.addEventListener('ended', () => this.recover());
+                if (track) track.addEventListener('ended', () => (this.mode === 'tab' ? tabShareEnded() : this.recover()));
                 this.muteTimer = setInterval(() => this.updateMute(), 50);
             },
 
             // Speaker mode: the mic pauses while the translation is spoken, so it isn't re-translated.
+            // A shared tab can't hear this page's speech, so it never pauses.
             updateMute() {
-                const mute = voiceMode === 'speaker' && player.busy();
+                const mute = this.mode === 'mic' && voiceMode === 'speaker' && player.busy();
                 if (mute !== this.muted && this.node) {
                     this.muted = mute;
                     this.node.port.postMessage({ mute });
@@ -665,13 +732,14 @@
                 this.teardown();
                 els.mic.value = '';
                 setPhase(session.phase, 'Microphone disconnected — switching to the default microphone…');
-                try { await this.start(); } catch (err) { abortSession(micError(err)); }
+                try { await this.start(); } catch (err) { abortSession(captureError(err)); }
             },
 
+            // Call from a click: switching to a tab opens the picker.
             async restart() {
                 if (!session.active || !this.stream) return;
                 this.teardown();
-                try { await this.start(); } catch (err) { abortSession(micError(err)); }
+                try { await this.start(); } catch (err) { abortSession(captureError(err)); }
             },
 
             stop() {
@@ -692,8 +760,14 @@
             },
         };
 
-        function micError(err) {
+        function captureError(err) {
             const name = err && err.name;
+            if (inputMode === 'tab') {
+                if (name === 'NotAllowedError') return 'Tab sharing was cancelled. Press Start and choose the tab to translate.';
+                if (name === 'NoTabAudio') return 'That share has no sound. Press Start, choose a Chrome tab, and keep “Also share tab audio” on.';
+                console.error('Tab capture error:', err);
+                return 'This browser can’t share a tab’s sound. Use Chrome or Edge on a computer.';
+            }
             if (name === 'NotAllowedError' || name === 'SecurityError') return 'Microphone access is blocked. Allow it in the address bar, then try again.';
             if (name === 'NotFoundError') return 'No microphone was found. Connect one and try again.';
             if (name === 'NotReadableError') return 'The microphone is in use by another app.';
@@ -788,6 +862,9 @@
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.AudioWorkletNode) {
                 return setPhase('error', 'This browser can’t capture live audio. Try a recent Chrome, Edge, Safari, or Firefox.');
             }
+            if (inputMode === 'tab' && !TAB_CAPTURE) {
+                return setPhase('error', 'Translating a tab needs Chrome or Edge on a computer.');
+            }
             clearInterval(drainTimer);
             session.active = true;
             session.engine = null;
@@ -801,12 +878,20 @@
             try {
                 await mic.start();
             } catch (err) {
-                if (session.active) abortSession(micError(err));
+                if (session.active) abortSession(captureError(err));
                 return;
             }
             if (!session.active) return;
             acquireWakeLock();
-            populateMics();
+            if (inputMode === 'mic') populateMics();
+        }
+
+        // The user pressed Chrome's "Stop sharing", or closed the shared tab.
+        let stopNote = '';
+        function tabShareEnded() {
+            if (!session.active) return;
+            stopNote = 'Tab sharing stopped. Press Start to translate a tab again.';
+            stop();
         }
 
         function stop() {
@@ -823,14 +908,20 @@
                 stopTimer = setTimeout(finishStop, 15000);
             } else {
                 closeSocket();
-                setPhase('idle');
+                setPhase('idle', takeStopNote());
             }
+        }
+
+        function takeStopNote() {
+            const note = stopNote;
+            stopNote = '';
+            return note || undefined;
         }
 
         function finishStop() {
             clearTimeout(stopTimer);
             if (session.active) return;
-            setPhase('idle');
+            setPhase('idle', takeStopNote());
             // Let translated speech already on its way finish before hanging up.
             const started = performance.now();
             clearInterval(drainTimer);
@@ -1137,9 +1228,10 @@
                 return;
             }
             els.modeHint.className = 'text-xs text-gray-500 mt-2.5 min-h-[1rem]';
+            const tab = inputMode === 'tab';
             els.modeHint.textContent = interpretTargets.has(els.target.value)
-                ? `⚡ Instant interpretation: the ${target} translation flows while you speak.`
-                : `Live transcript while you speak. The ${target} translation drafts as you talk and is finalized at each pause.`;
+                ? `⚡ Instant interpretation: the ${target} translation flows while ${tab ? 'the tab plays' : 'you speak'}.`
+                : `Live transcript ${tab ? 'as the tab plays' : 'while you speak'}. The ${target} translation drafts as it goes and is finalized at each pause.`;
         }
 
         function onLanguageChange() {
@@ -1166,6 +1258,11 @@
                 headphones: 'Translated speech plays as it’s produced. Use headphones so the microphone doesn’t pick it up.',
                 speaker: 'The microphone pauses while the translation is spoken, so it isn’t translated again.',
             };
+            if (inputMode === 'tab') {
+                hints.headphones = hints.speaker = els.muteTab.checked
+                    ? 'Translated speech plays in this tab, and the shared tab is muted, so you hear only the translation.'
+                    : 'Translated speech plays in this tab. Turn on “Mute the tab while translating” to hear only the translation.';
+            }
             els.voiceHint.textContent = hints[voiceMode];
             els.voiceHint.hidden = voiceMode === 'off';
         }
@@ -1179,6 +1276,43 @@
                 sendConfig({ voice: voiceMode !== 'off' });
             });
         }
+
+        function applyInputMode() {
+            const tab = inputMode === 'tab';
+            for (const b of els.inputButtons) b.setAttribute('aria-pressed', String(b.dataset.input === inputMode));
+            const tabButton = els.inputButtons.find((b) => b.dataset.input === 'tab');
+            tabButton.disabled = !TAB_CAPTURE;
+            tabButton.title = TAB_CAPTURE ? 'Translate the sound of another tab, like a meeting or a video' : 'Translating a tab needs Chrome or Edge on a computer';
+            if (!TAB_CAPTURE) tabButton.classList.add('opacity-40', 'cursor-not-allowed');
+            els.micField.hidden = tab;
+            els.tabField.hidden = !tab;
+            els.farFieldField.hidden = tab;
+            els.sourceLabel.textContent = tab ? 'Spoken in' : 'Speak in';
+            els.inputHint.hidden = !tab;
+            els.inputHint.textContent = 'When you press Start, Chrome asks which tab to share. Pick the meeting or video tab and keep “Also share tab audio” on.';
+            els.emptyLead.innerHTML = tab
+                ? 'Press <span class="text-gray-300">Start listening</span> and choose the tab to translate.'
+                : 'Press <span class="text-gray-300">Start listening</span> and speak.';
+            updateModeHint();
+            applyVoiceMode();
+            if (session.phase === 'live') setPhase('live');
+        }
+        for (const b of els.inputButtons) {
+            b.addEventListener('click', () => {
+                if (b.disabled || b.dataset.input === inputMode) return;
+                inputMode = b.dataset.input;
+                applyInputMode();
+                savePrefs();
+                sendConfig({ farField: inputMode === 'mic' && els.farField.checked });
+                mic.restart();   // still inside the click, so the tab picker is allowed to open
+            });
+        }
+        els.muteTab.addEventListener('change', () => {
+            savePrefs();
+            applyVoiceMode();
+            const track = mic.mode === 'tab' && mic.stream && mic.stream.getAudioTracks()[0];
+            if (track) track.applyConstraints({ suppressLocalAudioPlayback: els.muteTab.checked }).catch(() => {});
+        });
 
         els.mic.addEventListener('change', () => {
             savePrefs();
@@ -1229,6 +1363,7 @@
         updateTitles();
         updateModeHint();
         applyVoiceMode();
+        applyInputMode();
         applyFont();
         setPhase('idle');
         wakeServer();
