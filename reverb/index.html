@@ -1572,7 +1572,9 @@
                     meta.reference ? `<b>Earlier:</b> ${q(meta.reference)}` : '',
                     meta.claim ? `<b>Just now:</b> ${q(meta.claim)}` : '',
                 ].filter(Boolean).join('<br>');
-                case 'gap':           return meta.claim ? q(meta.claim) : '';
+                // A dig-deeper card's gist already names what is being skipped; repeating it as a
+                // subject line only doubled the text.
+                case 'gap':           return '';
                 default:              return '';
             }
         }
