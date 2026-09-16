@@ -909,14 +909,13 @@
             schedule(buffer, audible) {
                 const now = this.ctx.currentTime;
                 if (this.nextTime < now + 0.02) this.nextTime = now + 0.1;   // small cushion against jitter
-                const backlog = this.nextTime - now;
-                const rate = backlog > 8 ? 1.15 : backlog > 4 ? 1.08 : 1;
+                // Always at natural speed. Catching up by playing faster raised the pitch, and TTS
+                // arrives a whole sentence at a time, so it was sped up almost constantly.
                 const src = this.ctx.createBufferSource();
                 src.buffer = buffer;
-                src.playbackRate.value = rate;
                 src.connect(this.out);
                 src.start(this.nextTime);
-                this.nextTime += buffer.duration / rate;
+                this.nextTime += buffer.duration;
                 if (audible) this.audibleUntil = this.nextTime;
                 this.stats.scheduled++;
                 if (audible) this.stats.audibleSeconds += buffer.duration;
