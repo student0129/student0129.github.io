@@ -758,6 +758,7 @@
             updateMute() {
                 const mute = this.mode === 'mic' && voiceMode === 'speaker' && player.audible();
                 if (voiceMode === 'speaker') player.releaseHeld();
+                if (this.muted) player.stats.mutedMs += 50;
                 if (mute !== this.muted && this.node) {
                     this.muted = mute;
                     this.node.port.postMessage({ mute });
@@ -840,6 +841,7 @@
 
         const player = {
             ctx: null, out: null, nextTime: 0, audibleUntil: 0, sources: new Set(), held: [], heldSeconds: 0,
+            stats: { received: 0, silentSkipped: 0, held: 0, released: 0, scheduled: 0, audibleSeconds: 0, mutedMs: 0 },
 
             // Must run inside the click that starts a session, or browsers keep audio locked.
             unlock() {
@@ -867,12 +869,14 @@
 
                 // The interpreter streams silence between phrases. Queuing it only adds delay, so
                 // silence is skipped unless it is a pause inside speech that is already playing.
-                if (!audible && !this.busy() && !this.held.length) return;
+                this.stats.received++;
+                if (!audible && !this.busy() && !this.held.length) { this.stats.silentSkipped++; return; }
 
                 // Speaker mode interprets consecutively: translated speech waits for the speaker to
                 // pause, so the microphone isn't muted over their next sentence.
                 if (voiceMode === 'speaker' && mic.mode === 'mic' && (this.held.length || (!this.busy() && mic.speaking()))) {
                     this.held.push({ buffer, audible });
+                    this.stats.held++;
                     this.heldSeconds += buffer.duration;
                     while (this.heldSeconds > MAX_HELD_SECONDS && this.held.length) this.heldSeconds -= this.held.shift().buffer.duration;
                     return;
@@ -885,6 +889,7 @@
                 const held = this.held;
                 this.held = [];
                 this.heldSeconds = 0;
+                this.stats.released += held.length;
                 for (const chunk of held) this.schedule(chunk.buffer, chunk.audible);
             },
 
@@ -900,6 +905,8 @@
                 src.start(this.nextTime);
                 this.nextTime += buffer.duration / rate;
                 if (audible) this.audibleUntil = this.nextTime;
+                this.stats.scheduled++;
+                if (audible) this.stats.audibleSeconds += buffer.duration;
                 this.sources.add(src);
                 src.onended = () => this.sources.delete(src);
             },
@@ -1457,6 +1464,17 @@
                 e.returnValue = '';
             }
         });
+
+        // Read-only state for diagnosing a session from the console: /transltr/?debug=1
+        if (new URLSearchParams(location.search).has('debug')) {
+            window.transltrDebug = () => ({
+                phase: session.phase, engine: session.engine, voiceMode, translationMode, inputMode,
+                socket: socket ? socket.readyState : null, queuedFrames: queuedFrames.length,
+                mic: { context: mic.ctx && mic.ctx.state, sampleRate: mic.ctx && mic.ctx.sampleRate, muted: mic.muted, speaking: mic.speaking() },
+                player: { context: player.ctx && player.ctx.state, held: player.held.length, playing: player.playing, ...player.stats },
+                rows: rows.size,
+            });
+        }
 
         fillLanguages();
         updateTitles();
