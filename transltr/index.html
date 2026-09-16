@@ -578,11 +578,28 @@
                         const c = { b0: (1 - cos) / 2 / a0, b1: (1 - cos) / a0, b2: (1 - cos) / 2 / a0, a1: -2 * cos / a0, a2: (1 - alpha) / a0 };
                         for (let i = 0; i < 2; i++) this.filters.push({ ...c, x1: 0, x2: 0, y1: 0, y2: 0 });
                     }
-                    this.port.onmessage = (e) => { if ('mute' in e.data) this.muted = !!e.data.mute; };
+                    // The last 300 ms of what the mic really heard. When someone starts talking over
+                    // the translation the mic unmutes a beat late; this is sent first, so their
+                    // opening word isn't lost to the zeros sent while muted.
+                    this.ring = new Int16Array(Math.round(o.outRate * 0.3));
+                    this.ringAt = 0;
+                    this.port.onmessage = (e) => {
+                        if (!('mute' in e.data)) return;
+                        const unmuting = this.muted && !e.data.mute;
+                        this.muted = !!e.data.mute;
+                        if (unmuting) {
+                            const out = new Int16Array(this.ring.length);
+                            out.set(this.ring.subarray(this.ringAt));
+                            out.set(this.ring.subarray(0, this.ringAt), this.ring.length - this.ringAt);
+                            this.port.postMessage(out.buffer, [out.buffer]);
+                        }
+                    };
                 }
 
                 emit(sample) {
                     const heard = Math.max(-1, Math.min(1, sample));
+                    this.ring[this.ringAt] = heard < 0 ? heard * 0x8000 : heard * 0x7fff;
+                    this.ringAt = (this.ringAt + 1) % this.ring.length;
                     const v = this.muted ? 0 : heard;
                     this.frame[this.fill++] = v < 0 ? v * 0x8000 : v * 0x7fff;
                     // The level is what the microphone hears, muted or not: it is how the page knows
@@ -716,9 +733,7 @@
                 });
                 this.node.port.onmessage = (e) => {
                     if (e.data instanceof ArrayBuffer) return sendFrame(e.data);
-                    // While muted the mic mostly hears the translation from the speakers, so only
-                    // unmuted levels count as the speaker talking.
-                    this.noteLevel(e.data.level, e.data.muted);
+                    this.noteLevel(e.data.level);
                     setMeter(e.data.muted ? 0 : e.data.level);
                 };
                 // Keep the node pulling audio without echoing the mic to the speakers.
@@ -736,34 +751,45 @@
                 this.muteTimer = setInterval(() => this.updateMute(), 50);
             },
 
-            // A rolling noise floor, so "someone is talking" works in a quiet room and a noisy one.
-            levels: [], lastVoiceAt: 0,
-            noteLevel(level, muted) {
-                if (muted) return;
-                this.levels.push(level);
-                if (this.levels.length > 60) this.levels.shift();   // ~3 s of 50 ms readings
-                const floor = Math.min(...this.levels);
-                if (level > Math.max(0.006, floor * 4)) this.lastVoiceAt = performance.now();
+            // "Someone is talking", against a rolling noise floor so it works in a quiet room and a
+            // noisy one. While the translation is playing the bar is higher: the browser's echo
+            // cancellation removes most of it, but not all.
+            levels: [], lastVoiceAt: 0, voicedRun: 0,
+            noteLevel(level) {
+                const echo = player.audible();
+                if (!echo) {
+                    this.levels.push(level);
+                    if (this.levels.length > 60) this.levels.shift();   // ~3 s of 50 ms readings
+                }
+                const floor = this.levels.length ? Math.min(...this.levels) : 0.002;
+                const bar = echo ? Math.max(0.015, floor * 8) : Math.max(0.006, floor * 4);
+                this.voicedRun = level > bar ? this.voicedRun + 1 : 0;
+                if (this.voicedRun >= 2) this.lastVoiceAt = performance.now();   // 100 ms, so a click isn't a voice
             },
 
             speaking() {
-                return performance.now() - this.lastVoiceAt < 700;
+                return performance.now() - this.lastVoiceAt < 500;
             },
 
-            // Speaker mode: the mic pauses while translated speech is actually audible, so it isn't
-            // translated again. It used to pause whenever any audio was queued — and the interpreter
-            // streams audio even for silence, so the mic stayed muted almost permanently and the
-            // transcript stopped after the first sentence. A shared tab can't hear this page, so it
-            // never pauses.
+            // Speaker mode is full duplex. The translation plays as soon as it's ready. While you
+            // talk, the mic stays live and the translation drops to a quarter volume; when only the
+            // device is talking, the mic mutes so the translation isn't heard and translated again.
+            // It used to mute whenever the translation played and hold it back until you paused, so
+            // anything said over it was never sent: on natural speech a third of the transcript was
+            // lost and rows broke mid-sentence. A shared tab can't hear this page, so none of this
+            // applies to it.
             updateMute() {
-                const mute = this.mode === 'mic' && voiceMode === 'speaker' && player.audible();
-                if (voiceMode === 'speaker') player.releaseHeld();
+                const speaker = this.mode === 'mic' && voiceMode === 'speaker';
+                const playing = speaker && player.audible();
+                const talking = this.speaking();
+                const mute = playing && !talking;
+                player.duck(playing && talking);
                 if (this.muted) player.stats.mutedMs += 50;
+                if (playing && talking) player.stats.duckedMs += 50;
                 if (mute !== this.muted && this.node) {
                     this.muted = mute;
                     this.node.port.postMessage({ mute });
-                    // Say so: a transcript that pauses for no visible reason reads as broken.
-                    if (session.phase === 'live') setPhase('live', mute ? 'Speaking the translation — microphone paused' : undefined);
+                    if (session.phase === 'live') setPhase('live', mute ? 'Speaking the translation' : undefined);
                 }
             },
 
@@ -796,7 +822,7 @@
                 try { this.source && this.source.disconnect(); } catch { /* gone */ }
                 if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
                 if (this.ctx && this.ctx.state !== 'closed') this.ctx.close().catch(() => {});
-                Object.assign(this, { ctx: null, stream: null, source: null, node: null, sink: null, muted: false, muteTimer: null, levels: [], lastVoiceAt: 0 });
+                Object.assign(this, { ctx: null, stream: null, source: null, node: null, sink: null, muted: false, muteTimer: null, levels: [], lastVoiceAt: 0, voicedRun: 0 });
             },
         };
 
@@ -837,11 +863,11 @@
         // Translated speech playback, gapless, catching up gently if it falls behind
         // ---------------------------------------------------------------------------------------
         const AUDIBLE_RMS = 0.003;          // about -50 dBFS: below this a chunk is silence
-        const MAX_HELD_SECONDS = 30;
+        const DUCKED_GAIN = 0.25;
 
         const player = {
-            ctx: null, out: null, nextTime: 0, audibleUntil: 0, sources: new Set(), held: [], heldSeconds: 0,
-            stats: { received: 0, silentSkipped: 0, held: 0, released: 0, scheduled: 0, audibleSeconds: 0, mutedMs: 0 },
+            ctx: null, out: null, nextTime: 0, audibleUntil: 0, sources: new Set(), ducked: false,
+            stats: { received: 0, silentSkipped: 0, scheduled: 0, audibleSeconds: 0, mutedMs: 0, duckedMs: 0 },
 
             // Must run inside the click that starts a session, or browsers keep audio locked.
             unlock() {
@@ -870,27 +896,14 @@
                 // The interpreter streams silence between phrases. Queuing it only adds delay, so
                 // silence is skipped unless it is a pause inside speech that is already playing.
                 this.stats.received++;
-                if (!audible && !this.busy() && !this.held.length) { this.stats.silentSkipped++; return; }
-
-                // Speaker mode interprets consecutively: translated speech waits for the speaker to
-                // pause, so the microphone isn't muted over their next sentence.
-                if (voiceMode === 'speaker' && mic.mode === 'mic' && (this.held.length || (!this.busy() && mic.speaking()))) {
-                    this.held.push({ buffer, audible });
-                    this.stats.held++;
-                    this.heldSeconds += buffer.duration;
-                    while (this.heldSeconds > MAX_HELD_SECONDS && this.held.length) this.heldSeconds -= this.held.shift().buffer.duration;
-                    return;
-                }
+                if (!audible && !this.busy()) { this.stats.silentSkipped++; return; }
                 this.schedule(buffer, audible);
             },
 
-            releaseHeld() {
-                if (!this.held.length || mic.speaking()) return;
-                const held = this.held;
-                this.held = [];
-                this.heldSeconds = 0;
-                this.stats.released += held.length;
-                for (const chunk of held) this.schedule(chunk.buffer, chunk.audible);
+            duck(on) {
+                if (!this.out || on === this.ducked) return;
+                this.ducked = on;
+                this.out.gain.setTargetAtTime(on ? DUCKED_GAIN : 1, this.ctx.currentTime, 0.04);
             },
 
             schedule(buffer, audible) {
@@ -929,8 +942,7 @@
                 this.sources.clear();
                 this.nextTime = 0;
                 this.audibleUntil = 0;
-                this.held = [];
-                this.heldSeconds = 0;
+                this.duck(false);
             },
         };
 
@@ -1015,7 +1027,6 @@
             const started = performance.now();
             clearInterval(drainTimer);
             drainTimer = setInterval(() => {
-                if (player.held.length) { player.releaseHeld(); return; }
                 const quiet = performance.now() - lastServerMessageAt > 1500 && !player.playing;
                 if (session.active) return clearInterval(drainTimer);
                 if (quiet || performance.now() - started > 20000) {
@@ -1362,7 +1373,7 @@
             const hints = {
                 off: '',
                 headphones: 'Translated speech plays as it’s produced. Use headphones so the microphone doesn’t pick it up.',
-                speaker: 'For a conversation on one device: the translation is spoken when you pause, and the microphone pauses while it speaks. For continuous speech, use Headphones.',
+                speaker: 'The translation plays out loud as soon as it’s ready. It turns down while you talk, and the microphone pauses only while the device alone is speaking.',
             };
             if (inputMode === 'tab') {
                 hints.headphones = hints.speaker = els.muteTab.checked
@@ -1471,7 +1482,7 @@
                 phase: session.phase, engine: session.engine, voiceMode, translationMode, inputMode,
                 socket: socket ? socket.readyState : null, queuedFrames: queuedFrames.length,
                 mic: { context: mic.ctx && mic.ctx.state, sampleRate: mic.ctx && mic.ctx.sampleRate, muted: mic.muted, speaking: mic.speaking() },
-                player: { context: player.ctx && player.ctx.state, held: player.held.length, playing: player.playing, ...player.stats },
+                player: { context: player.ctx && player.ctx.state, playing: player.playing, ducked: player.ducked, ...player.stats },
                 rows: rows.size,
             });
         }
