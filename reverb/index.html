@@ -142,6 +142,48 @@
             background: color-mix(in srgb, var(--card-accent, #6b7280) 12%, transparent);
         }
         .card-title { color: var(--card-accent, #374151); }
+        [hidden] { display: none !important; }
+
+        /* Glanceable cards: a one-line gist, detail behind "More". Someone reads these while
+           also listening, so the card has to be understood before they look back up. */
+        .card-gist { color: #374151; }
+        .card-gist p:last-child, .card-more-text p:last-child { margin-bottom: 0; }
+        .card-more { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid #f3f4f6; }
+        .card-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .45rem; }
+        .card-more-toggle { font-size: .75rem; color: #6b7280; padding: .1rem 0; }
+        .card-more-toggle:hover { color: #00685B; }
+        .card-feedback { display: flex; gap: .15rem; margin-left: auto; }
+        .card-feedback button { padding: .2rem; border-radius: 9999px; color: #c0c4cc; line-height: 0; }
+        .card-feedback button:hover { color: #00685B; background: #f3f4f6; }
+        .card-feedback button[aria-pressed="true"] { color: #00685B; }
+        .card-feedback svg { width: .95rem; height: .95rem; }
+
+        /* Fact-check verdicts. A wrong claim is the card worth interrupting for; a confirmed
+           one is a quiet tick, not a headline. */
+        .card-verdict {
+            display: inline-block; margin-left: .35rem; padding: .1rem .45rem; border-radius: 9999px;
+            font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase;
+            color: #4b5563; background: #f3f4f6;
+        }
+        .card-verdict[data-verdict="incorrect"] { color: #b91c1c; background: #fee2e2; }
+        .card-verdict[data-verdict="partly"]    { color: #92400e; background: #fef3c7; }
+        .card-verdict[data-verdict="correct"]   { color: #047857; background: #d1fae5; }
+        .card-compact { padding-top: .6rem !important; padding-bottom: .6rem !important; }
+        .card-compact .card-title { font-size: .9375rem; }
+        .card-compact .card-subject { display: none; }
+        .card-compact .card-gist { color: #6b7280; font-size: .875rem; }
+
+        .card-action-meta { font-size: .8125rem; color: #6b7280; margin-top: .15rem; }
+        .card-updated { animation: cardUpdated 1.6s ease-out; }
+        @keyframes cardUpdated {
+            from { box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-accent, #00685B) 35%, transparent); }
+            to   { box-shadow: 0 0 0 0 transparent; }
+        }
+
+        /* One quiet indicator instead of a placeholder card per utterance: most utterances turn
+           out not to be worth a card, and each of those used to appear and fade out again. */
+        .insights-activity { display: inline-flex; align-items: center; gap: .35rem; font-size: .75rem; color: #6b7280; margin-left: .6rem; }
+        .insights-activity svg { width: .85rem; height: .85rem; }
         /* The line under the title that says what the card is about: the claim being
            checked, the term, the earlier point being contradicted. */
         .card-subject { font-size: .8125rem; color: #6b7280; margin-bottom: .4rem; }
@@ -436,7 +478,10 @@
         <div class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
             <div id="insights-header" class="border-b border-gray-200 flex-shrink-0">
                 <div class="flex items-center justify-between p-3">
-                    <h2 class="text-lg font-normal text-google-green">AI Insights</h2>
+                    <div class="flex items-center">
+                        <h2 class="text-lg font-normal text-google-green">AI Insights</h2>
+                        <span id="insights-activity" class="insights-activity" hidden aria-live="polite"></span>
+                    </div>
                     <button id="filter-toggle" class="text-xs text-gray-400 hover:text-google-green transition-colors">Filters</button>
                 </div>
                 <div id="type-filters" class="hidden"></div>
@@ -491,6 +536,7 @@
         const restoreBar = $('restore-bar'), restoreDetail = $('restore-detail');
         const sessionEnd = $('session-end'), endMeta = $('end-meta'), endAudio = $('end-audio');
         const typeFilters = $('type-filters'), filterToggle = $('filter-toggle');
+        const insightsActivity = $('insights-activity');
         const noticeEl = $('notice');
 
         // --- Segmentation tuning ---
@@ -583,7 +629,12 @@
         const session = { objective: '', type: 'strategy', keywords: [], roster: [], accurate: false, record: false };
 
         const segments = [];            // { id, text, edited, low } — one per analysed utterance
-        const answeredTitles = [];      // what the classifier has already covered
+        const answeredTitles = [];      // { type, title } — what the classifier has already covered
+        // Per-type nudges from the thumbs on each card, sent with every analysis. Down makes a
+        // type harder to raise for the rest of the session; up makes it a little easier.
+        const typeBias = Object.create(null);
+        const BIAS_DOWN = 0.1, BIAS_UP = 0.05, BIAS_MIN = -0.15, BIAS_MAX = 0.3;
+        let cardOrder = 0;
         let meetingState = null;
         let isListening = false, isPaused = false;
         let provider = null, recorder = null, micStream = null;
@@ -607,7 +658,7 @@
         const stats = {
             answers: [],                    // { ms, firstTokenMs }
             stalls: 0, truncated: 0, retries: 0, errors: 0,
-            cards: {}, filtered: 0, dropped: 0,
+            cards: {}, filtered: 0, dropped: 0, merged: 0, useful: 0, notUseful: 0,
             interruptions: {}, longestSilenceMs: 0,
             noiseFloor: null, threshold: null, wakeLock: 'not requested',
             statePasses: 0, stateFulls: 0, stateFails: 0,
@@ -717,18 +768,21 @@
 
         function flushAnswerRenders() {
             renderFrame = 0;
-            const atBottom = insightsAtBottom();
+            const atTop = insightsAtTop();
             for (const entry of dirtyAnswers) {
-                if (entry.el.isConnected) entry.el.innerHTML = renderMarkdown(entry.text);
+                if (entry.card.isConnected) renderAnswer(entry);
             }
             dirtyAnswers.clear();
-            if (atBottom) insightsContainer.scrollTop = insightsContainer.scrollHeight;
+            if (atTop) insightsContainer.scrollTop = 0;
         }
 
         const spinnerSvg = `<svg class="animate-spin h-5 w-5 text-google-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
 
-        function insightsAtBottom() {
-            return insightsContainer.scrollHeight - insightsContainer.scrollTop - insightsContainer.clientHeight < 80;
+        // Newest cards are at the top. Following the bottom as answers streamed in scrolled the
+        // newest card out of view; now a reader at the top stays there, and one who scrolled down
+        // to re-read an older card isn't yanked away from it.
+        function insightsAtTop() {
+            return insightsContainer.scrollTop < 80;
         }
         function transcriptAtBottom() {
             return transcriptContainer.scrollHeight - transcriptContainer.scrollTop - transcriptContainer.clientHeight < 50;
@@ -955,14 +1009,25 @@
             }
         }
 
-        /** What the classifier is allowed to return right now: on, and not cooling off. */
-        function activeTypes() {
+        /**
+         * Types that raised a card recently. They are still offered to the classifier, but the
+         * server holds them to a much higher bar: leaving them out entirely once let a trivial
+         * fact-check hide the one claim in the meeting that was actually wrong.
+         */
+        function coolingTypes() {
             const now = Date.now();
             return CARD_TYPE_ORDER.filter((t) => {
-                if (!enabledTypes.has(t)) return false;
                 const cd = CARD_TYPE_UI[t].cooldown;
-                return !cd || now - (typeLastShown[t] || 0) >= cd;
+                return enabledTypes.has(t) && cd && now - (typeLastShown[t] || 0) < cd;
             });
+        }
+
+        // A card starts its type's cooldown only if it was the kind worth rationing: a fact-check
+        // that confirmed a claim, or one retracted before anyone saw it, costs the room nothing.
+        function startCooldown(meta, verdict) {
+            if (!meta || !CARD_TYPE_UI[meta.type]) return;
+            if (meta.type === 'factcheck' && !['incorrect', 'partly'].includes(verdict)) return;
+            typeLastShown[meta.type] = Date.now();
         }
 
         // ---------- analysis lane (queued, bounded, streamed over SSE) ----------
@@ -979,23 +1044,26 @@
         }
 
         function enqueueAnalysis(utterance, context) {
-            // Every type is either muted or cooling off — there is nothing this utterance
-            // could produce, so don't spend the round trip finding that out.
-            const types = activeTypes();
+            // Every type is muted — there is nothing this utterance could produce, so don't
+            // spend the round trip finding that out.
+            const types = CARD_TYPE_ORDER.filter((t) => enabledTypes.has(t));
             if (!types.length) return;
 
-            // The card is created at enqueue time, so cards stay in the order things were
-            // said even when a short answer finishes before a long one started earlier.
-            const card = createAnalyzingCard(utterance);
+            // No card yet: it appears only once the classifier says there is one. The order is
+            // fixed now, though, so cards still sit in the order things were said even when a
+            // short answer finishes before a long one that started earlier.
             analyzeQueue.push({
-                utterance, context, card, types,
+                utterance, context, types,
+                cooling: coolingTypes(),
+                order: ++cardOrder,
+                card: null,
                 state: meetingState,
                 answered: answeredTitles.slice(-ANSWERED_MEMORY),
                 attempt: 0,
             });
             while (analyzeQueue.length > MAX_ANALYZE_QUEUE) {
                 const dropped = analyzeQueue.shift();
-                removeCard(dropped.card);
+                if (dropped.card) removeCard(dropped.card);
             }
             pumpAnalysis();
         }
@@ -1006,6 +1074,13 @@
                 analyzeActive++;
                 runAnalysis(job).finally(() => { analyzeActive--; pumpAnalysis(); });
             }
+            reflectActivity();
+        }
+
+        function reflectActivity() {
+            const pending = analyzeActive + analyzeQueue.length;
+            insightsActivity.hidden = pending === 0;
+            if (pending) insightsActivity.innerHTML = `${spinnerSvg}<span>Analyzing${pending > 1 ? ` ${pending}` : ''}…</span>`;
         }
 
         async function runAnalysis(job) {
@@ -1020,7 +1095,7 @@
             };
             const capTimer = setTimeout(() => { expired = true; controller.abort(); }, ANALYZE_MAX_MS);
 
-            let answeredLabel = null, sawDone = false;
+            let answeredLabel = null, sawDone = false, verdict = null;
             const startedAtMs = Date.now();
             let firstTokenAt = 0;
 
@@ -1044,6 +1119,8 @@
                         state: job.state,
                         answered: job.answered,
                         types: job.types,
+                        cooling: job.cooling,
+                        bias: { ...typeBias },
                     })
                 });
                 if (resp.status === 429) throw Object.assign(new Error('Busy — too many requests'), { retryable: true });
@@ -1069,14 +1146,27 @@
 
                         if (event === 'meta') {
                             sawMeta = true;
-                            if (data.type === 'none') { stats.filtered++; removeCard(job.card); return; }
+                            if (data.type === 'none') {
+                                stats.filtered++;
+                                if (job.card) { removeCard(job.card); job.card = null; }
+                                return;
+                            }
+                            // A request and its acceptance are one commitment: the second
+                            // updates the card the first one made instead of adding another.
+                            const existing = data.type === 'action' && data.supersedes && findActionCard(data.supersedes);
+                            if (existing) {
+                                stats.merged++;
+                                updateActionCard(existing, data);
+                                if (job.card) { removeCard(job.card); job.card = null; }
+                                return;
+                            }
+                            if (!job.card) job.card = placeCard(job.order);
                             const refs = renderSkeleton(job.card, data);
-                            // An action item is complete as classified — owner, commitment,
-                            // deadline — so the server sends no answer and there is nothing
-                            // to stream into.
-                            entry = refs.body ? { el: refs.body, text: '' } : null;
+                            // An action item is complete as classified — owner, task, deadline —
+                            // so the server sends no answer and there is nothing to stream into.
+                            entry = refs.gist ? { ...refs, card: job.card, type: data.type, text: '', hasSources: false } : null;
                             sourcesEl = refs.sources;
-                            typeLastShown[data.type] = Date.now();
+                            job.meta = data;
                             bumpStat('cards', data.type);
                             answeredLabel = rememberAnswered(data);
                         } else if (event === 'drop') {
@@ -1085,7 +1175,7 @@
                             // confident non-observation.
                             stats.dropped++;
                             forgetAnswered(answeredLabel);
-                            removeCard(job.card);
+                            if (job.card) { removeCard(job.card); job.card = null; }
                             return;
                         } else if (event === 'delta' && entry) {
                             if (!firstTokenAt) firstTokenAt = Date.now();
@@ -1093,8 +1183,11 @@
                             markAnswerDirty(entry);
                         } else if (event === 'sources' && sourcesEl) {
                             renderSources(sourcesEl, data.sources || []);
+                            if (entry && data.sources && data.sources.length) { entry.hasSources = true; markAnswerDirty(entry); }
                         } else if (event === 'done') {
                             sawDone = true;
+                            if (entry) verdict = parseVerdict(entry.text).verdict;
+                            if (!job.cooled) { job.cooled = true; startCooldown(job.meta, verdict); }
                             stats.answers.push({
                                 ms: Date.now() - startedAtMs,
                                 firstTokenMs: firstTokenAt ? firstTokenAt - startedAtMs : null,
@@ -1138,7 +1231,9 @@
                     const wait = ANALYZE_BACKOFF_MS[Math.min(job.attempt, ANALYZE_BACKOFF_MS.length - 1)];
                     job.attempt++;
                     stats.retries++;
-                    resetCardToPending(job.card, `${why} — retrying…`);
+                    // Before the classifier answered there is no card to reset; the header
+                    // indicator already says work is in flight.
+                    if (job.card) resetCardToPending(job.card, `${why} — retrying…`);
                     setTimeout(() => { analyzeQueue.unshift(job); pumpAnalysis(); }, wait);
                 } else {
                     stats.errors++;
@@ -1147,6 +1242,7 @@
             } finally {
                 clearTimeout(stallTimer);
                 clearTimeout(capTimer);
+                reflectActivity();
             }
         }
 
@@ -1155,7 +1251,9 @@
             // four would fall through and the classifier would happily raise them twice.
             const label = meta.title || meta.question || meta.term || meta.claim;
             if (!label) return null;
-            const stored = String(label).slice(0, 120);
+            // Typed, so the classifier can tell an [action] it may update from a card it must
+            // not repeat.
+            const stored = { type: meta.type, title: String(label).slice(0, 120) };
             answeredTitles.push(stored);
             if (answeredTitles.length > ANSWERED_MEMORY * 2) answeredTitles.splice(0, answeredTitles.length - ANSWERED_MEMORY);
             persistTranscript();
@@ -1166,9 +1264,9 @@
         // both raise the same thing. If that card then gets dropped or fails, the memory has
         // to be undone — otherwise the subject is suppressed for the rest of the meeting on
         // the strength of a card nobody ever saw.
-        function forgetAnswered(label) {
-            if (!label) return;
-            const i = answeredTitles.lastIndexOf(label);
+        function forgetAnswered(entry) {
+            if (!entry) return;
+            const i = answeredTitles.lastIndexOf(entry);
             if (i >= 0) answeredTitles.splice(i, 1);
         }
 
@@ -1411,7 +1509,8 @@
                 `    figure above. Stalls above zero with a healthy p90 means raise it.`,
                 '',
                 `CARDS — ${tally(stats.cards, cardLabel)}`,
-                `  filtered as not worth raising ${stats.filtered} · retracted at answer time ${stats.dropped}`,
+                `  filtered as not worth raising ${stats.filtered} · retracted at answer time ${stats.dropped} · action updates merged ${stats.merged}`,
+                `  feedback: useful ${stats.useful} · not useful ${stats.notUseful} · bias now ${tally(typeBias, cardLabel)}`,
                 `  → mostly filtered means the salience bars are right; a panel you ignored`,
                 `    means raise them, an empty one means lower them.`,
                 '',
@@ -1443,20 +1542,19 @@
         }
 
         // ---------- cards ----------
-        function createAnalyzingCard(utterance) {
+        // Created only once the classifier has said there is a card, and slotted in by the order
+        // the utterance was spoken: newest first, but a quick answer to something said later
+        // never jumps above a slow answer to something said earlier.
+        function placeCard(order) {
             placeholderCard.classList.add('hidden');
             const card = document.createElement('div');
             card.dataset.card = 'insight';
-            card.className = 'p-4 bg-white rounded-xl border border-gray-200 shadow-sm opacity-75';
-            card.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    ${spinnerSvg}
-                    <div>
-                        <span class="font-normal text-gray-500">Analyzing:</span>
-                        <em class="text-gray-700">"${escapeHtmlText(utterance)}"</em>
-                    </div>
-                </div>`;
-            insightsContainer.prepend(card);
+            card.dataset.order = String(order);
+            card.className = 'p-4 bg-white rounded-xl border border-gray-200 shadow-sm';
+            const atTop = insightsAtTop();
+            const older = [...insightsContainer.querySelectorAll('[data-card]')].find((c) => Number(c.dataset.order) < order);
+            insightsContainer.insertBefore(card, older || null);
+            if (atTop) insightsContainer.scrollTop = 0;
             return card;
         }
 
@@ -1479,14 +1577,15 @@
             }
         }
 
-        // An action item is already complete as classified — the commitment and who owns it.
-        // Sending it to the answer model would only pad it into a paragraph.
+        // An action item is already complete as classified — the task, who owns it, and when.
         function actionBody(meta) {
-            const parts = [];
-            if (meta.claim) parts.push(`<p>${escapeHtmlText(meta.claim)}</p>`);
-            if (meta.owner) parts.push(`<p class="text-sm text-gray-500">${escapeHtmlText(meta.owner)}</p>`);
-            return parts.join('') || '<p class="text-gray-400">Commitment noted.</p>';
+            const who = [meta.owner, meta.due ? `due ${meta.due}` : ''].filter(Boolean).join(' · ');
+            return `<p>${escapeHtmlText(meta.claim || meta.title || 'Commitment noted.')}</p>`
+                + (who ? `<p class="card-action-meta">${escapeHtmlText(who)}</p>` : '');
         }
+
+        const thumbUp = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V2.75a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z" /></svg>';
+        const thumbDown = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-.23l-3.114-1.04a4.5 4.5 0 00-1.423-.23H6.504c-.618 0-1.217.247-1.605.729A11.95 11.95 0 002.25 12c0 .434.023.863.068 1.285C2.427 14.306 3.346 15 4.372 15h3.126c.618 0 .991.724.725 1.282A7.471 7.471 0 007.5 19.5a2.25 2.25 0 002.25 2.25.75.75 0 00.75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 002.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384" /></svg>';
 
         function renderSkeleton(card, meta) {
             const ui = CARD_TYPE_UI[meta.type] || { label: 'Insight' };
@@ -1496,27 +1595,110 @@
 
             // Drives the accent colour, via the [data-type] custom properties in the stylesheet.
             card.dataset.type = meta.type;
+            card.dataset.title = title;
             card.classList.remove('opacity-75');
             card.innerHTML = `
                 <div class="flex justify-between items-start gap-2">
                     <div class="min-w-0">
-                        <span class="card-chip">${escapeHtmlText(ui.label)}</span>
+                        <span class="card-chip">${escapeHtmlText(ui.label)}</span><span class="card-verdict" hidden></span>
                         <h3 class="card-title text-lg font-medium mt-1">${escapeHtmlText(title)}</h3>
                     </div>
-                    <button data-toggle="collapse" class="p-1 rounded-full text-gray-400 hover:bg-gray-100 flex-shrink-0">
+                    <button data-toggle="collapse" class="p-1 rounded-full text-gray-400 hover:bg-gray-100 flex-shrink-0" aria-label="Collapse card">
                         <svg class="w-5 h-5 chevron-up" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                         <svg class="w-5 h-5 hidden chevron-down" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
                     </button>
                 </div>
                 <div class="card-body mt-2 pr-2">
                     ${subject ? `<p class="card-subject">${subject}</p>` : ''}
-                    <div class="reverb-answer text-gray-600 leading-relaxed">${isAction ? actionBody(meta) : '<span class="text-gray-400">…</span>'}</div>
-                    <div class="reverb-sources mt-3 flex flex-wrap gap-2"></div>
+                    <div class="reverb-answer text-gray-600 leading-relaxed">
+                        <div class="card-gist">${isAction ? actionBody(meta) : '<span class="text-gray-400">…</span>'}</div>
+                        <div class="card-more" hidden>
+                            <div class="card-more-text"></div>
+                            <div class="reverb-sources mt-3 flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                    <div class="card-foot">
+                        <button type="button" class="card-more-toggle" aria-expanded="false" hidden>More</button>
+                        <div class="card-feedback">
+                            <button type="button" data-feedback="up" aria-pressed="false" aria-label="Useful" title="Useful">${thumbUp}</button>
+                            <button type="button" data-feedback="down" aria-label="Not useful — hide, and show fewer like this" title="Not useful — hide, and show fewer like this">${thumbDown}</button>
+                        </div>
+                    </div>
                 </div>`;
             return {
-                body: isAction ? null : card.querySelector('.reverb-answer'),
+                gist: isAction ? null : card.querySelector('.card-gist'),
+                moreText: card.querySelector('.card-more-text'),
+                toggle: card.querySelector('.card-more-toggle'),
+                verdictEl: card.querySelector('.card-verdict'),
                 sources: card.querySelector('.reverb-sources'),
             };
+        }
+
+        // The server asks for a gist line, a blank line, then detail. Older answers without the
+        // blank line are simply all gist.
+        function splitGist(text) {
+            const t = text.replace(/^\s+/, '');
+            const m = /\n\s*\n/.exec(t);
+            return m ? [t.slice(0, m.index), t.slice(m.index + m[0].length)] : [t, ''];
+        }
+
+        const VERDICTS = { 'correct': 'correct', 'partly correct': 'partly', 'incorrect': 'incorrect', 'unverified': 'unverified' };
+        function parseVerdict(text) {
+            const m = /^\s*\*\*(Correct|Partly correct|Incorrect|Unverified)\*\*\s*[—–:-]?\s*/i.exec(text);
+            return m ? { verdict: VERDICTS[m[1].toLowerCase()], label: m[1], rest: text.slice(m[0].length) } : { verdict: null, rest: text };
+        }
+
+        function renderAnswer(entry) {
+            let [gist, more] = splitGist(entry.text);
+            if (entry.type === 'factcheck') {
+                const v = parseVerdict(gist);
+                if (v.verdict) {
+                    gist = v.rest;
+                    entry.verdictEl.hidden = false;
+                    entry.verdictEl.textContent = v.label;
+                    entry.verdictEl.dataset.verdict = v.verdict;
+                    entry.card.dataset.verdict = v.verdict;
+                    entry.card.classList.toggle('card-compact', v.verdict === 'correct' || v.verdict === 'unverified');
+                }
+            }
+            entry.gist.innerHTML = gist.trim() ? renderMarkdown(gist) : '<span class="text-gray-400">…</span>';
+            entry.moreText.innerHTML = renderMarkdown(more);
+            entry.toggle.hidden = !more.trim() && !entry.hasSources;
+        }
+
+        function findActionCard(title) {
+            const want = String(title).trim().toLowerCase();
+            return [...insightsContainer.querySelectorAll('[data-card][data-type="action"]')]
+                .find((c) => (c.dataset.title || '').trim().toLowerCase() === want) || null;
+        }
+
+        function updateActionCard(card, meta) {
+            const gist = card.querySelector('.card-gist');
+            if (gist) gist.innerHTML = actionBody(meta);
+            card.classList.remove('card-updated');
+            void card.offsetWidth;   // restart the highlight if it is updated twice in a row
+            card.classList.add('card-updated');
+        }
+
+        // Thumbs up keeps the card and makes its type a little easier to raise; thumbs down
+        // hides it and makes the type harder to raise for the rest of the session. The title
+        // stays remembered either way, so a hidden card doesn't come straight back.
+        function onFeedback(card, vote) {
+            const type = card && card.dataset.type;
+            if (!CARD_TYPE_UI[type]) return;
+            const current = typeBias[type] || 0;
+            if (vote === 'down') {
+                typeBias[type] = Math.min(BIAS_MAX, current + BIAS_DOWN);
+                stats.notUseful++;
+                removeCard(card);
+            } else {
+                const button = card.querySelector('[data-feedback="up"]');
+                if (button.getAttribute('aria-pressed') === 'true') return;
+                typeBias[type] = Math.max(BIAS_MIN, current - BIAS_UP);
+                button.setAttribute('aria-pressed', 'true');
+                stats.useful++;
+            }
+            persistTranscript();
         }
 
         // Back to the spinner, for a retry. The type accent goes with it: a card still
@@ -1531,7 +1713,7 @@
         // marker beats both of the alternatives: throwing away a good partial answer, or
         // leaving a sentence that stops dead and looks finished.
         function renderIncomplete(job, label) {
-            const body = job.card.querySelector('.card-body');
+            const body = job.card && job.card.querySelector('.card-body');
             if (!body) return;
             const bar = el('div', 'card-incomplete');
             bar.append(el('span', '', 'Cut off before the end.'));
@@ -1551,6 +1733,7 @@
         // A failed analysis used to vanish, which is indistinguishable from the AI deciding
         // the utterance didn't matter. Now it says so, and offers the retry.
         function renderCardError(job, message) {
+            if (!job.card) job.card = placeCard(job.order);
             delete job.card.dataset.type;
             job.card.classList.remove('opacity-75');
             job.card.innerHTML = `
@@ -1570,7 +1753,7 @@
                 analyzeQueue.unshift(job);
                 pumpAnalysis();
             });
-            job.card.querySelector('[data-act="dismiss"]').addEventListener('click', () => removeCard(job.card));
+            job.card.querySelector('[data-act="dismiss"]').addEventListener('click', () => { removeCard(job.card); job.card = null; });
         }
 
         function renderSources(el2, sources) {
@@ -1901,6 +2084,11 @@ self.onmessage = function (e) {
                         onInterimText([...this.partials.values()].join(' '));
                         onFinalText(msg.text, { low: Boolean(msg.lowConfidence) });
                         break;
+                    case 'discard_transcript':
+                        // A live line that turned out not to be speech.
+                        this.partials.delete(msg.itemId);
+                        onInterimText([...this.partials.values()].join(' '));
+                        break;
                     case 'error':
                         errorEl.textContent = msg.message || 'Transcription error.';
                         break;
@@ -2107,6 +2295,7 @@ self.onmessage = function (e) {
                     meetingState,
                     participants,
                     answered: answeredTitles.slice(-ANSWERED_MEMORY),
+                    bias: { ...typeBias },
                 }));
             } catch (err) { /* quota or private mode — the session still runs */ }
         }
@@ -2142,7 +2331,16 @@ self.onmessage = function (e) {
             participants = Array.isArray(data.participants) ? data.participants : [];
             refreshSpeakerTags();
             answeredTitles.length = 0;
-            if (Array.isArray(data.answered)) answeredTitles.push(...data.answered);
+            // Saved before cards were typed, entries were bare titles; both still suppress repeats.
+            if (Array.isArray(data.answered)) {
+                answeredTitles.push(...data.answered.filter((a) => typeof a === 'string' || (a && typeof a.title === 'string')));
+            }
+            for (const key of Object.keys(typeBias)) delete typeBias[key];
+            if (data.bias && typeof data.bias === 'object') {
+                for (const [type, value] of Object.entries(data.bias)) {
+                    if (CARD_TYPE_UI[type] && Number.isFinite(value)) typeBias[type] = Math.min(BIAS_MAX, Math.max(BIAS_MIN, value));
+                }
+            }
             meetingState = data.meetingState || null;
             setStateObjective();
             stateBar.classList.remove('hidden');
@@ -2522,6 +2720,21 @@ self.onmessage = function (e) {
 
         $('copy-transcript').addEventListener('click', (e) => copyToClipboard(attributedTranscript(), e.currentTarget));
         $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText(), e.currentTarget));
+
+        // "More" on a card, and the thumbs.
+        insightsContainer.addEventListener('click', (e) => {
+            const more = e.target.closest('.card-more-toggle');
+            if (more) {
+                const card = more.closest('[data-card]');
+                const panel = card.querySelector('.card-more');
+                panel.hidden = !panel.hidden;
+                more.textContent = panel.hidden ? 'More' : 'Less';
+                more.setAttribute('aria-expanded', String(!panel.hidden));
+                return;
+            }
+            const vote = e.target.closest('[data-feedback]');
+            if (vote) onFeedback(vote.closest('[data-card]'), vote.dataset.feedback);
+        });
 
         // Collapse / expand insight cards
         document.body.addEventListener('click', (e) => {
