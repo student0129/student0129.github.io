@@ -109,7 +109,13 @@
                     <select id="target-language-select" class="field w-full text-sm"></select>
                 </label>
             </div>
-            <p id="mode-hint" class="text-xs text-gray-500 mt-2.5 min-h-[1rem]"></p>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mt-3">
+                <div class="seg text-sm" role="group" aria-label="Translation mode">
+                    <button type="button" data-mode="accurate" aria-pressed="true" title="Each sentence translated in full as it ends">Accurate</button>
+                    <button type="button" data-mode="instant" aria-pressed="false" title="Translation flows while you speak, but paraphrases more">Instant</button>
+                </div>
+                <p id="mode-hint" class="text-xs text-gray-500 min-h-[1rem] flex-1 min-w-[12rem]"></p>
+            </div>
 
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mt-5">
                 <button id="toggle-btn" class="flex items-center justify-center gap-2.5 py-3 px-8 rounded-full font-light tracking-wide transition-all duration-300 ease-out disabled:opacity-40 disabled:cursor-default">
@@ -254,6 +260,7 @@
             modeHint: $('mode-hint'), toggle: $('toggle-btn'), toggleLabel: $('toggle-label'),
             status: $('status'), statusDot: $('status-dot'), meter: $('meter'),
             voiceButtons: [...document.querySelectorAll('[data-voice]')], voiceHint: $('voice-hint'),
+            modeButtons: [...document.querySelectorAll('[data-mode]')],
             inputButtons: [...document.querySelectorAll('[data-input]')], inputHint: $('input-hint'),
             micField: $('mic-field'), tabField: $('tab-field'), muteTab: $('mute-tab'), farFieldField: $('far-field-field'),
             sourceLabel: $('source-label'), emptyLead: $('empty-lead'),
@@ -268,6 +275,9 @@
         // ---------------------------------------------------------------------------------------
         const prefs = (() => { try { return JSON.parse(localStorage.getItem('transltr.prefs') || '{}') || {}; } catch { return {}; } })();
         let voiceMode = ['off', 'headphones', 'speaker'].includes(prefs.voice) ? prefs.voice : 'off';
+        // Accurate by default: instant interpretation paraphrases ("almost doubled" became "doubled",
+        // "revenue" became "net income" in replayed French), accurate mode translates what was said.
+        let translationMode = prefs.mode === 'instant' ? 'instant' : 'accurate';
         // Sharing another tab's sound needs Chrome or Edge on a computer; Safari and Firefox share
         // tabs without audio, and phones can't share tabs at all.
         const TAB_CAPTURE = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)
@@ -281,7 +291,7 @@
                 localStorage.setItem('transltr.prefs', JSON.stringify({
                     source: els.source.value, target: els.target.value, voice: voiceMode,
                     farField: els.farField.checked, terms: els.terms.value, mic: els.mic.value, font: fontIndex,
-                    input: inputMode, muteTab: els.muteTab.checked,
+                    input: inputMode, muteTab: els.muteTab.checked, mode: translationMode,
                 }));
             } catch { /* private mode */ }
         }
@@ -304,6 +314,7 @@
         const settingsPayload = () => ({
             sourceLanguage: els.source.value,
             targetLanguage: els.target.value,
+            mode: translationMode,
             voice: voiceMode !== 'off',
             farField: inputMode === 'mic' && els.farField.checked,
             terms: parseTerms(),
@@ -350,10 +361,12 @@
         }, 1000);
 
         function liveStatus() {
-            if (inputMode === 'tab') {
-                return session.engine === 'interpret' ? 'Listening to the shared tab · translating as it plays' : 'Listening to the shared tab · finalized at each pause';
-            }
-            return session.engine === 'interpret' ? 'Listening · translating as you speak' : 'Listening · translated live, finalized at each pause';
+            const where = inputMode === 'tab' ? 'Listening to the shared tab' : 'Listening';
+            const how = {
+                interpret: inputMode === 'tab' ? 'translating as it plays' : 'translating as you speak',
+                accurate: 'each sentence translated in full',
+            }[session.engine] || 'translated at each pause';
+            return `${where} · ${how}`;
         }
 
         function showError(message) {
@@ -569,11 +582,14 @@
                 }
 
                 emit(sample) {
-                    const v = this.muted ? 0 : Math.max(-1, Math.min(1, sample));
+                    const heard = Math.max(-1, Math.min(1, sample));
+                    const v = this.muted ? 0 : heard;
                     this.frame[this.fill++] = v < 0 ? v * 0x8000 : v * 0x7fff;
-                    this.levelSum += v * v;
+                    // The level is what the microphone hears, muted or not: it is how the page knows
+                    // whether someone is talking.
+                    this.levelSum += heard * heard;
                     if (++this.levelCount >= this.levelEvery) {
-                        this.port.postMessage({ level: Math.sqrt(this.levelSum / this.levelCount) });
+                        this.port.postMessage({ level: Math.sqrt(this.levelSum / this.levelCount), muted: this.muted });
                         this.levelSum = 0;
                         this.levelCount = 0;
                     }
@@ -699,8 +715,11 @@
                     processorOptions: { inRate: ctx.sampleRate, outRate: SAMPLE_RATE, frameSamples: FRAME_SAMPLES },
                 });
                 this.node.port.onmessage = (e) => {
-                    if (e.data instanceof ArrayBuffer) sendFrame(e.data);
-                    else setMeter(e.data.level);
+                    if (e.data instanceof ArrayBuffer) return sendFrame(e.data);
+                    // While muted the mic mostly hears the translation from the speakers, so only
+                    // unmuted levels count as the speaker talking.
+                    this.noteLevel(e.data.level, e.data.muted);
+                    setMeter(e.data.muted ? 0 : e.data.level);
                 };
                 // Keep the node pulling audio without echoing the mic to the speakers.
                 this.sink = ctx.createGain();
@@ -717,13 +736,33 @@
                 this.muteTimer = setInterval(() => this.updateMute(), 50);
             },
 
-            // Speaker mode: the mic pauses while the translation is spoken, so it isn't re-translated.
-            // A shared tab can't hear this page's speech, so it never pauses.
+            // A rolling noise floor, so "someone is talking" works in a quiet room and a noisy one.
+            levels: [], lastVoiceAt: 0,
+            noteLevel(level, muted) {
+                if (muted) return;
+                this.levels.push(level);
+                if (this.levels.length > 60) this.levels.shift();   // ~3 s of 50 ms readings
+                const floor = Math.min(...this.levels);
+                if (level > Math.max(0.006, floor * 4)) this.lastVoiceAt = performance.now();
+            },
+
+            speaking() {
+                return performance.now() - this.lastVoiceAt < 700;
+            },
+
+            // Speaker mode: the mic pauses while translated speech is actually audible, so it isn't
+            // translated again. It used to pause whenever any audio was queued — and the interpreter
+            // streams audio even for silence, so the mic stayed muted almost permanently and the
+            // transcript stopped after the first sentence. A shared tab can't hear this page, so it
+            // never pauses.
             updateMute() {
-                const mute = this.mode === 'mic' && voiceMode === 'speaker' && player.busy();
+                const mute = this.mode === 'mic' && voiceMode === 'speaker' && player.audible();
+                if (voiceMode === 'speaker') player.releaseHeld();
                 if (mute !== this.muted && this.node) {
                     this.muted = mute;
                     this.node.port.postMessage({ mute });
+                    // Say so: a transcript that pauses for no visible reason reads as broken.
+                    if (session.phase === 'live') setPhase('live', mute ? 'Speaking the translation — microphone paused' : undefined);
                 }
             },
 
@@ -756,7 +795,7 @@
                 try { this.source && this.source.disconnect(); } catch { /* gone */ }
                 if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
                 if (this.ctx && this.ctx.state !== 'closed') this.ctx.close().catch(() => {});
-                Object.assign(this, { ctx: null, stream: null, source: null, node: null, sink: null, muted: false, muteTimer: null });
+                Object.assign(this, { ctx: null, stream: null, source: null, node: null, sink: null, muted: false, muteTimer: null, levels: [], lastVoiceAt: 0 });
             },
         };
 
@@ -766,6 +805,8 @@
                 if (name === 'NotAllowedError') return 'Tab sharing was cancelled. Press Start and choose the tab to translate.';
                 if (name === 'NoTabAudio') return 'That share has no sound. Press Start, choose a Chrome tab, and keep “Also share tab audio” on.';
                 console.error('Tab capture error:', err);
+                // A share that timed out or couldn't start is a busy computer, not a browser that can't do it.
+                if (name === 'AbortError' || name === 'NotReadableError') return 'Chrome couldn’t start sharing that tab. Press Start to try again.';
                 return 'This browser can’t share a tab’s sound. Use Chrome or Edge on a computer.';
             }
             if (name === 'NotAllowedError' || name === 'SecurityError') return 'Microphone access is blocked. Allow it in the address bar, then try again.';
@@ -794,8 +835,11 @@
         // ---------------------------------------------------------------------------------------
         // Translated speech playback, gapless, catching up gently if it falls behind
         // ---------------------------------------------------------------------------------------
+        const AUDIBLE_RMS = 0.003;          // about -50 dBFS: below this a chunk is silence
+        const MAX_HELD_SECONDS = 30;
+
         const player = {
-            ctx: null, out: null, nextTime: 0, sources: new Set(),
+            ctx: null, out: null, nextTime: 0, audibleUntil: 0, sources: new Set(), held: [], heldSeconds: 0,
 
             // Must run inside the click that starts a session, or browsers keep audio locked.
             unlock() {
@@ -814,8 +858,37 @@
                 if (!samples.length) return;
                 const buffer = this.ctx.createBuffer(1, samples.length, SAMPLE_RATE);
                 const channel = buffer.getChannelData(0);
-                for (let i = 0; i < samples.length; i++) channel[i] = samples[i] / 32768;
+                let energy = 0;
+                for (let i = 0; i < samples.length; i++) {
+                    channel[i] = samples[i] / 32768;
+                    energy += channel[i] * channel[i];
+                }
+                const audible = Math.sqrt(energy / samples.length) > AUDIBLE_RMS;
 
+                // The interpreter streams silence between phrases. Queuing it only adds delay, so
+                // silence is skipped unless it is a pause inside speech that is already playing.
+                if (!audible && !this.busy() && !this.held.length) return;
+
+                // Speaker mode interprets consecutively: translated speech waits for the speaker to
+                // pause, so the microphone isn't muted over their next sentence.
+                if (voiceMode === 'speaker' && mic.mode === 'mic' && (this.held.length || (!this.busy() && mic.speaking()))) {
+                    this.held.push({ buffer, audible });
+                    this.heldSeconds += buffer.duration;
+                    while (this.heldSeconds > MAX_HELD_SECONDS && this.held.length) this.heldSeconds -= this.held.shift().buffer.duration;
+                    return;
+                }
+                this.schedule(buffer, audible);
+            },
+
+            releaseHeld() {
+                if (!this.held.length || mic.speaking()) return;
+                const held = this.held;
+                this.held = [];
+                this.heldSeconds = 0;
+                for (const chunk of held) this.schedule(chunk.buffer, chunk.audible);
+            },
+
+            schedule(buffer, audible) {
                 const now = this.ctx.currentTime;
                 if (this.nextTime < now + 0.02) this.nextTime = now + 0.1;   // small cushion against jitter
                 const backlog = this.nextTime - now;
@@ -826,6 +899,7 @@
                 src.connect(this.out);
                 src.start(this.nextTime);
                 this.nextTime += buffer.duration / rate;
+                if (audible) this.audibleUntil = this.nextTime;
                 this.sources.add(src);
                 src.onended = () => this.sources.delete(src);
             },
@@ -838,10 +912,18 @@
                 return !!this.ctx && this.nextTime + 0.3 > this.ctx.currentTime;
             },
 
+            // Real speech is scheduled — what the mic has to be muted for.
+            audible() {
+                return !!this.ctx && this.audibleUntil + 0.3 > this.ctx.currentTime;
+            },
+
             stop() {
                 for (const src of this.sources) { try { src.stop(); } catch { /* ended */ } }
                 this.sources.clear();
                 this.nextTime = 0;
+                this.audibleUntil = 0;
+                this.held = [];
+                this.heldSeconds = 0;
             },
         };
 
@@ -926,6 +1008,7 @@
             const started = performance.now();
             clearInterval(drainTimer);
             drainTimer = setInterval(() => {
+                if (player.held.length) { player.releaseHeld(); return; }
                 const quiet = performance.now() - lastServerMessageAt > 1500 && !player.playing;
                 if (session.active) return clearInterval(drainTimer);
                 if (quiet || performance.now() - started > 20000) {
@@ -1222,16 +1305,22 @@
 
         function updateModeHint() {
             const target = NAMES[els.target.value];
+            for (const b of els.modeButtons) b.setAttribute('aria-pressed', String(b.dataset.mode === translationMode));
             if (els.source.value === els.target.value) {
                 els.modeHint.textContent = 'Both sides are the same language — pick a different one to translate into.';
-                els.modeHint.className = 'text-xs text-amber-300/80 mt-2.5 min-h-[1rem]';
+                els.modeHint.className = 'text-xs text-amber-300/80 min-h-[1rem] flex-1 min-w-[12rem]';
                 return;
             }
-            els.modeHint.className = 'text-xs text-gray-500 mt-2.5 min-h-[1rem]';
+            els.modeHint.className = 'text-xs text-gray-500 min-h-[1rem] flex-1 min-w-[12rem]';
             const tab = inputMode === 'tab';
-            els.modeHint.textContent = interpretTargets.has(els.target.value)
-                ? `⚡ Instant interpretation: the ${target} translation flows while ${tab ? 'the tab plays' : 'you speak'}.`
-                : `Live transcript ${tab ? 'as the tab plays' : 'while you speak'}. The ${target} translation drafts as it goes and is finalized at each pause.`;
+            const speaking = tab ? 'the tab plays' : 'you speak';
+            if (translationMode === 'accurate') {
+                els.modeHint.textContent = `Live transcript while ${speaking}; each sentence is translated into ${target} in full as it ends, with a draft meanwhile.`;
+            } else if (interpretTargets.has(els.target.value)) {
+                els.modeHint.textContent = `⚡ The ${target} translation flows while ${speaking}. Fastest, but it paraphrases more.`;
+            } else {
+                els.modeHint.textContent = `Continuous interpretation isn't available for ${target}: live transcript, translated at each pause.`;
+            }
         }
 
         function onLanguageChange() {
@@ -1239,6 +1328,16 @@
             updateModeHint();
             savePrefs();
             sendConfig({ sourceLanguage: els.source.value, targetLanguage: els.target.value });
+        }
+
+        for (const b of els.modeButtons) {
+            b.addEventListener('click', () => {
+                if (b.dataset.mode === translationMode) return;
+                translationMode = b.dataset.mode;
+                updateModeHint();
+                savePrefs();
+                sendConfig({ mode: translationMode });
+            });
         }
 
         els.source.addEventListener('change', onLanguageChange);
@@ -1256,7 +1355,7 @@
             const hints = {
                 off: '',
                 headphones: 'Translated speech plays as it’s produced. Use headphones so the microphone doesn’t pick it up.',
-                speaker: 'The microphone pauses while the translation is spoken, so it isn’t translated again.',
+                speaker: 'For a conversation on one device: the translation is spoken when you pause, and the microphone pauses while it speaks. For continuous speech, use Headphones.',
             };
             if (inputMode === 'tab') {
                 hints.headphones = hints.speaker = els.muteTab.checked
