@@ -157,7 +157,15 @@
                         <button type="button" data-voice="headphones" aria-pressed="false">Headphones</button>
                         <button type="button" data-voice="speaker" aria-pressed="false">Speaker</button>
                     </div>
+                    <span id="voice-activity" class="dot bg-sky-400 pulse" title="The translation is playing" aria-hidden="true" hidden></span>
                 </div>
+                <label id="output-field" class="flex items-center gap-2.5 min-w-0" hidden>
+                    <span class="label">Play on</span>
+                    <select id="output-select" class="field text-sm max-w-[14rem] min-w-0">
+                        <option value="">Default speaker</option>
+                    </select>
+                </label>
+                <button id="voice-test" type="button" class="text-xs text-sky-300 hover:text-sky-200 disabled:opacity-50 disabled:cursor-default" hidden>Test voice</button>
                 <details id="advanced" class="w-full group">
                     <summary class="cursor-pointer select-none text-gray-500 hover:text-gray-300 transition list-none flex items-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 transition group-open:rotate-90"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
@@ -178,6 +186,7 @@
             </div>
             <p id="input-hint" class="text-xs text-gray-500 mt-2" hidden></p>
             <p id="voice-hint" class="text-xs text-gray-500 mt-2" hidden></p>
+            <p id="voice-notice" class="text-xs text-amber-200 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1" role="status" hidden></p>
         </section>
 
         <section class="glass rounded-3xl shadow-2xl overflow-hidden">
@@ -270,7 +279,6 @@
         const STALL_QUIET_MS = 20000;              // ...and nothing back for this long: the session is stuck
         const SEND_DELAY_S = 0.3;                  // Speaker mode sends the mic this late, so it can unmute in time
         const AUDIBLE_RMS = 0.003;                 // about -50 dBFS: below this, audio is silence
-        const DUCKED_GAIN = 0.25;
         const FONT_SCALES = [0.85, 1, 1.2, 1.45, 1.75, 2.1];
 
         const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -308,6 +316,8 @@
             modeHint: $('mode-hint'), toggle: $('toggle-btn'), toggleLabel: $('toggle-label'),
             status: $('status'), statusDot: $('status-dot'), meter: $('meter'),
             voiceButtons: [...document.querySelectorAll('[data-voice]')], voiceHint: $('voice-hint'),
+            voiceNotice: $('voice-notice'), voiceActivity: $('voice-activity'), voiceTest: $('voice-test'),
+            outputField: $('output-field'), output: $('output-select'),
             modeButtons: [...document.querySelectorAll('[data-mode]')],
             inputButtons: [...document.querySelectorAll('[data-input]')], inputHint: $('input-hint'),
             micField: $('mic-field'), tabField: $('tab-field'), muteTab: $('mute-tab'), farFieldField: $('far-field-field'),
@@ -339,7 +349,7 @@
                 localStorage.setItem('transltr.prefs', JSON.stringify({
                     source: els.source.value, target: els.target.value, voice: voiceMode,
                     farField: els.farField.checked, terms: els.terms.value, mic: els.mic.value, font: fontIndex,
-                    input: inputMode, muteTab: els.muteTab.checked, mode: translationMode,
+                    input: inputMode, muteTab: els.muteTab.checked, mode: translationMode, output: els.output.value,
                 }));
             } catch { /* private mode */ }
         }
@@ -798,6 +808,8 @@
         `;
 
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        // Choosing where the voice plays needs setSinkId on both players: Chrome and Edge.
+        const OUTPUT_PICKER = !!(AudioCtx && 'setSinkId' in AudioCtx.prototype && window.HTMLMediaElement && 'setSinkId' in HTMLMediaElement.prototype);
 
         async function captureMicrophone() {
             const deviceId = els.mic.value;
@@ -952,14 +964,13 @@
                 return performance.now() - this.lastVoiceAt;
             },
 
-            // Full duplex. The translation plays as soon as it's ready; while you talk, the mic stays
-            // live and the translation turns down. When only the device is talking, the mic is muted so
-            // the translation isn't heard and translated again.
+            // Full duplex. The translation plays as soon as it's ready, always at full volume; while you
+            // talk the mic stays live. When only the device is talking, the mic is muted so the
+            // translation isn't heard and translated again. (It used to turn the translation down while
+            // anyone seemed to be talking, and in a real room its own echo counted as talking, so it
+            // played at a quarter volume and was easy to miss.)
             updateGate() {
-                const playing = voice.audible();
-                const talking = this.speaking();
-                voice.duck(playing && talking);
-                this.setMuted(playing && !talking);
+                this.setMuted(voice.audible() && !this.speaking());
             },
 
             setMuted(mute) {
@@ -979,7 +990,7 @@
 
             watch() {
                 if (!session.active || !this.ctx) return;
-                if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+                if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
                 // A stalled audio graph (a headset switching profiles can do it) would silence a gated
                 // mic too: send the track untouched instead.
                 const heardAt = this.lastLevelAt || this.graphStartedAt;
@@ -1026,7 +1037,6 @@
                     stream: null, track: null, ctx: null, source: null, meterNode: null, sink: null, delay: null, gate: null, dest: null,
                     gated: false, muted: false, graphBroken: false, graphStartedAt: 0, levels: [], voicedRun: 0, lastVoiceAt: 0, lastLevelAt: 0,
                 });
-                voice.duck(false);
             },
         };
 
@@ -1068,13 +1078,13 @@
         // translated sentence with OpenAI TTS, in the order they were said.
         // ---------------------------------------------------------------------------------------
         const voice = {
-            ctx: null, out: null, nextTime: 0, audibleUntil: 0, sources: new Set(), ducked: false,
+            ctx: null, out: null, nextTime: 0, audibleUntil: 0, sources: new Set(), outputId: '', appliedOutput: '',
             el: null, remote: null, remoteSource: null, remoteAnalyser: null, remoteBuffer: null, remoteAudibleAt: 0,
-            clockTime: -1, clockStuckSince: 0,
+            clockTime: -1, clockStuckSince: 0, blockedSince: 0,
             queue: [], speaking: false, controller: null, waitTimer: null,
-            stats: { lines: 0, skipped: 0, failed: 0, chunks: 0, audibleSeconds: 0, mutedMs: 0, duckedMs: 0, outputResets: 0 },
+            stats: { lines: 0, skipped: 0, failed: 0, chunks: 0, audibleSeconds: 0, mutedMs: 0, echoesDropped: 0, outputResets: 0 },
 
-            // Must run inside the click that starts a session, or browsers keep audio locked.
+            // Runs inside a click (Start, a Voice button, Test voice), which is what lets browsers play sound.
             unlock() {
                 if (!AudioCtx) return;
                 if (!this.ctx || this.ctx.state === 'closed') {
@@ -1082,14 +1092,26 @@
                     this.out = this.ctx.createGain();
                     this.out.connect(this.ctx.destination);
                     this.nextTime = 0;
+                    this.appliedOutput = '';
+                    if (this.outputId) this.setOutput(this.outputId, { quiet: true });
                 }
-                if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+                // Safari also has an "interrupted" state, entered when the microphone starts.
+                if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
                 if (!this.el) {
                     this.el = document.createElement('audio');
                     this.el.autoplay = true;
                     this.el.setAttribute('playsinline', '');
                     this.el.hidden = true;
                     document.body.appendChild(this.el);
+                    if (this.outputId) this.setOutput(this.outputId, { quiet: true });
+                    // Safari only lets an element play later if it was started by a click, so start it now
+                    // on silence; the interpreter's voice replaces the silence when it arrives.
+                    try {
+                        this.el.srcObject = this.ctx.createMediaStreamDestination().stream;
+                        this.el.play().catch(() => {});
+                    } catch { /* played when the voice arrives */ }
+                } else if (this.el.paused && this.el.srcObject) {
+                    this.el.play().catch(() => {});
                 }
             },
 
@@ -1098,7 +1120,9 @@
                 this.remote = stream;
                 this.el.srcObject = stream;
                 this.applyRouting();
-                this.el.play().catch(() => {});
+                this.el.play().catch((err) => {
+                    if (err.name === 'NotAllowedError' && !this.el.muted) showSoundBlocked();
+                });
                 try {
                     if (this.remoteSource) this.remoteSource.disconnect();
                     // Only measured, never played through here: the <audio> element plays it, which also
@@ -1119,6 +1143,23 @@
                 if (this.el) this.el.srcObject = null;
             },
 
+            // "Play on": the same device for both voices. Chrome and Edge only; elsewhere the system's.
+            // Before microphone permission a named device can't be chosen yet; it's applied again once the
+            // device list loads.
+            setOutput(deviceId, { quiet = false } = {}) {
+                const id = deviceId || '';
+                this.outputId = id;
+                const switches = [];
+                if (this.ctx && this.ctx.setSinkId) switches.push(this.ctx.setSinkId(id));
+                if (this.el && this.el.setSinkId) switches.push(this.el.setSinkId(id));
+                return Promise.all(switches).then(() => {
+                    if (this.outputId === id) this.appliedOutput = id;
+                }, (err) => {
+                    console.warn('Transltr: could not switch the output:', err);
+                    if (!quiet) showVoiceNotice('Couldn’t play on that device. Pick another, or the default speaker.');
+                });
+            },
+
             applyRouting() {
                 if (this.el) this.el.muted = voiceMode === 'off' || transcript.mode() !== 'instant';
             },
@@ -1131,18 +1172,11 @@
                 if (Math.sqrt(energy / this.remoteBuffer.length) > AUDIBLE_RMS) this.remoteAudibleAt = performance.now();
             },
 
-            // Translated speech is coming out of the device right now.
-            audible() {
+            // Translated speech is coming out of the device right now (or within the last `graceMs`).
+            audible(graceMs = 300) {
                 const now = performance.now();
-                const speech = !!this.ctx && this.ctx.state === 'running' && now < this.audibleUntil + 300;
-                return speech || now - this.remoteAudibleAt < 300;
-            },
-
-            duck(on) {
-                if (on === this.ducked) return;
-                this.ducked = on;
-                if (this.out) this.out.gain.setTargetAtTime(on ? DUCKED_GAIN : 1, this.ctx.currentTime, 0.04);
-                if (this.el) this.el.volume = on ? DUCKED_GAIN : 1;
+                const speech = !!this.ctx && this.ctx.state === 'running' && now < this.audibleUntil + graceMs;
+                return speech || now - this.remoteAudibleAt < graceMs;
             },
 
             // Each final translation is spoken in the order it was said, even though they finish out
@@ -1177,6 +1211,7 @@
                         continue;
                     }
                     this.speaking = true;
+                    spoken.add(head.text);
                     try {
                         await this.speak(head.text, head.row.target);
                         this.stats.lines++;
@@ -1184,6 +1219,9 @@
                         if (!this.controller || !this.controller.signal.aborted) {
                             this.stats.failed++;
                             console.warn('Transltr voice failed:', err.message);
+                            showVoiceNotice(err.status === 429
+                                ? 'The voice is busy right now; some lines weren’t spoken.'
+                                : 'A line couldn’t be spoken: the voice service didn’t answer.');
                         }
                     } finally {
                         this.speaking = false;
@@ -1196,7 +1234,7 @@
                 const controller = new AbortController();
                 this.controller = controller;
                 const res = await request('/api/transltr/speak', { text, language }, { signal: controller.signal });
-                if (!res.ok || !res.body) throw failure(`speak answered ${res.status}`);
+                if (!res.ok || !res.body) throw Object.assign(failure(`speak answered ${res.status}`), { status: res.status });
                 const reader = res.body.getReader();
                 let pending = new Uint8Array(0);
                 const flush = (all) => {
@@ -1224,7 +1262,7 @@
 
             playPcm(data) {
                 if (voiceMode === 'off' || !this.ctx) return;
-                if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+                if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
                 const samples = new Int16Array(data);
                 if (!samples.length) return;
                 const buffer = this.ctx.createBuffer(1, samples.length, 24000);
@@ -1259,9 +1297,19 @@
             },
 
             // Speech queued on an audio clock that has stopped moving means the output device went away
-            // or changed: start playback over on a fresh context.
+            // or changed: start playback over on a fresh context. Speech waiting on a context the browser
+            // won't start needs a click, so ask for one.
             watch() {
-                if (!this.ctx || this.ctx.state !== 'running') return;
+                if (!this.ctx) return;
+                if (this.ctx.state !== 'running') {
+                    const waiting = voiceMode !== 'off' && (this.speaking || this.sources.size > 0 || this.queue.some((e) => e.text));
+                    if (!waiting) return void (this.blockedSince = 0);
+                    this.ctx.resume().catch(() => {});
+                    if (!this.blockedSince) this.blockedSince = performance.now();
+                    if (performance.now() - this.blockedSince > 1500) showSoundBlocked();
+                    return;
+                }
+                this.blockedSince = 0;
                 const t = this.ctx.currentTime;
                 if (t !== this.clockTime) {
                     this.clockTime = t;
@@ -1295,9 +1343,102 @@
                 clearTimeout(this.waitTimer);
                 this.waitTimer = null;
                 this.stopPlayback();
-                this.duck(false);
+            },
+
+            // A short sample through the same path as the live voice, in the target language.
+            async test() {
+                this.unlock();
+                hideVoiceNotice();
+                els.voiceTest.disabled = true;
+                els.voiceTest.textContent = 'Playing…';
+                const target = els.target.value;
+                try {
+                    let text = TEST_PHRASE;
+                    if (target !== 'en') {
+                        text = testPhrases[target] || (testPhrases[target] = await translationStream({ text: TEST_PHRASE, target, context: [], draft: true }).catch(() => TEST_PHRASE));
+                    }
+                    const entry = { row: { target, removed: false }, text, at: Date.now() };
+                    this.queue.push(entry);
+                    this.pump();
+                    const until = performance.now() + 20000;
+                    while (performance.now() < until && (this.queue.includes(entry) || this.speaking || this.playing)) await sleep(200);
+                } finally {
+                    els.voiceTest.disabled = false;
+                    els.voiceTest.textContent = 'Test voice';
+                }
             },
         };
+
+        const TEST_PHRASE = 'This is how the translation will sound.';
+        const testPhrases = {};
+
+        // What the device has said out loud in the last minute and a half. In a room, the microphone can
+        // hear it back; a transcript line that is mostly those words is the device's own voice, and
+        // translating it would repeat it again.
+        const spoken = {
+            lines: [],
+            words: (text) => text.toLowerCase().match(/[\p{L}\p{N}]+/gu) || [],
+            add(text) {
+                const now = Date.now();
+                this.lines = this.lines.filter((line) => now - line.at < 90000).slice(-30);
+                const words = new Set(this.words(text || ''));
+                if (words.size >= 3) this.lines.push({ words, at: now });
+            },
+            isEcho(text) {
+                if (voiceMode === 'off' || !this.lines.length) return false;
+                const words = this.words(text);
+                if (words.length < 3) return false;
+                return this.lines.some((line) => words.filter((w) => line.words.has(w)).length >= 0.7 * words.length);
+            },
+        };
+
+        let voiceNoticeTimer = null;
+        function showVoiceNotice(message, action) {
+            clearTimeout(voiceNoticeTimer);
+            els.voiceNotice.replaceChildren(document.createTextNode(message));
+            if (action) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'px-2.5 py-1 rounded-full bg-sky-500/90 hover:bg-sky-400 text-white';
+                button.textContent = action.label;
+                button.addEventListener('click', action.run);
+                els.voiceNotice.append(button);
+            } else {
+                voiceNoticeTimer = setTimeout(hideVoiceNotice, 8000);
+            }
+            els.voiceNotice.hidden = false;
+        }
+        function hideVoiceNotice() {
+            clearTimeout(voiceNoticeTimer);
+            els.voiceNotice.hidden = true;
+        }
+
+        function showSoundBlocked() {
+            if (!els.voiceNotice.hidden && els.voiceNotice.querySelector('button')) return;
+            showVoiceNotice('Your browser is holding back the translated voice.', {
+                label: 'Turn sound on',
+                run: () => {
+                    voice.unlock();
+                    if (voice.el && voice.el.srcObject) voice.el.play().catch(() => {});
+                    hideVoiceNotice();
+                },
+            });
+        }
+
+        async function populateOutputs() {
+            if (!OUTPUT_PICKER || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+            try {
+                // Listed with names once the page has microphone permission.
+                const devices = (await navigator.mediaDevices.enumerateDevices())
+                    .filter((d) => d.kind === 'audiooutput' && d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications');
+                if (!devices.length) return;   // no permission yet: keep the remembered choice for later
+                const wanted = voice.outputId;
+                els.output.length = 1;
+                devices.forEach((d, i) => els.output.add(new Option(d.label || `Speaker ${i + 1}`, d.deviceId)));
+                els.output.value = devices.some((d) => d.deviceId === wanted) ? wanted : '';
+                if (els.output.value !== voice.appliedOutput || els.output.value !== voice.outputId) voice.setOutput(els.output.value, { quiet: true });
+            } catch { /* keep the default option */ }
+        }
 
         // ---------------------------------------------------------------------------------------
         // Transcript: rows of original beside translation, assembled from the session's events
@@ -1416,9 +1557,14 @@
                 const row = this.current;
                 if (!row) return;
                 this.current = null;
+                if (spoken.isEcho(row.source)) {
+                    voice.stats.echoesDropped++;
+                    return this.remove(row);
+                }
                 if (row.kind === 'instant') {
                     row.sourceFinal = row.translationFinal = true;
                     if (!hasWords(row.source) && !hasWords(row.translation)) return this.remove(row);
+                    if (this.mode() === 'instant' && voiceMode !== 'off') spoken.add(row.translation);
                     this.render(row);
                     this.repair(row);
                     return;
@@ -1706,6 +1852,7 @@
             if (!session.active) return;
             acquireWakeLock();
             if (inputMode === 'mic') populateMics();
+            populateOutputs();
         }
 
         // The user pressed Chrome's "Stop sharing", or closed the shared tab.
@@ -1758,7 +1905,8 @@
             capture.watch();
             voice.watch();
             if (capture.muted) voice.stats.mutedMs += 250;
-            if (voice.ducked) voice.stats.duckedMs += 250;
+            if (voiceMode !== 'off') voice.sampleRemote();
+            els.voiceActivity.hidden = !(voiceMode !== 'off' && voice.audible(800));
         }, 250);
 
         window.addEventListener('online', () => {
@@ -1951,7 +2099,7 @@
             const hints = {
                 off: '',
                 headphones: `Translated speech plays as it’s produced. Use headphones so the microphone doesn’t pick it up. ${disclosure}`,
-                speaker: `The translation plays out loud. It turns down while you talk, and the microphone pauses while only the device is speaking. ${disclosure}`,
+                speaker: `The translation plays out loud. The microphone pauses while only the device is speaking, so the translation isn’t translated again. ${disclosure}`,
             };
             if (inputMode === 'tab') {
                 hints.headphones = hints.speaker = (els.muteTab.checked
@@ -1960,12 +2108,21 @@
             }
             els.voiceHint.textContent = hints[voiceMode];
             els.voiceHint.hidden = voiceMode === 'off';
+            els.outputField.hidden = voiceMode === 'off' || !OUTPUT_PICKER;
+            els.voiceTest.hidden = voiceMode === 'off';
+            if (voiceMode === 'off') {
+                hideVoiceNotice();
+                els.voiceActivity.hidden = true;
+            }
         }
         for (const b of els.voiceButtons) {
             b.addEventListener('click', () => {
                 voiceMode = b.dataset.voice;
                 if (voiceMode === 'off') voice.clear();
-                else voice.unlock();
+                else {
+                    voice.unlock();
+                    populateOutputs();
+                }
                 voice.applyRouting();
                 applyVoiceMode();
                 savePrefs();
@@ -2013,8 +2170,16 @@
             savePrefs();
             capture.restart();
         });
+        els.output.addEventListener('change', () => {
+            savePrefs();
+            voice.setOutput(els.output.value);
+        });
+        els.voiceTest.addEventListener('click', () => voice.test());
         if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
-            navigator.mediaDevices.addEventListener('devicechange', populateMics);
+            navigator.mediaDevices.addEventListener('devicechange', () => {
+                populateMics();
+                populateOutputs();
+            });
         }
 
         let termsTimer = null;
@@ -2076,7 +2241,8 @@
                 },
                 voice: {
                     context: voice.ctx && voice.ctx.state, queue: voice.queue.length, speaking: voice.speaking,
-                    playing: voice.playing, ducked: voice.ducked, remote: !!voice.remote, remoteMuted: voice.el ? voice.el.muted : null,
+                    playing: voice.playing, remote: !!voice.remote, remoteMuted: voice.el ? voice.el.muted : null,
+                    elementPaused: voice.el ? voice.el.paused : null, output: voice.outputId, audible: voice.audible(800),
                     ...voice.stats,
                 },
                 rows: transcript.rows.length,
@@ -2088,6 +2254,7 @@
         }
 
         fillLanguages();
+        voice.outputId = OUTPUT_PICKER && typeof prefs.output === 'string' ? prefs.output : '';
         updateTitles();
         updateModeHint();
         applyVoiceMode();
@@ -2096,6 +2263,7 @@
         setPhase('idle');
         wakeServer();
         presession.warm();
+        populateOutputs();
     })();
     </script>
 </body>
