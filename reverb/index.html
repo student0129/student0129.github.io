@@ -19,7 +19,9 @@
         media-src 'self' blob:;
         connect-src 'self' blob: https://api-promontory.onrender.com wss://api-promontory.onrender.com http://localhost:* ws://localhost:*;
     ">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- viewport-fit=cover makes env(safe-area-inset-*) report the notch and home indicator,
+         which the phone layout pads around. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- Light only. A dark variant is deliberately not supported. -->
     <meta name="color-scheme" content="light">
     <title>ReVerb — Live Meeting Assistant</title>
@@ -92,7 +94,7 @@
         .segment.low-conf { border-bottom: 1px dashed #d97706; opacity: .8; }
 
         /* A session without an objective still belongs in the bar — it just says so quietly. */
-        #state-objective[data-empty="true"] { font-style: italic; opacity: .55; }
+        #state-objective[data-empty="true"], #sheet-objective[data-empty="true"] { font-style: italic; opacity: .55; }
 
         /* iOS Safari's 100vh is the *large* viewport: it includes the strip sitting
            behind the address bar and toolbar. Combined with overflow:hidden on body,
@@ -270,6 +272,248 @@
             text-transform: uppercase;
             color: #9ca3af;
         }
+
+        /* Following the live edge without taking the reader's place. Scrolled away from it,
+           new content raises a chip instead of yanking the view back. */
+        /* Hitting the end of a panel shouldn't bounce the whole app. Touch only: in desktop
+           Chromium it changes how the panel's text is anti-aliased. */
+        @media (pointer: coarse) {
+            #transcript-container, #insights-container { overscroll-behavior: contain; }
+        }
+        .chip-anchor { position: relative; height: 0; flex-shrink: 0; }
+        .jump-chip {
+            position: absolute;
+            left: 50%;
+            z-index: 5;
+            transform: translateX(-50%);
+            display: inline-flex;
+            align-items: center;
+            padding: .4rem .9rem;
+            border-radius: 9999px;
+            font-size: .8125rem;
+            font-weight: 400;
+            white-space: nowrap;
+            color: #fff;
+            background: #00685B;
+            box-shadow: 0 4px 12px rgba(0,0,0,.18);
+        }
+        .jump-chip.at-bottom { bottom: .75rem; }
+        .jump-chip.at-top { top: .75rem; }
+
+        /* Phone-only pieces. The header groups dissolve into the header on desktop, so its
+           layout is exactly what it was before they existed. */
+        .header-group { display: contents; }
+        #pane-switch, #live-caption, #sheet-scrim, .sheet-head, .phone-only { display: none; }
+
+        @keyframes sheet-up { from { transform: translateY(100%); } }
+
+        /* ---------- Phone ----------
+           Stacked, the two panels came out ~140px tall each, with the controls and the
+           meeting bar taking over a third of the screen. Below md this follows the iOS and
+           Material pattern for a narrow window instead: a slim top bar, one panel at a time
+           behind a segmented control, session controls in thumb reach at the bottom, and
+           the meeting state in a sheet over the content rather than pushed into it. */
+        @media (max-width: 767px) {
+            body.h-screen {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-rows: auto auto auto minmax(0, 1fr) auto auto auto auto;
+                grid-template-areas:
+                    "brand   status"
+                    "switch  switch"
+                    "restore restore"
+                    "main    main"
+                    "footer  footer"
+                    "end     end"
+                    "state   state"
+                    "actions actions";
+            }
+            #app-header, #header-controls { display: contents; }
+
+            #brand {
+                grid-area: brand;
+                min-width: 0;
+                padding: calc(.5rem + env(safe-area-inset-top)) .5rem .25rem calc(1rem + env(safe-area-inset-left));
+                background: #fff;
+            }
+            #brand svg { width: 1.5rem; height: 1.5rem; }
+            #brand h1 { font-size: 1.25rem; line-height: 1.75rem; margin-left: .5rem; }
+            #header-status {
+                grid-area: status;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: .75rem;
+                padding: calc(.5rem + env(safe-area-inset-top)) calc(1rem + env(safe-area-inset-right)) .25rem 0;
+                white-space: nowrap;
+                background: #fff;
+            }
+            /* Which transcriber is running is a detail; the bar only has room for state. */
+            #mode-badge { display: none; }
+
+            #pane-switch {
+                grid-area: switch;
+                display: block;
+                padding: .5rem calc(1rem + env(safe-area-inset-right)) .5rem calc(1rem + env(safe-area-inset-left));
+                background: #fff;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            .segmented { display: flex; padding: 2px; border-radius: 9px; background: rgba(118,118,128,.12); }
+            .segmented [role="tab"] {
+                flex: 1 1 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: .4rem;
+                min-height: 2.25rem;
+                border-radius: 7px;
+                font-size: .875rem;
+                font-weight: 400;
+                color: #4b5563;
+                transition: background-color .2s ease, color .2s ease;
+            }
+            .segmented [role="tab"][aria-selected="true"] {
+                font-weight: 500;
+                color: #00685B;
+                background: #fff;
+                box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04);
+            }
+            .unread-badge {
+                min-width: 1.125rem;
+                height: 1.125rem;
+                padding: 0 .3rem;
+                border-radius: 9999px;
+                font-size: .6875rem;
+                line-height: 1.125rem;
+                font-weight: 500;
+                text-align: center;
+                color: #fff;
+                background: #00685B;
+            }
+
+            /* Both panels share the space. The one not showing stays laid out rather than
+               display:none, so it keeps its scroll position and keeps following the live
+               edge while you're on the other one. */
+            #panels { grid-area: main; position: relative; min-height: 0; padding: 0; }
+            #transcript-panel, #insights-panel {
+                position: absolute;
+                inset: .5rem calc(.5rem + env(safe-area-inset-right)) .5rem calc(.5rem + env(safe-area-inset-left));
+                width: auto;
+                height: auto;
+                margin: 0;
+            }
+            #panels[data-pane="transcript"] > #insights-panel,
+            #panels[data-pane="insights"] > #transcript-panel { visibility: hidden; pointer-events: none; }
+
+            /* The segmented control already names the panel; its header keeps only the tools. */
+            #transcript-panel h2, #insights-panel h2 { display: none; }
+            .phone-only { display: revert; }
+            #transcript-header { min-height: 2.75rem; padding: .25rem .75rem; }
+            #transcript-header > div { flex: 1; justify-content: space-between; }
+            #transcript-header .sm\:inline { display: none; }
+            /* A full-height blank panel reads as broken; Insights already has a placeholder. */
+            #transcript-container:has(#segments:empty):has(#pending-transcript:empty):has(#interim-transcript:empty)::before {
+                content: 'What\2019 s said will appear here.';
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                font-size: .9375rem;
+                color: #9ca3af;
+            }
+            #insights-header > .flex { min-height: 2.75rem; padding: .25rem .75rem; }
+            #insights-activity { margin-left: 0; }
+            #insights-container { padding: .75rem; }
+            /* 44pt touch targets without drawing the controls any bigger. */
+            #copy-transcript, #filter-toggle { position: relative; }
+            #copy-transcript::after, #filter-toggle::after { content: ''; position: absolute; inset: -.5rem; }
+
+            /* Under the cards: the last two lines of speech, older line dimmed. */
+            #live-caption {
+                display: block;
+                flex-shrink: 0;
+                width: 100%;
+                padding: .5rem .75rem;
+                text-align: left;
+                background: #fff;
+                border-top: 1px solid #e5e7eb;
+            }
+            #live-caption-text {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                height: 2.5rem;
+                overflow: hidden;
+                font-size: .875rem;
+                line-height: 1.25rem;
+                color: #4b5563;
+                -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.45), #000 1.25rem);
+                mask-image: linear-gradient(to bottom, rgba(0,0,0,.45), #000 1.25rem);
+            }
+
+            #restore-bar { grid-area: restore; }
+            body > footer { grid-area: footer; }
+            body > footer:has(> #error:empty):has(> #notice:empty) { display: none; }
+            #session-end {
+                grid-area: end;
+                max-height: 40dvh;
+                overflow-y: auto;
+                border-top-width: 1px;
+                border-bottom-width: 0;
+            }
+
+            #state-bar { grid-area: state; border-top-width: 1px; border-bottom-width: 0; }
+            #state-toggle {
+                min-height: 2.75rem;
+                padding-left: calc(1rem + env(safe-area-inset-left));
+                padding-right: calc(1rem + env(safe-area-inset-right));
+            }
+            /* It opens upward from here. */
+            #state-chevron { rotate: 180deg; }
+
+            #header-actions {
+                grid-area: actions;
+                display: flex;
+                gap: .5rem;
+                padding: .5rem calc(1rem + env(safe-area-inset-right)) calc(.5rem + env(safe-area-inset-bottom)) calc(1rem + env(safe-area-inset-left));
+                background: #fff;
+                border-top: 1px solid #e5e7eb;
+            }
+            #header-actions > button { flex: 1 1 0; min-height: 2.75rem; padding-top: 0; padding-bottom: 0; }
+            #header-actions > #brief-btn { flex: 0 0 auto; }
+
+            /* Topics and "Where we are" as a sheet over the content. */
+            #sheet-scrim { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.3); }
+            #state-body {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 41;
+                max-height: 80vh;
+                max-height: 80dvh;
+                padding: 0 calc(1rem + env(safe-area-inset-right)) calc(1.25rem + env(safe-area-inset-bottom)) calc(1rem + env(safe-area-inset-left));
+                background: #fff;
+                border-radius: 1rem 1rem 0 0;
+                box-shadow: 0 -8px 30px rgba(0,0,0,.15);
+                animation: sheet-up .28s cubic-bezier(.2,.8,.2,1);
+            }
+            .sheet-head {
+                position: sticky;
+                top: 0;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding-top: .5rem;
+                background: #fff;
+            }
+            .sheet-title { font-size: 1.0625rem; font-weight: 400; color: #00685B; }
+            #state-done { min-height: 2.75rem; padding: 0 .25rem; font-size: .9375rem; font-weight: 500; color: #00685B; }
+        }
+        @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+            #state-body { animation: none; }
+        }
     </style>
 </head>
 <body class="text-gray-800 flex flex-col h-screen overflow-hidden">
@@ -353,8 +597,8 @@
     </div>
 
     <!-- Header -->
-    <header class="flex flex-col md:flex-row justify-between items-center p-4 border-b border-gray-200 flex-shrink-0 bg-white backdrop-blur-sm">
-        <div class="flex items-center space-x-3">
+    <header id="app-header" class="flex flex-col md:flex-row justify-between items-center p-4 border-b border-gray-200 flex-shrink-0 bg-white backdrop-blur-sm">
+        <div id="brand" class="flex items-center space-x-3">
             <svg class="w-8 h-8 text-google-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -364,7 +608,9 @@
             <h1 class="text-2xl text-google-green">ReVerb</h1>
         </div>
 
-        <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-4 md:mt-0">
+        <div id="header-controls" class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-4 md:mt-0">
+            <!-- On a phone, status stays in the top bar and the actions move to the bottom. -->
+            <div id="header-status" class="header-group">
             <div id="recording-badge" class="hidden items-center space-x-1.5 text-xs text-gray-500">
                 <div id="recording-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                 <span id="recording-label">REC</span>
@@ -375,7 +621,9 @@
                 <div id="status-light" class="w-3 h-3 rounded-full bg-gray-400"></div>
                 <span id="status" class="text-sm font-normal text-gray-500">Not Listening</span>
             </div>
+            </div>
 
+            <div id="header-actions" class="header-group">
             <button id="brief-btn" class="hidden px-3 py-2 text-sm text-gray-600 rounded-full border border-gray-300 hover:border-google-green hover:text-google-green transition-colors">
                 Brief
             </button>
@@ -388,6 +636,7 @@
             <button id="stop-btn" class="hidden px-5 py-2.5 text-sm font-normal text-white bg-red-600 rounded-full shadow-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                 Stop Listening
             </button>
+            </div>
         </div>
     </header>
 
@@ -437,7 +686,16 @@
             </div>
         </button>
 
+        <div id="sheet-scrim" hidden></div>
         <div id="state-body" class="hidden px-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="sheet-head">
+                <h2 class="sheet-title">Meeting so far</h2>
+                <button id="state-done" type="button">Done</button>
+            </div>
+            <div class="phone-only">
+                <h3 class="text-xs uppercase tracking-wide text-gray-400 mb-2">Objective</h3>
+                <p id="sheet-objective" class="text-sm text-gray-700" data-empty="false"></p>
+            </div>
             <div>
                 <h3 class="text-xs uppercase tracking-wide text-gray-400 mb-2">Topics</h3>
                 <div id="topic-tree" class="text-sm space-y-2 text-gray-600">
@@ -456,14 +714,25 @@
         </div>
     </section>
 
-    <main class="flex-grow flex flex-col md:flex-row overflow-hidden space-y-4 md:space-y-0 md:space-x-4 p-4">
+    <!-- Phone only: one panel at a time -->
+    <div id="pane-switch">
+        <div class="segmented" role="tablist" aria-label="Panel">
+            <button type="button" role="tab" data-pane="transcript" aria-selected="true" aria-controls="transcript-panel">Transcript</button>
+            <button type="button" role="tab" data-pane="insights" aria-selected="false" aria-controls="insights-panel">
+                Insights <span id="insights-unread" class="unread-badge" hidden></span>
+            </button>
+        </div>
+    </div>
+
+    <main id="panels" data-pane="transcript" class="flex-grow flex flex-col md:flex-row overflow-hidden space-y-4 md:space-y-0 md:space-x-4 p-4">
 
         <!-- Transcript -->
-        <div class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-            <div class="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
+        <div id="transcript-panel" class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <div id="transcript-header" class="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
                 <h2 class="text-lg font-normal text-google-green">Live Transcript</h2>
                 <div class="flex items-center space-x-3">
                     <span class="hidden sm:inline text-xs text-gray-400">Click a line to correct it</span>
+                    <span class="phone-only text-xs text-gray-400">Tap a line to correct it</span>
                     <button id="copy-transcript" class="px-2.5 py-1 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Copy</button>
                 </div>
             </div>
@@ -472,10 +741,13 @@
                 <span id="pending-transcript"></span>
                 <span id="interim-transcript" class="text-gray-400"></span>
             </div>
+            <div class="chip-anchor">
+                <button id="transcript-jump" type="button" class="jump-chip at-bottom" hidden>&darr;&ensp;Jump to live</button>
+            </div>
         </div>
 
         <!-- Insights -->
-        <div class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div id="insights-panel" class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
             <div id="insights-header" class="border-b border-gray-200 flex-shrink-0">
                 <div class="flex items-center justify-between p-3">
                     <div class="flex items-center">
@@ -486,6 +758,9 @@
                 </div>
                 <div id="type-filters" class="hidden"></div>
             </div>
+            <div class="chip-anchor">
+                <button id="insights-jump" type="button" class="jump-chip at-top" hidden>&uarr;&ensp;New insights</button>
+            </div>
             <div id="insights-container" class="flex-grow p-4 overflow-y-auto space-y-4 bg-gray-50">
                 <div id="placeholder-card" class="flex flex-col items-center justify-center h-full text-center text-gray-400 p-10">
                     <svg class="w-16 h-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
@@ -494,6 +769,10 @@
                     <p>Questions, jargon, fact-checks and what the discussion is skipping past will appear here.</p>
                 </div>
             </div>
+            <!-- Phone only: what's being said, while you read the cards. Opens the transcript. -->
+            <button id="live-caption" type="button" hidden title="Open the transcript">
+                <span id="live-caption-text"></span>
+            </button>
         </div>
 
     </main>
@@ -538,6 +817,14 @@
         const typeFilters = $('type-filters'), filterToggle = $('filter-toggle');
         const insightsActivity = $('insights-activity');
         const noticeEl = $('notice');
+        const panels = $('panels'), insightsUnread = $('insights-unread');
+        const transcriptJump = $('transcript-jump'), insightsJump = $('insights-jump');
+        const liveCaption = $('live-caption'), liveCaptionText = $('live-caption-text');
+        const sheetScrim = $('sheet-scrim'), sheetObjective = $('sheet-objective');
+
+        // Must match the max-width of the phone layout in the stylesheet.
+        const phoneLayout = matchMedia('(max-width: 767px)');
+        let unreadInsights = 0;
 
         // --- Segmentation tuning ---
         // A sentence ending is a weak signal on its own: both transcribers put a full stop on
@@ -720,6 +1007,8 @@
             stateObjective.textContent = empty ? 'No objective set' : session.objective;
             stateObjective.dataset.empty = String(empty);
             stateObjective.title = empty ? 'Set one in the brief to sharpen both transcription and analysis' : session.objective;
+            sheetObjective.textContent = stateObjective.textContent;
+            sheetObjective.dataset.empty = String(empty);
         }
 
         // Minimal, safe markdown -> HTML (escapes first, then formats a useful subset).
@@ -773,7 +1062,7 @@
                 if (entry.card.isConnected) renderAnswer(entry);
             }
             dirtyAnswers.clear();
-            if (atTop) insightsContainer.scrollTop = 0;
+            if (atTop) pinInsightsTop();
         }
 
         const spinnerSvg = `<svg class="animate-spin h-5 w-5 text-google-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
@@ -787,7 +1076,42 @@
         function transcriptAtBottom() {
             return transcriptContainer.scrollHeight - transcriptContainer.scrollTop - transcriptContainer.clientHeight < 50;
         }
-        function scrollTranscript() { transcriptContainer.scrollTop = transcriptContainer.scrollHeight; }
+        function scrollTranscript() { transcriptScroll.write(transcriptContainer.scrollHeight); }
+
+        // iOS stops a flick dead when script writes scrollTop mid-gesture, and with updates
+        // arriving several times a second that happened on nearly every swipe. So following
+        // the live edge waits while a finger is dragging and until the momentum has run out.
+        // A thumb merely resting on the screen doesn't count — that's how phones get held.
+        function scrollOwner(container) {
+            let touching = false, dragged = false, settling = 0, written = -1;
+            const settle = () => {
+                clearTimeout(settling);
+                settling = setTimeout(() => { settling = 0; }, 200);
+            };
+            container.addEventListener('touchstart', () => { touching = true; dragged = false; }, { passive: true });
+            for (const type of ['touchend', 'touchcancel']) {
+                container.addEventListener(type, () => { touching = false; if (dragged) settle(); }, { passive: true });
+            }
+            container.addEventListener('scroll', () => {
+                if (container.scrollTop === written) return;   // our own write, not the finger
+                if (touching) dragged = true;
+                if (settling) settle();
+            }, { passive: true });
+            return {
+                inHand: () => (touching && dragged) || settling !== 0,
+                write: (top) => { container.scrollTop = top; written = container.scrollTop; },
+            };
+        }
+        const transcriptScroll = scrollOwner(transcriptContainer);
+        const insightsScroll = scrollOwner(insightsContainer);
+
+        function followTranscript(wasAtBottom) {
+            if (!wasAtBottom) transcriptJump.hidden = false;
+            else if (!transcriptScroll.inHand()) scrollTranscript();
+        }
+        function pinInsightsTop() {
+            if (insightsContainer.scrollTop !== 0 && !insightsScroll.inHand()) insightsScroll.write(0);
+        }
 
         async function copyToClipboard(text, button) {
             if (!text) return;
@@ -822,7 +1146,7 @@
                 segmentsEl.append(el('span', 'resume-mark', '— resumed —'), document.createTextNode(' '));
             }
             segmentsEl.append(renderSegment(segment), document.createTextNode(' '));
-            if (atBottom) scrollTranscript();
+            followTranscript(atBottom);
 
             charsSinceState += clean.length;
             persistTranscript();
@@ -956,13 +1280,13 @@
             pendingUtterance += text.endsWith(' ') ? text : text + ' ';
             if (opts && opts.low) pendingLow = true;
             pendingEl.textContent = pendingUtterance;
-            if (transcriptAtBottom()) scrollTranscript();
+            followTranscript(transcriptAtBottom());
             scheduleFlush();
         }
 
         function onInterimText(text) {
             interimEl.textContent = text;
-            if (transcriptAtBottom()) scrollTranscript();
+            followTranscript(transcriptAtBottom());
         }
 
         /** Pull whatever is still on screen as interim text into the pending utterance. */
@@ -1554,7 +1878,13 @@
             const atTop = insightsAtTop();
             const older = [...insightsContainer.querySelectorAll('[data-card]')].find((c) => Number(c.dataset.order) < order);
             insightsContainer.insertBefore(card, older || null);
-            if (atTop) insightsContainer.scrollTop = 0;
+            if (atTop) pinInsightsTop();
+            else insightsJump.hidden = false;
+            if (phoneLayout.matches && panels.dataset.pane !== 'insights') {
+                unreadInsights++;
+                insightsUnread.textContent = unreadInsights > 9 ? '9+' : String(unreadInsights);
+                insightsUnread.hidden = false;
+            }
             return card;
         }
 
@@ -2621,6 +2951,7 @@ self.onmessage = function (e) {
             recordingDot.classList.add('animate-pulse');
             recordingLabel.textContent = 'REC';
             interimEl.textContent = '';
+            updateLiveCaption();
 
             stopBtn.classList.add('hidden');
             pauseBtn.classList.add('hidden');
@@ -2715,10 +3046,59 @@ self.onmessage = function (e) {
         });
         $('restore-no').addEventListener('click', () => { clearSaved(); restoreBar.classList.add('hidden'); });
 
-        $('state-toggle').addEventListener('click', () => {
+        // On a phone the same body opens as a sheet, with a scrim and Done to close it.
+        function toggleStateBody() {
             const hidden = stateBody.classList.toggle('hidden');
             stateChevron.style.transform = hidden ? '' : 'rotate(180deg)';
+            sheetScrim.hidden = hidden;
+        }
+        $('state-toggle').addEventListener('click', toggleStateBody);
+        $('state-done').addEventListener('click', toggleStateBody);
+        sheetScrim.addEventListener('click', toggleStateBody);
+
+        // ---------- phone: one panel at a time ----------
+        function showPane(pane) {
+            panels.dataset.pane = pane;
+            for (const tab of document.querySelectorAll('#pane-switch [role="tab"]')) {
+                tab.setAttribute('aria-selected', String(tab.dataset.pane === pane));
+            }
+            if (pane === 'insights') {
+                unreadInsights = 0;
+                insightsUnread.hidden = true;
+            }
+        }
+        $('pane-switch').addEventListener('click', (e) => {
+            const tab = e.target.closest('[role="tab"]');
+            if (tab) showPane(tab.dataset.pane);
         });
+
+        // On the Insights view, the last two lines of speech sit under the cards, so the
+        // view you're on still shows the room is being heard.
+        function updateLiveCaption() {
+            if (!phoneLayout.matches) return;
+            const live = `${pendingEl.textContent} ${interimEl.textContent}`.trim();
+            const text = !isListening ? '' : live || (segments.length ? segments[segments.length - 1].text : '');
+            liveCaptionText.textContent = text.slice(-240);
+            liveCaption.hidden = !text;
+        }
+        new MutationObserver(updateLiveCaption).observe(transcriptContainer, { childList: true, characterData: true, subtree: true });
+        phoneLayout.addEventListener('change', updateLiveCaption);
+        liveCaption.addEventListener('click', () => showPane('transcript'));
+
+        transcriptJump.addEventListener('click', () => {
+            transcriptJump.hidden = true;
+            scrollTranscript();   // not smooth: the edge keeps moving, and an animation would land short of it
+        });
+        insightsJump.addEventListener('click', () => {
+            insightsJump.hidden = true;
+            insightsContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        transcriptContainer.addEventListener('scroll', () => {
+            if (!transcriptJump.hidden && transcriptAtBottom()) transcriptJump.hidden = true;
+        }, { passive: true });
+        insightsContainer.addEventListener('scroll', () => {
+            if (!insightsJump.hidden && insightsAtTop()) insightsJump.hidden = true;
+        }, { passive: true });
 
         $('copy-transcript').addEventListener('click', (e) => copyToClipboard(attributedTranscript(), e.currentTarget));
         $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText(), e.currentTarget));
