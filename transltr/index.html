@@ -75,7 +75,6 @@
         .tgt.draft { color: #9ca3af; font-style: italic; font-weight: 300; }
         .tgt.streaming { color: #e5e7eb; }
         .tgt.pending::before { content: '…'; color: #6b7280; animation: pulse 1.2s ease-in-out infinite; }
-        .tgt.lost:empty::before { content: 'Not translated — connection lost'; color: #6b7280; font-size: 0.8rem; font-style: italic; font-weight: 300; }
         .row-new { animation: rise .25s ease-out; }
 
         @keyframes caret { 50% { opacity: 0; } }
@@ -174,7 +173,7 @@
                             Room microphone (speaker is far away)
                         </label>
                     </div>
-                    <p class="text-xs text-gray-600 mt-2">Comma-separated. Helps the transcriber hear, and the translator spell, names and jargon correctly.</p>
+                    <p class="text-xs text-gray-600 mt-2">Comma-separated. Helps the translator spell names and jargon correctly.</p>
                 </details>
             </div>
             <p id="input-hint" class="text-xs text-gray-500 mt-2" hidden></p>
@@ -216,7 +215,7 @@
         </section>
 
         <footer class="text-center text-xs text-gray-600 mt-4 px-4">
-            Press <kbd class="text-gray-400">Space</kbd> to start or stop. Translations are AI-generated and may contain mistakes.
+            Press <kbd class="text-gray-400">Space</kbd> to start or stop. Translations and the translated voice are AI-generated and may contain mistakes.
         </footer>
     </div>
 
@@ -232,27 +231,76 @@
             ['sv', 'Swedish'], ['th', 'Thai'], ['tr', 'Turkish'], ['uk', 'Ukrainian'], ['ur', 'Urdu'], ['vi', 'Vietnamese'],
         ];
         const NAMES = Object.fromEntries(LANGUAGES);
-        // Languages the server can interpret continuously; refreshed from the server's hello.
-        let interpretTargets = new Set(['en', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'zh', 'ja', 'ko', 'hi', 'id', 'vi']);
+        // The languages gpt-realtime-translate speaks: the targets Instant can interpret into.
+        const INSTANT_TARGETS = new Set(['en', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'zh', 'ja', 'ko', 'hi', 'id', 'vi']);
+        // Written without spaces between words: nothing for a spacing repair to restore.
+        const UNSPACED = new Set(['zh', 'ja', 'th']);
 
-        const DEFAULT_API = 'wss://api-promontory.onrender.com';
-        const API_WS = (() => {
+        // Audio goes straight from this page to OpenAI over WebRTC. The server only hands out a
+        // short-lived key and does the text work (sentence translation, speech, repairs) over HTTP.
+        const DEFAULT_API = 'https://api-promontory.onrender.com';
+        const LOCAL_HOSTS = ['localhost', '127.0.0.1'];
+        const API = (() => {
             const override = new URLSearchParams(location.search).get('api');
             if (override) {
                 try {
                     const u = new URL(override);
-                    // Only ever redirect microphone audio to a local dev server, never to a host named in a link.
-                    if (['localhost', '127.0.0.1'].includes(u.hostname) && ['ws:', 'wss:'].includes(u.protocol)) return u.origin;
+                    // Only ever point the page at a local dev server, never at a host named in a link.
+                    if (LOCAL_HOSTS.includes(u.hostname)) return `http://${u.host}`;
                 } catch { /* fall through */ }
             }
             return DEFAULT_API;
         })();
-        const API_HTTP = API_WS.replace(/^ws/, 'http');
 
-        const SAMPLE_RATE = 24000;          // PCM16 mono, both directions
-        const FRAME_SAMPLES = 960;          // 40 ms per frame
-        const MAX_QUEUED_FRAMES = 375;      // 15 s of speech kept while (re)connecting
+        // Accurate: a sentence with nothing after it is final once the transcript has been quiet this
+        // long and nobody is talking.
+        const SENTENCE_PAUSE_MS = 1200;
+        // Instant: a paragraph ends once both transcripts have been quiet this long and nobody is talking.
+        const ROW_GAP_MS = 1400;
+        // Either way, a row doesn't wait forever on a room that never goes quiet.
+        const ROW_MAX_QUIET_MS = 4000;
+        const DRAFT_MIN_WORDS = 3;
+        const DRAFT_STEP_WORDS = 3;
+        const DRAFT_STALE_MS = 1500;
+        const DRAFT_MAX = 15;
+        const VOICE_WAIT_MS = 12000;               // a spoken line waits this long for its translation, then is skipped
+        const CLOSE_WAIT_MS = 6000;                // Stop: how long the model gets to finish its last words
+        const SESSION_REFRESH_MS = 50 * 60000;     // sessions last an hour: renew at a pause before then
+        const STALL_VOICED_MS = 10000;             // this much speech sent with no transcript back...
+        const STALL_QUIET_MS = 20000;              // ...and nothing back for this long: the session is stuck
+        const SEND_DELAY_S = 0.3;                  // Speaker mode sends the mic this late, so it can unmute in time
+        const AUDIBLE_RMS = 0.003;                 // about -50 dBFS: below this, audio is silence
+        const DUCKED_GAIN = 0.25;
         const FONT_SCALES = [0.85, 1, 1.2, 1.45, 1.75, 2.1];
+
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        const hasWords = (text) => /[\p{L}\p{N}]/u.test(text);
+        // End offsets of complete sentences: a terminator (and any closing quote) followed by a space or
+        // the end. CJK marks need no space. Not sentence ends: an ellipsis (a trailing "uh..."), a period
+        // after a digit ("am 15. November", "bis 15.11."), an abbreviation or initial ("Dr.", "M.", "J."),
+        // or anything followed by a lowercase word. Instant rows split where both sides have finished the
+        // same number of sentences, so a false end puts them out of step; a missed one only makes a row
+        // longer.
+        const SENTENCE_END = /(?:[!?।؟۔]+|(?<![.…\d])\.(?![.…]))["'”’»)\]]*(?=\s|$)|[。！？]+["'”’」』)）]*/gu;
+        const ABBREVIATION = /(?:^|[\s("'“‘¿¡])(?:\p{Lu}|Mr|Mrs|Ms|Dr|Prof|St|Sr|Sra|Jr|Mme|Mlle|Hr|Fr|Nr|No|vs|etc|ca|approx|z\.B|e\.g|i\.e)\.["'”’»)\]]*$/u;
+        function sentenceEnds(text) {
+            const ends = [];
+            for (const m of text.matchAll(SENTENCE_END)) {
+                const end = m.index + m[0].length;
+                if (m[0][0] === '.' && ABBREVIATION.test(text.slice(Math.max(0, end - 24), end))) continue;
+                const next = text.slice(end).trimStart()[0];
+                if (next && /\p{Ll}/u.test(next)) continue;
+                ends.push(end);
+            }
+            return ends;
+        }
+        const wordSegmenter = window.Intl && Intl.Segmenter ? new Intl.Segmenter(undefined, { granularity: 'word' }) : null;
+        function countWords(text) {
+            if (!wordSegmenter) return text.split(/\s+/).filter(Boolean).length;
+            let n = 0;
+            for (const s of wordSegmenter.segment(text)) if (s.isWordLike) n++;
+            return n;
+        }
 
         const $ = (id) => document.getElementById(id);
         const els = {
@@ -276,7 +324,7 @@
         const prefs = (() => { try { return JSON.parse(localStorage.getItem('transltr.prefs') || '{}') || {}; } catch { return {}; } })();
         let voiceMode = ['off', 'headphones', 'speaker'].includes(prefs.voice) ? prefs.voice : 'off';
         // Accurate by default: instant interpretation paraphrases ("almost doubled" became "doubled",
-        // "revenue" became "net income" in replayed French), accurate mode translates what was said.
+        // "revenue" became "order book" in replayed French); accurate mode translates what was said.
         let translationMode = prefs.mode === 'instant' ? 'instant' : 'accurate';
         // Sharing another tab's sound needs Chrome or Edge on a computer; Safari and Firefox share
         // tabs without audio, and phones can't share tabs at all.
@@ -311,25 +359,18 @@
         }
 
         const parseTerms = () => els.terms.value.split(/[,\n]/).map((t) => t.trim()).filter(Boolean).slice(0, 50);
-        const settingsPayload = () => ({
-            sourceLanguage: els.source.value,
-            targetLanguage: els.target.value,
-            mode: translationMode,
-            voice: voiceMode !== 'off',
-            farField: inputMode === 'mic' && els.farField.checked,
-            terms: parseTerms(),
-        });
+        const sessionSettings = () => ({ targetLanguage: els.target.value, farField: inputMode === 'mic' && els.farField.checked });
 
         // ---------------------------------------------------------------------------------------
         // Session state and status line
         // ---------------------------------------------------------------------------------------
-        const session = { active: false, phase: 'idle', engine: null };
+        const session = { active: false, phase: 'idle', finishing: null };
         let connectingSince = 0;
 
         function setPhase(phase, message) {
             session.phase = phase;
-            if (phase === 'connecting' && !connectingSince) connectingSince = Date.now();
-            if (phase !== 'connecting') connectingSince = 0;
+            if ((phase === 'connecting' || phase === 'switching') && !connectingSince) connectingSince = Date.now();
+            if (phase !== 'connecting' && phase !== 'switching') connectingSince = 0;
 
             const listening = session.active;
             els.toggleLabel.textContent = phase === 'finishing' ? 'Finishing…' : listening ? 'Stop' : 'Start listening';
@@ -341,10 +382,10 @@
             const view = {
                 idle: ['Ready', 'bg-gray-600', false, 'text-gray-400'],
                 connecting: ['Connecting…', 'bg-amber-400', true, 'text-gray-300'],
-                switching: ['Switching translation mode…', 'bg-amber-400', true, 'text-gray-300'],
+                switching: ['Switching the translation language…', 'bg-amber-400', true, 'text-gray-300'],
                 live: [liveStatus(), 'bg-red-500', true, 'text-sky-300'],
-                reconnecting: ['Connection interrupted — reconnecting. What you say is being kept.', 'bg-amber-400', true, 'text-amber-200'],
-                finishing: ['Finishing the last translation…', 'bg-sky-400', true, 'text-gray-300'],
+                reconnecting: ['Connection interrupted — reconnecting…', 'bg-amber-400', true, 'text-amber-200'],
+                finishing: ['Finishing the last words…', 'bg-sky-400', true, 'text-gray-300'],
                 error: ['Something went wrong.', 'bg-red-500', false, 'text-red-300'],
             }[phase];
             els.status.textContent = message || view[0];
@@ -355,315 +396,405 @@
 
         // A sleeping server takes a while to wake; say so instead of looking stuck.
         setInterval(() => {
-            if (session.phase === 'connecting' && connectingSince && Date.now() - connectingSince > 4000) {
-                els.status.textContent = 'Waking up the translation server — the first start can take up to a minute…';
-            }
+            if (!connectingSince || (session.phase !== 'connecting' && session.phase !== 'switching')) return;
+            const waited = Date.now() - connectingSince;
+            if (link.stage === 'secret' && waited > 4000) els.status.textContent = 'Waking up the translation server — the first start can take up to a minute…';
+            else if (waited > 8000) els.status.textContent = 'Still connecting to the translation service…';
         }, 1000);
 
         function liveStatus() {
             const where = inputMode === 'tab' ? 'Listening to the shared tab' : 'Listening';
-            const how = {
-                interpret: inputMode === 'tab' ? 'translating as it plays' : 'translating as you speak',
-                accurate: 'each sentence translated in full',
-            }[session.engine] || 'translated at each pause';
+            const how = transcript.mode() === 'instant'
+                ? (inputMode === 'tab' ? 'translating as it plays' : 'translating as you speak')
+                : 'each sentence translated in full';
             return `${where} · ${how}`;
         }
 
-        function showError(message) {
-            setPhase(session.active ? session.phase : 'error', message);
+        // ---------------------------------------------------------------------------------------
+        // HTTP to the Transltr server
+        // ---------------------------------------------------------------------------------------
+        const failure = (message, { retryable = false } = {}) => Object.assign(new Error(message), { retryable });
+
+        // The timeout covers getting a response; the caller's signal can cancel it, body included, at any time.
+        function request(path, body, { timeout = 20000, signal } = {}) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeout);
+            if (signal) {
+                if (signal.aborted) controller.abort();
+                else signal.addEventListener('abort', () => controller.abort(), { once: true });
+            }
+            return fetch(`${API}${path}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+                signal: controller.signal,
+            }).finally(() => clearTimeout(timer));
         }
 
-        // ---------------------------------------------------------------------------------------
-        // Server connection: reconnects on its own, and keeps speech captured meanwhile.
-        // ---------------------------------------------------------------------------------------
-        let socket = null;
-        let socketEpoch = 0;
-        let gotHello = false;
-        let reconnectTimer = null;
-        let reconnectAttempts = 0;
-        let firstFailureAt = 0;
-        let lastServerMessageAt = 0;
-        let stalledChecks = 0;
-        let stopTimer = null;
-        let drainTimer = null;
-        const queuedFrames = [];
+        async function mintSession(settings) {
+            let res;
+            try {
+                // A sleeping server can take most of a minute to wake.
+                res = await request('/api/transltr/session', settings, { timeout: 75000 });
+            } catch {
+                throw failure('Can’t reach the translation server.', { retryable: true });
+            }
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || !json.clientSecret) {
+                const retryable = res.status === 429 || json.retryable === true || (res.status >= 500 && !json.error);
+                throw failure(json.error || `The translation server answered ${res.status}.`, { retryable });
+            }
+            let calls;
+            try { calls = new URL(json.callsUrl); } catch { /* checked below */ }
+            const trusted = calls && ((calls.protocol === 'https:' && calls.hostname === 'api.openai.com')
+                || (API !== DEFAULT_API && LOCAL_HOSTS.includes(calls.hostname)));
+            if (!trusted) throw failure('The translation server gave an unexpected address.');
+            return { ...json, mintedAt: Date.now() };
+        }
 
-        function connect() {
-            clearTimeout(reconnectTimer);
-            reconnectTimer = null;
-            closeSocket();
-            const epoch = ++socketEpoch;
-            const ws = new WebSocket(API_WS);
-            ws.binaryType = 'arraybuffer';
-            socket = ws;
-            gotHello = false;
-            let helloTimer = null;
-            const openTimer = setTimeout(() => { if (socket === ws && ws.readyState === WebSocket.CONNECTING) dropSocket(); }, 25000);
+        // Starting takes a key from the server, and a sleeping server is slow to give one. A key is
+        // fetched ahead while the page sits idle, so Start usually skips that wait. Keys last 10 minutes
+        // and are only good for one call.
+        const presession = {
+            promise: null, key: '', startedAt: 0,
+            warm() {
+                if (session.active || document.visibilityState !== 'visible') return;
+                const key = JSON.stringify(sessionSettings());
+                if (this.promise && this.key === key && Date.now() - this.startedAt < 7 * 60000) return;
+                this.key = key;
+                this.startedAt = Date.now();
+                this.promise = mintSession(sessionSettings()).catch(() => null);
+            },
+            async take(settings) {
+                const promise = this.promise;
+                const usable = promise && this.key === JSON.stringify(settings);
+                this.promise = null;
+                const secret = usable ? await promise : null;
+                return secret && Date.now() - secret.mintedAt < 8 * 60000 ? secret : null;
+            },
+        };
 
-            ws.onopen = () => {
-                clearTimeout(openTimer);
-                if (socket !== ws) return;
-                lastServerMessageAt = performance.now();
-                ws.send(JSON.stringify({ type: 'start', ...settingsPayload() }));
-                while (queuedFrames.length) ws.send(queuedFrames.shift());
-                helloTimer = setTimeout(() => {
-                    if (socket === ws && !gotHello) {
-                        setPhase('reconnecting', 'The translation server is updating — retrying…');
-                        dropSocket();
-                    }
-                }, 8000);
+        async function translationStream({ text, target, context, draft, signal, onDelta }) {
+            const res = await request('/api/transltr/translate', {
+                text, sourceLanguage: els.source.value, targetLanguage: target, terms: parseTerms(), context, draft,
+            }, { signal });
+            if (!res.ok || !res.body) throw failure(`translate answered ${res.status}`);
+            const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+            let buffer = '';
+            let stall = null;
+            const arm = () => {
+                clearTimeout(stall);
+                stall = setTimeout(() => reader.cancel().catch(() => {}), 15000);
             };
-
-            ws.onmessage = (event) => {
-                if (socket !== ws) return;
-                lastServerMessageAt = performance.now();
-                if (typeof event.data !== 'string') return player.push(event.data);
-                let msg;
-                try { msg = JSON.parse(event.data); } catch { return; }
-                if (msg.type === 'hello') clearTimeout(helloTimer);
-                handleMessage(msg, epoch);
-            };
-
-            ws.onclose = () => {
-                clearTimeout(openTimer);
-                clearTimeout(helloTimer);
-                settleRows(epoch);
-                if (socket !== ws) return;
-                socket = null;
-                if (session.active) scheduleReconnect();
-                else if (session.phase === 'finishing') finishStop();
-            };
-        }
-
-        function closeSocket() {
-            const ws = socket;
-            socket = null;
-            if (ws && ws.readyState <= WebSocket.OPEN) {
-                try { ws.close(); } catch { /* already closing */ }
-            }
-        }
-
-        // For a connection that's silently dead: don't wait for a close handshake that won't come.
-        function dropSocket() {
-            const ws = socket;
-            closeSocket();
-            if (ws && session.active) scheduleReconnect();
-        }
-
-        function scheduleReconnect() {
-            if (reconnectTimer || !session.active) return;
-            if (!firstFailureAt) firstFailureAt = Date.now();
-            reconnectAttempts++;
-            const delay = Math.min(500 * 2 ** (reconnectAttempts - 1), 8000);
-            const longOutage = Date.now() - firstFailureAt > 45000;
-            if (session.phase !== 'connecting' || longOutage) {
-                setPhase('reconnecting', longOutage ? 'Can’t reach the translation server. Still trying — your speech is being kept.' : undefined);
-            }
-            reconnectTimer = setTimeout(() => {
-                reconnectTimer = null;
-                if (session.active) connect();
-            }, delay);
-        }
-
-        window.addEventListener('online', () => {
-            if (session.active && reconnectTimer) {
-                clearTimeout(reconnectTimer);
-                reconnectTimer = null;
-                connect();
-            }
-        });
-
-        // Liveness: the server answers pings, so a connection that stops answering is replaced.
-        setInterval(() => {
-            if (!socket || socket.readyState !== WebSocket.OPEN || !gotHello) return;
-            if (!session.active && session.phase !== 'finishing') return;
-            socket.send(JSON.stringify({ type: 'ping' }));
-            if (performance.now() - lastServerMessageAt > 30000) return dropSocket();
-            stalledChecks = socket.bufferedAmount > 2000000 ? stalledChecks + 1 : 0;
-            if (stalledChecks > 2) dropSocket();
-        }, 10000);
-
-        function sendFrame(buffer) {
-            if (!session.active) return;
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(buffer);
-            } else {
-                queuedFrames.push(buffer);
-                if (queuedFrames.length > MAX_QUEUED_FRAMES) queuedFrames.shift();
-            }
-        }
-
-        function sendConfig(fields) {
-            if (socket && socket.readyState === WebSocket.OPEN && gotHello) socket.send(JSON.stringify({ type: 'config', ...fields }));
-        }
-
-        function handleMessage(msg, epoch) {
-            switch (msg.type) {
-                case 'hello':
-                    gotHello = true;
-                    if (Array.isArray(msg.interpretTargets)) {
-                        interpretTargets = new Set(msg.interpretTargets);
-                        updateModeHint();
+            try {
+                arm();
+                for (;;) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    arm();
+                    buffer += value;
+                    let end;
+                    while ((end = buffer.indexOf('\n\n')) >= 0) {
+                        const block = buffer.slice(0, end);
+                        buffer = buffer.slice(end + 2);
+                        if (!block.startsWith('data: ')) continue;
+                        let msg;
+                        try { msg = JSON.parse(block.slice(6)); } catch { continue; }
+                        if (typeof msg.delta === 'string') { if (onDelta) onDelta(msg.delta); }
+                        else if (typeof msg.done === 'string') return msg.done;
+                        else if (msg.error) throw Object.assign(failure(msg.error), { final: true });
                     }
-                    break;
-
-                case 'state':
-                    if ('engine' in msg) session.engine = msg.engine;
-                    switch (msg.state) {
-                        case 'live':
-                            reconnectAttempts = 0;
-                            firstFailureAt = 0;
-                            if (session.active) setPhase('live');
-                            break;
-                        case 'connecting':
-                            if (session.active) setPhase(session.phase === 'live' ? 'switching' : 'connecting');
-                            break;
-                        case 'reconnecting':
-                            if (session.active) setPhase('reconnecting');
-                            break;
-                        case 'finishing':
-                            if (!session.active) setPhase('finishing');
-                            break;
-                        case 'stopped':
-                            finishStop();
-                            break;
-                    }
-                    break;
-
-                case 'segment':
-                    upsertRow(epoch, msg);
-                    break;
-
-                case 'error':
-                    console.error('Translatr server:', msg.message);
-                    if (msg.fatal && msg.retryable && session.active) {
-                        setPhase('reconnecting', msg.message);
-                        dropSocket();
-                    } else if (msg.fatal) {
-                        abortSession(msg.message);
-                    } else {
-                        showError(msg.message);
-                    }
-                    break;
+                }
+            } finally {
+                clearTimeout(stall);
             }
+            throw failure('The translation stream ended early.');
         }
 
         // ---------------------------------------------------------------------------------------
-        // Microphone → 24 kHz PCM16, in an AudioWorklet off the main thread
+        // The live connection: WebRTC to gpt-realtime-translate, as OpenAI recommends for browsers
         // ---------------------------------------------------------------------------------------
-        const WORKLET = `
-            class TransltrMic extends AudioWorkletProcessor {
-                constructor(options) {
-                    super();
-                    const o = options.processorOptions;
-                    this.ratio = o.inRate / o.outRate;
-                    this.frameSamples = o.frameSamples;
-                    this.frame = new Int16Array(this.frameSamples);
-                    this.fill = 0;
-                    this.t = 0;
-                    this.prev = 0;
-                    this.muted = false;
-                    this.levelSum = 0;
-                    this.levelCount = 0;
-                    this.levelEvery = Math.round(o.outRate / 20);
-                    this.work = null;
-                    // Two cascaded low-pass biquads before downsampling, so hiss above the new
-                    // Nyquist frequency doesn't fold back into the speech band.
-                    this.filters = [];
-                    if (this.ratio > 1) {
-                        const w0 = 2 * Math.PI * (0.4 * o.outRate) / o.inRate;
-                        const alpha = Math.sin(w0) / (2 * Math.SQRT1_2);
-                        const cos = Math.cos(w0);
-                        const a0 = 1 + alpha;
-                        const c = { b0: (1 - cos) / 2 / a0, b1: (1 - cos) / a0, b2: (1 - cos) / 2 / a0, a1: -2 * cos / a0, a2: (1 - alpha) / a0 };
-                        for (let i = 0; i < 2; i++) this.filters.push({ ...c, x1: 0, x2: 0, y1: 0, y2: 0 });
-                    }
-                    // The last 300 ms of what the mic really heard. When someone starts talking over
-                    // the translation the mic unmutes a beat late; this is sent first, so their
-                    // opening word isn't lost to the zeros sent while muted.
-                    this.ring = new Int16Array(Math.round(o.outRate * 0.3));
-                    this.ringAt = 0;
-                    this.port.onmessage = (e) => {
-                        if (!('mute' in e.data)) return;
-                        const unmuting = this.muted && !e.data.mute;
-                        this.muted = !!e.data.mute;
-                        if (unmuting) {
-                            const out = new Int16Array(this.ring.length);
-                            out.set(this.ring.subarray(this.ringAt));
-                            out.set(this.ring.subarray(0, this.ringAt), this.ring.length - this.ringAt);
-                            this.port.postMessage(out.buffer, [out.buffer]);
-                        }
+        const link = {
+            epoch: 0, stage: 'closed',   // closed | secret | call | open | closing
+            pc: null, dc: null, sender: null, outputLanguage: null, requestedTarget: null,
+            openedAt: 0, lastEventAt: 0, voicedSinceEvent: 0, lastStallAt: -Infinity,
+            attempts: 0, firstFailureAt: 0, retryTimer: null, openTimer: null, lostTimer: null, onClosed: null,
+            stats: { sessions: 0, failures: 0, events: 0, deltas: 0, lastError: '' },
+
+            async open() {
+                this.teardown();
+                const epoch = this.epoch;
+                const current = () => epoch === this.epoch && session.active;
+                this.outputLanguage = null;
+                const settings = sessionSettings();
+                this.requestedTarget = settings.targetLanguage;
+                try {
+                    this.stage = 'secret';
+                    const secret = (await presession.take(settings)) || (await mintSession(settings));
+                    if (!current()) return;
+
+                    this.stage = 'call';
+                    const pc = new RTCPeerConnection();
+                    this.pc = pc;
+                    // A transceiver rather than addTrack: the call is set up while the microphone prompt
+                    // is still open, and a new microphone or tab swaps in later without renegotiating.
+                    this.sender = pc.addTransceiver('audio', { direction: 'sendrecv' }).sender;
+                    const track = capture.outputTrack();
+                    if (track) this.sender.replaceTrack(track).catch(() => {});
+                    pc.ontrack = (e) => {
+                        if (epoch === this.epoch) voice.attachRemote(e.streams[0] || new MediaStream([e.track]));
                     };
-                }
+                    pc.onconnectionstatechange = () => this.onConnectionState(epoch);
+                    const dc = pc.createDataChannel('oai-events');
+                    this.dc = dc;
+                    dc.onopen = () => this.onOpen(epoch, secret);
+                    dc.onmessage = (m) => this.onMessage(epoch, m.data);
+                    dc.onclose = () => {
+                        if (epoch === this.epoch && this.stage !== 'closing') this.fail(failure('The session’s event channel closed.', { retryable: true }));
+                    };
 
-                emit(sample) {
-                    const heard = Math.max(-1, Math.min(1, sample));
-                    this.ring[this.ringAt] = heard < 0 ? heard * 0x8000 : heard * 0x7fff;
-                    this.ringAt = (this.ringAt + 1) % this.ring.length;
-                    const v = this.muted ? 0 : heard;
-                    this.frame[this.fill++] = v < 0 ? v * 0x8000 : v * 0x7fff;
-                    // The level is what the microphone hears, muted or not: it is how the page knows
-                    // whether someone is talking.
-                    this.levelSum += heard * heard;
-                    if (++this.levelCount >= this.levelEvery) {
-                        this.port.postMessage({ level: Math.sqrt(this.levelSum / this.levelCount), muted: this.muted });
-                        this.levelSum = 0;
-                        this.levelCount = 0;
-                    }
-                    if (this.fill === this.frameSamples) {
-                        // Transferring detaches the buffer (its length becomes 0), so size the next
-                        // frame from the constant, never from the frame just sent.
-                        this.port.postMessage(this.frame.buffer, [this.frame.buffer]);
-                        this.frame = new Int16Array(this.frameSamples);
-                        this.fill = 0;
-                    }
+                    await pc.setLocalDescription(await pc.createOffer());
+                    const answer = await placeCall(secret, pc.localDescription.sdp);
+                    if (!current()) return;
+                    await pc.setRemoteDescription({ type: 'answer', sdp: answer });
+                    this.openTimer = setTimeout(() => {
+                        if (epoch === this.epoch && this.stage === 'call') this.fail(failure('The call didn’t connect.', { retryable: true }));
+                    }, 20000);
+                } catch (err) {
+                    if (epoch === this.epoch) this.fail(err);
                 }
+            },
 
+            onOpen(epoch, secret) {
+                if (epoch !== this.epoch) return;
+                clearTimeout(this.openTimer);
+                // What the key couldn't carry (the transcriber, noise reduction) is set on the live session.
+                if (secret.sessionUpdate) this.send(secret.sessionUpdate);
+                this.stage = 'open';
+                this.outputLanguage = secret.outputLanguage;
+                this.openedAt = this.lastEventAt = performance.now();
+                this.voicedSinceEvent = 0;
+                this.attempts = 0;
+                this.firstFailureAt = 0;
+                this.stats.sessions++;
+                voice.applyRouting();
+                updateModeHint();
+                if (!session.active) return;
+                setPhase('live');
+                if (needsReopen()) scheduleReopen();   // the target changed while this was connecting
+            },
+
+            onMessage(epoch, data) {
+                if (epoch !== this.epoch) return;
+                let evt;
+                try { evt = JSON.parse(data); } catch { return; }
+                this.stats.events++;
+                this.lastEventAt = performance.now();
+                if (/transcript\.delta$/.test(evt.type)) {
+                    this.voicedSinceEvent = 0;
+                    this.stats.deltas++;
+                }
+                if (evt.type === 'session.closed') {
+                    if (this.onClosed) this.onClosed();
+                    return;
+                }
+                if (evt.type === 'error') {
+                    const message = (evt.error && evt.error.message) || 'unknown error';
+                    console.error('Transltr session error:', message, evt);
+                    this.stats.lastError = message;
+                    return;
+                }
+                transcript.onEvent(evt);
+            },
+
+            onConnectionState(epoch) {
+                if (epoch !== this.epoch || !this.pc) return;
+                const state = this.pc.connectionState;
+                clearTimeout(this.lostTimer);
+                if (state === 'failed' || state === 'closed') {
+                    this.fail(failure(`The connection ${state}.`, { retryable: true }));
+                } else if (state === 'disconnected') {
+                    // Often a blip on a changing network: give it a moment to recover on its own.
+                    this.lostTimer = setTimeout(() => {
+                        if (epoch === this.epoch && this.pc && this.pc.connectionState === 'disconnected') {
+                            this.fail(failure('The connection dropped.', { retryable: true }));
+                        }
+                    }, 4000);
+                }
+            },
+
+            send(evt) {
+                if (!this.dc || this.dc.readyState !== 'open') return false;
+                try {
+                    this.dc.send(JSON.stringify(evt));
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+
+            useTrack(track) {
+                if (this.sender) this.sender.replaceTrack(track).catch((err) => console.warn('Transltr: could not switch the audio source:', err));
+            },
+
+            fail(err) {
+                const message = (err && err.message) || String(err);
+                console.warn('Transltr connection:', message);
+                this.stats.failures++;
+                this.stats.lastError = message;
+                const stopping = !!this.onClosed || !session.active;
+                transcript.closeRow();   // what was heard so far is final; a new session starts fresh
+                this.teardown();         // also releases a Stop that was waiting on this session
+                if (stopping) return;
+                if (err && err.retryable === false) return abortSession(message);
+                this.retry();
+            },
+
+            retry() {
+                if (this.retryTimer || !session.active) return;
+                if (!this.firstFailureAt) this.firstFailureAt = Date.now();
+                this.attempts++;
+                const delay = Math.min(500 * 2 ** (this.attempts - 1), 8000);
+                const longOutage = Date.now() - this.firstFailureAt > 45000;
+                setPhase('reconnecting', longOutage ? 'Can’t reach the translation service. Still trying…' : undefined);
+                this.retryTimer = setTimeout(() => {
+                    this.retryTimer = null;
+                    if (session.active) this.open();
+                }, delay);
+            },
+
+            reopen(visible = true) {
+                if (!session.active) return;
+                transcript.closeRow();
+                this.attempts = 0;
+                this.firstFailureAt = 0;
+                if (visible) setPhase('switching');
+                this.open();
+            },
+
+            // Stop: ask the model to finish what it has heard, and keep reading until it says it's done.
+            finish() {
+                return new Promise((resolve) => {
+                    if (this.stage !== 'open' || !this.send({ type: 'session.close' })) return resolve();
+                    this.stage = 'closing';
+                    const done = () => {
+                        clearTimeout(timer);
+                        this.onClosed = null;
+                        resolve();
+                    };
+                    const timer = setTimeout(done, CLOSE_WAIT_MS);
+                    this.onClosed = done;
+                });
+            },
+
+            watch() {
+                if (this.stage !== 'open' || !session.active) return;
+                const now = performance.now();
+                if (now - this.openedAt > SESSION_REFRESH_MS && !transcript.current && capture.silenceMs() > 1500) {
+                    return this.reopen(false);
+                }
+                // Speech is going out and nothing comes back: the session is stuck, not quiet.
+                if (this.voicedSinceEvent >= STALL_VOICED_MS && now - this.lastEventAt > STALL_QUIET_MS && now - this.lastStallAt > 120000) {
+                    this.lastStallAt = now;
+                    this.fail(failure('No transcript for a while despite speech; reconnecting.', { retryable: true }));
+                }
+            },
+
+            noteVoiced(ms) {
+                if (this.stage === 'open') this.voicedSinceEvent += ms;
+            },
+
+            teardown() {
+                this.epoch++;
+                this.stage = 'closed';
+                clearTimeout(this.openTimer);
+                clearTimeout(this.lostTimer);
+                clearTimeout(this.retryTimer);
+                this.retryTimer = null;
+                const { pc, dc } = this;
+                this.pc = this.dc = this.sender = null;
+                if (dc) {
+                    dc.onopen = dc.onmessage = dc.onclose = null;
+                    try { dc.close(); } catch { /* closed */ }
+                }
+                if (pc) {
+                    pc.ontrack = pc.onconnectionstatechange = null;
+                    try { pc.close(); } catch { /* closed */ }   // leaves the microphone track running
+                }
+                voice.detachRemote();
+                if (this.onClosed) this.onClosed();
+            },
+        };
+
+        async function placeCall(secret, sdp) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 20000);
+            let res;
+            try {
+                res = await fetch(secret.callsUrl, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${secret.clientSecret}`, 'Content-Type': 'application/sdp' },
+                    body: sdp,
+                    signal: controller.signal,
+                });
+            } catch {
+                throw failure('Can’t reach the translation service.', { retryable: true });
+            } finally {
+                clearTimeout(timer);
+            }
+            const text = await res.text().catch(() => '');
+            if (!res.ok) {
+                console.error('Transltr call refused:', res.status, text.slice(0, 300));
+                // An expired key, a busy service or an outage all clear up with a fresh session.
+                throw failure('The translation service didn’t accept the call.', { retryable: res.status === 401 || res.status === 429 || res.status >= 500 });
+            }
+            return text;
+        }
+
+        let reopenTimer = null;
+        function scheduleReopen() {
+            clearTimeout(reopenTimer);
+            reopenTimer = setTimeout(() => link.reopen(), 400);
+        }
+
+        // Instant needs a session opened for the target; accurate mode can use any session. Compared with
+        // what was asked for, not what came back, so a server that can't do a language never loops.
+        function needsReopen() {
+            const target = els.target.value;
+            return session.active && translationMode === 'instant' && INSTANT_TARGETS.has(target)
+                && !!link.requestedTarget && link.requestedTarget !== target;
+        }
+
+        // ---------------------------------------------------------------------------------------
+        // Capture: the microphone or a shared tab, plus a level meter and Speaker mode's gate
+        // ---------------------------------------------------------------------------------------
+        const LEVEL_WORKLET = `
+            class TransltrLevel extends AudioWorkletProcessor {
+                constructor() {
+                    super();
+                    this.sum = 0;
+                    this.count = 0;
+                    this.every = Math.round(sampleRate / 20);
+                }
                 process(inputs) {
                     const channels = inputs[0];
                     if (!channels || !channels.length || !channels[0]) return true;
-                    let input = channels[0];
-                    const n = input.length;
-                    // A shared tab is usually stereo: mix every channel, don't just take the left one.
-                    if (channels.length > 1) {
-                        if (!this.mix || this.mix.length !== n) this.mix = new Float32Array(n);
-                        for (let i = 0; i < n; i++) {
-                            let sum = 0;
-                            for (let c = 0; c < channels.length; c++) sum += channels[c][i];
-                            this.mix[i] = sum / channels.length;
-                        }
-                        input = this.mix;
-                    }
-                    if (this.ratio === 1) {
-                        for (let i = 0; i < n; i++) this.emit(input[i]);
-                        return true;
-                    }
-                    if (!this.work || this.work.length !== n) this.work = new Float32Array(n);
-                    const x = this.work;
+                    const n = channels[0].length;
                     for (let i = 0; i < n; i++) {
-                        let s = input[i];
-                        for (const f of this.filters) {
-                            const y = f.b0 * s + f.b1 * f.x1 + f.b2 * f.x2 - f.a1 * f.y1 - f.a2 * f.y2;
-                            f.x2 = f.x1; f.x1 = s; f.y2 = f.y1; f.y1 = y;
-                            s = y;
+                        let s = 0;
+                        for (let c = 0; c < channels.length; c++) s += channels[c][i];
+                        s /= channels.length;
+                        this.sum += s * s;
+                        if (++this.count >= this.every) {
+                            this.port.postMessage(Math.sqrt(this.sum / this.count));
+                            this.sum = 0;
+                            this.count = 0;
                         }
-                        x[i] = s;
                     }
-                    // Linear interpolation with state carried across blocks: no seams every 128 samples.
-                    let t = this.t;
-                    while (t < n - 1) {
-                        const i0 = Math.floor(t);
-                        const a = i0 < 0 ? this.prev : x[i0];
-                        const b = x[i0 + 1];
-                        this.emit(a + (b - a) * (t - i0));
-                        t += this.ratio;
-                    }
-                    this.t = t - n;
-                    this.prev = x[n - 1];
                     return true;
                 }
             }
-            registerProcessor('transltr-mic', TransltrMic);
+            registerProcessor('transltr-level', TransltrLevel);
         `;
 
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -701,62 +832,98 @@
             return new MediaStream(audio);
         }
 
-        const mic = {
-            ctx: null, stream: null, source: null, node: null, sink: null, muted: false, muteTimer: null, mode: 'mic',
+        const capture = {
+            mode: 'mic', generation: 0, stream: null, track: null,
+            ctx: null, source: null, meterNode: null, sink: null, delay: null, gate: null, dest: null,
+            gated: false, muted: false, graphBroken: false, graphStartedAt: 0,
+            levels: [], voicedRun: 0, lastVoiceAt: 0, lastLevelAt: 0,
 
             async start() {
+                const generation = ++this.generation;
                 this.mode = inputMode;
                 const stream = await (this.mode === 'tab' ? captureTab() : captureMicrophone());
-                this.stream = stream;
-                if (!session.active) return this.stop();
-
-                let ctx;
-                try {
-                    // Let the browser resample to 24 kHz where it can (Chrome, Safari)…
-                    ctx = new AudioCtx({ sampleRate: SAMPLE_RATE, latencyHint: 'interactive' });
-                    this.source = ctx.createMediaStreamSource(this.stream);
-                } catch {
-                    // …and resample in the worklet where it can't (Firefox).
-                    if (ctx) ctx.close().catch(() => {});
-                    ctx = new AudioCtx({ latencyHint: 'interactive' });
-                    this.source = ctx.createMediaStreamSource(this.stream);
+                if (generation !== this.generation || !session.active) {
+                    stream.getTracks().forEach((t) => t.stop());
+                    return;
                 }
-                this.ctx = ctx;
-                if (ctx.state === 'suspended') await ctx.resume();
-
-                const url = URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' }));
-                try { await ctx.audioWorklet.addModule(url); } finally { URL.revokeObjectURL(url); }
-                if (!session.active || this.ctx !== ctx) return;
-
-                this.node = new AudioWorkletNode(ctx, 'transltr-mic', {
-                    processorOptions: { inRate: ctx.sampleRate, outRate: SAMPLE_RATE, frameSamples: FRAME_SAMPLES },
+                this.stream = stream;
+                this.track = stream.getAudioTracks()[0];
+                this.track.addEventListener('ended', () => {
+                    if (generation === this.generation) this.mode === 'tab' ? tabShareEnded() : this.recover();
                 });
-                this.node.port.onmessage = (e) => {
-                    if (e.data instanceof ArrayBuffer) return sendFrame(e.data);
-                    this.noteLevel(e.data.level);
-                    setMeter(e.data.muted ? 0 : e.data.level);
-                };
-                // Keep the node pulling audio without echoing the mic to the speakers.
-                this.sink = ctx.createGain();
-                this.sink.gain.value = 0;
-                this.source.connect(this.node);
-                this.node.connect(this.sink);
-                this.sink.connect(ctx.destination);
+                link.useTrack(this.track);   // audio flows now; the analysis below is optional
+                try {
+                    await this.buildGraph(generation);
+                } catch (err) {
+                    console.warn('Transltr: level meter unavailable:', err);
+                    this.graphBroken = true;
+                }
+                if (generation === this.generation) this.route();
+            },
 
+            async buildGraph(generation) {
+                const ctx = new AudioCtx({ latencyHint: 'interactive' });
+                this.ctx = ctx;
+                this.graphStartedAt = performance.now();
+                if (ctx.state === 'suspended') ctx.resume().catch(() => {});
                 ctx.onstatechange = () => {
                     if (ctx.state === 'suspended' && session.active && this.ctx === ctx) ctx.resume().catch(() => {});
                 };
-                const track = this.stream.getAudioTracks()[0];
-                if (track) track.addEventListener('ended', () => (this.mode === 'tab' ? tabShareEnded() : this.recover()));
-                this.muteTimer = setInterval(() => this.updateMute(), 50);
+                this.source = ctx.createMediaStreamSource(this.stream);
+                const url = URL.createObjectURL(new Blob([LEVEL_WORKLET], { type: 'application/javascript' }));
+                try { await ctx.audioWorklet.addModule(url); } finally { URL.revokeObjectURL(url); }
+                if (generation !== this.generation) return;
+                this.meterNode = new AudioWorkletNode(ctx, 'transltr-level');
+                this.meterNode.port.onmessage = (e) => this.onLevel(e.data);
+                // Keep the meter pulling audio without playing the mic out loud.
+                this.sink = ctx.createGain();
+                this.sink.gain.value = 0;
+                this.source.connect(this.meterNode);
+                this.meterNode.connect(this.sink);
+                this.sink.connect(ctx.destination);
+            },
+
+            // Speaker mode on a microphone sends it through a short delay and a gate, so it can be
+            // muted while only the device is talking without clipping the first word of a reply.
+            // Everything else sends the track untouched.
+            wantsGate() {
+                return this.mode === 'mic' && voiceMode === 'speaker' && !this.graphBroken;
+            },
+
+            route() {
+                if (!this.track) return;
+                if (this.wantsGate() && this.ctx && this.source && !this.dest) {
+                    try {
+                        this.delay = this.ctx.createDelay(1);
+                        this.delay.delayTime.value = SEND_DELAY_S;
+                        this.gate = this.ctx.createGain();
+                        this.dest = this.ctx.createMediaStreamDestination();
+                        this.source.connect(this.delay);
+                        this.delay.connect(this.gate);
+                        this.gate.connect(this.dest);
+                    } catch (err) {
+                        console.warn('Transltr: speaker gate unavailable:', err);
+                        this.graphBroken = true;
+                        this.dest = null;
+                    }
+                }
+                this.gated = this.wantsGate() && !!this.dest;
+                if (!this.gated) this.setMuted(false);
+                link.useTrack(this.outputTrack());
+            },
+
+            outputTrack() {
+                if (!this.track) return null;
+                return this.gated ? this.dest.stream.getAudioTracks()[0] : this.track;
             },
 
             // "Someone is talking", against a rolling noise floor so it works in a quiet room and a
-            // noisy one. While the translation is playing the bar is higher: the browser's echo
-            // cancellation removes most of it, but not all.
-            levels: [], lastVoiceAt: 0, voicedRun: 0,
-            noteLevel(level) {
-                const echo = player.audible();
+            // noisy one. While the translation is playing the bar is higher: echo cancellation removes
+            // most of it, but not all.
+            onLevel(level) {
+                const now = performance.now();
+                this.lastLevelAt = now;
+                const echo = this.gated && voice.audible();
                 if (!echo) {
                     this.levels.push(level);
                     if (this.levels.length > 60) this.levels.shift();   // ~3 s of 50 ms readings
@@ -764,48 +931,85 @@
                 const floor = this.levels.length ? Math.min(...this.levels) : 0.002;
                 const bar = echo ? Math.max(0.015, floor * 8) : Math.max(0.006, floor * 4);
                 this.voicedRun = level > bar ? this.voicedRun + 1 : 0;
-                if (this.voicedRun >= 2) this.lastVoiceAt = performance.now();   // 100 ms, so a click isn't a voice
+                if (this.voicedRun >= 2) {   // 100 ms, so a click isn't a voice
+                    this.lastVoiceAt = now;
+                    if (!this.muted && session.active) link.noteVoiced(50);
+                }
+                if (this.gated) {
+                    voice.sampleRemote();
+                    this.updateGate();
+                }
+                setMeter(this.muted || !this.track || !this.track.enabled ? 0 : level);
             },
 
             speaking() {
                 return performance.now() - this.lastVoiceAt < 500;
             },
 
-            // Speaker mode is full duplex. The translation plays as soon as it's ready. While you
-            // talk, the mic stays live and the translation drops to a quarter volume; when only the
-            // device is talking, the mic mutes so the translation isn't heard and translated again.
-            // It used to mute whenever the translation played and hold it back until you paused, so
-            // anything said over it was never sent: on natural speech a third of the transcript was
-            // lost and rows broke mid-sentence. A shared tab can't hear this page, so none of this
-            // applies to it.
-            updateMute() {
-                const speaker = this.mode === 'mic' && voiceMode === 'speaker';
-                const playing = speaker && player.audible();
+            // Infinity when there's no level to go by: rows then close on the transcript going quiet alone.
+            silenceMs() {
+                if (!this.ctx || performance.now() - this.lastLevelAt > 1500) return Infinity;
+                return performance.now() - this.lastVoiceAt;
+            },
+
+            // Full duplex. The translation plays as soon as it's ready; while you talk, the mic stays
+            // live and the translation turns down. When only the device is talking, the mic is muted so
+            // the translation isn't heard and translated again.
+            updateGate() {
+                const playing = voice.audible();
                 const talking = this.speaking();
-                const mute = playing && !talking;
-                player.duck(playing && talking);
-                if (this.muted) player.stats.mutedMs += 50;
-                if (playing && talking) player.stats.duckedMs += 50;
-                if (mute !== this.muted && this.node) {
-                    this.muted = mute;
-                    this.node.port.postMessage({ mute });
-                    if (session.phase === 'live') setPhase('live', mute ? 'Speaking the translation' : undefined);
+                voice.duck(playing && talking);
+                this.setMuted(playing && !talking);
+            },
+
+            setMuted(mute) {
+                if (mute === this.muted) return;
+                this.muted = mute;
+                if (this.gate && this.ctx) {
+                    const gain = this.gate.gain;
+                    const t = this.ctx.currentTime;
+                    gain.cancelScheduledValues(t);
+                    gain.setValueAtTime(gain.value, t);
+                    // The gate hears the mic SEND_DELAY_S late. A mute lands just before the device's own
+                    // voice reaches it; an unmute lands at once, ahead of the words that triggered it.
+                    gain.setTargetAtTime(mute ? 0 : 1, mute ? t + SEND_DELAY_S - 0.1 : t, 0.015);
+                }
+                if (session.phase === 'live') setPhase('live', mute ? 'Speaking the translation' : undefined);
+            },
+
+            watch() {
+                if (!session.active || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+                // A stalled audio graph (a headset switching profiles can do it) would silence a gated
+                // mic too: send the track untouched instead.
+                const heardAt = this.lastLevelAt || this.graphStartedAt;
+                if (this.gated && performance.now() - heardAt > 3000) {
+                    console.warn('Transltr: audio processing stalled; sending the microphone directly');
+                    this.graphBroken = true;
+                    this.route();
                 }
             },
 
-            async recover() {
-                if (!session.active || !this.stream) return;
-                this.teardown();
-                els.mic.value = '';
-                setPhase(session.phase, 'Microphone disconnected — switching to the default microphone…');
-                try { await this.start(); } catch (err) { abortSession(captureError(err)); }
+            // Stop: WebRTC keeps sending silence, so the model hears the speaker finish.
+            silence() {
+                if (this.track) this.track.enabled = false;
             },
 
-            // Call from a click: switching to a tab opens the picker.
             async restart() {
                 if (!session.active || !this.stream) return;
                 this.teardown();
-                try { await this.start(); } catch (err) { abortSession(captureError(err)); }
+                try {
+                    await this.start();
+                } catch (err) {
+                    if (session.active) abortSession(captureError(err));
+                }
+            },
+
+            recover() {
+                if (!session.active) return;
+                els.mic.value = '';
+                setPhase(session.phase, 'Microphone disconnected — switching to the default microphone…');
+                return this.restart();
             },
 
             stop() {
@@ -814,15 +1018,15 @@
             },
 
             teardown() {
-                clearInterval(this.muteTimer);
-                if (this.node) {
-                    this.node.port.onmessage = null;
-                    try { this.node.disconnect(); } catch { /* gone */ }
-                }
-                try { this.source && this.source.disconnect(); } catch { /* gone */ }
+                this.generation++;
+                if (this.meterNode) this.meterNode.port.onmessage = null;
                 if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
                 if (this.ctx && this.ctx.state !== 'closed') this.ctx.close().catch(() => {});
-                Object.assign(this, { ctx: null, stream: null, source: null, node: null, sink: null, muted: false, muteTimer: null, levels: [], lastVoiceAt: 0, voicedRun: 0 });
+                Object.assign(this, {
+                    stream: null, track: null, ctx: null, source: null, meterNode: null, sink: null, delay: null, gate: null, dest: null,
+                    gated: false, muted: false, graphBroken: false, graphStartedAt: 0, levels: [], voicedRun: 0, lastVoiceAt: 0, lastLevelAt: 0,
+                });
+                voice.duck(false);
             },
         };
 
@@ -860,31 +1064,170 @@
         }
 
         // ---------------------------------------------------------------------------------------
-        // Translated speech playback, gapless, catching up gently if it falls behind
+        // Voice: Instant plays the interpreter's own voice (a WebRTC track); Accurate speaks each
+        // translated sentence with OpenAI TTS, in the order they were said.
         // ---------------------------------------------------------------------------------------
-        const AUDIBLE_RMS = 0.003;          // about -50 dBFS: below this a chunk is silence
-        const DUCKED_GAIN = 0.25;
-
-        const player = {
+        const voice = {
             ctx: null, out: null, nextTime: 0, audibleUntil: 0, sources: new Set(), ducked: false,
-            stats: { received: 0, silentSkipped: 0, scheduled: 0, audibleSeconds: 0, mutedMs: 0, duckedMs: 0 },
+            el: null, remote: null, remoteSource: null, remoteAnalyser: null, remoteBuffer: null, remoteAudibleAt: 0,
+            clockTime: -1, clockStuckSince: 0,
+            queue: [], speaking: false, controller: null, waitTimer: null,
+            stats: { lines: 0, skipped: 0, failed: 0, chunks: 0, audibleSeconds: 0, mutedMs: 0, duckedMs: 0, outputResets: 0 },
 
             // Must run inside the click that starts a session, or browsers keep audio locked.
             unlock() {
                 if (!AudioCtx) return;
-                if (!this.ctx) {
+                if (!this.ctx || this.ctx.state === 'closed') {
                     this.ctx = new AudioCtx();
                     this.out = this.ctx.createGain();
                     this.out.connect(this.ctx.destination);
+                    this.nextTime = 0;
                 }
                 if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+                if (!this.el) {
+                    this.el = document.createElement('audio');
+                    this.el.autoplay = true;
+                    this.el.setAttribute('playsinline', '');
+                    this.el.hidden = true;
+                    document.body.appendChild(this.el);
+                }
             },
 
-            push(data) {
+            attachRemote(stream) {
+                this.unlock();
+                this.remote = stream;
+                this.el.srcObject = stream;
+                this.applyRouting();
+                this.el.play().catch(() => {});
+                try {
+                    if (this.remoteSource) this.remoteSource.disconnect();
+                    // Only measured, never played through here: the <audio> element plays it, which also
+                    // lets the browser's echo cancellation hear it.
+                    this.remoteSource = this.ctx.createMediaStreamSource(stream);
+                    this.remoteAnalyser = this.ctx.createAnalyser();
+                    this.remoteAnalyser.fftSize = 1024;
+                    this.remoteBuffer = new Float32Array(this.remoteAnalyser.fftSize);
+                    this.remoteSource.connect(this.remoteAnalyser);
+                } catch {
+                    this.remoteAnalyser = null;
+                }
+            },
+
+            detachRemote() {
+                if (this.remoteSource) { try { this.remoteSource.disconnect(); } catch { /* gone */ } }
+                this.remote = this.remoteSource = this.remoteAnalyser = null;
+                if (this.el) this.el.srcObject = null;
+            },
+
+            applyRouting() {
+                if (this.el) this.el.muted = voiceMode === 'off' || transcript.mode() !== 'instant';
+            },
+
+            sampleRemote() {
+                if (!this.remoteAnalyser || !this.el || this.el.muted) return;
+                this.remoteAnalyser.getFloatTimeDomainData(this.remoteBuffer);
+                let energy = 0;
+                for (const x of this.remoteBuffer) energy += x * x;
+                if (Math.sqrt(energy / this.remoteBuffer.length) > AUDIBLE_RMS) this.remoteAudibleAt = performance.now();
+            },
+
+            // Translated speech is coming out of the device right now.
+            audible() {
+                const now = performance.now();
+                const speech = !!this.ctx && this.ctx.state === 'running' && now < this.audibleUntil + 300;
+                return speech || now - this.remoteAudibleAt < 300;
+            },
+
+            duck(on) {
+                if (on === this.ducked) return;
+                this.ducked = on;
+                if (this.out) this.out.gain.setTargetAtTime(on ? DUCKED_GAIN : 1, this.ctx.currentTime, 0.04);
+                if (this.el) this.el.volume = on ? DUCKED_GAIN : 1;
+            },
+
+            // Each final translation is spoken in the order it was said, even though they finish out
+            // of order. One that takes too long is skipped rather than holding up the rest.
+            expect(row) {
+                if (voiceMode !== 'off') this.queue.push({ row, text: undefined, at: Date.now() });
+            },
+
+            ready(row, text) {
+                const entry = this.queue.find((e) => e.row === row);
+                if (!entry) return;
+                entry.text = text || null;
+                this.pump();
+            },
+
+            async pump() {
+                if (this.speaking) return;
+                while (this.queue.length) {
+                    const head = this.queue[0];
+                    if (head.text === undefined && Date.now() - head.at < VOICE_WAIT_MS && !head.row.removed) {
+                        if (!this.waitTimer) {
+                            this.waitTimer = setTimeout(() => {
+                                this.waitTimer = null;
+                                this.pump();
+                            }, 500);
+                        }
+                        return;
+                    }
+                    this.queue.shift();
+                    if (!head.text || voiceMode === 'off' || head.row.removed) {
+                        this.stats.skipped++;
+                        continue;
+                    }
+                    this.speaking = true;
+                    try {
+                        await this.speak(head.text, head.row.target);
+                        this.stats.lines++;
+                    } catch (err) {
+                        if (!this.controller || !this.controller.signal.aborted) {
+                            this.stats.failed++;
+                            console.warn('Transltr voice failed:', err.message);
+                        }
+                    } finally {
+                        this.speaking = false;
+                        this.controller = null;
+                    }
+                }
+            },
+
+            async speak(text, language) {
+                const controller = new AbortController();
+                this.controller = controller;
+                const res = await request('/api/transltr/speak', { text, language }, { signal: controller.signal });
+                if (!res.ok || !res.body) throw failure(`speak answered ${res.status}`);
+                const reader = res.body.getReader();
+                let pending = new Uint8Array(0);
+                const flush = (all) => {
+                    // Whole samples only, in pieces of at least 50 ms so playback isn't thousands of tiny buffers.
+                    const usable = all ? pending.length & ~1 : pending.length >= 2400 ? pending.length & ~1 : 0;
+                    if (!usable) return;
+                    this.playPcm(pending.slice(0, usable).buffer);
+                    pending = pending.slice(usable);
+                };
+                for (;;) {
+                    const { value, done } = await reader.read();
+                    if (controller.signal.aborted || voiceMode === 'off') {
+                        reader.cancel().catch(() => {});
+                        return;
+                    }
+                    if (done) break;
+                    const merged = new Uint8Array(pending.length + value.length);
+                    merged.set(pending);
+                    merged.set(value, pending.length);
+                    pending = merged;
+                    flush(false);
+                }
+                flush(true);
+            },
+
+            playPcm(data) {
                 if (voiceMode === 'off' || !this.ctx) return;
-                const samples = new Int16Array(data, 0, data.byteLength >> 1);
+                if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+                const samples = new Int16Array(data);
                 if (!samples.length) return;
-                const buffer = this.ctx.createBuffer(1, samples.length, SAMPLE_RATE);
+                const buffer = this.ctx.createBuffer(1, samples.length, 24000);
                 const channel = buffer.getChannelData(0);
                 let energy = 0;
                 for (let i = 0; i < samples.length; i++) {
@@ -892,33 +1235,21 @@
                     energy += channel[i] * channel[i];
                 }
                 const audible = Math.sqrt(energy / samples.length) > AUDIBLE_RMS;
-
-                // The interpreter streams silence between phrases. Queuing it only adds delay, so
-                // silence is skipped unless it is a pause inside speech that is already playing.
-                this.stats.received++;
-                if (!audible && !this.busy()) { this.stats.silentSkipped++; return; }
-                this.schedule(buffer, audible);
-            },
-
-            duck(on) {
-                if (!this.out || on === this.ducked) return;
-                this.ducked = on;
-                this.out.gain.setTargetAtTime(on ? DUCKED_GAIN : 1, this.ctx.currentTime, 0.04);
-            },
-
-            schedule(buffer, audible) {
                 const now = this.ctx.currentTime;
-                if (this.nextTime < now + 0.02) this.nextTime = now + 0.1;   // small cushion against jitter
-                // Always at natural speed. Catching up by playing faster raised the pitch, and TTS
-                // arrives a whole sentence at a time, so it was sped up almost constantly.
+                if (!audible && this.nextTime + 0.3 < now) return;   // leading silence only adds delay
+                if (this.nextTime < now + 0.02) this.nextTime = now + 0.1;   // a small cushion against jitter
+                // Always at natural speed: catching up by playing faster raised the pitch.
                 const src = this.ctx.createBufferSource();
                 src.buffer = buffer;
                 src.connect(this.out);
                 src.start(this.nextTime);
                 this.nextTime += buffer.duration;
-                if (audible) this.audibleUntil = this.nextTime;
-                this.stats.scheduled++;
-                if (audible) this.stats.audibleSeconds += buffer.duration;
+                // Kept in wall-clock time, so an audio clock that stops can't hold the microphone muted.
+                if (audible) {
+                    this.audibleUntil = performance.now() + (this.nextTime - now) * 1000;
+                    this.stats.audibleSeconds += buffer.duration;
+                }
+                this.stats.chunks++;
                 this.sources.add(src);
                 src.onended = () => this.sources.delete(src);
             },
@@ -927,145 +1258,348 @@
                 return !!this.ctx && this.nextTime > this.ctx.currentTime;
             },
 
-            busy() {
-                return !!this.ctx && this.nextTime + 0.3 > this.ctx.currentTime;
+            // Speech queued on an audio clock that has stopped moving means the output device went away
+            // or changed: start playback over on a fresh context.
+            watch() {
+                if (!this.ctx || this.ctx.state !== 'running') return;
+                const t = this.ctx.currentTime;
+                if (t !== this.clockTime) {
+                    this.clockTime = t;
+                    this.clockStuckSince = 0;
+                    return;
+                }
+                if (!this.clockStuckSince) this.clockStuckSince = performance.now();
+                if (this.nextTime > t && performance.now() - this.clockStuckSince > 2000) {
+                    console.warn('Transltr: audio output stalled; restarting playback');
+                    this.stats.outputResets++;
+                    this.stopPlayback();
+                    const old = this.ctx;
+                    this.ctx = null;
+                    old.close().catch(() => {});
+                    this.clockStuckSince = 0;
+                    this.unlock();
+                    if (this.remote) this.attachRemote(this.remote);
+                }
             },
 
-            // Real speech is scheduled — what the mic has to be muted for.
-            audible() {
-                return !!this.ctx && this.audibleUntil + 0.3 > this.ctx.currentTime;
-            },
-
-            stop() {
+            stopPlayback() {
                 for (const src of this.sources) { try { src.stop(); } catch { /* ended */ } }
                 this.sources.clear();
                 this.nextTime = 0;
                 this.audibleUntil = 0;
+            },
+
+            clear() {
+                this.queue = [];
+                if (this.controller) this.controller.abort();
+                clearTimeout(this.waitTimer);
+                this.waitTimer = null;
+                this.stopPlayback();
                 this.duck(false);
             },
         };
 
         // ---------------------------------------------------------------------------------------
-        // Start / stop
+        // Transcript: rows of original beside translation, assembled from the session's events
         // ---------------------------------------------------------------------------------------
-        let wakeLock = null;
-        async function acquireWakeLock() {
-            try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch { /* optional */ }
-        }
-        function releaseWakeLock() {
-            if (wakeLock) wakeLock.release().catch(() => {});
-            wakeLock = null;
-        }
-
-        async function start() {
-            if (session.active || session.phase === 'finishing') return;
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.AudioWorkletNode) {
-                return setPhase('error', 'This browser can’t capture live audio. Try a recent Chrome, Edge, Safari, or Firefox.');
-            }
-            if (inputMode === 'tab' && !TAB_CAPTURE) {
-                return setPhase('error', 'Translating a tab needs Chrome or Edge on a computer.');
-            }
-            clearInterval(drainTimer);
-            session.active = true;
-            session.engine = null;
-            reconnectAttempts = 0;
-            firstFailureAt = 0;
-            queuedFrames.length = 0;
-            setPhase('connecting');
-            player.unlock();
-            wakeServer();
-            connect();   // in parallel with the permission prompt; speech is queued until it's open
-            try {
-                await mic.start();
-            } catch (err) {
-                if (session.active) abortSession(captureError(err));
-                return;
-            }
-            if (!session.active) return;
-            acquireWakeLock();
-            if (inputMode === 'mic') populateMics();
-        }
-
-        // The user pressed Chrome's "Stop sharing", or closed the shared tab.
-        let stopNote = '';
-        function tabShareEnded() {
-            if (!session.active) return;
-            stopNote = 'Tab sharing stopped. Press Start to translate a tab again.';
-            stop();
-        }
-
-        function stop() {
-            if (!session.active) return;
-            session.active = false;
-            mic.stop();
-            releaseWakeLock();
-            clearTimeout(reconnectTimer);
-            reconnectTimer = null;
-            queuedFrames.length = 0;
-            if (socket && socket.readyState === WebSocket.OPEN && gotHello) {
-                setPhase('finishing');
-                socket.send(JSON.stringify({ type: 'stop' }));
-                stopTimer = setTimeout(finishStop, 15000);
-            } else {
-                closeSocket();
-                setPhase('idle', takeStopNote());
-            }
-        }
-
-        function takeStopNote() {
-            const note = stopNote;
-            stopNote = '';
-            return note || undefined;
-        }
-
-        function finishStop() {
-            clearTimeout(stopTimer);
-            if (session.active) return;
-            setPhase('idle', takeStopNote());
-            // Let translated speech already on its way finish before hanging up.
-            const started = performance.now();
-            clearInterval(drainTimer);
-            drainTimer = setInterval(() => {
-                const quiet = performance.now() - lastServerMessageAt > 1500 && !player.playing;
-                if (session.active) return clearInterval(drainTimer);
-                if (quiet || performance.now() - started > 20000) {
-                    clearInterval(drainTimer);
-                    closeSocket();
-                }
-            }, 300);
-        }
-
-        function abortSession(message) {
-            session.active = false;
-            mic.stop();
-            releaseWakeLock();
-            clearTimeout(reconnectTimer);
-            reconnectTimer = null;
-            queuedFrames.length = 0;
-            closeSocket();
-            setPhase('error', message);
-        }
-
-        function wakeServer() {
-            fetch(API_HTTP, { method: 'GET', mode: 'cors' }).catch(() => {});
-        }
-
-        // ---------------------------------------------------------------------------------------
-        // Transcript rows: each phrase's original beside its translation
-        // ---------------------------------------------------------------------------------------
-        const rows = new Map();   // "epoch:seq" → row
         const ICONS = {
             speak: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.5c-.69 0-1.25-.56-1.25-1.25v-6.5c0-.69.56-1.25 1.25-1.25h2.25z" /></svg>',
             copy: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>',
             retry: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>',
         };
+        const setText = (el, text) => { if (el.textContent !== text) el.textContent = text; };
 
-        function createRow(epoch, seq) {
+        const transcript = {
+            rows: [], current: null, nextSeq: 0, lastSourceAt: 0, lastTextAt: 0,
+
+            // Instant needs a live session that speaks the target language.
+            mode() {
+                const target = els.target.value;
+                return translationMode === 'instant' && INSTANT_TARGETS.has(target) && (!link.outputLanguage || link.outputLanguage === target)
+                    ? 'instant' : 'accurate';
+            },
+
+            onEvent(evt) {
+                // The target just changed and a session in the new language is on its way: this one's
+                // output is in the old language.
+                if (needsReopen()) return;
+                const instant = this.mode() === 'instant';
+                switch (evt.type) {
+                    case 'session.input_transcript.delta':
+                        return instant ? this.instantText('source', evt.delta) : this.accurateSource(evt.delta);
+                    case 'session.output_transcript.delta':
+                        if (instant) this.instantText('translation', evt.delta);
+                        return;
+                }
+            },
+
+            openRow(kind) {
+                if (this.current && this.current.kind !== kind) this.closeRow();
+                if (!this.current) this.current = this.createRow(kind);
+                return this.current;
+            },
+
+            // Instant: both transcripts stream in; deltas are fragments that carry their own spacing.
+            instantText(field, delta) {
+                if (!delta) return;
+                // A late closing mark ("." or "?") belongs to the row that just ended, not to a new one.
+                const last = this.rows.at(-1);
+                if (!this.current && !hasWords(delta) && last && last.kind === 'instant' && !last.removed) {
+                    last[field] += delta;
+                    return this.render(last);
+                }
+                const row = this.openRow('instant');
+                row[field] += delta;
+                this.lastTextAt = performance.now();
+                this.splitAtSentence(row);
+            },
+
+            // The translation trails the speaker by a second or two. Once it has completed as many
+            // sentences as the transcript, both halves cover the same speech: the row closes there and
+            // the rest starts the next one. If the interpreter merges or splits sentences the counts
+            // never match and the pause rule applies instead: long rows, never misaligned ones.
+            splitAtSentence(row) {
+                const sourceEnds = sentenceEnds(row.source);
+                const translationEnds = sentenceEnds(row.translation);
+                if (!sourceEnds.length || sourceEnds.length !== translationEnds.length) return this.render(row);
+                const rest = { source: row.source.slice(sourceEnds.at(-1)), translation: row.translation.slice(translationEnds.at(-1)) };
+                row.source = row.source.slice(0, sourceEnds.at(-1));
+                row.translation = row.translation.slice(0, translationEnds.at(-1));
+                this.closeRow();
+                if (hasWords(rest.source) || hasWords(rest.translation)) {
+                    const next = this.openRow('instant');
+                    next.source = rest.source;
+                    next.translation = rest.translation;
+                    this.render(next);
+                }
+            },
+
+            // Accurate: the transcript streams in, and each sentence is final the moment the next begins.
+            accurateSource(delta) {
+                if (!delta) return;
+                let row = this.openRow('accurate');
+                row.source += delta;
+                this.lastSourceAt = performance.now();
+                const ends = sentenceEnds(row.source);
+                const cut = ends.length ? ends.at(-1) : 0;
+                if (cut && hasWords(row.source.slice(cut))) {
+                    const rest = row.source.slice(cut);
+                    row.source = row.source.slice(0, cut);
+                    this.closeRow();
+                    row = this.openRow('accurate');
+                    row.source = rest;
+                }
+                this.render(row);
+                this.draft(row);
+            },
+
+            // A row with nothing after it ends at a pause, when it has run on unpunctuated, or when the
+            // transcript has simply stopped.
+            tick() {
+                const row = this.current;
+                if (!row) return;
+                const now = performance.now();
+                const silence = capture.silenceMs();
+                if (row.kind === 'accurate') {
+                    const quiet = now - this.lastSourceAt;
+                    if ((quiet >= SENTENCE_PAUSE_MS && silence >= 500) || (row.source.length > 400 && quiet >= 600) || quiet >= ROW_MAX_QUIET_MS) this.closeRow();
+                } else {
+                    // The translation trails the speaker: a pause doesn't end a row whose translation hasn't
+                    // caught up, or it arrives as a row of its own with no original beside it.
+                    const quiet = now - this.lastTextAt;
+                    const behind = hasWords(row.source) && (!hasWords(row.translation) || sentenceEnds(row.source).length > sentenceEnds(row.translation).length);
+                    if ((quiet >= ROW_GAP_MS && silence >= 600 && !behind) || quiet >= ROW_MAX_QUIET_MS) this.closeRow();
+                }
+            },
+
+            closeRow() {
+                const row = this.current;
+                if (!row) return;
+                this.current = null;
+                if (row.kind === 'instant') {
+                    row.sourceFinal = row.translationFinal = true;
+                    if (!hasWords(row.source) && !hasWords(row.translation)) return this.remove(row);
+                    this.render(row);
+                    this.repair(row);
+                    return;
+                }
+                const clean = row.source.trim();
+                if (!hasWords(clean)) return this.remove(row);
+                row.source = clean;
+                row.sourceFinal = true;
+                this.render(row);
+                voice.expect(row);
+                this.translate(row);
+            },
+
+            // A draft of the sentence still being spoken, refreshed as it grows. Only the latest wins.
+            draft(row) {
+                if (row.sourceFinal || row.draftBusy || row.drafts >= DRAFT_MAX || row.removed) return;
+                const words = countWords(row.source);
+                if (words < DRAFT_MIN_WORDS) return;
+                const grown = words - row.draftWords;
+                if (grown < DRAFT_STEP_WORDS && !(grown > 0 && performance.now() - row.draftAt >= DRAFT_STALE_MS)) return;
+
+                row.draftBusy = true;
+                row.draftWords = words;
+                row.draftAt = performance.now();
+                row.drafts++;
+                const controller = new AbortController();
+                row.draftController = controller;
+                const target = els.target.value;
+                const stale = () => row.sourceFinal || row.run || row.removed || target !== els.target.value;
+                const apply = (text) => {
+                    if (stale() || !text) return;
+                    row.translation = text;
+                    row.target = target;
+                    row.draft = true;
+                    this.render(row);
+                };
+                // The first draft streams, so words show up as soon as the model has them. Later drafts
+                // replace the line whole: streaming those would shrink and regrow it on every refresh.
+                translationStream({
+                    text: row.source.trim(), target, context: this.contextBefore(row, target), draft: true,
+                    signal: controller.signal, onDelta: row.translation ? null : apply,
+                })
+                    .then(apply)
+                    .catch(() => {})
+                    .finally(() => {
+                        row.draftBusy = false;
+                        row.draftController = null;
+                        if (!row.sourceFinal && !row.removed) this.draft(row);   // catch up if they kept talking
+                    });
+            },
+
+            translate(row) {
+                if (row.draftController) row.draftController.abort();
+                if (row.finalController) row.finalController.abort();
+                const run = ++row.run;
+                const target = els.target.value;
+                const controller = new AbortController();
+                row.finalController = controller;
+                row.failed = false;
+                row.translationFinal = false;
+                this.render(row);
+                const live = () => row.run === run && !row.removed;
+                (async () => {
+                    let translation = null;
+                    // One more try after a network error: a server redeploy shouldn't cost a sentence.
+                    for (let attempt = 0; attempt < 2 && !translation && live(); attempt++) {
+                        if (attempt) await sleep(1000);
+                        try {
+                            translation = await translationStream({
+                                text: row.source, target, context: this.contextBefore(row, target), draft: false, signal: controller.signal,
+                                onDelta: (partial) => {
+                                    // A draft stays on screen until the final translation overtakes it: no flicker.
+                                    if (!live() || (row.draft && partial.length < row.translation.length)) return;
+                                    row.translation = partial;
+                                    row.target = target;
+                                    row.draft = false;
+                                    this.render(row);
+                                },
+                            });
+                        } catch (err) {
+                            if (controller.signal.aborted || err.final) break;
+                            console.warn('Transltr translation failed:', err.message);
+                        }
+                    }
+                    if (!live()) return;
+                    row.finalController = null;
+                    if (translation) {
+                        row.translation = translation;
+                        row.target = target;
+                        row.draft = false;
+                    } else {
+                        row.failed = true;   // a draft, if there was one, stays visible
+                    }
+                    row.translationFinal = true;
+                    this.render(row);
+                    voice.ready(row, translation);
+                })();
+            },
+
+            contextBefore(row, target) {
+                const context = [];
+                const index = this.rows.indexOf(row);
+                for (let k = index - 1; k >= 0 && index - k <= 30 && context.length < 4; k--) {
+                    const earlier = this.rows[k];
+                    if (!earlier.sourceFinal || !hasWords(earlier.source)) continue;
+                    const usable = earlier.translationFinal && !earlier.failed && earlier.target === target;
+                    context.unshift({ source: earlier.source.trim(), translation: usable ? earlier.translation.trim() : '' });
+                }
+                return context;
+            },
+
+            // The interpreter's text sometimes runs two words together ("thatThursday"); the server
+            // restores the missing separators without changing a letter.
+            repair(row) {
+                const original = row.translation.trim();
+                if (!/\p{L}/u.test(original) || UNSPACED.has(row.target)) return;
+                request('/api/transltr/repair', { text: original, language: row.target }, { timeout: 15000 })
+                    .then((res) => (res.ok ? res.json() : null))
+                    .then((json) => {
+                        if (!json || typeof json.text !== 'string' || row.removed || json.text === original || row.translation.trim() !== original) return;
+                        row.translation = json.text;
+                        this.render(row);
+                    })
+                    .catch(() => {});
+            },
+
+            createRow(kind) {
+                const row = {
+                    seq: this.nextSeq++, kind, target: els.target.value, source: '', translation: '',
+                    sourceFinal: false, translationFinal: false, draft: false, failed: false, removed: false,
+                    run: 0, draftBusy: false, draftWords: 0, draftAt: 0, drafts: 0, draftController: null, finalController: null,
+                };
+                buildRowElements(row);
+                this.rows.push(row);
+                els.rows.appendChild(row.el);
+                return row;
+            },
+
+            render(row) {
+                if (row.removed) return;
+                const stick = nearBottom();
+                const source = row.source.trim();
+                const translation = row.translation.trim();
+                const wasHidden = row.el.hidden;
+                row.el.hidden = !source && !translation;
+                setText(row.src, source);
+                row.src.classList.toggle('live', !row.sourceFinal);
+                setText(row.tgt, translation);
+                row.tgt.lang = row.target;
+                row.tgt.classList.toggle('draft', row.draft);
+                row.tgt.classList.toggle('streaming', !row.translationFinal && !row.draft && !!translation);
+                row.tgt.classList.toggle('pending', !translation && !row.failed && !row.translationFinal);
+                row.retry.hidden = !row.failed;
+                row.speak.disabled = !translation || !row.translationFinal;
+                if (wasHidden !== row.el.hidden) updateEmpty();
+                if (row.el.hidden) return;
+                if (stick) scrollToLive();
+                else els.jump.classList.remove('hidden');
+            },
+
+            remove(row) {
+                row.removed = true;
+                if (row.draftController) row.draftController.abort();
+                if (row.finalController) row.finalController.abort();
+                row.el.remove();
+                const index = this.rows.indexOf(row);
+                if (index >= 0) this.rows.splice(index, 1);
+                if (this.current === row) this.current = null;
+                updateEmpty();
+            },
+
+            clear() {
+                for (const row of [...this.rows]) this.remove(row);
+                this.current = null;
+            },
+        };
+
+        function buildRowElements(row) {
             const el = document.createElement('div');
             el.className = 'row-new group grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 py-3 border-b border-white/[0.04]';
-            el.dataset.key = `${epoch}:${seq}`;
-            el.dataset.epoch = String(epoch);
-            el.dataset.seq = String(seq);
+            el.hidden = true;
 
             const src = document.createElement('p');
             src.className = 'src';
@@ -1077,7 +1611,7 @@
             const tgt = document.createElement('p');
             tgt.className = 'tgt flex-1 min-w-0';
             tgt.dir = 'auto';
-            tgt.lang = els.target.value;
+            tgt.lang = row.target;
 
             const actions = document.createElement('div');
             actions.className = 'flex items-center gap-0.5 opacity-60 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity';
@@ -1106,80 +1640,17 @@
             right.append(tgtWrap, actions);
             el.append(src, right);
 
-            const row = { el, src, tgt, speak, copy, retry, epoch, seq, data: {} };
-            speak.addEventListener('click', () => row.data.translation && readAloud(row.data.translation, row.tgt.lang, speak));
+            Object.assign(row, { el, src, tgt, speak, copy, retry });
+            speak.addEventListener('click', () => row.translation.trim() && readAloud(row.translation.trim(), row.target, speak));
             copy.addEventListener('click', () => copyText(rowText(row), copy));
             retry.addEventListener('click', () => {
-                if (row.epoch === socketEpoch && socket && socket.readyState === WebSocket.OPEN) {
-                    socket.send(JSON.stringify({ type: 'retry', seq: row.seq }));
-                    retry.hidden = true;
-                    tgt.classList.add('pending');
-                }
+                if (row.kind === 'accurate' && row.sourceFinal) transcript.translate(row);
+                else row.retry.hidden = true;
             });
-            return row;
-        }
-
-        function insertRow(row) {
-            let before = null;
-            for (let el = els.rows.lastElementChild; el; el = el.previousElementSibling) {
-                const epoch = Number(el.dataset.epoch);
-                const seq = Number(el.dataset.seq);
-                if (epoch < row.epoch || (epoch === row.epoch && seq < row.seq)) break;
-                before = el;
-            }
-            els.rows.insertBefore(row.el, before);
-        }
-
-        const setText = (el, text) => { if (el.textContent !== text) el.textContent = text; };
-
-        function upsertRow(epoch, msg) {
-            const key = `${epoch}:${msg.seq}`;
-            let row = rows.get(key);
-            const stick = nearBottom();
-            if (msg.dropped) {
-                if (row) {
-                    row.el.remove();
-                    rows.delete(key);
-                    updateEmpty();
-                }
-                return;
-            }
-            if (!row) {
-                row = createRow(epoch, msg.seq);
-                rows.set(key, row);
-                insertRow(row);
-                updateEmpty();
-            }
-            row.data = msg;
-            setText(row.src, msg.source || '');
-            row.src.classList.toggle('live', !msg.sourceFinal);
-            setText(row.tgt, msg.translation || '');
-            row.tgt.classList.toggle('draft', !!msg.draft);
-            row.tgt.classList.toggle('streaming', !msg.translationFinal && !msg.draft && !!msg.translation);
-            row.tgt.classList.toggle('pending', !msg.translation && !msg.failed && !msg.translationFinal);
-            row.retry.hidden = !msg.failed || row.epoch !== socketEpoch;
-            row.speak.disabled = !msg.translation || !msg.translationFinal;
-            if (stick) scrollToLive();
-            else els.jump.classList.remove('hidden');
-        }
-
-        // A connection that ends takes its unfinished rows with it: no update will ever arrive, so
-        // they must stop looking live. An unconfirmed draft stays styled as a draft.
-        function settleRows(epoch) {
-            for (const row of rows.values()) {
-                const d = row.data;
-                if (row.epoch !== epoch || (d.sourceFinal && d.translationFinal)) continue;
-                row.data = { ...d, sourceFinal: true, translationFinal: true };
-                row.src.classList.remove('live');
-                row.tgt.classList.remove('pending', 'streaming');
-                row.tgt.classList.toggle('lost', !d.translation);
-                row.retry.hidden = true;
-                row.speak.disabled = !d.translation;
-            }
         }
 
         function updateEmpty() {
-            els.empty.classList.toggle('hidden', rows.size > 0);
+            els.empty.classList.toggle('hidden', transcript.rows.some((row) => !row.el.hidden));
         }
 
         const nearBottom = () => els.transcript.scrollHeight - els.transcript.scrollTop - els.transcript.clientHeight < 80;
@@ -1191,14 +1662,116 @@
         els.jump.addEventListener('click', scrollToLive);
 
         function rowText(row) {
-            const { source = '', translation = '' } = row.data;
+            const source = row.source.trim();
+            const translation = row.translation.trim();
             return translation ? `${source}\n→ ${translation}` : source;
         }
 
         function transcriptText() {
-            return [...els.rows.children].map((el) => rows.get(el.dataset.key)).filter(Boolean).map(rowText).join('\n\n');
+            return transcript.rows.filter((row) => !row.el.hidden).map(rowText).join('\n\n');
         }
 
+        // ---------------------------------------------------------------------------------------
+        // Start / stop
+        // ---------------------------------------------------------------------------------------
+        let wakeLock = null;
+        async function acquireWakeLock() {
+            try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch { /* optional */ }
+        }
+        function releaseWakeLock() {
+            if (wakeLock) wakeLock.release().catch(() => {});
+            wakeLock = null;
+        }
+
+        async function start() {
+            if (session.active || session.finishing) return;
+            if (!window.RTCPeerConnection || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                return setPhase('error', 'This browser can’t stream live audio. Try a recent Chrome, Edge, Safari, or Firefox.');
+            }
+            if (inputMode === 'tab' && !TAB_CAPTURE) {
+                return setPhase('error', 'Translating a tab needs Chrome or Edge on a computer.');
+            }
+            session.active = true;
+            link.attempts = 0;
+            link.firstFailureAt = 0;
+            setPhase('connecting');
+            voice.unlock();
+            link.open();   // the key and the call are set up while the permission prompt is open
+            try {
+                await capture.start();
+            } catch (err) {
+                if (session.active) abortSession(captureError(err));
+                return;
+            }
+            if (!session.active) return;
+            acquireWakeLock();
+            if (inputMode === 'mic') populateMics();
+        }
+
+        // The user pressed Chrome's "Stop sharing", or closed the shared tab.
+        let stopNote = '';
+        function tabShareEnded() {
+            if (!session.active) return;
+            stopNote = 'Tab sharing stopped. Press Start to translate a tab again.';
+            stop();
+        }
+
+        async function stop() {
+            if (!session.active) return;
+            session.active = false;
+            releaseWakeLock();
+            clearTimeout(reopenTimer);
+            const token = {};
+            session.finishing = token;
+            setPhase('finishing');
+            capture.silence();
+            await link.finish();
+            if (session.finishing !== token) return;
+            session.finishing = null;
+            transcript.closeRow();
+            link.teardown();
+            capture.stop();
+            const note = stopNote;
+            stopNote = '';
+            setPhase('idle', note || undefined);
+            presession.warm();
+        }
+
+        function abortSession(message) {
+            session.active = false;
+            session.finishing = null;
+            releaseWakeLock();
+            clearTimeout(reopenTimer);
+            transcript.closeRow();
+            link.teardown();
+            capture.stop();
+            setPhase('error', message);
+        }
+
+        function wakeServer() {
+            fetch(API, { method: 'GET', mode: 'cors' }).catch(() => {});
+        }
+
+        setInterval(() => {
+            transcript.tick();
+            link.watch();
+            capture.watch();
+            voice.watch();
+            if (capture.muted) voice.stats.mutedMs += 250;
+            if (voice.ducked) voice.stats.duckedMs += 250;
+        }, 250);
+
+        window.addEventListener('online', () => {
+            if (session.active && link.retryTimer) {
+                clearTimeout(link.retryTimer);
+                link.retryTimer = null;
+                link.open();
+            }
+        });
+
+        // ---------------------------------------------------------------------------------------
+        // Transcript tools
+        // ---------------------------------------------------------------------------------------
         function flash(button, cls) {
             button.classList.add(cls);
             setTimeout(() => button.classList.remove(cls), 1200);
@@ -1236,7 +1809,7 @@
         // Two clicks, so a transcript isn't lost to a stray tap.
         let clearArmed = null;
         els.clear.addEventListener('click', () => {
-            if (!rows.size) return;
+            if (!transcript.rows.length) return;
             if (!clearArmed) {
                 els.clear.classList.add('bad');
                 els.clear.title = 'Click again to clear';
@@ -1251,9 +1824,7 @@
             clearArmed = null;
             els.clear.classList.remove('bad');
             els.clear.title = 'Clear transcript';
-            rows.clear();
-            els.rows.replaceChildren();
-            updateEmpty();
+            transcript.clear();
         });
 
         function applyFont() {
@@ -1281,11 +1852,7 @@
             readAloudButton = button;
             button.classList.add('busy');
             try {
-                const res = await fetch(`${API_HTTP}/api/tts`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, language }),
-                });
+                const res = await request('/api/tts', { text, language }, { timeout: 60000 });
                 if (!res.ok) throw new Error(`TTS ${res.status}`);
                 const blob = await res.blob();
                 if (readAloudButton !== button) return;
@@ -1329,22 +1896,27 @@
                 return;
             }
             els.modeHint.className = 'text-xs text-gray-500 min-h-[1rem] flex-1 min-w-[12rem]';
-            const tab = inputMode === 'tab';
-            const speaking = tab ? 'the tab plays' : 'you speak';
+            const speaking = inputMode === 'tab' ? 'the tab plays' : 'you speak';
             if (translationMode === 'accurate') {
                 els.modeHint.textContent = `Live transcript while ${speaking}; each sentence is translated into ${target} in full as it ends, with a draft meanwhile.`;
-            } else if (interpretTargets.has(els.target.value)) {
+            } else if (INSTANT_TARGETS.has(els.target.value)) {
                 els.modeHint.textContent = `⚡ The ${target} translation flows while ${speaking}. Fastest, but it paraphrases more.`;
             } else {
-                els.modeHint.textContent = `Continuous interpretation isn't available for ${target}: live transcript, translated at each pause.`;
+                els.modeHint.textContent = `Instant isn’t available for ${target}, so each sentence is translated in full as it ends.`;
             }
         }
 
+        // The spoken language only shapes the translation prompts; the transcriber detects it by itself.
         function onLanguageChange() {
             updateTitles();
             updateModeHint();
             savePrefs();
-            sendConfig({ sourceLanguage: els.source.value, targetLanguage: els.target.value });
+            presession.warm();
+            if (!session.active) return;
+            transcript.closeRow();
+            voice.applyRouting();
+            if (needsReopen()) scheduleReopen();
+            else if (session.phase === 'live') setPhase('live');
         }
 
         for (const b of els.modeButtons) {
@@ -1353,7 +1925,12 @@
                 translationMode = b.dataset.mode;
                 updateModeHint();
                 savePrefs();
-                sendConfig({ mode: translationMode });
+                if (!session.active) return;
+                transcript.closeRow();
+                if (transcript.mode() === 'instant') voice.clear();   // the interpreter's own voice takes over
+                voice.applyRouting();
+                if (needsReopen()) scheduleReopen();
+                else if (session.phase === 'live') setPhase('live');
             });
         }
 
@@ -1369,15 +1946,17 @@
 
         function applyVoiceMode() {
             for (const b of els.voiceButtons) b.setAttribute('aria-pressed', String(b.dataset.voice === voiceMode));
+            // OpenAI's usage policies require telling listeners the voice is AI-generated.
+            const disclosure = 'The voice you hear is AI-generated, not a human interpreter.';
             const hints = {
                 off: '',
-                headphones: 'Translated speech plays as it’s produced. Use headphones so the microphone doesn’t pick it up.',
-                speaker: 'The translation plays out loud as soon as it’s ready. It turns down while you talk, and the microphone pauses only while the device alone is speaking.',
+                headphones: `Translated speech plays as it’s produced. Use headphones so the microphone doesn’t pick it up. ${disclosure}`,
+                speaker: `The translation plays out loud. It turns down while you talk, and the microphone pauses while only the device is speaking. ${disclosure}`,
             };
             if (inputMode === 'tab') {
-                hints.headphones = hints.speaker = els.muteTab.checked
+                hints.headphones = hints.speaker = (els.muteTab.checked
                     ? 'Translated speech plays in this tab, and the shared tab is muted, so you hear only the translation.'
-                    : 'Translated speech plays in this tab. Turn on “Mute the tab while translating” to hear only the translation.';
+                    : 'Translated speech plays in this tab. Turn on “Mute the tab while translating” to hear only the translation.') + ` ${disclosure}`;
             }
             els.voiceHint.textContent = hints[voiceMode];
             els.voiceHint.hidden = voiceMode === 'off';
@@ -1385,11 +1964,12 @@
         for (const b of els.voiceButtons) {
             b.addEventListener('click', () => {
                 voiceMode = b.dataset.voice;
-                if (voiceMode === 'off') player.stop();
-                else player.unlock();
+                if (voiceMode === 'off') voice.clear();
+                else voice.unlock();
+                voice.applyRouting();
                 applyVoiceMode();
                 savePrefs();
-                sendConfig({ voice: voiceMode !== 'off' });
+                if (session.active) capture.route();
             });
         }
 
@@ -1419,20 +1999,19 @@
                 inputMode = b.dataset.input;
                 applyInputMode();
                 savePrefs();
-                sendConfig({ farField: inputMode === 'mic' && els.farField.checked });
-                mic.restart();   // still inside the click, so the tab picker is allowed to open
+                capture.restart();   // still inside the click, so the tab picker is allowed to open
             });
         }
         els.muteTab.addEventListener('change', () => {
             savePrefs();
             applyVoiceMode();
-            const track = mic.mode === 'tab' && mic.stream && mic.stream.getAudioTracks()[0];
+            const track = capture.mode === 'tab' && capture.track;
             if (track) track.applyConstraints({ suppressLocalAudioPlayback: els.muteTab.checked }).catch(() => {});
         });
 
         els.mic.addEventListener('change', () => {
             savePrefs();
-            mic.restart();
+            capture.restart();
         });
         if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
             navigator.mediaDevices.addEventListener('devicechange', populateMics);
@@ -1441,14 +2020,12 @@
         let termsTimer = null;
         els.terms.addEventListener('input', () => {
             clearTimeout(termsTimer);
-            termsTimer = setTimeout(() => {
-                savePrefs();
-                sendConfig({ terms: parseTerms() });
-            }, 700);
+            termsTimer = setTimeout(savePrefs, 700);   // read by every translation request as it's made
         });
         els.farField.addEventListener('change', () => {
             savePrefs();
-            sendConfig({ farField: els.farField.checked });
+            presession.warm();
+            if (session.active && inputMode === 'mic') scheduleReopen();   // noise reduction is set per session
         });
 
         els.toggle.addEventListener('click', () => (session.active ? stop() : start()));
@@ -1463,10 +2040,12 @@
             if (document.visibilityState !== 'visible') return;
             if (session.active) {
                 acquireWakeLock();
-                if (mic.ctx && mic.ctx.state === 'suspended') mic.ctx.resume().catch(() => {});
+                if (capture.ctx && capture.ctx.state === 'suspended') capture.ctx.resume().catch(() => {});
             }
-            if (player.ctx && player.ctx.state === 'suspended' && voiceMode !== 'off') player.ctx.resume().catch(() => {});
+            if (voice.ctx && voice.ctx.state === 'suspended' && voiceMode !== 'off') voice.ctx.resume().catch(() => {});
+            presession.warm();
         });
+        setInterval(() => presession.warm(), 5 * 60000);
 
         window.addEventListener('beforeunload', (e) => {
             if (session.active) {
@@ -1474,16 +2053,38 @@
                 e.returnValue = '';
             }
         });
+        // Hang up at once on leaving, rather than leaving the session to time out.
+        window.addEventListener('pagehide', () => link.teardown());
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted && session.active) abortSession('Stopped while the page was in the background. Press Start to continue.');
+        });
 
         // Read-only state for diagnosing a session from the console: /transltr/?debug=1
         if (new URLSearchParams(location.search).has('debug')) {
             window.transltrDebug = () => ({
-                phase: session.phase, engine: session.engine, voiceMode, translationMode, inputMode,
-                socket: socket ? socket.readyState : null, queuedFrames: queuedFrames.length,
-                mic: { context: mic.ctx && mic.ctx.state, sampleRate: mic.ctx && mic.ctx.sampleRate, muted: mic.muted, speaking: mic.speaking() },
-                player: { context: player.ctx && player.ctx.state, playing: player.playing, ducked: player.ducked, ...player.stats },
-                rows: rows.size,
+                phase: session.phase, mode: transcript.mode(), voiceMode, translationMode, inputMode,
+                link: {
+                    stage: link.stage, epoch: link.epoch, outputLanguage: link.outputLanguage,
+                    connection: link.pc && link.pc.connectionState, channel: link.dc && link.dc.readyState,
+                    lastEventAgoMs: link.lastEventAt ? Math.round(performance.now() - link.lastEventAt) : null,
+                    voicedSinceEvent: link.voicedSinceEvent, retrying: !!link.retryTimer, ...link.stats,
+                },
+                capture: {
+                    context: capture.ctx && capture.ctx.state, track: capture.track && capture.track.readyState,
+                    gated: capture.gated, muted: capture.muted, speaking: capture.speaking(), graphBroken: capture.graphBroken,
+                    silenceMs: Math.round(Math.min(capture.silenceMs(), 1e9)),
+                },
+                voice: {
+                    context: voice.ctx && voice.ctx.state, queue: voice.queue.length, speaking: voice.speaking,
+                    playing: voice.playing, ducked: voice.ducked, remote: !!voice.remote, remoteMuted: voice.el ? voice.el.muted : null,
+                    ...voice.stats,
+                },
+                rows: transcript.rows.length,
             });
+            window.transltrTest = {
+                dropConnection: () => link.fail(failure('Dropped by a test.', { retryable: true })),
+                rows: () => transcript.rows.map((r) => ({ kind: r.kind, source: r.source.trim(), translation: r.translation.trim(), sourceFinal: r.sourceFinal, translationFinal: r.translationFinal, draft: r.draft, failed: r.failed })),
+            };
         }
 
         fillLanguages();
@@ -1494,6 +2095,7 @@
         applyFont();
         setPhase('idle');
         wakeServer();
+        presession.warm();
     })();
     </script>
 </body>
