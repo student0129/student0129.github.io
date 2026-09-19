@@ -91,16 +91,22 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;500&display=swap');
         
-        html, body {
+        html {
             background: #000000; /* Darkest Black */
+            min-height: 100%;
+        }
+
+        body {
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 200;
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%;
-            overflow: hidden;
+            /* Not height:100% + overflow:hidden. That locks the document, and iOS
+               then refuses pull-to-refresh and won't let you pan a pinch-zoom. */
+            min-height: 100vh;
+            min-height: 100dvh; /* follows the toolbars on iOS */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -110,16 +116,24 @@
         /* Wraps the video */
         .video-container {
             position: fixed;
+            /* inset, not 100vw/100vh: 100vw ignores the scrollbar and overflows,
+               and 100vh is the tall viewport, which leaves a gap on iOS. */
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            right: 0;
+            bottom: 0;
             overflow: hidden;
-            z-index: -1; /* Keeps it behind everything */
+            /* 0, not -1: html and body paint their own background over a -1 child,
+               which hides the video completely. The text sits at z-index 1. */
+            z-index: 0;
+            /* The poster lives here rather than on the <video> because Safari does
+               not apply object-fit to a poster attribute - it letterboxes it. */
+            background: #000000 url('background-poster.jpg') center center / cover no-repeat;
         }
-        
+
         /* Background Video */
         .video-background {
+            display: block;
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -152,6 +166,9 @@
             line-height: 1.3;
             font-weight: 200;
             width: 100%;
+            /* width:100% plus padding would overflow sideways now that the body
+               no longer clips it */
+            box-sizing: border-box;
             overflow: hidden;
         }
         .footer {
@@ -664,10 +681,11 @@
 </head>
 <body>
     <!-- Background Video -->
-    <video autoplay muted loop playsinline preload="auto" poster="background-poster.jpg" class="video-background">
-        <source src="background-video.mp4?v=2" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+    <div class="video-container">
+        <video autoplay muted loop playsinline preload="auto" class="video-background">
+            <source src="background-video.mp4?v=2" type="video/mp4">
+        </video>
+    </div>
 
     <div class="header">Promontory AI</div>
     <div class="content">
@@ -746,6 +764,30 @@
     </div>
 
     <script>
+        // iOS refuses to autoplay in Low Power Mode, and wants muted set as a
+        // property rather than only as an attribute. If it still won't start,
+        // the poster on .video-container stays up and the first tap tries again.
+        (function () {
+            const video = document.querySelector('.video-background');
+            if (!video) return;
+            video.muted = true;
+            video.playsInline = true;
+
+            const tryPlay = () => {
+                const started = video.play();
+                if (started && started.catch) started.catch(() => {});
+            };
+
+            tryPlay();
+            video.addEventListener('canplay', tryPlay, { once: true });
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) tryPlay();
+            });
+            ['touchstart', 'click'].forEach(evt => {
+                document.addEventListener(evt, tryPlay, { once: true, passive: true });
+            });
+        })();
+
         setTimeout(() => {
             document.getElementById("line1").classList.add("finished");
             document.getElementById("line2").style.visibility = "visible";
