@@ -92,7 +92,7 @@
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;500&display=swap');
         
         html, body {
-            /* background: #000000; /* Darkest Black */
+            background: #000000; /* Darkest Black */
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 200;
@@ -664,8 +664,8 @@
 </head>
 <body>
     <!-- Background Video -->
-    <video autoplay muted loop playsinline class="video-background">
-        <source src="background-video.mp4" type="video/mp4">
+    <video autoplay muted loop playsinline preload="auto" poster="background-poster.jpg" class="video-background">
+        <source src="background-video.mp4?v=2" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 
