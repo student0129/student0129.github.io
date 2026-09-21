@@ -407,6 +407,9 @@
         /* ANIMATIONS */
         .reveal { opacity: 0; transform: translateY(20px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         section.active .reveal { opacity: 1; transform: translateY(0); }
+        /* The transform makes each column its own stacking context, so a tooltip can't
+           rise above the next column (e.g. ReAct under the loop log). Raise the hovered column. */
+        .reveal:hover { position: relative; z-index: 50; }
         .d-1 { transition-delay: 0.1s; }
         .d-2 { transition-delay: 0.2s; }
         .d-3 { transition-delay: 0.3s; }
