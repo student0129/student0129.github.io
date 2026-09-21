@@ -1063,7 +1063,7 @@ var API_BASE = "https://aixed-api.onrender.com"; // your Render api-server
       .then(function(res){
         if(res.ok){
           form.reset();
-          show('ok', "Thanks, we've got your request. Once it's approved, we'll email your access link to " + data.email + ".");
+          show('ok', "Thanks, we've got your request. If you've already been approved, your access link is on its way to " + data.email + ". Otherwise we'll email it once you're approved. It comes from aixed@promontoryai.com, so check your spam folder if you don't see it.");
         } else {
           show('err', (res.j && res.j.error) || 'Something went wrong. Please email aixed@promontoryai.com.');
         }
