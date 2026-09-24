@@ -263,6 +263,11 @@
         }
         #end-diagnostics.hidden { display: none; }
 
+        /* End session, asked twice: the first click turns the button into the question. */
+        .end-action { border-color: #fca5a5; color: #dc2626; }
+        .end-action:hover { background: #fef2f2; }
+        .end-action.armed, .end-action.armed:hover { background: #dc2626; border-color: #dc2626; color: #fff; }
+
         /* A visible seam where the session was paused. */
         .resume-mark {
             display: inline-block;
@@ -480,7 +485,7 @@
                 border-top: 1px solid #e5e7eb;
             }
             #header-actions > button { flex: 1 1 0; min-height: 2.75rem; padding-top: 0; padding-bottom: 0; }
-            #header-actions > #brief-btn { flex: 0 0 auto; }
+            #header-actions > #brief-btn, #header-actions > #end-btn { flex: 0 0 auto; }
 
             /* Topics and "Where we are" as a sheet over the content. */
             #sheet-scrim { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.3); }
@@ -627,6 +632,7 @@
             <button id="brief-btn" class="hidden px-3 py-2 text-sm text-gray-600 rounded-full border border-gray-300 hover:border-google-green hover:text-google-green transition-colors">
                 Brief
             </button>
+            <button id="end-btn" class="hidden end-action px-3 py-2 text-sm rounded-full border transition-colors">End session</button>
             <button id="start-btn" class="px-5 py-2.5 text-sm font-normal text-white bg-google-green rounded-full shadow-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-green">
                 Start Listening
             </button>
@@ -666,6 +672,7 @@
                 <button id="end-diagnostics-toggle" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Diagnostics</button>
                 <button id="end-transcript" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Download transcript</button>
                 <button id="end-continue" class="px-3 py-1.5 text-xs text-white bg-google-green rounded-full hover:opacity-90">Continue session</button>
+                <button id="end-session" class="end-action px-3 py-1.5 text-xs rounded-full border transition-colors">End session</button>
                 <button id="end-dismiss" class="px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600">Dismiss</button>
             </div>
         </div>
@@ -801,7 +808,7 @@
         fetch(API_BASE, { method: 'GET' }).catch(() => {});
 
         const $ = (id) => document.getElementById(id);
-        const startBtn = $('start-btn'), stopBtn = $('stop-btn'), pauseBtn = $('pause-btn'), briefBtn = $('brief-btn');
+        const startBtn = $('start-btn'), stopBtn = $('stop-btn'), pauseBtn = $('pause-btn'), briefBtn = $('brief-btn'), endBtn = $('end-btn');
         const statusLight = $('status-light'), statusEl = $('status'), errorEl = $('error');
         const segmentsEl = $('segments'), pendingEl = $('pending-transcript'), interimEl = $('interim-transcript');
         const insightsContainer = $('insights-container'), placeholderCard = $('placeholder-card');
@@ -937,12 +944,17 @@
         let wakeLock = null, captureTimer = null, captureWarned = false;
         let speakersRunning = false, lastSpeakerRun = 0;
         let participants = [];
+        // Bumped by End session. Every request in flight remembers the epoch it started in
+        // and discards its result if that has moved on — otherwise a reply landing a second
+        // after the wipe would put a card or a summary back on screen.
+        let sessionEpoch = 0;
+        const inflight = new Set();     // AbortControllers for every request in flight
 
         // Every timing threshold in this file was reasoned about, not measured. This records
         // what a real meeting does to them — how long answers actually take, how often the
         // stall clock fires, where this room's noise floor really sits — so after one session
         // they can be set from evidence instead of from a good guess.
-        const stats = {
+        const freshStats = () => ({
             answers: [],                    // { ms, firstTokenMs }
             stalls: 0, truncated: 0, retries: 0, errors: 0,
             cards: {}, filtered: 0, dropped: 0, merged: 0, useful: 0, notUseful: 0,
@@ -950,7 +962,8 @@
             noiseFloor: null, threshold: null, wakeLock: 'not requested',
             statePasses: 0, stateFulls: 0, stateFails: 0,
             speakerRuns: 0, speakerFails: 0,
-        };
+        });
+        const stats = freshStats();
         const bumpStat = (bag, key) => { stats[bag][key] = (stats[bag][key] || 0) + 1; };
 
         const committedTranscript = () => segments.map(s => s.text).join(' ');
@@ -1410,6 +1423,8 @@
         async function runAnalysis(job) {
             let entry = null, sourcesEl = null, sawMeta = false;
             const controller = new AbortController();
+            const epoch = sessionEpoch;
+            inflight.add(controller);
             // Two clocks. `stall` is reset by every chunk, so a long-but-alive answer is
             // never cut off; `cap` is the backstop for a connection that trickles forever.
             let stalled = false, expired = false, stallTimer = null;
@@ -1458,6 +1473,7 @@
 
                 while (true) {
                     const { done, value } = await reader.read();
+                    if (epoch !== sessionEpoch) return;   // ended while this was streaming
                     if (done) break;
                     bump();
                     buf += decoder.decode(value, { stream: true });
@@ -1535,6 +1551,7 @@
                     throw Object.assign(new Error('Answer was cut off'), { retryable: true });
                 }
             } catch (err) {
+                if (epoch !== sessionEpoch) return;   // aborted by End session, not a failure
                 console.error('ReVerb analyze error:', err);
 
                 // A stall or the hard cap present as AbortError, so the flags say which.
@@ -1558,7 +1575,7 @@
                     // Before the classifier answered there is no card to reset; the header
                     // indicator already says work is in flight.
                     if (job.card) resetCardToPending(job.card, `${why} — retrying…`);
-                    setTimeout(() => { analyzeQueue.unshift(job); pumpAnalysis(); }, wait);
+                    setTimeout(() => { if (epoch === sessionEpoch) { analyzeQueue.unshift(job); pumpAnalysis(); } }, wait);
                 } else {
                     stats.errors++;
                     renderCardError(job, why);
@@ -1566,6 +1583,7 @@
             } finally {
                 clearTimeout(stallTimer);
                 clearTimeout(capTimer);
+                inflight.delete(controller);
                 reflectActivity();
             }
         }
@@ -1624,6 +1642,8 @@
                 .map((seg) => ({ speaker: seg.speaker, text: seg.text }));
 
             const controller = new AbortController();
+            const epoch = sessionEpoch;
+            inflight.add(controller);
             const timeout = setTimeout(() => controller.abort(), SPEAKER_TIMEOUT_MS);
             try {
                 const resp = await fetch(speakersUrl, {
@@ -1633,6 +1653,7 @@
                     body: JSON.stringify({ turns, attributed, session }),
                 });
                 const data = await resp.json().catch(() => ({}));
+                if (epoch !== sessionEpoch) return;
                 if (!resp.ok) throw new Error(data.error || `server ${resp.status}`);
 
                 for (const t of data.turns || []) {
@@ -1650,10 +1671,12 @@
             } catch (err) {
                 // Silent on purpose: an unlabelled transcript is still a good transcript,
                 // and this lane must never be the thing that puts an error on screen.
+                if (epoch !== sessionEpoch) return;
                 stats.speakerFails++;
                 console.error('ReVerb speakers error:', err);
             } finally {
                 clearTimeout(timeout);
+                inflight.delete(controller);
                 speakersRunning = false;
             }
         }
@@ -1688,6 +1711,8 @@
             if (!transcript.trim()) { stateRunning = false; return; }
 
             const controller = new AbortController();
+            const epoch = sessionEpoch;
+            inflight.add(controller);
             const timeout = setTimeout(() => controller.abort(), STATE_TIMEOUT_MS);
             try {
                 const resp = await fetch(stateUrl, {
@@ -1699,6 +1724,7 @@
                         : { transcript, session, previous: meetingState })
                 });
                 const data = await resp.json().catch(() => ({}));
+                if (epoch !== sessionEpoch) return;
                 if (!resp.ok) {
                     // A retired model fails silently otherwise — this is what hid an outage before.
                     if (data.modelUnavailable) errorEl.textContent = data.error;
@@ -1715,6 +1741,7 @@
                 stampState(Date.now());
                 persistTranscript(true);
             } catch (err) {
+                if (epoch !== sessionEpoch) return;
                 console.error('ReVerb state error:', err);
                 stats.stateFails++;
                 charsSinceState += spent;     // don't lose the trigger because a call failed
@@ -1722,6 +1749,7 @@
                 // covered folds into the next one instead of falling through the gap.
             } finally {
                 clearTimeout(timeout);
+                inflight.delete(controller);
                 stateRunning = false;
             }
         }
@@ -2799,6 +2827,7 @@ self.onmessage = function (e) {
             const resuming = segments.length > 0 && !isListening;
             startBtn.textContent = resuming ? 'Continue Session' : 'Start Listening';
             briefBtn.classList.toggle('hidden', !resuming);
+            endBtn.classList.toggle('hidden', !resuming);
         }
 
         async function startListening() {
@@ -2867,6 +2896,7 @@ self.onmessage = function (e) {
 
                 startBtn.classList.add('hidden');
                 briefBtn.classList.add('hidden');
+                endBtn.classList.add('hidden');
                 stopBtn.classList.remove('hidden');
                 pauseBtn.classList.remove('hidden');
                 pauseBtn.textContent = 'Pause';
@@ -2985,6 +3015,9 @@ self.onmessage = function (e) {
                 session.record
                     ? 'Continue session keeps the full context, but starts a new recording file — use Pause for a break.'
                     : 'Nothing is lost — Continue session picks up with the full context.',
+                session.record
+                    ? 'End session erases the transcript, insights and brief; the recording file on disk is kept.'
+                    : 'End session erases the transcript, insights and brief.',
             ].filter(Boolean).join(' · ');
 
             endAudio.replaceChildren();
@@ -3013,6 +3046,101 @@ self.onmessage = function (e) {
             sessionEnd.classList.remove('hidden');
         }
 
+        // ---------- ending a session ----------
+        // Stop keeps everything so the meeting can pick up again, even across a reload. End
+        // is the opposite promise: nothing from this meeting survives it, on screen or in
+        // storage, and the next Start opens a blank brief.
+        async function endSession() {
+            if (isListening) await stopListening({ silent: true });
+            sessionEpoch++;
+
+            // Cut every request loose and drop the work that was waiting for a turn.
+            for (const controller of inflight) controller.abort();
+            inflight.clear();
+            analyzeQueue.length = 0;
+            if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+            if (persistTimer) { clearTimeout(persistTimer); persistTimer = null; }
+            if (renderFrame) { cancelAnimationFrame(renderFrame); renderFrame = 0; }
+            dirtyAnswers.clear();
+
+            // Storage first: whatever happens below, a reload finds nothing to restore.
+            clearSaved();
+            try { localStorage.removeItem('reverb.session'); } catch (err) { /* ignore */ }
+
+            // The brief, back to what a first visit sees.
+            Object.assign(session, { objective: '', type: 'strategy', keywords: [], roster: [], accurate: false, record: false });
+
+            // Transcript.
+            segments.length = 0;
+            segmentSeq = 0;
+            segmentsEl.replaceChildren();
+            pendingUtterance = '';
+            pendingLow = false;
+            pendingEl.textContent = '';
+            interimEl.textContent = '';
+            transcriptJump.hidden = true;
+            markResumeSeam = false;
+            startedAt = null;
+
+            // Insights, and everything the classifier had learned about this room.
+            insightsContainer.querySelectorAll('[data-card]').forEach((card) => card.remove());
+            placeholderCard.classList.remove('hidden');
+            insightsJump.hidden = true;
+            unreadInsights = 0;
+            insightsUnread.hidden = true;
+            answeredTitles.length = 0;
+            for (const key of Object.keys(typeBias)) delete typeBias[key];
+            for (const key of Object.keys(typeLastShown)) delete typeLastShown[key];
+            cardOrder = 0;
+
+            // Topic tree and rolling summary.
+            meetingState = null;
+            participants = [];
+            charsSinceState = 0;
+            lastStateSegment = 0;
+            statePasses = 0;
+            lastSpeakerRun = 0;
+            if (!stateBody.classList.contains('hidden')) toggleStateBody();
+            stateBar.classList.add('hidden');
+            topicTree.replaceChildren(el('p', 'text-gray-400 italic font-light', 'Listening for the shape of the discussion…'));
+            summaryBody.replaceChildren(el('p', 'text-gray-400 italic font-light', 'A summary appears a few minutes in.'));
+            stateUpdated.textContent = '';
+            setStateObjective();
+
+            // The diagnostics behind the panel that is closing, and its recording link.
+            Object.assign(stats, freshStats());
+            releaseLastAudio();
+
+            sessionEnd.classList.add('hidden');
+            restoreBar.classList.add('hidden');
+            modeBadge.classList.add('hidden');
+            errorEl.textContent = '';
+            clearNotice();
+            setStatus('Not Listening', 'idle');
+            reflectSessionButtons();
+            updateLiveCaption();
+        }
+
+        // End can't be undone, so it asks twice — with the button itself rather than a modal.
+        // The first click turns it into the question; a second within a few seconds answers
+        // it. Left alone, it quietly goes back to being a button.
+        function confirmOnSecondClick(button, action) {
+            const label = button.textContent.trim();
+            let armed = 0;
+            const disarm = () => {
+                clearTimeout(armed);
+                armed = 0;
+                button.textContent = label;
+                button.classList.remove('armed');
+            };
+            button.addEventListener('click', () => {
+                if (armed) { disarm(); action(); return; }
+                button.textContent = phoneLayout.matches ? 'Tap again to erase everything' : 'Click again to erase everything';
+                button.classList.add('armed');
+                armed = setTimeout(disarm, 4000);
+            });
+        }
+
         // ---------- wiring ----------
         startBtn.addEventListener('click', () => {
             // The brief is already set for a session in progress — continuing shouldn't
@@ -3027,6 +3155,8 @@ self.onmessage = function (e) {
         $('setup-start').addEventListener('click', beginSession);
 
         $('end-continue').addEventListener('click', () => { sessionEnd.classList.add('hidden'); startListening(); });
+        confirmOnSecondClick($('end-session'), endSession);
+        confirmOnSecondClick(endBtn, endSession);
         $('end-dismiss').addEventListener('click', () => sessionEnd.classList.add('hidden'));
         $('end-diagnostics-toggle').addEventListener('click', () => {
             const box = $('end-diagnostics');
