@@ -209,6 +209,15 @@
             border-color: color-mix(in srgb, var(--card-accent) 40%, #fff);
             background: color-mix(in srgb, var(--card-accent) 8%, #fff);
         }
+        /* Muting a type hides its cards on the spot; unmuting brings them straight back. The
+           container carries the muted list. A card still waiting on the classifier has no
+           type yet, so it always shows. */
+        #insights-container[data-muted~="question"] > [data-card][data-type="question"],
+        #insights-container[data-muted~="explanation"] > [data-card][data-type="explanation"],
+        #insights-container[data-muted~="factcheck"] > [data-card][data-type="factcheck"],
+        #insights-container[data-muted~="contradiction"] > [data-card][data-type="contradiction"],
+        #insights-container[data-muted~="gap"] > [data-card][data-type="gap"],
+        #insights-container[data-muted~="action"] > [data-card][data-type="action"] { display: none; }
 
         /* An answer that arrived partly. Kept, marked, and re-runnable — the alternative
            was a card that simply stopped mid-sentence and looked finished. */
@@ -1329,6 +1338,24 @@
             try { localStorage.setItem(FILTER_KEY, JSON.stringify([...enabledTypes])); } catch (err) { /* ignore */ }
         }
 
+        // The chips used to change only what the classifier was asked for next, so a card
+        // already on screen stayed put and the filter looked broken. Now the muted list sits
+        // on the panel and the stylesheet hides those cards, present and future alike.
+        function applyTypeFilters() {
+            const muted = CARD_TYPE_ORDER.filter((t) => !enabledTypes.has(t));
+            insightsContainer.dataset.muted = muted.join(' ');
+            filterToggle.textContent = muted.length ? `Filters · ${muted.length} muted` : 'Filters';
+        }
+
+        function resetTypePrefs() {
+            enabledTypes.clear();
+            for (const t of CARD_TYPE_ORDER) enabledTypes.add(t);
+            try { localStorage.removeItem(FILTER_KEY); } catch (err) { /* ignore */ }
+            renderTypeFilters();
+            applyTypeFilters();
+            typeFilters.classList.add('hidden');
+        }
+
         function renderTypeFilters() {
             typeFilters.replaceChildren();
             for (const type of CARD_TYPE_ORDER) {
@@ -1341,6 +1368,7 @@
                     else enabledTypes.add(type);
                     btn.setAttribute('aria-pressed', String(enabledTypes.has(type)));
                     persistTypePrefs();
+                    applyTypeFilters();
                 });
                 typeFilters.append(btn);
             }
@@ -3049,7 +3077,8 @@ self.onmessage = function (e) {
         // ---------- ending a session ----------
         // Stop keeps everything so the meeting can pick up again, even across a reload. End
         // is the opposite promise: nothing from this meeting survives it, on screen or in
-        // storage, and the next Start opens a blank brief.
+        // storage, and the next Start opens a blank brief with every card type back on.
+        // Discard on the restore bar is the same promise made before anything was restored.
         async function endSession() {
             if (isListening) await stopListening({ silent: true });
             sessionEpoch++;
@@ -3092,6 +3121,7 @@ self.onmessage = function (e) {
             for (const key of Object.keys(typeBias)) delete typeBias[key];
             for (const key of Object.keys(typeLastShown)) delete typeLastShown[key];
             cardOrder = 0;
+            resetTypePrefs();
 
             // Topic tree and rolling summary.
             meetingState = null;
@@ -3174,7 +3204,7 @@ self.onmessage = function (e) {
             if (data) restoreSaved(data);
             restoreBar.classList.add('hidden');
         });
-        $('restore-no').addEventListener('click', () => { clearSaved(); restoreBar.classList.add('hidden'); });
+        $('restore-no').addEventListener('click', () => endSession());
 
         // On a phone the same body opens as a sheet, with a scrim and Done to close it.
         function toggleStateBody() {
@@ -3278,6 +3308,7 @@ self.onmessage = function (e) {
 
         loadTypePrefs();
         renderTypeFilters();
+        applyTypeFilters();
         restoreSessionBrief();
         reflectSessionButtons();
 
