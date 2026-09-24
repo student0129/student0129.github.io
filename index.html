@@ -94,7 +94,7 @@
 
     <style>
         html, body {
-            /* background: #000000; /* Darkest Black */
+            background: #000000; /* Darkest Black. Also what shows if the video never paints. */
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 200;
@@ -120,8 +120,12 @@
             z-index: -1; /* Keeps it behind everything */
         }
         
-        /* Background Video */
-        .video-background {
+        /* Background Video, and the still frame that sits beneath it.
+           Both use the same box and object-fit: cover, so the still is
+           cropped identically. The video paints over it when it plays;
+           if it never plays, the still is what the visitor sees. */
+        .video-background,
+        .video-still {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -665,9 +669,14 @@
     </style>
 </head>
 <body>
-    <!-- Background Video -->
-    <video autoplay muted loop playsinline class="video-background">
-        <source src="background-video.mp4" type="video/mp4">
+    <!-- Still of frame one, beneath the video. Shows until the video paints, or forever if it never does.
+         If it fails to load it removes itself, so no broken-image placeholder is drawn. -->
+    <img class="video-still" src="background-still.jpg" alt="" aria-hidden="true" fetchpriority="high" onerror="this.remove()">
+
+    <!-- Background Video. If no source is usable the last <source> fires error; a decode failure fires it on the
+         <video>. Either way the element removes itself so nothing (such as iOS's crossed-out play glyph) draws over the still. -->
+    <video autoplay muted loop playsinline class="video-background" onerror="this.remove()">
+        <source src="background-video.mp4" type="video/mp4" onerror="this.parentNode.remove()">
         Your browser does not support the video tag.
     </video>
 
