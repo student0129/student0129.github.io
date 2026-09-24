@@ -93,8 +93,10 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400&display=swap">
 
     <style>
+        /* No background on html or body. iOS Safari paints the strips beside its
+           status bar and toolbar in the body color, and white strips are what
+           read as full screen. The black safety layer is body::before, below. */
         html, body {
-            background: #000000; /* Darkest Black. Also what shows if the video never paints. */
             color: white;
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 200;
@@ -102,11 +104,30 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: stretch;
+        }
+        /* The root's overflow is what the viewport gets. auto keeps the viewport
+           a normal scroller, so iOS still rubber-bands, pull-to-refresh works and
+           a pinch-zoom can be panned. body keeps clipping, so layout is unchanged. */
+        html {
+            overflow: auto;
+        }
+        body {
+            overflow: hidden;
+        }
+        /* Black safety layer inside the page box: what shows before the still
+           paints, or forever if neither the still nor the video ever does. */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
         }
 
         /* Wraps the video */
@@ -216,6 +237,21 @@
             }
             .footer {
                 font-size: 3.5vw;
+            }
+        }
+
+        /* Touch devices only. The Morse long-press must not select text or raise
+           the copy/save callout. This replaces the preventDefault in the touch
+           handler that used to block every native gesture. Links and buttons
+           keep their normal long-press behavior. Desktop is unaffected. */
+        @media (hover: none) and (pointer: coarse) {
+            body {
+                -webkit-user-select: none;
+                user-select: none;
+                -webkit-touch-callout: none;
+            }
+            a, button {
+                -webkit-touch-callout: default;
             }
         }
 
@@ -991,26 +1027,49 @@
     const DASH_THRESHOLD = 250; // Anything longer than 250ms is a dash
     const RESET_TIME = 2000;    // Reset if no new taps for 2 seconds
     
-    // Listen for the start of a touch
+    // A pinch, a drag (scroll or pull-to-refresh) or a tap on a link or button is
+    // never Morse input. These listeners are passive and never call preventDefault,
+    // so every native gesture stays with Safari. Text selection during a long
+    // press is turned off in CSS for touch devices instead.
+    let touchStartX = 0, touchStartY = 0;
+    let ignoreGesture = false;
+    const MOVE_TOLERANCE = 12; // px a finger may drift during a press and still count
+
     document.addEventListener('touchstart', (e) => {
-        // --- FIX FOR UNCLICKABLE LINKS ---
-        // First, check if the user is tapping on a link or a button.
-        // If they are, we do NOT want to interfere.
         if (e.target.closest('a') || e.target.closest('button')) {
-            return; // Exit and let the browser handle the click normally.
+            ignoreGesture = true; // let it behave normally and don't count it as a tap
+            return;
         }
-    
-        // If it's not a link or button, THEN we prevent the default action
-        // to allow for our Morse code long-press without selecting text.
-        e.preventDefault(); 
-        
-        // The rest of the code is the same
+        if (e.touches.length > 1) { // a second finger: this is a pinch
+            ignoreGesture = true;
+            return;
+        }
+        ignoreGesture = false;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
         tapStartTime = new Date().getTime();
         clearTimeout(morseTimeout);
-    }, { passive: false });
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (ignoreGesture || e.touches.length === 0) return;
+        const dx = e.touches[0].clientX - touchStartX;
+        const dy = e.touches[0].clientY - touchStartY;
+        if (dx * dx + dy * dy > MOVE_TOLERANCE * MOVE_TOLERANCE) {
+            ignoreGesture = true; // the finger travelled: a scroll, pull or pan
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchcancel', () => {
+        ignoreGesture = false; // Safari took the gesture over (zoom, refresh); start clean
+    });
     
     // Listen for the end of a touch
     document.addEventListener('touchend', (e) => {
+        if (ignoreGesture) {
+            if (e.touches.length === 0) ignoreGesture = false; // the gesture is over
+            return;
+        }
         const tapEndTime = new Date().getTime();
         const duration = tapEndTime - tapStartTime;
     
