@@ -9,11 +9,11 @@
         base-uri 'self';
         object-src 'none';
         form-action 'self';
-        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://view.promontoryai.com;
         style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;
         font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com;
         img-src 'self' data: blob:;
-        connect-src 'self' https://api-promontory.onrender.com;
+        connect-src 'self' https://api-promontory.onrender.com https://view.promontoryai.com;
     ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Light only. Keeps native controls in step with the page on a dark-mode OS. -->
@@ -124,6 +124,7 @@
         
         .hidden { display: none !important; }
     </style>
+    <script defer src="https://view.promontoryai.com/pa.js" data-website-id="7427ddf2-4fb7-4fcd-ace3-85b9490ba607" data-domains="promontoryai.com" data-exclude-hash="true"></script>
 </head>
 <body>
 

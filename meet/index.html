@@ -9,14 +9,17 @@
       base-uri 'self';
       object-src 'none';
       form-action 'self';
-      script-src 'self' 'unsafe-inline' https://8x8.vc https://*.8x8.vc;
+      script-src 'self' 'unsafe-inline' https://8x8.vc https://*.8x8.vc https://view.promontoryai.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
       img-src 'self' data: https:;
       frame-src https://8x8.vc https://*.8x8.vc;
-      connect-src 'self' https://api-promontory.onrender.com https://8x8.vc https://*.8x8.vc wss://8x8.vc wss://*.8x8.vc;
+      connect-src 'self' https://api-promontory.onrender.com https://8x8.vc https://*.8x8.vc wss://8x8.vc wss://*.8x8.vc https://view.promontoryai.com;
   ">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- The query string can hold an access code or settings; never pass it on as a referrer,
+       even to this site's own pages and analytics. Cross-site, this is the browser default. -->
+  <meta name="referrer" content="strict-origin">
   <!-- Light only. Keeps native controls in step with the page on a dark-mode OS. -->
   <meta name="color-scheme" content="light">
   <title>Promontory AI</title>
@@ -397,6 +400,7 @@
     
     
   </style>
+  <script defer src="https://view.promontoryai.com/pa.js" data-website-id="7427ddf2-4fb7-4fcd-ace3-85b9490ba607" data-domains="promontoryai.com" data-exclude-hash="true" data-exclude-search="true"></script>
 </head>
 <body>
   <div class="header">Promontory AI</div>

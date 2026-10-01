@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- The query string can hold an access code or settings; never pass it on as a referrer,
+         even to this site's own pages and analytics. Cross-site, this is the browser default. -->
+    <meta name="referrer" content="strict-origin">
     <title>Translatr - Live Translation</title>
     <meta name="description" content="Live voice translation: see and hear the translation while you speak.">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -85,6 +88,7 @@
             *, *::before, *::after { animation: none !important; transition: none !important; }
         }
     </style>
+    <script defer src="https://view.promontoryai.com/pa.js" data-website-id="7427ddf2-4fb7-4fcd-ace3-85b9490ba607" data-domains="promontoryai.com" data-exclude-hash="true" data-exclude-search="true"></script>
 </head>
 <body class="text-gray-300 min-h-screen">
     <div class="mx-auto w-full max-w-5xl px-4 py-6 md:py-10">

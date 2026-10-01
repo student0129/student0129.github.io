@@ -519,6 +519,7 @@
         .modal-caption a { color: #ffffff; text-decoration: underline; text-underline-offset: 3px; }
 
     </style>
+    <script defer src="https://view.promontoryai.com/pa.js" data-website-id="7427ddf2-4fb7-4fcd-ace3-85b9490ba607" data-domains="promontoryai.com" data-exclude-hash="true"></script>
 </head>
 <body>
 
@@ -1678,8 +1679,8 @@
                 </div>
 
                 <div class="reveal d-2" style="margin-top: 48px; display: flex; flex-wrap: wrap; gap: 12px;">
-                    <a class="btn-diagram" href="mailto:taher@promontoryai.com" style="text-decoration: none; margin: 0;"><i class="fa-solid fa-envelope"></i> taher@promontoryai.com</a>
-                    <a class="btn-diagram" href="https://signal.promontoryai.com" target="_blank" rel="noopener noreferrer" title="The Signal, by Promontory AI" style="text-decoration: none; margin: 0;"><i class="fa-solid fa-tower-broadcast"></i> Keep up with AI: signal.promontoryai.com</a>
+                    <a class="btn-diagram" href="mailto:taher@promontoryai.com" data-umami-event="Email click" style="text-decoration: none; margin: 0;"><i class="fa-solid fa-envelope"></i> taher@promontoryai.com</a>
+                    <a class="btn-diagram" href="https://signal.promontoryai.com" data-umami-event="The Signal click" target="_blank" rel="noopener noreferrer" title="The Signal, by Promontory AI" style="text-decoration: none; margin: 0;"><i class="fa-solid fa-tower-broadcast"></i> Keep up with AI: signal.promontoryai.com</a>
                 </div>
             </div>
         </section>
@@ -1708,6 +1709,21 @@
         const isMobile = window.innerWidth <= 1024;
         const observerThreshold = isMobile ? 0.15 : 0.5;
 
+        // Analytics (Umami, cookieless): an event once per slide reached per visit, and per diagram opened.
+        // umami may load after the first slides fire, or be blocked; then wait for load, or do nothing.
+        function track(name) {
+            if (window.umami) umami.track(name);
+            else window.addEventListener('load', () => window.umami && umami.track(name), { once: true });
+        }
+        const slidesSeen = new Set();
+        function trackSlide(index) {
+            if (slidesSeen.has(index)) return;
+            slidesSeen.add(index);
+            const heading = sections[index].querySelector('h1, h2');
+            const title = heading ? heading.innerText.replace(/\s+/g, ' ').trim() : sections[index].id;
+            track(`Slide ${String(index + 1).padStart(2, '0')} · ${title}`.slice(0, 50));
+        }
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -1717,6 +1733,7 @@
                     const index = Array.from(sections).indexOf(entry.target);
                     dots.forEach(d => d.classList.remove('active'));
                     if(dots[index]) dots[index].classList.add('active');
+                    trackSlide(index);
                 }
             });
         }, { threshold: observerThreshold, root: isMobile ? null : deckContainer });
@@ -1766,6 +1783,7 @@
                 caption.append(' · ', link);
             }
             document.getElementById('imageModal').style.display = 'flex';
+            track(`Diagram · ${decodeURIComponent(imgSrc.split('/').pop()).replace(/\.\w+$/, '')}`.slice(0, 50));
         }
 
         function closeModal() {
