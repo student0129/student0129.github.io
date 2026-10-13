@@ -887,19 +887,24 @@
 
         // --- Slow lane (topic tree + rolling summary) ---
         // Folding new speech into the existing state costs a fraction of rebuilding from the
-        // whole transcript, so this now runs on minutes rather than five-minute blocks. That
-        // matters: conflict and dig-deeper cards are only as good as how current the state is.
-        const STATE_INTERVAL_MS = 90 * 1000;
-        const STATE_MIN_NEW_CHARS = 900;
-        const STATE_FULL_EVERY = 6;        // every Nth pass re-reads everything, clearing drift
+        // whole transcript, so it runs every half minute that brings new speech, and sooner
+        // after a burst of talk. The summary should be current whenever someone looks at it,
+        // and the conflict and dig-deeper cards are only as good as how current the state is.
+        const STATE_INTERVAL_MS = 30 * 1000;
+        const STATE_MIN_NEW_CHARS = 400;
+        const STATE_FULL_EVERY_MS = 5 * 60 * 1000;   // a pass this long after the last rebuild re-reads everything, clearing drift
 
         // --- Speaker attribution ---
         const SPEAKER_INTERVAL_MS = 45000;
         const SPEAKER_MIN_NEW = 3;         // one stray line isn't worth a round trip
         const SPEAKER_MAX_TURNS = 60;      // per call; older unattributed lines wait their turn
         const SPEAKER_TIMEOUT_MS = 30000;
-        const STATE_CONTEXT_CHARS = 24000;
+        // A rebuild reads the whole meeting, about four hours of speech at this length (it
+        // also has to fit the API's 1MB body limit). Beyond it, the rebuild also gets the
+        // previous state, which is then the only record of the opening hours.
+        const STATE_CONTEXT_CHARS = 250000;
         const STATE_TIMEOUT_MS = 45000;
+        const STATE_REBUILD_TIMEOUT_MS = 90000;      // the server allows a rebuild 80s
 
         // --- Staying alive ---
         // A phone screen going dark is the most common way a meeting quietly stops being
@@ -926,7 +931,13 @@
         const SPEECH_STALL_MS = 120000;    // "running" but silent this long => bounce it
 
         // --- Persistence ---
-        const STORE_KEY = 'reverb.transcript';
+        // Each tab saves under its own key (see claimTab), so two ReVerb tabs in one browser
+        // can't overwrite each other's meeting. Pages before that used one shared key.
+        const STORE_PREFIX = 'reverb.transcript.';
+        const LEGACY_STORE_KEY = 'reverb.transcript';
+        const SAVED_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;   // an abandoned tab's meeting is dropped after this
+        let STORE_KEY = STORE_PREFIX + newTabId();
+        let offeredSave = null;         // { key, data } — the unfinished session the restore bar offers
         const PERSIST_DEBOUNCE_MS = 1500;
         const MAX_PERSIST_CHARS = 200000;
 
@@ -947,6 +958,7 @@
         let flushTimer = null;
         let stateTimer = null, stateRunning = false, charsSinceState = 0;
         let lastStateSegment = 0, statePasses = 0;
+        let lastFullAt = 0, lastPassFull = false, closingPassQueued = false, stateStampedAt = 0;
         const enabledTypes = new Set(CARD_TYPE_ORDER);
         const typeLastShown = Object.create(null);
         let startedAt = null, lastAudio = null, segmentSeq = 0;
@@ -1718,7 +1730,13 @@
             runState();
         }
 
-        async function runState() {
+        // opts.full forces a rebuild: the closing pass at Stop is the summary people keep.
+        async function runState(opts) {
+            if (stateRunning) {
+                // Running two passes at once would let the older one land last.
+                if (opts && opts.full) closingPassQueued = true;
+                return;
+            }
             stateRunning = true;
             const spent = charsSinceState;
             charsSinceState = 0;
@@ -1728,28 +1746,30 @@
             // freshness is what the conflict and dig-deeper cards live on. Every
             // STATE_FULL_EVERY passes we re-read the whole transcript instead: incremental
             // updates each carry a little error, and only a full pass clears the buildup.
-            const full = !meetingState || statePasses % STATE_FULL_EVERY === 0;
+            const full = !meetingState || Boolean(opts && opts.full) || Date.now() - lastFullAt >= STATE_FULL_EVERY_MS;
             const upTo = segments.length;
             // Sliced by segment rather than by character count, so correcting a line
             // upstream can't shift the window and duplicate or skip speech.
-            const transcript = (full
-                ? attributedTranscript()
-                : attributedTranscript(lastStateSegment)
-            ).slice(-STATE_CONTEXT_CHARS);
+            const raw = full ? attributedTranscript() : attributedTranscript(lastStateSegment);
+            const transcript = raw.length > STATE_CONTEXT_CHARS
+                ? `[The transcript starts partway through the meeting.]\n${raw.slice(-STATE_CONTEXT_CHARS)}`
+                : raw;
 
             if (!transcript.trim()) { stateRunning = false; return; }
 
             const controller = new AbortController();
             const epoch = sessionEpoch;
             inflight.add(controller);
-            const timeout = setTimeout(() => controller.abort(), STATE_TIMEOUT_MS);
+            const timeout = setTimeout(() => controller.abort(), full ? STATE_REBUILD_TIMEOUT_MS : STATE_TIMEOUT_MS);
             try {
+                // A rebuild still gets the previous state: it keeps topic names steady, and it
+                // is the only record of anything before a truncated transcript.
                 const resp = await fetch(stateUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
                     body: JSON.stringify(full
-                        ? { transcript, session }
+                        ? { transcript, session, full: true, ...(meetingState ? { previous: meetingState } : {}) }
                         : { transcript, session, previous: meetingState })
                 });
                 const data = await resp.json().catch(() => ({}));
@@ -1763,7 +1783,8 @@
                 lastStateSegment = upTo;
                 statePasses++;
                 stats.statePasses++;
-                if (full) stats.stateFulls++;
+                lastPassFull = full;
+                if (full) { stats.stateFulls++; lastFullAt = Date.now(); }
                 renderMeetingState();
                 // Stamped here rather than in the render, which also runs when speakers
                 // land or a session is restored — neither of which is a fresh summary.
@@ -1780,11 +1801,31 @@
                 clearTimeout(timeout);
                 inflight.delete(controller);
                 stateRunning = false;
+                if (closingPassQueued && epoch === sessionEpoch) {
+                    closingPassQueued = false;
+                    runState({ full: true });
+                }
             }
         }
 
+        // Relative, so a glance says how current the summary is without reading a clock.
         function stampState(when) {
-            stateUpdated.textContent = `updated ${new Date(when).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            stateStampedAt = when;
+            renderStateStamp();
+        }
+        function renderStateStamp() {
+            if (!stateStampedAt) { stateUpdated.textContent = ''; return; }
+            const mins = Math.floor((Date.now() - stateStampedAt) / 60000);
+            stateUpdated.textContent = mins < 1 ? 'updated just now'
+                : mins < 60 ? `updated ${mins} min ago`
+                : `updated ${new Date(stateStampedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+        setInterval(renderStateStamp, 15000);
+
+        // Someone opening the summary or coming back to the tab is about to read it: fold in
+        // whatever was said since the last pass rather than make them wait for the timer.
+        function refreshStateForReader() {
+            if (charsSinceState > 0) maybeRunState(true);
         }
 
         function renderMeetingState() {
@@ -2689,9 +2730,9 @@ self.onmessage = function (e) {
             } catch (err) { /* quota or private mode — the session still runs */ }
         }
 
-        function readSaved() {
+        function readSaved(key) {
             try {
-                const raw = localStorage.getItem(STORE_KEY);
+                const raw = localStorage.getItem(key);
                 if (!raw) return null;
                 const data = JSON.parse(raw);
                 return data && Array.isArray(data.segments) && data.segments.length ? data : null;
@@ -2699,7 +2740,74 @@ self.onmessage = function (e) {
         }
 
         function clearSaved() {
-            try { localStorage.removeItem(STORE_KEY); } catch (err) { /* ignore */ }
+            try {
+                localStorage.removeItem(STORE_KEY);
+                if (offeredSave) localStorage.removeItem(offeredSave.key);
+            } catch (err) { /* ignore */ }
+            offeredSave = null;
+        }
+
+        // ---------- one saved meeting per tab ----------
+        // The tab's id lives in sessionStorage, which survives a reload of the same tab — the
+        // case restore exists for. Duplicating a tab copies sessionStorage too, so each tab also
+        // holds a Web Lock named after its id for as long as it is open: a tab that finds its id
+        // already locked is a duplicate, and takes a fresh one.
+        function newTabId() {
+            return (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`).slice(0, 18);
+        }
+
+        function holdTabLock(id) {
+            return new Promise((resolve) => {
+                navigator.locks.request(`reverb.tab.${id}`, { ifAvailable: true }, (lock) => {
+                    resolve(Boolean(lock));
+                    if (lock) return new Promise(() => {});   // released only when the tab closes
+                }).catch(() => resolve(true));
+            });
+        }
+
+        async function claimTab() {
+            let id = null;
+            try { id = sessionStorage.getItem('reverb.tab'); } catch (err) { /* ignore */ }
+            if (!id) id = STORE_KEY.slice(STORE_PREFIX.length);
+            if ('locks' in navigator && !(await holdTabLock(id))) {
+                id = newTabId();
+                await holdTabLock(id);
+            }
+            try { sessionStorage.setItem('reverb.tab', id); } catch (err) { /* ignore */ }
+            STORE_KEY = STORE_PREFIX + id;
+        }
+
+        // What the restore bar offers: this tab's own meeting after a reload, otherwise the most
+        // recent one that no open tab is still running — a tab that was closed or crashed.
+        // Saves that have sat untouched for SAVED_MAX_AGE_MS are cleared out on the way.
+        async function findSaved() {
+            const live = new Set();
+            if ('locks' in navigator) {
+                try { for (const l of (await navigator.locks.query()).held || []) live.add(l.name); } catch (err) { /* ignore */ }
+            }
+            const keys = [];
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key === LEGACY_STORE_KEY || (key && key.startsWith(STORE_PREFIX))) keys.push(key);
+                }
+            } catch (err) { return null; }
+
+            let best = null;
+            for (const key of keys) {
+                const data = readSaved(key);
+                if (key === STORE_KEY) {
+                    if (data) return { key, data };
+                    continue;
+                }
+                if (live.has(`reverb.tab.${key.slice(STORE_PREFIX.length)}`)) continue;
+                if (!data || Date.now() - (data.savedAt || 0) > SAVED_MAX_AGE_MS) {
+                    try { localStorage.removeItem(key); } catch (err) { /* ignore */ }
+                    continue;
+                }
+                if (!best || (data.savedAt || 0) > (best.data.savedAt || 0)) best = { key, data };
+            }
+            return best;
         }
 
         function restoreSaved(data) {
@@ -2739,6 +2847,8 @@ self.onmessage = function (e) {
             // guess the overlap, make the first pass after a restore a full rebuild.
             lastStateSegment = 0;
             statePasses = 0;
+            lastFullAt = 0;
+            lastPassFull = false;
             markResumeSeam = true;
             scrollTranscript();
             reflectSessionButtons();
@@ -2864,6 +2974,14 @@ self.onmessage = function (e) {
             errorEl.textContent = '';
             sessionEnd.classList.add('hidden');
             restoreBar.classList.add('hidden');
+            // Starting fresh past the restore bar discards what it offered, as it always has:
+            // this tab's own save is overwritten by the next persist, a closed tab's is removed.
+            if (offeredSave) {
+                if (offeredSave.key !== STORE_KEY) {
+                    try { localStorage.removeItem(offeredSave.key); } catch (err) { /* ignore */ }
+                }
+                offeredSave = null;
+            }
 
             try {
                 if (session.accurate || session.record) {
@@ -3020,8 +3138,8 @@ self.onmessage = function (e) {
 
             persistTranscript(true);
 
-            // A closing pass so the summary reflects the whole meeting.
-            if (segments.length) runState();
+            // A closing rebuild so the summary reflects the whole meeting, read in one go.
+            if (segments.length && (charsSinceState > 0 || !lastPassFull)) runState({ full: true });
 
             if (wasListening && !(opts && opts.silent)) showSessionEnd(audio);
         }
@@ -3130,12 +3248,15 @@ self.onmessage = function (e) {
             charsSinceState = 0;
             lastStateSegment = 0;
             statePasses = 0;
+            lastFullAt = 0;
+            lastPassFull = false;
+            closingPassQueued = false;
             lastSpeakerRun = 0;
             if (!stateBody.classList.contains('hidden')) toggleStateBody();
             stateBar.classList.add('hidden');
             topicTree.replaceChildren(el('p', 'text-gray-400 italic font-light', 'Listening for the shape of the discussion…'));
             summaryBody.replaceChildren(el('p', 'text-gray-400 italic font-light', 'A summary appears a few minutes in.'));
-            stateUpdated.textContent = '';
+            stampState(0);
             setStateObjective();
 
             // The diagnostics behind the panel that is closing, and its recording link.
@@ -3201,8 +3322,18 @@ self.onmessage = function (e) {
         });
 
         $('restore-yes').addEventListener('click', () => {
-            const data = readSaved();
-            if (data) restoreSaved(data);
+            const offered = offeredSave;
+            offeredSave = null;
+            if (offered) {
+                restoreSaved(offered.data);
+                // Adopted from a closed tab: it is this tab's meeting now, saved under its key.
+                if (offered.key !== STORE_KEY) {
+                    try {
+                        localStorage.setItem(STORE_KEY, JSON.stringify(offered.data));
+                        localStorage.removeItem(offered.key);
+                    } catch (err) { /* quota — the next save writes it */ }
+                }
+            }
             restoreBar.classList.add('hidden');
         });
         $('restore-no').addEventListener('click', () => endSession());
@@ -3210,6 +3341,7 @@ self.onmessage = function (e) {
         // On a phone the same body opens as a sheet, with a scrim and Done to close it.
         function toggleStateBody() {
             const hidden = stateBody.classList.toggle('hidden');
+            if (!hidden) refreshStateForReader();
             stateChevron.style.transform = hidden ? '' : 'rotate(180deg)';
             sheetScrim.hidden = hidden;
         }
@@ -3303,6 +3435,7 @@ self.onmessage = function (e) {
             // AudioContext may have been suspended. Repair both immediately rather than
             // waiting up to CAPTURE_WATCHDOG_MS for the next sweep.
             checkCapture();
+            refreshStateForReader();
         });
 
         filterToggle.addEventListener('click', () => typeFilters.classList.toggle('hidden'));
@@ -3313,13 +3446,15 @@ self.onmessage = function (e) {
         restoreSessionBrief();
         reflectSessionButtons();
 
-        const saved = readSaved();
-        if (saved) {
-            const when = new Date(saved.savedAt).toLocaleString();
-            const words = saved.segments.reduce((n, s) => n + s.text.length, 0);
-            restoreDetail.textContent = `An unfinished session from ${when} is still here (${saved.segments.length} segments, ~${Math.round(words / 5)} words).`;
+        claimTab().then(findSaved).then((saved) => {
+            // Starting a session before this resolves means the offer no longer applies.
+            if (!saved || isListening || segments.length) return;
+            offeredSave = saved;
+            const when = new Date(saved.data.savedAt).toLocaleString();
+            const words = saved.data.segments.reduce((n, s) => n + s.text.length, 0);
+            restoreDetail.textContent = `An unfinished session from ${when} is still here (${saved.data.segments.length} segments, ~${Math.round(words / 5)} words).`;
             restoreBar.classList.remove('hidden');
-        }
+        });
 
         if (!WebSpeechProvider.supported) {
             errorEl.textContent = 'This browser has no built-in speech recognition — start a session with high-accuracy transcription enabled.';
