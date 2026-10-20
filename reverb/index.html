@@ -130,6 +130,35 @@
         [data-type="contradiction"] { --card-accent: #dc2626; }
         [data-type="gap"]           { --card-accent: #7c3aed; }
         [data-type="action"]        { --card-accent: #0f766e; }
+        [data-type="ask"]           { --card-accent: #0369a1; }
+        [data-type="unanswered"]    { --card-accent: #c2410c; }
+        [data-type="loop"]          { --card-accent: #a16207; }
+        [data-type="confirm"]       { --card-accent: #15803d; }
+        [data-type="talkpast"]      { --card-accent: #be185d; }
+        [data-type="drift"]         { --card-accent: #475569; }
+
+        /* The question worth saying out loud. Set apart from the observation above it, because
+           it is the part someone actually uses. */
+        .card-ask { margin-top: .45rem; padding: .4rem .6rem; border-radius: .5rem; color: #1f2937; font-weight: 400;
+            background: #f3f4f6; background: color-mix(in srgb, var(--card-accent, #6b7280) 7%, #fff); }
+        .card-ask-label { display: block; font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--card-accent, #6b7280); }
+
+        /* The room dealt with it after the card went up. Kept, so the panel still reads as a
+           record of the meeting, but quieted so it stops asking for attention. */
+        .card-resolved { opacity: .6; }
+        .card-resolved .card-more, .card-resolved .card-more-toggle { display: none; }
+        .card-resolved-mark { display: inline-block; margin-left: .35rem; padding: .1rem .45rem; border-radius: 9999px;
+            font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #047857; background: #d1fae5; }
+
+        /* The optional half of the brief. */
+        #setup-more { margin-top: 1rem; }
+        #setup-more > summary { cursor: pointer; font-size: .875rem; color: #00685B; list-style: none; }
+        #setup-more > summary::-webkit-details-marker { display: none; }
+        #setup-more > summary::before { content: '+ '; }
+        #setup-more[open] > summary::before { content: '\2212  '; }
+        .setup-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .25rem; }
+        .setup-link { font-size: .75rem; color: #00685B; }
+        .setup-link:hover { text-decoration: underline; }
 
         .card-chip {
             display: inline-block;
@@ -191,7 +220,7 @@
         .card-subject { font-size: .8125rem; color: #6b7280; margin-bottom: .4rem; }
         .card-subject b { font-weight: 500; color: #4b5563; }
 
-        /* Type filters. Six card types is enough that muting one has to be one click. */
+        /* Type filters. Twelve card types is enough that muting one has to be one click. */
         #insights-header > .flex { padding-bottom: .4rem; }
         #type-filters { display: flex; flex-wrap: wrap; gap: .35rem; padding: 0 .75rem .6rem; }
         #type-filters.hidden { display: none; }
@@ -217,7 +246,13 @@
         #insights-container[data-muted~="factcheck"] > [data-card][data-type="factcheck"],
         #insights-container[data-muted~="contradiction"] > [data-card][data-type="contradiction"],
         #insights-container[data-muted~="gap"] > [data-card][data-type="gap"],
-        #insights-container[data-muted~="action"] > [data-card][data-type="action"] { display: none; }
+        #insights-container[data-muted~="action"] > [data-card][data-type="action"],
+        #insights-container[data-muted~="ask"] > [data-card][data-type="ask"],
+        #insights-container[data-muted~="unanswered"] > [data-card][data-type="unanswered"],
+        #insights-container[data-muted~="loop"] > [data-card][data-type="loop"],
+        #insights-container[data-muted~="confirm"] > [data-card][data-type="confirm"],
+        #insights-container[data-muted~="talkpast"] > [data-card][data-type="talkpast"],
+        #insights-container[data-muted~="drift"] > [data-card][data-type="drift"] { display: none; }
 
         /* An answer that arrived partly. Kept, marked, and re-runnable — the alternative
            was a card that simply stopped mid-sentence and looked finished. */
@@ -576,6 +611,44 @@
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
                 placeholder="Kubernetes, Priya Raghavan, SOC 2, ARR, gRPC">
 
+            <details id="setup-more">
+                <summary>Agenda, length &amp; background material</summary>
+
+                <label class="block text-sm text-gray-700 mt-3 mb-1">
+                    Agenda
+                    <span class="text-gray-400 font-light">(one item per line)</span>
+                </label>
+                <textarea id="setup-agenda" rows="3"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
+                    placeholder="Identity: build vs. buy&#10;Q3 hiring plan&#10;Launch date"></textarea>
+
+                <label class="block text-sm text-gray-700 mt-4 mb-1">
+                    Planned length
+                    <span class="text-gray-400 font-light">(minutes)</span>
+                </label>
+                <input id="setup-duration" type="number" min="5" max="600" step="5" inputmode="numeric"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
+                    placeholder="45">
+                <p class="mt-1 text-xs text-gray-400 font-light">
+                    With an agenda or a length, ReVerb tells you when time is going to something the
+                    meeting doesn't need, or running out with items still open.
+                </p>
+
+                <label class="block text-sm text-gray-700 mt-4 mb-1">Background material</label>
+                <textarea id="setup-materials" rows="4" maxlength="16000"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
+                    placeholder="Paste notes from the last meeting, a spec, a doc…"></textarea>
+                <div class="setup-row">
+                    <span id="materials-count" class="text-xs text-gray-400 font-light"></span>
+                    <button id="materials-load" type="button" class="setup-link">Load from a text file</button>
+                    <input id="materials-file" type="file" accept=".txt,.md,.markdown,.csv,text/plain,text/markdown" hidden>
+                </div>
+                <p class="mt-1 text-xs text-gray-400 font-light">
+                    Questions it answers get answered from it, and anything said that reverses a
+                    decision recorded in it is flagged.
+                </p>
+            </details>
+
             <div class="mt-5 p-3 rounded-lg bg-gray-50 border border-gray-200">
                 <label class="flex items-start space-x-3 cursor-pointer">
                     <input id="setup-accurate" type="checkbox" class="mt-1 accent-[#00685B]">
@@ -783,7 +856,7 @@
                     <svg class="w-16 h-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM18 13.5l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 18l-1.035.259a3.375 3.375 0 00-2.456 2.456L18 21.75l-.259-1.035a3.375 3.375 0 00-2.456-2.456L14.25 18l1.035-.259a3.375 3.375 0 002.456-2.456L18 13.5z" />
                     </svg>
-                    <p>Questions, jargon, fact-checks and what the discussion is skipping past will appear here.</p>
+                    <p>Questions, jargon, fact-checks, questions worth asking, and what the discussion is skipping past will appear here.</p>
                 </div>
             </div>
             <!-- Phone only: what's being said, while you read the cards. Opens the transcript. -->
@@ -812,6 +885,7 @@
         const apiUrl = `${API_BASE}/api/analyze`;
         const stateUrl = `${API_BASE}/api/reverb/state`;
         const speakersUrl = `${API_BASE}/api/reverb/speakers`;
+        const sweepUrl = `${API_BASE}/api/reverb/sweep`;
         const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/ws/reverb`;
 
         // Wake the server on page load — it sleeps on the free tier.
@@ -866,24 +940,40 @@
         const ANALYZE_MAX_ATTEMPTS = 3;
         const ANALYZE_BACKOFF_MS = [2000, 6000];
         const ANSWERED_MEMORY = 40;
+        const DISMISSED_MEMORY = 20;
+        // The server asks to hold the types the room most often handles itself in the next breath;
+        // this caps how long, whatever it asks.
+        const MAX_HOLD_MS = 15000;
 
         // --- Card types ---
-        // Mirrors CARD_TYPES on the server. `cooldown` is noise control, and the reason it
-        // lives here rather than there: a type still cooling off is left out of the request
-        // entirely, so the classifier is never offered a card we would only throw away.
-        // The rates differ by how much each type costs when it is wrong — a fact-check every
-        // time someone cites a number is welcome; "here is what you're not considering"
-        // every ninety seconds is a nag.
+        // Mirrors CARD_TYPES on the server. `cooldown` is noise control: a type that just raised
+        // a card is sent as cooling, and the server holds it to a much higher bar until the
+        // cooldown runs out. The rates differ by how much each type costs when it is wrong — a
+        // fact-check every time someone cites a number is welcome; "here is what you're not
+        // considering" every ninety seconds is a nag. `utterance` types come from each line as it
+        // is said, `sweep` types from the read of the last few minutes; "Ask this" comes from both.
         const CARD_TYPE_UI = {
-            question:      { label: 'Question',   cooldown: 0 },
-            explanation:   { label: 'Jargon',     cooldown: 0 },
-            factcheck:     { label: 'Fact check', cooldown: 45000 },
-            contradiction: { label: 'Conflict',   cooldown: 150000 },
-            gap:           { label: 'Dig deeper', cooldown: 180000 },
-            action:        { label: 'Action',     cooldown: 0 },
+            question:      { label: 'Question',     cooldown: 0,      utterance: true },
+            explanation:   { label: 'Jargon',       cooldown: 0,      utterance: true },
+            factcheck:     { label: 'Fact check',   cooldown: 45000,  utterance: true },
+            contradiction: { label: 'Conflict',     cooldown: 150000, utterance: true },
+            gap:           { label: 'Dig deeper',   cooldown: 180000, utterance: true },
+            ask:           { label: 'Ask this',     cooldown: 60000,  utterance: true, sweep: true },
+            action:        { label: 'Action',       cooldown: 0,      utterance: true },
+            unanswered:    { label: 'Unanswered',   cooldown: 120000, sweep: true },
+            loop:          { label: 'Going round',  cooldown: 300000, sweep: true },
+            confirm:       { label: 'Confirm it',   cooldown: 180000, sweep: true },
+            talkpast:      { label: 'Talking past', cooldown: 300000, sweep: true },
+            drift:         { label: 'Off track',    cooldown: 600000, sweep: true },
         };
         const CARD_TYPE_ORDER = Object.keys(CARD_TYPE_UI);
-        const FILTER_KEY = 'reverb.types';
+        const UTTERANCE_TYPE_ORDER = CARD_TYPE_ORDER.filter((t) => CARD_TYPE_UI[t].utterance);
+        const SWEEP_TYPE_ORDER = CARD_TYPE_ORDER.filter((t) => CARD_TYPE_UI[t].sweep);
+        // Saved as the muted types, so a type added later starts on. The old key held the enabled
+        // ones, which would have quietly muted every newer type for anyone who ever used a filter.
+        const FILTER_KEY = 'reverb.types.muted';
+        const LEGACY_FILTER_KEY = 'reverb.types';
+        const LEGACY_FILTER_TYPES = ['question', 'explanation', 'factcheck', 'contradiction', 'gap', 'action'];
 
         // --- Slow lane (topic tree + rolling summary) ---
         // Folding new speech into the existing state costs a fraction of rebuilding from the
@@ -893,6 +983,15 @@
         const STATE_INTERVAL_MS = 30 * 1000;
         const STATE_MIN_NEW_CHARS = 400;
         const STATE_FULL_EVERY_MS = 5 * 60 * 1000;   // a pass this long after the last rebuild re-reads everything, clearing drift
+
+        // --- Sweep (what no single line shows) ---
+        // A loop or a question the room moved past only shows across minutes, so this reads the
+        // last stretch as a whole. Every two minutes that brought real speech: often enough to
+        // catch an unanswered question while it can still be asked, rarely enough not to nag.
+        const SWEEP_INTERVAL_MS = 2 * 60 * 1000;
+        const SWEEP_MIN_NEW_CHARS = 600;
+        const SWEEP_CONTEXT_CHARS = 9000;    // ~8 minutes of speech
+        const SWEEP_TIMEOUT_MS = 45000;      // the server allows the call 40s
 
         // --- Speaker attribution ---
         const SPEAKER_INTERVAL_MS = 45000;
@@ -941,10 +1040,17 @@
         const PERSIST_DEBOUNCE_MS = 1500;
         const MAX_PERSIST_CHARS = 200000;
 
-        const session = { objective: '', type: 'strategy', keywords: [], roster: [], accurate: false, record: false };
+        const MATERIALS_MAX = 16000;
+        const freshBrief = () => ({
+            objective: '', type: 'strategy', keywords: [], roster: [],
+            agenda: [], durationMin: null, materials: '',
+            accurate: false, record: false,
+        });
+        const session = freshBrief();
 
-        const segments = [];            // { id, text, edited, low } — one per analysed utterance
+        const segments = [];            // { id, text, edited, low, t } — one per analysed utterance; t is meeting time
         const answeredTitles = [];      // { type, title } — what the classifier has already covered
+        const dismissedTitles = [];     // { type, title } — cards the user thumbed down
         // Per-type nudges from the thumbs on each card, sent with every analysis. Down makes a
         // type harder to raise for the rest of the session; up makes it a little easier.
         const typeBias = Object.create(null);
@@ -965,6 +1071,17 @@
         let markResumeSeam = false;
         let wakeLock = null, captureTimer = null, captureWarned = false;
         let speakersRunning = false, lastSpeakerRun = 0;
+        let sweepRunning = false, lastSweepAt = 0, charsSinceSweep = 0, sweepUnsupported = false;
+        const heldTimers = new Set();   // cards waiting a few seconds to hear what the room says next
+        // Meeting time: what has been listened to, not what the wall clock says. A Stop and a
+        // Continue an hour later is still a forty-minute meeting, and "time is running out" has
+        // to be judged against that.
+        let activeMs = 0, activeSince = 0;
+        const meetingClock = () => activeMs + (activeSince ? Date.now() - activeSince : 0);
+        function runClock(on) {
+            if (on && !activeSince) activeSince = Date.now();
+            else if (!on && activeSince) { activeMs += Date.now() - activeSince; activeSince = 0; }
+        }
         let participants = [];
         // Bumped by End session. Every request in flight remembers the epoch it started in
         // and discards its result if that has moved on — otherwise a reply landing a second
@@ -980,6 +1097,7 @@
             answers: [],                    // { ms, firstTokenMs }
             stalls: 0, truncated: 0, retries: 0, errors: 0,
             cards: {}, filtered: 0, dropped: 0, merged: 0, useful: 0, notUseful: 0,
+            held: 0, heldDropped: 0, resolved: 0, sweeps: 0, sweepFails: 0,
             interruptions: {}, longestSilenceMs: 0,
             noiseFloor: null, threshold: null, wakeLock: 'not requested',
             statePasses: 0, stateFulls: 0, stateFails: 0,
@@ -993,16 +1111,42 @@
         // The same transcript with speaker labels folded in, marked only where the speaker
         // changes. This is what goes to the models: "Dana said X but Tom established Y" is a
         // far better card than the same observation with nobody attached to either half.
-        function attributedTranscript(from = 0) {
+        // Timed, it also marks each new minute of meeting time — "[14m]" — which is what lets
+        // the summary say when a decision was made and the sweep say how long ago a question was.
+        function attributedTranscript(from = 0, opts) {
+            const timed = Boolean(opts && opts.timed);
             const out = [];
-            let last = null;
+            let last = null, lastMin = -1;
             for (let i = from; i < segments.length; i++) {
                 const seg = segments[i];
-                if (seg.speaker && seg.speaker !== last) out.push(`\n${seg.speaker}: `);
+                const min = timed && Number.isFinite(seg.t) ? Math.floor(seg.t / 60000) : null;
+                const newMin = min != null && min !== lastMin;
+                const newSpeaker = Boolean(seg.speaker) && seg.speaker !== last;
+                if (newMin) lastMin = min;
+                if (newMin || newSpeaker) {
+                    const who = seg.speaker || (newMin ? last : null);
+                    out.push(`\n${newMin ? `[${min}m] ` : ''}${who ? `${who}: ` : ''}`);
+                }
                 last = seg.speaker || last;
                 out.push(seg.text, ' ');
             }
             return out.join('').trim();
+        }
+
+        // The brief as the server reads it. The background material is most of its size and no
+        // help in telling voices apart, so the speaker pass goes without it.
+        function briefForServer(opts) {
+            const withMaterials = !(opts && opts.materials === false);
+            return {
+                objective: session.objective,
+                type: session.type,
+                keywords: session.keywords.slice(0, 100),
+                roster: session.roster.slice(0, 40),
+                agenda: (session.agenda || []).slice(0, 20),
+                durationMin: session.durationMin || null,
+                elapsedMin: startedAt ? Math.round(meetingClock() / 60000) : null,
+                ...(withMaterials && session.materials ? { materials: session.materials.slice(0, MATERIALS_MAX) } : {}),
+            };
         }
         const wordCount = (s) => (s.match(/[\p{L}\p{N}'’-]+/gu) || []).length;
 
@@ -1172,7 +1316,7 @@
             const clean = text.trim();
             if (!clean) return;
 
-            const segment = { id: `seg-${segmentSeq++}`, text: clean, edited: false, low: Boolean(opts && opts.low) };
+            const segment = { id: `seg-${segmentSeq++}`, text: clean, edited: false, low: Boolean(opts && opts.low), t: meetingClock() };
             segments.push(segment);
 
             const atBottom = transcriptAtBottom();
@@ -1184,6 +1328,7 @@
             followTranscript(atBottom);
 
             charsSinceState += clean.length;
+            charsSinceSweep += clean.length;
             persistTranscript();
         }
 
@@ -1335,20 +1480,27 @@
         // ---------- card type filters ----------
         function loadTypePrefs() {
             try {
-                const saved = JSON.parse(localStorage.getItem(FILTER_KEY) || 'null');
-                // Absent key means never chose, and the default is everything on. An
-                // empty array means the user muted all six, which is a real choice and
-                // stays honoured — the filter row shows six greyed chips, so an empty
-                // panel explains itself.
-                if (Array.isArray(saved)) {
-                    enabledTypes.clear();
-                    for (const t of saved) if (CARD_TYPE_UI[t]) enabledTypes.add(t);
+                let muted = JSON.parse(localStorage.getItem(FILTER_KEY) || 'null');
+                // From before the newer types: the enabled list of the original six.
+                if (!Array.isArray(muted)) {
+                    const enabled = JSON.parse(localStorage.getItem(LEGACY_FILTER_KEY) || 'null');
+                    if (Array.isArray(enabled)) muted = LEGACY_FILTER_TYPES.filter((t) => !enabled.includes(t));
+                }
+                // Absent means never chose, and the default is everything on. Muting every
+                // type is a real choice and stays honoured — the filter row shows the greyed
+                // chips, so an empty panel explains itself.
+                if (Array.isArray(muted)) {
+                    for (const t of muted) enabledTypes.delete(t);
+                    persistTypePrefs();
                 }
             } catch (err) { /* private mode */ }
         }
 
         function persistTypePrefs() {
-            try { localStorage.setItem(FILTER_KEY, JSON.stringify([...enabledTypes])); } catch (err) { /* ignore */ }
+            try {
+                localStorage.setItem(FILTER_KEY, JSON.stringify(CARD_TYPE_ORDER.filter((t) => !enabledTypes.has(t))));
+                localStorage.removeItem(LEGACY_FILTER_KEY);
+            } catch (err) { /* ignore */ }
         }
 
         // The chips used to change only what the classifier was asked for next, so a card
@@ -1363,7 +1515,7 @@
         function resetTypePrefs() {
             enabledTypes.clear();
             for (const t of CARD_TYPE_ORDER) enabledTypes.add(t);
-            try { localStorage.removeItem(FILTER_KEY); } catch (err) { /* ignore */ }
+            try { localStorage.removeItem(FILTER_KEY); localStorage.removeItem(LEGACY_FILTER_KEY); } catch (err) { /* ignore */ }
             renderTypeFilters();
             applyTypeFilters();
             typeFilters.classList.add('hidden');
@@ -1424,26 +1576,54 @@
         function enqueueAnalysis(utterance, context) {
             // Every type is muted — there is nothing this utterance could produce, so don't
             // spend the round trip finding that out.
-            const types = CARD_TYPE_ORDER.filter((t) => enabledTypes.has(t));
+            const types = UTTERANCE_TYPE_ORDER.filter((t) => enabledTypes.has(t));
             if (!types.length) return;
 
             // No card yet: it appears only once the classifier says there is one. The order is
             // fixed now, though, so cards still sit in the order things were said even when a
-            // short answer finishes before a long one that started earlier.
-            analyzeQueue.push({
+            // short answer finishes before a long one that started earlier. segIndex marks
+            // where this utterance's "what was said next" begins, for a card that is held.
+            queueJob({
                 utterance, context, types,
                 cooling: coolingTypes(),
                 order: ++cardOrder,
                 card: null,
+                slots: [],
+                segIndex: segments.length,
                 state: meetingState,
                 answered: answeredTitles.slice(-ANSWERED_MEMORY),
                 attempt: 0,
             });
+        }
+
+        // Beyond MAX_ANALYZE_QUEUE the meeting has moved on, and the oldest fresh utterance goes.
+        // A card that already has its type — held, or being retried — is kept over one that
+        // may well turn out to be nothing.
+        function queueJob(job, front) {
+            if (front) analyzeQueue.unshift(job); else analyzeQueue.push(job);
             while (analyzeQueue.length > MAX_ANALYZE_QUEUE) {
-                const dropped = analyzeQueue.shift();
+                const i = analyzeQueue.findIndex((j) => !j.forced);
+                const [dropped] = analyzeQueue.splice(i >= 0 ? i : 0, 1);
                 if (dropped.card) removeCard(dropped.card);
+                for (const slot of dropped.slots || []) retireSlot(slot);
             }
             pumpAnalysis();
+        }
+
+        // A card already classified, sent back to be answered on its own: after a hold, with what
+        // the room said in the meantime, or to retry an answer without re-reading the utterance.
+        function answerJob(job, slot, attempt, after) {
+            slot.finished = false;
+            slot.entry = null;
+            slot.sourcesEl = null;
+            const { hold, card, ...meta } = slot.meta;
+            return {
+                utterance: job.utterance, context: job.context, types: job.types,
+                cooling: [], order: job.order, card: null,
+                segIndex: job.segIndex, state: meetingState, answered: [],
+                attempt, forced: meta, after: after != null ? after : (job.after || ''),
+                slots: [slot],
+            };
         }
 
         function pumpAnalysis() {
@@ -1461,8 +1641,96 @@
             if (pending) insightsActivity.innerHTML = `${spinnerSvg}<span>Analyzing${pending > 1 ? ` ${pending}` : ''}…</span>`;
         }
 
+        // One utterance can now raise two cards, each streamed on the same response. A slot is one
+        // of them: { meta, card, entry, sourcesEl, label, finished }.
+        function showSlot(job, slot, meta) {
+            slot.meta = meta;
+            // A request and its acceptance are one commitment: the second updates the card the
+            // first one made instead of adding another.
+            const existing = meta.type === 'action' && meta.supersedes && findActionCard(meta.supersedes);
+            if (existing) {
+                stats.merged++;
+                updateActionCard(existing, meta);
+                retireSlot(slot);
+                return;
+            }
+            // Held: nothing on screen yet. The title is remembered now, so a second utterance
+            // about the same thing can't raise it while this one waits.
+            if (meta.hold) {
+                stats.held++;
+                if (!slot.label) slot.label = rememberAnswered(meta);
+                slot.finished = true;
+                scheduleHeld(job, slot);
+                return;
+            }
+            if (!slot.card) slot.card = placeCard(job.order);
+            const refs = renderSkeleton(slot.card, meta);
+            // An action item is complete as classified — owner, task, deadline — so the server
+            // sends no answer and there is nothing to stream into.
+            slot.entry = refs.gist ? { ...refs, card: slot.card, type: meta.type, text: '', hasSources: false } : null;
+            slot.sourcesEl = refs.sources;
+            if (!slot.counted) { slot.counted = true; bumpStat('cards', meta.type); }
+            if (!slot.label) slot.label = rememberAnswered(meta);
+            if (!slot.entry) finishSlot(slot);
+        }
+
+        function finishSlot(slot) {
+            if (slot.finished) return;
+            slot.finished = true;
+            const verdict = slot.entry ? parseVerdict(slot.entry.text).verdict : null;
+            startCooldown(slot.meta, verdict);
+        }
+
+        // Gone before anyone read it — retracted, superseded, or the meeting moved on. Its subject
+        // must not stay suppressed on the strength of a card nobody saw.
+        function retireSlot(slot) {
+            slot.finished = true;
+            forgetAnswered(slot.label);
+            slot.label = null;
+            if (slot.card) { removeCard(slot.card); slot.card = null; }
+        }
+
+        function scheduleHeld(job, slot) {
+            const epoch = sessionEpoch;
+            const timer = setTimeout(() => {
+                heldTimers.delete(timer);
+                if (epoch !== sessionEpoch) return;
+                if (!enabledTypes.has(slot.meta.type)) { retireSlot(slot); return; }
+                // Everything said since, including the sentence still being spoken.
+                const after = [attributedTranscript(job.segIndex), pendingUtterance, interimEl.textContent]
+                    .join(' ').replace(/\s+/g, ' ').trim();
+                queueJob(answerJob(job, slot, 0, after), true);
+            }, Math.min(Number(slot.meta.hold) || 0, MAX_HOLD_MS));
+            heldTimers.add(timer);
+        }
+
+        // The stream died on this card. What did arrive is real, and is kept under an honest
+        // marker; with nothing yet, the answer is retried on its own — the classify already
+        // happened, and repeating it could just as well come back with a different card.
+        function salvageSlot(job, slot, why, retryable) {
+            if (slot.finished) return;
+            if (slot.entry && slot.entry.text.trim()) {
+                stats.truncated++;
+                slot.finished = true;
+                renderIncomplete(job, slot);
+                return;
+            }
+            slot.finished = true;
+            if (retryable && job.attempt < ANALYZE_MAX_ATTEMPTS - 1) {
+                const wait = ANALYZE_BACKOFF_MS[Math.min(job.attempt, ANALYZE_BACKOFF_MS.length - 1)];
+                stats.retries++;
+                if (slot.card) resetCardToPending(slot.card, `${why} — retrying…`);
+                const epoch = sessionEpoch;
+                setTimeout(() => { if (epoch === sessionEpoch) queueJob(answerJob(job, slot, job.attempt + 1), true); }, wait);
+                return;
+            }
+            stats.errors++;
+            forgetAnswered(slot.label);
+            slot.label = null;
+            renderSlotError(job, slot, why);
+        }
+
         async function runAnalysis(job) {
-            let entry = null, sourcesEl = null, sawMeta = false;
             const controller = new AbortController();
             const epoch = sessionEpoch;
             inflight.add(controller);
@@ -1475,7 +1743,13 @@
             };
             const capTimer = setTimeout(() => { expired = true; controller.abort(); }, ANALYZE_MAX_MS);
 
-            let answeredLabel = null, sawDone = false, verdict = null;
+            const slots = job.slots || (job.slots = []);
+            // A server that predates two-card replies sends no index: everything is card 0.
+            const slotAt = (data) => {
+                const i = data && Number.isInteger(data.card) && data.card >= 0 && data.card < 4 ? data.card : 0;
+                return slots[i] || (slots[i] = { meta: null, card: null, label: null, finished: false });
+            };
+            let sawMeta = false, sawDone = false;
             const startedAtMs = Date.now();
             let firstTokenAt = 0;
 
@@ -1490,17 +1764,16 @@
                         context: job.context,
                         // roster included: knowing who is in the room is what lets a
                         // conflict card name both sides instead of describing one.
-                        session: {
-                            objective: session.objective,
-                            type: session.type,
-                            keywords: session.keywords.slice(0, 100),
-                            roster: session.roster.slice(0, 40),
-                        },
+                        session: briefForServer(),
                         state: job.state,
                         answered: job.answered,
+                        dismissed: dismissedTitles.slice(-DISMISSED_MEMORY),
                         types: job.types,
                         cooling: job.cooling,
                         bias: { ...typeBias },
+                        multi: true,
+                        canHold: !job.forced,
+                        ...(job.forced ? { card: job.forced, after: job.after || '' } : {}),
                     })
                 });
                 if (resp.status === 429) throw Object.assign(new Error('Busy — too many requests'), { retryable: true });
@@ -1530,55 +1803,47 @@
                             if (data.type === 'none') {
                                 stats.filtered++;
                                 if (job.card) { removeCard(job.card); job.card = null; }
+                                for (const slot of slots) retireSlot(slot);
                                 return;
                             }
-                            // A request and its acceptance are one commitment: the second
-                            // updates the card the first one made instead of adding another.
-                            const existing = data.type === 'action' && data.supersedes && findActionCard(data.supersedes);
-                            if (existing) {
-                                stats.merged++;
-                                updateActionCard(existing, data);
-                                if (job.card) { removeCard(job.card); job.card = null; }
-                                return;
-                            }
-                            if (!job.card) job.card = placeCard(job.order);
-                            const refs = renderSkeleton(job.card, data);
-                            // An action item is complete as classified — owner, task, deadline —
-                            // so the server sends no answer and there is nothing to stream into.
-                            entry = refs.gist ? { ...refs, card: job.card, type: data.type, text: '', hasSources: false } : null;
-                            sourcesEl = refs.sources;
-                            job.meta = data;
-                            bumpStat('cards', data.type);
-                            answeredLabel = rememberAnswered(data);
+                            showSlot(job, slotAt(data), data);
                         } else if (event === 'drop') {
-                            // The answer model looked at the full picture and decided this
-                            // wasn't worth raising. Better a card that never appears than a
-                            // confident non-observation.
+                            // The answer model looked at the full picture — including, for a held
+                            // card, what the room said next — and decided this wasn't worth
+                            // raising. Better a card that never appears than a confident
+                            // non-observation.
                             stats.dropped++;
-                            forgetAnswered(answeredLabel);
-                            if (job.card) { removeCard(job.card); job.card = null; }
-                            return;
-                        } else if (event === 'delta' && entry) {
+                            if (job.after) stats.heldDropped++;
+                            retireSlot(slotAt(data));
+                        } else if (event === 'delta') {
+                            const slot = slotAt(data);
+                            if (!slot.entry) continue;
                             if (!firstTokenAt) firstTokenAt = Date.now();
-                            entry.text += data.text || '';
-                            markAnswerDirty(entry);
-                        } else if (event === 'sources' && sourcesEl) {
-                            renderSources(sourcesEl, data.sources || []);
-                            if (entry && data.sources && data.sources.length) { entry.hasSources = true; markAnswerDirty(entry); }
+                            slot.entry.text += data.text || '';
+                            markAnswerDirty(slot.entry);
+                        } else if (event === 'sources') {
+                            const slot = slotAt(data);
+                            if (!slot.sourcesEl) continue;
+                            renderSources(slot.sourcesEl, data.sources || []);
+                            if (slot.entry && data.sources && data.sources.length) { slot.entry.hasSources = true; markAnswerDirty(slot.entry); }
+                        } else if (event === 'end') {
+                            finishSlot(slotAt(data));
                         } else if (event === 'done') {
                             sawDone = true;
-                            if (entry) verdict = parseVerdict(entry.text).verdict;
-                            if (!job.cooled) { job.cooled = true; startCooldown(job.meta, verdict); }
-                            stats.answers.push({
-                                ms: Date.now() - startedAtMs,
-                                firstTokenMs: firstTokenAt ? firstTokenAt - startedAtMs : null,
-                            });
+                            for (const slot of slots) if (slot.meta && !slot.finished) finishSlot(slot);
+                            if (slots.some((slot) => slot.entry)) {
+                                stats.answers.push({
+                                    ms: Date.now() - startedAtMs,
+                                    firstTokenMs: firstTokenAt ? firstTokenAt - startedAtMs : null,
+                                });
+                            }
                         } else if (event === 'error') {
-                            // The server now says whether it is worth another go.
-                            throw Object.assign(
-                                new Error((data && data.message) || 'Analysis failed'),
-                                { retryable: Boolean(data && data.retryable) }
-                            );
+                            // The server now says whether it is worth another go, and, with two
+                            // cards in flight, which card it was about.
+                            const message = (data && data.message) || 'Analysis failed';
+                            const retryable = Boolean(data && data.retryable);
+                            if (data && Number.isInteger(data.card)) salvageSlot(job, slotAt(data), message, retryable);
+                            else throw Object.assign(new Error(message), { retryable });
                         }
                     }
                 }
@@ -1587,9 +1852,8 @@
                 // above this line succeeded, so there may be a usable partial answer —
                 // which is worth more than replacing it with an error.
                 if (!sawDone) {
-                    if (!sawMeta) throw Object.assign(new Error('Connection dropped'), { retryable: true });
-                    if (entry && entry.text.trim()) { stats.truncated++; renderIncomplete(job, answeredLabel); return; }
-                    throw Object.assign(new Error('Answer was cut off'), { retryable: true });
+                    if (!sawMeta && !job.forced) throw Object.assign(new Error('Connection dropped'), { retryable: true });
+                    for (const slot of slots) if (slot.meta) salvageSlot(job, slot, 'Answer was cut off', true);
                 }
             } catch (err) {
                 if (epoch !== sessionEpoch) return;   // aborted by End session, not a failure
@@ -1606,9 +1870,12 @@
 
                 if (stalled) stats.stalls++;
 
-                // The card never appeared, so its subject must not stay suppressed.
-                forgetAnswered(answeredLabel);
+                // Cards that already have their type are retried one by one, answer only.
+                const open = slots.filter((slot) => slot.meta && !slot.finished);
+                if (open.length) { for (const slot of open) salvageSlot(job, slot, why, retryable); return; }
+                if (sawMeta || job.forced) return;
 
+                // Nothing classified yet: the whole utterance goes round again.
                 if (retryable && job.attempt < ANALYZE_MAX_ATTEMPTS - 1) {
                     const wait = ANALYZE_BACKOFF_MS[Math.min(job.attempt, ANALYZE_BACKOFF_MS.length - 1)];
                     job.attempt++;
@@ -1616,7 +1883,7 @@
                     // Before the classifier answered there is no card to reset; the header
                     // indicator already says work is in flight.
                     if (job.card) resetCardToPending(job.card, `${why} — retrying…`);
-                    setTimeout(() => { if (epoch === sessionEpoch) { analyzeQueue.unshift(job); pumpAnalysis(); } }, wait);
+                    setTimeout(() => { if (epoch === sessionEpoch) { job.slots = []; queueJob(job, true); } }, wait);
                 } else {
                     stats.errors++;
                     renderCardError(job, why);
@@ -1691,7 +1958,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
-                    body: JSON.stringify({ turns, attributed, session }),
+                    body: JSON.stringify({ turns, attributed, session: briefForServer({ materials: false }) }),
                 });
                 const data = await resp.json().catch(() => ({}));
                 if (epoch !== sessionEpoch) return;
@@ -1719,6 +1986,107 @@
                 clearTimeout(timeout);
                 inflight.delete(controller);
                 speakersRunning = false;
+            }
+        }
+
+        // ---------- slow lane: the sweep ----------
+        // What no single line shows: a question the room moved past, an argument on its third
+        // lap, a decision everyone is acting on that nobody made, two people meaning different
+        // things by one word, time going to the wrong thing. Silent when it fails, like the
+        // other slow lanes — a missed sweep costs nothing the next one won't catch.
+        function maybeRunSweep() {
+            if (sweepRunning || sweepUnsupported || !isListening || isPaused) return;
+            if (charsSinceSweep < SWEEP_MIN_NEW_CHARS) return;
+            if (Date.now() - lastSweepAt < SWEEP_INTERVAL_MS) return;
+            runSweep();
+        }
+
+        async function runSweep() {
+            const types = SWEEP_TYPE_ORDER.filter((t) => enabledTypes.has(t));
+            if (!types.length) return;
+            sweepRunning = true;
+            lastSweepAt = Date.now();
+            const spent = charsSinceSweep;
+            charsSinceSweep = 0;
+            stats.sweeps++;
+
+            // Cut at a line start, so the stretch never opens mid-sentence with no speaker.
+            let transcript = attributedTranscript(0, { timed: true });
+            if (transcript.length > SWEEP_CONTEXT_CHARS) {
+                const tail = transcript.slice(-SWEEP_CONTEXT_CHARS);
+                const nl = tail.indexOf('\n');
+                transcript = nl >= 0 && nl < 2000 ? tail.slice(nl + 1) : tail;
+            }
+
+            const controller = new AbortController();
+            const epoch = sessionEpoch;
+            inflight.add(controller);
+            const timeout = setTimeout(() => controller.abort(), SWEEP_TIMEOUT_MS);
+            try {
+                const resp = await fetch(sweepUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        transcript,
+                        session: briefForServer(),
+                        state: meetingState,
+                        answered: answeredTitles.slice(-ANSWERED_MEMORY),
+                        dismissed: dismissedTitles.slice(-DISMISSED_MEMORY),
+                        types,
+                        cooling: coolingTypes(),
+                        bias: { ...typeBias },
+                    }),
+                });
+                const data = await resp.json().catch(() => ({}));
+                if (epoch !== sessionEpoch) return;
+                // A server from before the sweep existed. Stop asking rather than fail every time.
+                if (resp.status === 404) { sweepUnsupported = true; return; }
+                if (!resp.ok) throw new Error(data.error || `server ${resp.status}`);
+
+                for (const title of data.resolved || []) markResolved(title);
+                for (const c of data.cards || []) showSweepCard(c);
+            } catch (err) {
+                if (epoch !== sessionEpoch) return;
+                stats.sweepFails++;
+                charsSinceSweep += spent;   // the next pass reads this stretch too
+                console.error('ReVerb sweep error:', err);
+            } finally {
+                clearTimeout(timeout);
+                inflight.delete(controller);
+                sweepRunning = false;
+            }
+        }
+
+        // Written whole by the sweep — observation, evidence, and the question to ask — so it
+        // goes up complete, the way an action item does.
+        function showSweepCard(c) {
+            if (!c || !CARD_TYPE_UI[c.type] || !c.title) return;
+            const card = placeCard(++cardOrder);
+            const refs = renderSkeleton(card, { type: c.type, title: c.title });
+            refs.gist.innerHTML = renderMarkdown(c.gist || '') + (c.ask ? askLine(c.ask) : '');
+            refs.moreText.innerHTML = renderMarkdown(c.detail || '');
+            refs.toggle.hidden = !(c.detail || '').trim();
+            bumpStat('cards', c.type);
+            rememberAnswered({ type: c.type, title: c.title });
+            startCooldown({ type: c.type });
+        }
+
+        function askLine(question) {
+            return `<p class="card-ask"><span class="card-ask-label">Ask</span>${escapeHtmlText(question)}</p>`;
+        }
+
+        // The sweep saw the room deal with something a card raised. The card stays, as a record,
+        // but quietly — and an action item never counts as dealt with just by being discussed.
+        function markResolved(title) {
+            const want = String(title).trim().toLowerCase();
+            for (const card of insightsContainer.querySelectorAll('[data-card][data-type]')) {
+                if (card.dataset.type === 'action' || card.classList.contains('card-resolved')) continue;
+                if ((card.dataset.title || '').trim().toLowerCase() !== want) continue;
+                card.classList.add('card-resolved');
+                const chip = card.querySelector('.card-chip');
+                if (chip) chip.after(el('span', 'card-resolved-mark', 'Addressed'));
+                stats.resolved++;
             }
         }
 
@@ -1750,7 +2118,7 @@
             const upTo = segments.length;
             // Sliced by segment rather than by character count, so correcting a line
             // upstream can't shift the window and duplicate or skip speech.
-            const raw = full ? attributedTranscript() : attributedTranscript(lastStateSegment);
+            const raw = full ? attributedTranscript(0, { timed: true }) : attributedTranscript(lastStateSegment, { timed: true });
             const transcript = raw.length > STATE_CONTEXT_CHARS
                 ? `[The transcript starts partway through the meeting.]\n${raw.slice(-STATE_CONTEXT_CHARS)}`
                 : raw;
@@ -1769,8 +2137,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
                     body: JSON.stringify(full
-                        ? { transcript, session, full: true, ...(meetingState ? { previous: meetingState } : {}) }
-                        : { transcript, session, previous: meetingState })
+                        ? { transcript, session: briefForServer(), full: true, ...(meetingState ? { previous: meetingState } : {}) }
+                        : { transcript, session: briefForServer(), previous: meetingState })
                 });
                 const data = await resp.json().catch(() => ({}));
                 if (epoch !== sessionEpoch) return;
@@ -1864,10 +2232,25 @@
             }
             if (meetingState) {
                 if (meetingState.headline) summaryBody.append(el('p', 'text-gray-700 mt-2', meetingState.headline));
-                appendSummaryList('Key points', meetingState.keyPoints);
-                appendSummaryList('Decided', meetingState.decisions);
-                appendSummaryList('Still open', meetingState.openThreads);
+                if (meetingState.objectiveProgress) summaryBody.append(el('p', 'text-xs text-gray-500 mt-1', meetingState.objectiveProgress));
+                for (const [label, items] of stateSections(meetingState)) appendSummaryList(label, items);
             }
+        }
+
+        // Everything in the state past the headline, as labelled lists — shared by the panel and
+        // the copied summary so the two never disagree about what the meeting produced.
+        function stateSections(state) {
+            const list = (v) => (Array.isArray(v) ? v : []);
+            return [
+                ['Agenda', list(state.agenda).filter((a) => a && a.item).map((a) => `${a.item} — ${a.status || '?'}`)],
+                ['Key points', list(state.keyPoints)],
+                ['Decided', list(state.decisions)],
+                ['Still open', list(state.openThreads)],
+                ['Positions', list(state.positions).filter((p) => p && p.person && p.stance).map((p) => `${p.person}: ${p.stance}`)],
+                ['Assumed, not checked', list(state.assumptions)],
+                ['Numbers said', list(state.figures).filter((f) => f && f.figure)
+                    .map((f) => `${f.figure} — ${f.about || '?'}${f.who ? ` (${f.who})` : ''}`)],
+            ];
         }
 
         function appendSummaryList(label, items) {
@@ -1888,6 +2271,7 @@
                 parts.push(`In the room: ${participants.map(p => p && p.name).filter(Boolean).join(', ')}`, '');
             }
             if (meetingState.headline) parts.push(meetingState.headline, '');
+            if (meetingState.objectiveProgress) parts.push(meetingState.objectiveProgress, '');
             const section = (label, items) => {
                 if (!items || !items.length) return;
                 parts.push(`${label}:`);
@@ -1895,9 +2279,7 @@
                 parts.push('');
             };
             section('Topics', (meetingState.topics || []).map(t => t.name));
-            section('Key points', meetingState.keyPoints);
-            section('Decided', meetingState.decisions);
-            section('Still open', meetingState.openThreads);
+            for (const [label, items] of stateSections(meetingState)) section(label, items);
             return parts.join('\n').trim();
         }
 
@@ -1932,6 +2314,10 @@
                 '',
                 `CARDS — ${tally(stats.cards, cardLabel)}`,
                 `  filtered as not worth raising ${stats.filtered} · retracted at answer time ${stats.dropped} · action updates merged ${stats.merged}`,
+                `  held to hear what came next ${stats.held} · of those dropped because the room covered it ${stats.heldDropped}`,
+                `  sweeps ${stats.sweeps} (${stats.sweepFails} failed) · cards the room later addressed ${stats.resolved}`,
+                `  → a held card dropped is a card that would have been noise; if that is most`,
+                `    of them, the hold is earning its delay.`,
                 `  feedback: useful ${stats.useful} · not useful ${stats.notUseful} · bias now ${tally(typeBias, cardLabel)}`,
                 `  → mostly filtered means the salience bars are right; a panel you ignored`,
                 `    means raise them, an empty one means lower them.`,
@@ -2003,6 +2389,8 @@
                 // A dig-deeper card's gist already names what is being skipped; repeating it as a
                 // subject line only doubled the text.
                 case 'gap':           return '';
+                // The gist is the question to ask; this says what it would clear up.
+                case 'ask':           return meta.claim ? `Unclear: ${q(meta.claim)}` : '';
                 default:              return '';
             }
         }
@@ -2120,6 +2508,11 @@
             if (vote === 'down') {
                 typeBias[type] = Math.min(BIAS_MAX, current + BIAS_DOWN);
                 stats.notUseful++;
+                // The bias only knows the type was unwelcome; the title says which kind.
+                if (card.dataset.title) {
+                    dismissedTitles.push({ type, title: card.dataset.title.slice(0, 120) });
+                    if (dismissedTitles.length > DISMISSED_MEMORY * 2) dismissedTitles.splice(0, dismissedTitles.length - DISMISSED_MEMORY);
+                }
                 removeCard(card);
             } else {
                 const button = card.querySelector('[data-feedback="up"]');
@@ -2142,22 +2535,44 @@
         // The stream died mid-answer, but what did arrive is real. Keeping it under an honest
         // marker beats both of the alternatives: throwing away a good partial answer, or
         // leaving a sentence that stops dead and looks finished.
-        function renderIncomplete(job, label) {
-            const body = job.card && job.card.querySelector('.card-body');
+        function renderIncomplete(job, slot) {
+            const body = slot.card && slot.card.querySelector('.card-body');
             if (!body) return;
             const bar = el('div', 'card-incomplete');
             bar.append(el('span', '', 'Cut off before the end.'));
             const btn = el('button', 'card-retry', 'Finish it');
             btn.type = 'button';
             btn.addEventListener('click', () => {
-                forgetAnswered(label);
-                job.attempt = 0;
-                resetCardToPending(job.card, 'Retrying…');
-                analyzeQueue.unshift(job);
-                pumpAnalysis();
+                resetCardToPending(slot.card, 'Retrying…');
+                queueJob(answerJob(job, slot, 0), true);
             });
             bar.append(btn);
             body.append(bar);
+        }
+
+        // One card of an utterance failed after it was classified. Retry answers just that card.
+        function renderSlotError(job, slot, message) {
+            if (!slot.card) slot.card = placeCard(job.order);
+            const card = slot.card;
+            delete card.dataset.type;
+            card.classList.remove('opacity-75');
+            const subject = slot.meta && (slot.meta.title || slot.meta.question || slot.meta.term || slot.meta.claim);
+            card.innerHTML = `
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-sm text-amber-600">${escapeHtmlText(message)}</p>
+                        <p class="mt-1 text-xs text-gray-500 truncate">${escapeHtmlText(subject || `"${job.utterance}"`)}</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button data-act="retry" class="px-2.5 py-1 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green">Retry</button>
+                        <button data-act="dismiss" class="px-2 py-1 text-xs text-gray-400 hover:text-gray-600">Dismiss</button>
+                    </div>
+                </div>`;
+            card.querySelector('[data-act="retry"]').addEventListener('click', () => {
+                resetCardToPending(card, 'Retrying…');
+                queueJob(answerJob(job, slot, 0), true);
+            });
+            card.querySelector('[data-act="dismiss"]').addEventListener('click', () => { removeCard(card); slot.card = null; });
         }
 
         // A failed analysis used to vanish, which is indistinguishable from the AI deciding
@@ -2179,9 +2594,9 @@
                 </div>`;
             job.card.querySelector('[data-act="retry"]').addEventListener('click', () => {
                 job.attempt = 0;
+                job.slots = [];
                 resetCardToPending(job.card, 'Retrying…');
-                analyzeQueue.unshift(job);
-                pumpAnalysis();
+                queueJob(job, true);
             });
             job.card.querySelector('[data-act="dismiss"]').addEventListener('click', () => { removeCard(job.card); job.card = null; });
         }
@@ -2703,6 +3118,14 @@ self.onmessage = function (e) {
         }
         function restoreSessionBrief() {
             try { Object.assign(session, JSON.parse(localStorage.getItem('reverb.session') || '{}')); } catch (err) { /* ignore */ }
+            normalizeBrief();
+        }
+
+        // Briefs saved before the agenda and background material existed have neither.
+        function normalizeBrief() {
+            if (!Array.isArray(session.agenda)) session.agenda = [];
+            if (typeof session.materials !== 'string') session.materials = '';
+            if (!Number.isFinite(session.durationMin) || session.durationMin <= 0) session.durationMin = null;
         }
 
         let persistTimer = null;
@@ -2720,11 +3143,16 @@ self.onmessage = function (e) {
                 localStorage.setItem(STORE_KEY, JSON.stringify({
                     savedAt: Date.now(),
                     startedAt,
-                    brief: { objective: session.objective, type: session.type, keywords: session.keywords, roster: session.roster },
-                    segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low, speaker: s.speaker, confident: s.confident })),
+                    activeMs: meetingClock(),
+                    brief: {
+                        objective: session.objective, type: session.type, keywords: session.keywords, roster: session.roster,
+                        agenda: session.agenda, durationMin: session.durationMin, materials: session.materials,
+                    },
+                    segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low, speaker: s.speaker, confident: s.confident, t: s.t })),
                     meetingState,
                     participants,
                     answered: answeredTitles.slice(-ANSWERED_MEMORY),
+                    dismissed: dismissedTitles.slice(-DISMISSED_MEMORY),
                     bias: { ...typeBias },
                 }));
             } catch (err) { /* quota or private mode — the session still runs */ }
@@ -2812,7 +3240,10 @@ self.onmessage = function (e) {
 
         function restoreSaved(data) {
             Object.assign(session, data.brief || {});
+            normalizeBrief();
             startedAt = data.startedAt || null;
+            activeMs = Number.isFinite(data.activeMs) ? data.activeMs : 0;
+            activeSince = 0;
             segments.length = 0;
             segmentSeq = 0;
             segmentsEl.replaceChildren();
@@ -2821,6 +3252,7 @@ self.onmessage = function (e) {
                     id: `seg-${segmentSeq++}`, text: s.text,
                     edited: Boolean(s.edited), low: Boolean(s.low),
                     speaker: s.speaker || null, confident: s.confident !== false,
+                    t: Number.isFinite(s.t) ? s.t : undefined,
                 };
                 segments.push(segment);
                 segmentsEl.append(renderSegment(segment), document.createTextNode(' '));
@@ -2831,6 +3263,10 @@ self.onmessage = function (e) {
             // Saved before cards were typed, entries were bare titles; both still suppress repeats.
             if (Array.isArray(data.answered)) {
                 answeredTitles.push(...data.answered.filter((a) => typeof a === 'string' || (a && typeof a.title === 'string')));
+            }
+            dismissedTitles.length = 0;
+            if (Array.isArray(data.dismissed)) {
+                dismissedTitles.push(...data.dismissed.filter((a) => a && typeof a.title === 'string'));
             }
             for (const key of Object.keys(typeBias)) delete typeBias[key];
             if (data.bias && typeof data.bias === 'object') {
@@ -2843,6 +3279,8 @@ self.onmessage = function (e) {
             stateBar.classList.remove('hidden');
             if (meetingState) { renderMeetingState(); stampState(data.savedAt || Date.now()); }
             charsSinceState = 0;
+            charsSinceSweep = 0;
+            lastSweepAt = 0;
             // The saved state may trail the saved transcript by a few segments. Rather than
             // guess the overlap, make the first pass after a restore a full rebuild.
             lastStateSegment = 0;
@@ -2925,6 +3363,12 @@ self.onmessage = function (e) {
             $('setup-type').value = session.type;
             $('setup-roster').value = (session.roster || []).join(', ');
             $('setup-keywords').value = session.keywords.join(', ');
+            $('setup-agenda').value = (session.agenda || []).join('\n');
+            $('setup-duration').value = session.durationMin || '';
+            $('setup-materials').value = session.materials || '';
+            reflectMaterialsCount();
+            // Open when there is something in it, so a filled-in brief doesn't look empty.
+            $('setup-more').open = Boolean((session.agenda || []).length || session.durationMin || session.materials);
             $('setup-accurate').checked = session.accurate;
             $('setup-record').checked = session.record;
             $('setup-start').textContent = segments.length ? 'Continue session' : 'Start session';
@@ -2946,12 +3390,34 @@ self.onmessage = function (e) {
 
         const closeSetup = () => setupModal.classList.add('hidden');
 
+        function reflectMaterialsCount() {
+            const n = $('setup-materials').value.length;
+            $('materials-count').textContent = n ? `${n.toLocaleString()} / ${MATERIALS_MAX.toLocaleString()} characters` : '';
+        }
+
+        // Text files only: reading a PDF or a Word file needs a parser this page doesn't carry,
+        // and pasting from either works.
+        async function loadMaterialsFile(file) {
+            if (!file) return;
+            if (file.size > 2e6) { $('materials-count').textContent = 'That file is too large — paste the part that matters.'; return; }
+            const text = (await file.text()).replace(/\r\n?/g, '\n').trim();
+            const box = $('setup-materials');
+            const joined = [box.value.trim(), text].filter(Boolean).join('\n\n');
+            box.value = joined.slice(0, MATERIALS_MAX);
+            reflectMaterialsCount();
+            if (joined.length > MATERIALS_MAX) $('materials-count').textContent += ' — the rest was cut off';
+        }
+
         async function beginSession() {
             session.objective = $('setup-objective').value.trim();
             session.type = $('setup-type').value;
             const typed = $('setup-keywords').value.split(',').map(k => k.trim()).filter(Boolean);
             session.keywords = [...new Set(typed)];
             session.roster = [...new Set($('setup-roster').value.split(',').map(n => n.trim()).filter(Boolean))];
+            session.agenda = $('setup-agenda').value.split('\n').map(a => a.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim()).filter(Boolean).slice(0, 20);
+            const duration = Math.round(Number($('setup-duration').value));
+            session.durationMin = Number.isFinite(duration) && duration > 0 ? Math.min(duration, 600) : null;
+            session.materials = $('setup-materials').value.trim().slice(0, MATERIALS_MAX);
             session.accurate = $('setup-accurate').checked;
             session.record = $('setup-record').checked;
             // Names are the single thing a speech model mangles most, and the roster is a
@@ -3016,6 +3482,9 @@ self.onmessage = function (e) {
                 isListening = true;
                 isPaused = false;
                 if (!startedAt) startedAt = Date.now();
+                runClock(true);
+                // The first sweep needs a stretch to read, not the opening pleasantries.
+                if (!lastSweepAt) lastSweepAt = Date.now();
                 pendingUtterance = '';
                 pendingLow = false;
                 modeBadge.textContent = provider.constructor.label;
@@ -3027,7 +3496,7 @@ self.onmessage = function (e) {
                 setStateObjective();
                 stateBar.classList.remove('hidden');
 
-                stateTimer = setInterval(() => maybeRunState(true), STATE_INTERVAL_MS);
+                stateTimer = setInterval(() => { maybeRunState(true); maybeRunSweep(); }, STATE_INTERVAL_MS);
                 captureTimer = setInterval(checkCapture, CAPTURE_WATCHDOG_MS);
 
                 // Requested inside the click that started the session, which is the user
@@ -3070,6 +3539,7 @@ self.onmessage = function (e) {
 
             if (provider && provider.pause) provider.pause();
             if (recorder) recorder.pause();
+            runClock(false);
             // A paused session doesn't need the screen; the phone can sleep through a break.
             releaseWakeLock();
             clearNotice();
@@ -3089,6 +3559,7 @@ self.onmessage = function (e) {
 
             if (recorder) recorder.resume();
             if (provider && provider.resume) provider.resume();
+            runClock(true);
             acquireWakeLock();
             checkCapture();
 
@@ -3102,6 +3573,7 @@ self.onmessage = function (e) {
             const wasListening = isListening;
             isListening = false;
             isPaused = false;
+            runClock(false);
             clearInterval(stateTimer);
             clearInterval(captureTimer);
             captureTimer = null;
@@ -3206,6 +3678,8 @@ self.onmessage = function (e) {
             for (const controller of inflight) controller.abort();
             inflight.clear();
             analyzeQueue.length = 0;
+            for (const timer of heldTimers) clearTimeout(timer);
+            heldTimers.clear();
             if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
             if (persistTimer) { clearTimeout(persistTimer); persistTimer = null; }
             if (renderFrame) { cancelAnimationFrame(renderFrame); renderFrame = 0; }
@@ -3216,7 +3690,7 @@ self.onmessage = function (e) {
             try { localStorage.removeItem('reverb.session'); } catch (err) { /* ignore */ }
 
             // The brief, back to what a first visit sees.
-            Object.assign(session, { objective: '', type: 'strategy', keywords: [], roster: [], accurate: false, record: false });
+            Object.assign(session, freshBrief());
 
             // Transcript.
             segments.length = 0;
@@ -3229,6 +3703,8 @@ self.onmessage = function (e) {
             transcriptJump.hidden = true;
             markResumeSeam = false;
             startedAt = null;
+            activeMs = 0;
+            activeSince = 0;
 
             // Insights, and everything the classifier had learned about this room.
             insightsContainer.querySelectorAll('[data-card]').forEach((card) => card.remove());
@@ -3237,6 +3713,7 @@ self.onmessage = function (e) {
             unreadInsights = 0;
             insightsUnread.hidden = true;
             answeredTitles.length = 0;
+            dismissedTitles.length = 0;
             for (const key of Object.keys(typeBias)) delete typeBias[key];
             for (const key of Object.keys(typeLastShown)) delete typeLastShown[key];
             cardOrder = 0;
@@ -3252,6 +3729,9 @@ self.onmessage = function (e) {
             lastPassFull = false;
             closingPassQueued = false;
             lastSpeakerRun = 0;
+            charsSinceSweep = 0;
+            lastSweepAt = 0;
+            sweepUnsupported = false;
             if (!stateBody.classList.contains('hidden')) toggleStateBody();
             stateBar.classList.add('hidden');
             topicTree.replaceChildren(el('p', 'text-gray-400 italic font-light', 'Listening for the shape of the discussion…'));
@@ -3305,6 +3785,14 @@ self.onmessage = function (e) {
         stopBtn.addEventListener('click', () => stopListening());
         $('setup-cancel').addEventListener('click', closeSetup);
         $('setup-start').addEventListener('click', beginSession);
+        $('setup-materials').addEventListener('input', reflectMaterialsCount);
+        $('materials-load').addEventListener('click', () => $('materials-file').click());
+        $('materials-file').addEventListener('change', (e) => {
+            loadMaterialsFile(e.target.files && e.target.files[0]).catch((err) => {
+                $('materials-count').textContent = `Could not read that file: ${err.message}`;
+            });
+            e.target.value = '';
+        });
 
         $('end-continue').addEventListener('click', () => { sessionEnd.classList.add('hidden'); startListening(); });
         confirmOnSecondClick($('end-session'), endSession);
