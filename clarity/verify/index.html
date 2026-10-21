@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confirm your email — Clarity</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../assets/img/icon.png">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@200;300;400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+<!-- No analytics on this page: its address carries a single-use token. -->
+</head>
+<body data-page="verify">
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="shell masthead__inner">
+    <a class="wordmark" href="../index.html">
+      <span class="wordmark__mark">C</span><span>Clarity</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="../index.html" class="nav__hide-sm">Overview</a>
+      <a href="../privacy.html">Privacy</a>
+      <a href="../terms.html" class="nav__hide-sm">Terms</a>
+      <a href="../support.html">Support</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="shell account">
+  <div class="account__panel" aria-live="polite">
+    <section data-state="working" hidden>
+      <p class="label">Account</p>
+      <h1 class="account__title">Confirming your email…</h1>
+      <p>One moment.</p>
+    </section>
+
+    <section data-state="done" hidden>
+      <p class="label">Account</p>
+      <h1 class="account__title">Email confirmed</h1>
+      <p>Thanks — your address is confirmed, so you can always recover your account. You can
+         close this page and go back to Clarity.</p>
+    </section>
+
+    <section data-state="already" hidden>
+      <p class="label">Account</p>
+      <h1 class="account__title">Email already confirmed</h1>
+      <p>This address was confirmed earlier, so there's nothing else to do. You can close this
+         page and go back to Clarity.</p>
+    </section>
+
+    <section data-state="expired" hidden>
+      <p class="label">Account</p>
+      <h1 class="account__title">This link no longer works</h1>
+      <p>Confirmation links expire after 24 hours and can be used once. Open Clarity and tap
+         <strong>Resend</strong> on the dashboard or in Settings to get a fresh one.</p>
+    </section>
+
+    <section data-state="offline" hidden>
+      <p class="label">Account</p>
+      <h1 class="account__title">We couldn't reach Clarity</h1>
+      <p>Your email isn't confirmed yet. Check your connection and try again.</p>
+      <button type="button" class="btn btn--primary" id="retry">Try again</button>
+    </section>
+
+    <section data-state="missing" hidden>
+      <p class="label">Account</p>
+      <h1 class="account__title">This link is incomplete</h1>
+      <p>Open the link from your Clarity email again. If you copied it into your browser,
+         make sure you copied all of it.</p>
+    </section>
+
+    <noscript>
+      <p class="label">Account</p>
+      <h1 class="account__title">Turn on JavaScript</h1>
+      <p>This page needs JavaScript to confirm your email. Turn it on and open the link from your
+         email again, or open it on another device.</p>
+    </noscript>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="shell">
+    <div class="footer__inner">
+      <a class="wordmark" href="../index.html">
+        <span class="wordmark__mark">C</span><span>Clarity</span>
+      </a>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="../privacy.html">Privacy Policy</a>
+        <a href="../terms.html">Terms of Service</a>
+        <a href="../support.html">Support</a>
+        <a href="mailto:clarity@promontoryai.com">Contact</a>
+      </nav>
+    </div>
+    <div class="footer__legal">
+      <p>© 2026 Promontory AI, LLC. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/account.js"></script>
+</body>
+</html>

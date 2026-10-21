@@ -818,3 +818,79 @@ table caption {
 
 .footer__legal p { margin: 0 0 var(--sp-sm); }
 .footer__legal p:last-child { margin-bottom: 0; }
+
+/* --------------------------------------------------------------------------
+   13. Account pages — verify/ and reset/, opened from Clarity's emails
+   -------------------------------------------------------------------------- */
+
+.account { padding-block: var(--sp-3xl) var(--sp-4xl); }
+
+.account__panel {
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+.account__panel [hidden] { display: none !important; }
+
+.account__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.25rem, 6vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: var(--sp-md) 0;
+}
+
+.account__panel p {
+  margin: 0 0 var(--sp-md);
+  font-size: 16px;
+  color: var(--fg-secondary);
+}
+
+.account__panel p a { color: var(--accent); }
+.account__panel p a:hover { text-decoration: underline; }
+
+.account__panel .btn { width: 100%; margin-top: var(--sp-sm); }
+.account__panel .btn[disabled] { opacity: 0.5; cursor: default; transform: none; }
+
+.field { margin-bottom: var(--sp-lg); }
+
+.field .label {
+  display: block;
+  margin-bottom: var(--sp-sm);
+}
+
+.field input {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--font-ui);
+  font-size: 16px;                  /* 16px keeps iOS Safari from zooming */
+  font-weight: 300;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.field input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: transparent;
+}
+
+.account__panel .account__alert {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin: 0 0 var(--sp-lg);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--fg);
+  background: var(--wash);
+}
+
+.account__panel .account__hint {
+  font-size: 13px;
+  color: var(--fg-tertiary);
+  margin-top: var(--sp-md);
+}
