@@ -16,7 +16,7 @@
         connect-src 'self' https://view.promontoryai.com;
     ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="color-scheme" content="light">
+    <meta name="color-scheme" content="light dark">
     <meta name="robots" content="noindex">
     <meta name="referrer" content="no-referrer">
     <title>Meeting recap — ReVerb</title>
@@ -25,26 +25,29 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root { color-scheme: light; --green: #00685B; --ink: #1f2937; --ink-2: #374151; --muted: #6b7280; --line: #e5e7eb; --page: #f9fafb; }
+        :root { color-scheme: light dark; --green: #00685B; --ink: #1d1d1f; --ink-2: #424245; --muted: #6e6e73; --line: #e5e5ea; --page: #f5f5f7; --paper: #ffffff; --wash: rgba(0,104,91,.06); --indigo: #4f46e5; }
+        @media (prefers-color-scheme: dark) {
+            :root { --green: #4cc3b2; --ink: #f5f5f7; --ink-2: #d1d1d6; --muted: #a1a1a6; --line: #38383a; --page: #000000; --paper: #1c1c1e; --wash: rgba(76,195,178,.12); --indigo: #9a95ff; }
+        }
         * { box-sizing: border-box; }
-        body { margin: 0; background: var(--page); color: var(--ink); font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 300; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+        body { margin: 0; background: var(--page); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif; font-weight: 400; line-height: 1.6; -webkit-font-smoothing: antialiased; }
         h1, h2, p, ul, dl { margin: 0; }
         .shell { max-width: 46rem; margin: 0 auto; padding: 0 16px; }
-        header { background: #fff; border-bottom: 1px solid var(--line); }
+        header { background: var(--paper); border-bottom: 1px solid var(--line); }
         .bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 60px; }
         .brand { display: inline-flex; align-items: center; gap: .5rem; color: var(--green); text-decoration: none; font-size: 1.25rem; font-weight: 400; }
         .brand svg { width: 24px; height: 24px; }
-        .btn { display: inline-flex; align-items: center; min-height: 36px; padding: 0 .95rem; border: 1px solid #d1d5db; border-radius: 9999px; background: #fff; color: var(--ink-2); font: inherit; font-size: .875rem; cursor: pointer; }
+        .btn { display: inline-flex; align-items: center; min-height: 36px; padding: 0 .95rem; border: 1px solid var(--line); border-radius: 9999px; background: var(--paper); color: var(--ink-2); font: inherit; font-size: .875rem; cursor: pointer; }
         .btn:hover { border-color: var(--green); color: var(--green); }
         main.shell { padding-top: 32px; padding-bottom: 56px; }
-        .paper { padding: 28px 24px 32px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+        .paper { padding: 28px 24px 32px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
         @media (min-width: 640px) { .paper { padding: 36px 40px 40px; } }
         .kicker { font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
         h1 { margin-top: .4rem; font-size: clamp(1.6rem, 4.5vw, 2.1rem); line-height: 1.2; font-weight: 400; letter-spacing: -.015em; }
         .meta { margin-top: .5rem; font-size: .875rem; color: var(--muted); }
-        .headline { margin-top: 1.25rem; padding: .85rem 1rem; border-radius: 10px; background: rgba(0,104,91,.06); color: var(--ink-2); }
+        .headline { margin-top: 1.25rem; padding: .85rem 1rem; border-radius: 10px; background: var(--wash); color: var(--ink-2); }
         section { margin-top: 1.75rem; }
-        h2 { font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9ca3af; }
+        h2 { font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
         ul { margin-top: .5rem; padding: 0; list-style: none; display: grid; gap: .45rem; }
         li { position: relative; padding-left: 1.4rem; color: var(--ink-2); }
         li::before { content: ''; position: absolute; left: .35rem; top: .7em; width: 6px; height: 6px; border-radius: 50%; background: var(--green); opacity: .55; }
@@ -53,7 +56,7 @@
         li.todo.done .what { text-decoration: line-through; color: #9ca3af; }
         .who { display: block; font-size: .8125rem; color: var(--muted); }
         dl { margin-top: .5rem; display: grid; gap: .55rem; }
-        dt { font-weight: 500; color: #4f46e5; }
+        dt { font-weight: 500; color: var(--indigo); }
         dd { margin: 0; color: var(--ink-2); }
         .empty { padding: 48px 0; text-align: center; color: var(--muted); }
         footer { padding: 24px 0 calc(24px + env(safe-area-inset-bottom)); font-size: .8125rem; color: var(--muted); text-align: center; }

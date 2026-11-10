@@ -22,8 +22,10 @@
     <!-- viewport-fit=cover makes env(safe-area-inset-*) report the notch and home indicator,
          which the phone layout pads around. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <!-- Light only. A dark variant is deliberately not supported. -->
-    <meta name="color-scheme" content="light">
+    <!-- Follows the system appearance, light or dark, as Apple's apps do. -->
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
     <title>ReVerb — Live Meeting Assistant</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="../reverb.css">
@@ -31,35 +33,148 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
     <style>
-        /* Pins native UI — select popups, checkboxes, default scrollbars — to light
-           regardless of the OS setting. Without this the controls go dark while the
-           page stays light, which is the illegible half-and-half we're avoiding. */
-        :root { color-scheme: light; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f9fafb;
-            color: #1f2937;
-            font-weight: 300;
+        /* ---------- Semantic colors ----------
+           Named for what they are for, not what they look like, the way Apple's system colors
+           are: label, secondary label, separator, fill. Every surface in the app is built from
+           these, so Dark Mode is one set of values below rather than a second stylesheet — and
+           native controls follow along through color-scheme. Small secondary text stays at 4.5:1
+           or better in both appearances. */
+        :root {
+            color-scheme: light dark;
+            --tint: #00685B;            /* links, selected states, accents on surfaces */
+            --tint-fill: #00685B;       /* filled buttons, behind white text */
+            --tint-fill-hover: #00554b;
+            --label: #1d1d1f;
+            --label-2: #424245;
+            --label-3: #6e6e73;
+            --label-4: #aeaeb2;         /* decoration only, never text that must be read */
+            --surface: #ffffff;
+            --surface-2: #f5f5f7;
+            --fill: #f2f2f7;
+            --fill-2: #e5e5ea;
+            --fill-3: #d1d1d6;
+            --separator: #e5e5ea;
+            --separator-strong: #d1d1d6;
+            --seg-fill: rgba(118,118,128,.12);
+            --scrim: rgba(0,0,0,.35);
+            --danger: #d70015;
+            --danger-fill: #ff3b30;
+            --danger-fill-hover: #e0352b;
+            --danger-wash: #ffe5e3;
+            --warning: #a14700;
+            --warning-wash: #fff4e0;
+            --warning-line: #f5c27a;
+            --success: #1b7a35;
+            --success-wash: #e3f7e8;
+            --indigo: #4f46e5;
+            --cyan: #0891b2;
+            --highlight: rgba(250,204,21,.35);
+            --shadow-1: 0 1px 2px rgba(0,0,0,.05);
+            --shadow-2: 0 10px 30px rgba(0,0,0,.15);
+            --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --tint: #4cc3b2;
+                --tint-fill: #00796b;
+                --tint-fill-hover: #008a7b;
+                --label: #f5f5f7;
+                --label-2: #d1d1d6;
+                --label-3: #a1a1a6;
+                --label-4: #636366;
+                --surface: #1c1c1e;
+                --surface-2: #000000;
+                --fill: #2c2c2e;
+                --fill-2: #3a3a3c;
+                --fill-3: #48484a;
+                --separator: #38383a;
+                --separator-strong: #48484a;
+                --seg-fill: rgba(118,118,128,.24);
+                --scrim: rgba(0,0,0,.6);
+                --danger: #ff6961;
+                --danger-fill: #ff453a;
+                --danger-fill-hover: #ff5b52;
+                --danger-wash: rgba(255,69,58,.18);
+                --warning: #ffb340;
+                --warning-wash: rgba(255,159,10,.16);
+                --warning-line: rgba(255,159,10,.45);
+                --success: #30d158;
+                --success-wash: rgba(48,209,88,.16);
+                --indigo: #9a95ff;
+                --cyan: #50d0f0;
+                --highlight: rgba(250,204,21,.28);
+                --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+                --shadow-2: 0 14px 40px rgba(0,0,0,.6);
+            }
+            /* Accents a step lighter, so a card's title still reads on a dark card. */
+            [data-type="question"]      { --card-accent: #4cc3b2 !important; }
+            [data-type="explanation"]   { --card-accent: #9a95ff !important; }
+            [data-type="factcheck"]     { --card-accent: #f0a24b !important; }
+            [data-type="contradiction"] { --card-accent: #ff6961 !important; }
+            [data-type="gap"]           { --card-accent: #b99cff !important; }
+            [data-type="action"]        { --card-accent: #40c8b4 !important; }
+            [data-type="ask"]           { --card-accent: #5ac8fa !important; }
+            [data-type="unanswered"]    { --card-accent: #ff9f5a !important; }
+            [data-type="loop"]          { --card-accent: #e3b341 !important; }
+            [data-type="confirm"]       { --card-accent: #4cd27a !important; }
+            [data-type="talkpast"]      { --card-accent: #ff7ab6 !important; }
+            [data-type="drift"]         { --card-accent: #a7b4c8 !important; }
+            [data-type="quiet"]         { --card-accent: #50d0f0 !important; }
         }
 
-        .text-google-green { color: #00685B; }
-        .bg-google-green { background-color: #00685B; }
-        .border-google-green { border-color: #00685B; }
+        /* The prebuilt Tailwind colours the markup uses, mapped onto the tokens. */
+        .bg-white { background-color: var(--surface) !important; }
+        .bg-gray-50 { background-color: var(--surface-2) !important; }
+        .bg-gray-100 { background-color: var(--fill) !important; }
+        .bg-gray-200 { background-color: var(--fill-2) !important; }
+        .bg-gray-400 { background-color: var(--label-4) !important; }
+        .text-gray-800, .text-gray-700 { color: var(--label) !important; }
+        .text-gray-600 { color: var(--label-2) !important; }
+        .text-gray-500, .text-gray-400 { color: var(--label-3) !important; }
+        .border-gray-200 { border-color: var(--separator) !important; }
+        .border-gray-300 { border-color: var(--separator-strong) !important; }
+        .text-red-500 { color: var(--danger) !important; }
+        .text-amber-600, .text-amber-800 { color: var(--warning) !important; }
+        .bg-amber-50 { background-color: var(--warning-wash) !important; }
+        .border-amber-300 { border-color: var(--warning-line) !important; }
+        .bg-red-600 { background-color: var(--danger-fill) !important; }
+        .hover\:bg-red-700:hover { background-color: var(--danger-fill-hover) !important; }
+        .bg-black\/50 { background-color: var(--scrim) !important; }
+        .hover\:bg-gray-50:hover { background-color: var(--surface-2) !important; }
+        .hover\:bg-gray-100:hover { background-color: var(--fill) !important; }
+        .hover\:bg-gray-200:hover { background-color: var(--fill-2) !important; }
+        .hover\:text-gray-600:hover { color: var(--label-2) !important; }
+        /* Light weights thin out at small sizes; Apple sets body text Regular. */
+        .font-light { font-weight: 400 !important; }
+        input, textarea, select, button { font-family: inherit; }
+        input, textarea, select { color: var(--label); background-color: var(--surface); }
+        ::placeholder { color: var(--label-3); opacity: 1; }
+
+        body {
+            font-family: var(--font);
+            background-color: var(--surface-2);
+            color: var(--label);
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .text-google-green { color: var(--tint) !important; }
+        .bg-google-green { background-color: var(--tint-fill) !important; }
+        .border-google-green { border-color: var(--tint) !important; }
 
         /* The markup uses hover:/focus: variants of the three above. Tailwind can't
            generate those — google-green isn't a theme colour — so they were silently
            inert under the CDN too. Defined here so the intended states actually apply. */
-        .hover\:text-google-green:hover { color: #00685B; }
-        .hover\:border-google-green:hover { border-color: #00685B; }
+        .hover\:text-google-green:hover { color: var(--tint); }
+        .hover\:border-google-green:hover { border-color: var(--tint); }
         .focus\:ring-google-green:focus {
-            --tw-ring-color: #00685B;
-            box-shadow: 0 0 0 calc(2px + var(--tw-ring-offset-width, 0px)) #00685B;
+            --tw-ring-color: var(--tint);
+            box-shadow: 0 0 0 calc(2px + var(--tw-ring-offset-width, 0px)) var(--tint);
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-thumb { background: var(--fill-3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--label-4); }
 
         .fade-out { animation: fadeOut 0.5s ease-out forwards; }
         @keyframes fadeOut {
@@ -73,8 +188,8 @@
         .reverb-answer ol { list-style: decimal; }
         .reverb-answer li { margin: .15rem 0; }
         .reverb-answer h4 { font-weight: 500; margin: .6rem 0 .3rem; }
-        .reverb-answer code { font-size: .85em; padding: .1em .3em; border-radius: 3px; background: rgba(0,0,0,.06); }
-        .reverb-answer pre { padding: .6rem; border-radius: 6px; overflow-x: auto; background: rgba(0,0,0,.06); margin: 0 0 .5rem; }
+        .reverb-answer code { font-size: .85em; padding: .1em .3em; border-radius: 3px; background: var(--fill); }
+        .reverb-answer pre { padding: .6rem; border-radius: 6px; overflow-x: auto; background: var(--fill); margin: 0 0 .5rem; }
 
         /* Transcript segments: click to correct, but shouldn't look like a form field
            while you're just reading along. */
@@ -85,13 +200,13 @@
             transition: background-color .15s ease;
             cursor: text;
         }
-        .segment:hover { background-color: rgba(0,104,91,.07); }
-        .segment[contenteditable="true"] { background-color: rgba(0,104,91,.1); outline: 1px solid #00685B; }
+        .segment:hover { background-color: color-mix(in srgb, var(--tint) 7%, transparent); }
+        .segment[contenteditable="true"] { background-color: color-mix(in srgb, var(--tint) 10%, transparent); outline: 1px solid var(--tint); }
         /* Corrected text stays marked — a signal the transcriber got it wrong here. */
-        .segment.edited { border-bottom: 1px dotted #00685B; }
+        .segment.edited { border-bottom: 1px dotted var(--tint); }
         /* The transcriber wasn't sure. Shown rather than deleted: a silent hole in a
            transcript is the failure nobody notices. */
-        .segment.low-conf { border-bottom: 1px dashed #d97706; opacity: .8; }
+        .segment.low-conf { border-bottom: 1px dashed var(--warning); opacity: .8; }
 
         /* A session without an objective still belongs in the bar — it just says so quietly. */
         #state-objective[data-empty="true"], #sheet-objective[data-empty="true"] { font-style: italic; opacity: .55; }
@@ -104,6 +219,7 @@
         @supports (height: 100dvh) {
             body.h-screen { height: 100dvh; }
             #setup-modal { height: 100dvh; }
+            .sheet { max-height: min(92dvh, 52rem); }
         }
 
         /* Expanding the objective row drops Topics and "Where we are" into the bar,
@@ -123,7 +239,7 @@
            is how you tell a fact-check from a jargon note without reading either first.
            Written as plain CSS on purpose: reverb.css is a pre-generated Tailwind build,
            so a new utility class in the markup would simply not exist. */
-        [data-card][data-type] { border-left: 3px solid var(--card-accent, #d1d5db); }
+        [data-card][data-type] { border-left: 3px solid var(--card-accent, var(--separator-strong)); }
         [data-type="question"]      { --card-accent: #00685B; }
         [data-type="explanation"]   { --card-accent: #4f46e5; }
         [data-type="factcheck"]     { --card-accent: #b45309; }
@@ -139,25 +255,20 @@
 
         /* The question worth saying out loud. Set apart from the observation above it, because
            it is the part someone actually uses. */
-        .card-ask { margin-top: .45rem; padding: .4rem .6rem; border-radius: .5rem; color: #1f2937; font-weight: 400;
-            background: #f3f4f6; background: color-mix(in srgb, var(--card-accent, #6b7280) 7%, #fff); }
-        .card-ask-label { display: block; font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--card-accent, #6b7280); }
+        .card-ask { margin-top: .45rem; padding: .4rem .6rem; border-radius: .5rem; color: var(--label); font-weight: 400;
+            background: var(--fill); background: color-mix(in srgb, var(--card-accent, var(--label-3)) 7%, var(--surface)); }
+        .card-ask-label { display: block; font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--card-accent, var(--label-3)); }
 
         /* The room dealt with it after the card went up. Kept, so the panel still reads as a
            record of the meeting, but quieted so it stops asking for attention. */
         .card-resolved { opacity: .6; }
         .card-resolved .card-more, .card-resolved .card-more-toggle { display: none; }
         .card-resolved-mark { display: inline-block; margin-left: .35rem; padding: .1rem .45rem; border-radius: 9999px;
-            font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #047857; background: #d1fae5; }
+            font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--success); background: var(--success-wash); }
 
-        /* The optional half of the brief. */
-        #setup-more { margin-top: 1rem; }
-        #setup-more > summary { cursor: pointer; font-size: .875rem; color: #00685B; list-style: none; }
-        #setup-more > summary::-webkit-details-marker { display: none; }
-        #setup-more > summary::before { content: '+ '; }
-        #setup-more[open] > summary::before { content: '\2212  '; }
+
         .setup-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .25rem; }
-        .setup-link { font-size: .75rem; color: #00685B; }
+        .setup-link { font-size: .75rem; color: var(--tint); }
         .setup-link:hover { text-decoration: underline; }
 
         .card-chip {
@@ -168,25 +279,25 @@
             font-weight: 500;
             letter-spacing: .06em;
             text-transform: uppercase;
-            color: var(--card-accent, #6b7280);
-            background: #f3f4f6;   /* fallback where color-mix is unsupported */
+            color: var(--card-accent, var(--label-3));
+            background: var(--fill);   /* fallback where color-mix is unsupported */
             background: color-mix(in srgb, var(--card-accent, #6b7280) 12%, transparent);
         }
-        .card-title { color: var(--card-accent, #374151); }
+        .card-title { color: var(--card-accent, var(--label)); }
         [hidden] { display: none !important; }
 
         /* Glanceable cards: a one-line gist, detail behind "More". Someone reads these while
            also listening, so the card has to be understood before they look back up. */
-        .card-gist { color: #374151; }
+        .card-gist { color: var(--label); }
         .card-gist p:last-child, .card-more-text p:last-child { margin-bottom: 0; }
-        .card-more { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid #f3f4f6; }
+        .card-more { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--separator); }
         .card-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .45rem; }
-        .card-more-toggle { font-size: .75rem; color: #6b7280; padding: .1rem 0; }
-        .card-more-toggle:hover { color: #00685B; }
+        .card-more-toggle { font-size: .75rem; color: var(--label-3); padding: .1rem 0; }
+        .card-more-toggle:hover { color: var(--tint); }
         .card-feedback { display: flex; gap: .15rem; margin-left: auto; }
-        .card-feedback button { padding: .2rem; border-radius: 9999px; color: #c0c4cc; line-height: 0; }
-        .card-feedback button:hover { color: #00685B; background: #f3f4f6; }
-        .card-feedback button[aria-pressed="true"] { color: #00685B; }
+        .card-feedback button { padding: .2rem; border-radius: 9999px; color: var(--label-4); line-height: 0; }
+        .card-feedback button:hover { color: var(--tint); background: var(--fill); }
+        .card-feedback button[aria-pressed="true"] { color: var(--tint); }
         .card-feedback svg { width: .95rem; height: .95rem; }
 
         /* Fact-check verdicts. A wrong claim is the card worth interrupting for; a confirmed
@@ -194,31 +305,31 @@
         .card-verdict {
             display: inline-block; margin-left: .35rem; padding: .1rem .45rem; border-radius: 9999px;
             font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase;
-            color: #4b5563; background: #f3f4f6;
+            color: var(--label-2); background: var(--fill);
         }
-        .card-verdict[data-verdict="incorrect"] { color: #b91c1c; background: #fee2e2; }
-        .card-verdict[data-verdict="partly"]    { color: #92400e; background: #fef3c7; }
-        .card-verdict[data-verdict="correct"]   { color: #047857; background: #d1fae5; }
+        .card-verdict[data-verdict="incorrect"] { color: var(--danger); background: var(--danger-wash); }
+        .card-verdict[data-verdict="partly"]    { color: var(--warning); background: var(--warning-wash); }
+        .card-verdict[data-verdict="correct"]   { color: var(--success); background: var(--success-wash); }
         .card-compact { padding-top: .6rem !important; padding-bottom: .6rem !important; }
         .card-compact .card-title { font-size: .9375rem; }
         .card-compact .card-subject { display: none; }
-        .card-compact .card-gist { color: #6b7280; font-size: .875rem; }
+        .card-compact .card-gist { color: var(--label-3); font-size: .875rem; }
 
-        .card-action-meta { font-size: .8125rem; color: #6b7280; margin-top: .15rem; }
+        .card-action-meta { font-size: .8125rem; color: var(--label-3); margin-top: .15rem; }
         .card-updated { animation: cardUpdated 1.6s ease-out; }
         @keyframes cardUpdated {
-            from { box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-accent, #00685B) 35%, transparent); }
+            from { box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-accent, var(--tint)) 35%, transparent); }
             to   { box-shadow: 0 0 0 0 transparent; }
         }
 
         /* One quiet indicator instead of a placeholder card per utterance: most utterances turn
            out not to be worth a card, and each of those used to appear and fade out again. */
-        .insights-activity { display: inline-flex; align-items: center; gap: .35rem; font-size: .75rem; color: #6b7280; margin-left: .6rem; }
+        .insights-activity { display: inline-flex; align-items: center; gap: .35rem; font-size: .75rem; color: var(--label-3); margin-left: .6rem; }
         .insights-activity svg { width: .85rem; height: .85rem; }
         /* The line under the title that says what the card is about: the claim being
            checked, the term, the earlier point being contradicted. */
-        .card-subject { font-size: .8125rem; color: #6b7280; margin-bottom: .4rem; }
-        .card-subject b { font-weight: 500; color: #4b5563; }
+        .card-subject { font-size: .8125rem; color: var(--label-3); margin-bottom: .4rem; }
+        .card-subject b { font-weight: 500; color: var(--label-2); }
 
         /* Type filters. Twelve card types is enough that muting one has to be one click. */
         #insights-header > .flex { padding-bottom: .4rem; }
@@ -228,15 +339,15 @@
             padding: .15rem .55rem;
             border-radius: 9999px;
             font-size: .6875rem;
-            border: 1px solid #e5e7eb;
-            background: #fff;
-            color: #9ca3af;
+            border: 1px solid var(--separator);
+            background: var(--surface);
+            color: var(--label-3);
             transition: color .15s ease, border-color .15s ease, background-color .15s ease;
         }
         .type-filter[aria-pressed="true"] {
             color: var(--card-accent);
-            border-color: color-mix(in srgb, var(--card-accent) 40%, #fff);
-            background: color-mix(in srgb, var(--card-accent) 8%, #fff);
+            border-color: color-mix(in srgb, var(--card-accent) 40%, var(--surface));
+            background: color-mix(in srgb, var(--card-accent) 8%, var(--surface));
         }
         /* Muting a type hides its cards on the spot; unmuting brings them straight back. The
            container carries the muted list. A card still waiting on the classifier has no
@@ -262,35 +373,35 @@
             gap: .5rem;
             margin-top: .5rem;
             padding-top: .5rem;
-            border-top: 1px dashed #e5e7eb;
+            border-top: 1px dashed var(--separator);
             font-size: .75rem;
-            color: #b45309;
+            color: var(--warning);
         }
         .card-retry {
             padding: .1rem .5rem;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--separator);
             border-radius: 9999px;
             font-size: .6875rem;
-            color: #6b7280;
-            background: #fff;
+            color: var(--label-3);
+            background: var(--surface);
         }
-        .card-retry:hover { border-color: #00685B; color: #00685B; }
+        .card-retry:hover { border-color: var(--tint); color: var(--tint); }
 
         /* Who said it. Only rendered where the speaker changes, so the transcript still
            reads as prose rather than as a script. */
         .speaker-tag {
             font-size: .8125rem;
             font-weight: 500;
-            color: #00685B;
+            color: var(--tint);
             margin-right: .15rem;
         }
         .speaker-tag::after { content: ':'; }
         /* Grouped by turn-taking rather than actually identified. Said quietly, because a
            confident wrong name is worse than an honest placeholder. */
-        .speaker-tag.tentative { color: #9ca3af; font-weight: 400; }
+        .speaker-tag.tentative { color: var(--label-3); font-weight: 400; }
         /* The label is a guess, so it is one click from being fixed. */
         .speaker-tag { cursor: pointer; border-radius: 4px; padding: 0 2px; margin-left: -2px; }
-        .speaker-tag:hover, .speaker-tag:focus-visible { background-color: rgba(0,104,91,.08); outline: none; text-decoration: underline dotted; text-underline-offset: 3px; }
+        .speaker-tag:hover, .speaker-tag:focus-visible { background-color: color-mix(in srgb, var(--tint) 8%, transparent); outline: none; text-decoration: underline dotted; text-underline-offset: 3px; }
 
         /* Who said this: rename a speaker everywhere, or fix one turn. */
         #speaker-editor {
@@ -299,30 +410,30 @@
             width: 18rem;
             max-width: calc(100vw - 1.5rem);
             padding: .85rem;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--separator);
             border-radius: .75rem;
-            background: #fff;
+            background: var(--surface);
             box-shadow: 0 10px 30px rgba(0,0,0,.15);
             font-size: .875rem;
         }
-        #speaker-editor .speaker-editor-title { color: #374151; margin-bottom: .45rem; }
-        #speaker-editor .speaker-editor-title b { font-weight: 500; color: #00685B; }
+        #speaker-editor .speaker-editor-title { color: var(--label); margin-bottom: .45rem; }
+        #speaker-editor .speaker-editor-title b { font-weight: 500; color: var(--tint); }
         #speaker-name {
             width: 100%;
             padding: .45rem .6rem;
-            border: 1px solid #d1d5db;
+            border: 1px solid var(--separator-strong);
             border-radius: .5rem;
-            background: #fff;
+            background: var(--surface);
         }
-        #speaker-name:focus { outline: none; border-color: #00685B; box-shadow: 0 0 0 1px #00685B; }
-        .speaker-scope { margin-top: .6rem; display: grid; gap: .3rem; color: #4b5563; font-size: .8125rem; }
+        #speaker-name:focus { outline: none; border-color: var(--tint); box-shadow: 0 0 0 1px var(--tint); }
+        .speaker-scope { margin-top: .6rem; display: grid; gap: .3rem; color: var(--label-2); font-size: .8125rem; }
         .speaker-scope label { display: flex; align-items: flex-start; gap: .45rem; cursor: pointer; }
-        .speaker-scope input { margin-top: .2rem; accent-color: #00685B; }
+        .speaker-scope input { margin-top: .2rem; accent-color: var(--tint); }
         .speaker-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .75rem; }
         .speaker-actions button { padding: .35rem .8rem; border-radius: 9999px; font-size: .8125rem; }
-        #speaker-cancel { color: #6b7280; }
+        #speaker-cancel { color: var(--label-3); }
         #speaker-cancel:hover { text-decoration: underline; }
-        #speaker-save { color: #fff; background: #00685B; }
+        #speaker-save { color: #fff; background: var(--tint-fill); }
         #speaker-save:hover { opacity: .9; }
 
         /* "Meeting so far": topics and where things stand, then what the meeting produced. Wide,
@@ -337,74 +448,74 @@
 
         /* To-dos: the commitments, kept as a list you can tick, fix and add to. */
         .todo-list { display: grid; gap: .35rem; }
-        .todo { display: flex; align-items: flex-start; gap: .5rem; font-size: .8125rem; color: #374151; }
-        .todo input[type="checkbox"] { margin-top: .2rem; accent-color: #00685B; flex-shrink: 0; }
+        .todo { display: flex; align-items: flex-start; gap: .5rem; font-size: .8125rem; color: var(--label); }
+        .todo input[type="checkbox"] { margin-top: .2rem; accent-color: var(--tint); flex-shrink: 0; }
         .todo-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-        .todo-meta { display: block; font-size: .75rem; color: #6b7280; }
-        .todo.done .todo-main { text-decoration: line-through; color: #9ca3af; }
+        .todo-meta { display: block; font-size: .75rem; color: var(--label-3); }
+        .todo.done .todo-main { text-decoration: line-through; color: var(--label-3); }
         .todo-actions { display: flex; gap: .4rem; flex-shrink: 0; opacity: .0; transition: opacity .15s ease; }
         .todo:hover .todo-actions, .todo:focus-within .todo-actions { opacity: 1; }
         @media (pointer: coarse) { .todo-actions { opacity: 1; } }
-        .todo-actions button { font-size: .6875rem; color: #9ca3af; }
-        .todo-actions button:hover { color: #00685B; }
-        .todo-form { display: grid; gap: .35rem; padding: .5rem; border: 1px solid #e5e7eb; border-radius: .5rem; background: #f9fafb; }
-        .todo-form input { width: 100%; padding: .3rem .5rem; border: 1px solid #d1d5db; border-radius: .375rem; background: #fff; font-size: .8125rem; }
-        .todo-form input:focus { outline: none; border-color: #00685B; box-shadow: 0 0 0 1px #00685B; }
+        .todo-actions button { font-size: .6875rem; color: var(--label-3); }
+        .todo-actions button:hover { color: var(--tint); }
+        .todo-form { display: grid; gap: .35rem; padding: .5rem; border: 1px solid var(--separator); border-radius: .5rem; background: var(--surface-2); }
+        .todo-form input { width: 100%; padding: .3rem .5rem; border: 1px solid var(--separator-strong); border-radius: .375rem; background: var(--surface); font-size: .8125rem; }
+        .todo-form input:focus { outline: none; border-color: var(--tint); box-shadow: 0 0 0 1px var(--tint); }
         .todo-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; }
         .todo-form .buttons { display: flex; justify-content: flex-end; gap: .6rem; font-size: .75rem; }
-        .todo-form .buttons .save { color: #00685B; font-weight: 500; }
-        .todo-form .buttons .cancel { color: #6b7280; }
+        .todo-form .buttons .save { color: var(--tint); font-weight: 500; }
+        .todo-form .buttons .cancel { color: var(--label-3); }
 
         /* Who's talking: share of the words said, and how long since each person last spoke. */
         .balance-list { display: grid; gap: .4rem; }
-        .balance-row { display: grid; grid-template-columns: minmax(0, 7rem) 1fr auto; align-items: center; gap: .5rem; font-size: .75rem; color: #4b5563; }
+        .balance-row { display: grid; grid-template-columns: minmax(0, 7rem) 1fr auto; align-items: center; gap: .5rem; font-size: .75rem; color: var(--label-2); }
         .balance-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .balance-bar { height: .45rem; border-radius: 9999px; background: #f3f4f6; overflow: hidden; }
-        .balance-bar span { display: block; height: 100%; border-radius: inherit; background: #00685B; opacity: .75; }
-        .balance-row.quiet .balance-bar span { background: #0891b2; }
-        .balance-when { color: #9ca3af; white-space: nowrap; }
-        .time-line { margin-bottom: .65rem; font-size: .75rem; color: #4b5563; }
+        .balance-bar { height: .45rem; border-radius: 9999px; background: var(--fill); overflow: hidden; }
+        .balance-bar span { display: block; height: 100%; border-radius: inherit; background: var(--tint-fill); opacity: .75; }
+        .balance-row.quiet .balance-bar span { background: var(--cyan); }
+        .balance-when { color: var(--label-3); white-space: nowrap; }
+        .time-line { margin-bottom: .65rem; font-size: .75rem; color: var(--label-2); }
         .time-line .balance-bar { margin-top: .3rem; }
-        .time-line.over .balance-bar span { background: #dc2626; }
+        .time-line.over .balance-bar span { background: var(--danger-fill); }
 
         /* Glossary: every term ReVerb explained, in one place. */
         .glossary-list { display: grid; gap: .45rem; font-size: .8125rem; }
-        .glossary-list dt { font-weight: 500; color: #4f46e5; }
-        .glossary-list dd { margin: 0; color: #4b5563; }
+        .glossary-list dt { font-weight: 500; color: var(--indigo); }
+        .glossary-list dd { margin: 0; color: var(--label-2); }
 
         /* Where a card came from: the line that raised it, one click away. */
         .card-when { margin-left: .35rem; vertical-align: .05em; }
 
         /* Dialogs: recap and past meetings. */
-        .dialog-card { width: 100%; max-width: 40rem; max-height: 100%; overflow-y: auto; padding: 1.25rem 1.25rem 1.1rem; border-radius: 1rem; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,.2); }
+        .dialog-card { width: 100%; max-width: 40rem; max-height: 100%; overflow-y: auto; padding: 1.25rem 1.25rem 1.1rem; border-radius: 1rem; background: var(--surface); box-shadow: 0 20px 50px rgba(0,0,0,.2); }
         .dialog-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
-        .dialog-close { width: 2rem; height: 2rem; border-radius: 9999px; font-size: 1.5rem; line-height: 1; color: #9ca3af; }
-        .dialog-close:hover { color: #374151; background: #f3f4f6; }
-        .recap-preview { max-height: 45vh; overflow: auto; margin: 0; padding: .8rem .9rem; border: 1px solid #e5e7eb; border-radius: .6rem; background: #f9fafb; font-family: inherit; font-size: .8125rem; line-height: 1.55; color: #374151; white-space: pre-wrap; }
+        .dialog-close { width: 2rem; height: 2rem; border-radius: 9999px; font-size: 1.5rem; line-height: 1; color: var(--label-3); }
+        .dialog-close:hover { color: var(--label); background: var(--fill); }
+        .recap-preview { max-height: 45vh; overflow: auto; margin: 0; padding: .8rem .9rem; border: 1px solid var(--separator); border-radius: .6rem; background: var(--surface-2); font-family: inherit; font-size: .8125rem; line-height: 1.55; color: var(--label); white-space: pre-wrap; }
         .dialog-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
-        .dialog-btn { padding: .45rem .9rem; border: 1px solid #d1d5db; border-radius: 9999px; font-size: .8125rem; color: #374151; background: #fff; }
-        .dialog-btn:hover { border-color: #00685B; color: #00685B; }
-        .dialog-btn.primary { border-color: #00685B; background: #00685B; color: #fff; }
+        .dialog-btn { padding: .45rem .9rem; border: 1px solid var(--separator-strong); border-radius: 9999px; font-size: .8125rem; color: var(--label); background: var(--surface); }
+        .dialog-btn:hover { border-color: var(--tint); color: var(--tint); }
+        .dialog-btn.primary { border-color: var(--tint); background: var(--tint-fill); color: #fff; }
         .dialog-btn.primary:hover { opacity: .9; color: #fff; }
         .dialog-btn:disabled { opacity: .5; cursor: default; }
-        .dialog-note { margin-top: .75rem; font-size: .75rem; line-height: 1.5; color: #6b7280; }
+        .dialog-note { margin-top: .75rem; font-size: .75rem; line-height: 1.5; color: var(--label-3); }
         .library-list { display: grid; gap: .5rem; margin-top: .75rem; }
-        .library-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .7rem .8rem; border: 1px solid #e5e7eb; border-radius: .6rem; }
-        .library-item .title { font-size: .9375rem; color: #1f2937; }
-        .library-item .when { font-size: .75rem; color: #6b7280; }
+        .library-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .7rem .8rem; border: 1px solid var(--separator); border-radius: .6rem; }
+        .library-item .title { font-size: .9375rem; color: var(--label); }
+        .library-item .when { font-size: .75rem; color: var(--label-3); }
         .library-item .actions { display: flex; gap: .75rem; font-size: .8125rem; }
-        .library-item .actions button { color: #00685B; }
-        .library-item .actions button:disabled { color: #9ca3af; cursor: default; }
-        .library-item .actions .delete { color: #9ca3af; }
-        .library-item .actions .delete:hover { color: #dc2626; }
-        .chat-tools button[aria-pressed="true"] { color: #00685B; }
+        .library-item .actions button { color: var(--tint); }
+        .library-item .actions button:disabled { color: var(--label-3); cursor: default; }
+        .library-item .actions .delete { color: var(--label-3); }
+        .library-item .actions .delete:hover { color: var(--danger); }
+        .chat-tools button[aria-pressed="true"] { color: var(--tint); }
 
         /* A voice the room hasn't heard from in a while — raised here, not by the server. */
         [data-type="quiet"] { --card-accent: #0891b2; }
         #insights-container[data-muted~="quiet"] > [data-card][data-type="quiet"] { display: none; }
 
         /* A cited minute, picked out in the transcript for a moment. */
-        .segment.cite-flash { background-color: rgba(250,204,21,.35); }
+        .segment.cite-flash { background-color: var(--highlight); }
 
         /* ---------- Right column: AI Insights | Chat ---------- */
         .side-tabs { display: flex; align-items: center; gap: 1rem; }
@@ -415,10 +526,10 @@
             font-size: 1.125rem;
             line-height: 1.75rem;
             font-weight: 400;
-            color: #9ca3af;
+            color: var(--label-3);
             transition: color .15s ease;
         }
-        .side-tabs [role="tab"]:hover, .side-tabs [role="tab"][aria-selected="true"] { color: #00685B; }
+        .side-tabs [role="tab"]:hover, .side-tabs [role="tab"][aria-selected="true"] { color: var(--tint); }
         .side-unread {
             min-width: 1.125rem;
             height: 1.125rem;
@@ -429,7 +540,7 @@
             font-weight: 500;
             text-align: center;
             color: #fff;
-            background: #00685B;
+            background: var(--tint-fill);
         }
         /* Desktop shows one of the two in the right column; a phone switches panes instead. */
         @media (min-width: 768px) {
@@ -439,25 +550,25 @@
         #insights-header > .flex, #chat-header > .flex { padding-bottom: .4rem; }
 
         .chat-tools { display: flex; align-items: center; gap: .9rem; }
-        .chat-tools button { position: relative; font-size: .75rem; color: #9ca3af; transition: color .15s ease; }
-        .chat-tools button:hover, .chat-tools button[aria-expanded="true"] { color: #00685B; }
+        .chat-tools button { position: relative; font-size: .75rem; color: var(--label-3); transition: color .15s ease; }
+        .chat-tools button:hover, .chat-tools button[aria-expanded="true"] { color: var(--tint); }
 
         #notes-box { padding: 0 .75rem .75rem; }
-        #notes-box label { display: block; font-size: .8125rem; color: #374151; margin-bottom: .3rem; }
+        #notes-box label { display: block; font-size: .8125rem; color: var(--label); margin-bottom: .3rem; }
         #notes-input {
             width: 100%;
             min-height: 4.5rem;
             max-height: 30vh;
             resize: vertical;
             padding: .5rem .65rem;
-            border: 1px solid #d1d5db;
+            border: 1px solid var(--separator-strong);
             border-radius: .5rem;
-            background: #fff;
+            background: var(--surface);
             font-size: .875rem;
             line-height: 1.45;
         }
-        #notes-input:focus { outline: none; border-color: #00685B; box-shadow: 0 0 0 1px #00685B; }
-        .notes-help { margin-top: .35rem; font-size: .75rem; line-height: 1.45; color: #9ca3af; }
+        #notes-input:focus { outline: none; border-color: var(--tint); box-shadow: 0 0 0 1px var(--tint); }
+        .notes-help { margin-top: .35rem; font-size: .75rem; line-height: 1.45; color: var(--label-3); }
 
         #chat-log {
             flex: 1 1 auto;
@@ -467,22 +578,22 @@
             flex-direction: column;
             gap: .9rem;
             padding: 1rem;
-            background: #f9fafb;
+            background: var(--surface-2);
         }
-        #chat-empty { margin: auto 0; padding: 1rem .5rem; text-align: center; color: #6b7280; }
-        .chat-empty-title { font-size: 1rem; font-weight: 400; color: #374151; }
+        #chat-empty { margin: auto 0; padding: 1rem .5rem; text-align: center; color: var(--label-3); }
+        .chat-empty-title { font-size: 1rem; font-weight: 400; color: var(--label); }
         .chat-empty-text { max-width: 27rem; margin: .35rem auto 0; font-size: .8125rem; line-height: 1.5; }
         .chat-suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin-top: 1rem; }
         .chat-suggestions button {
             padding: .35rem .75rem;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--separator);
             border-radius: 9999px;
-            background: #fff;
+            background: var(--surface);
             font-size: .8125rem;
-            color: #374151;
+            color: var(--label);
             transition: color .15s ease, border-color .15s ease;
         }
-        .chat-suggestions button:hover:not(:disabled) { border-color: #00685B; color: #00685B; }
+        .chat-suggestions button:hover:not(:disabled) { border-color: var(--tint); color: var(--tint); }
         .chat-suggestions button:disabled { opacity: .5; cursor: default; }
 
         .chat-turn { display: flex; flex-direction: column; gap: .5rem; }
@@ -491,7 +602,7 @@
             max-width: 85%;
             padding: .5rem .8rem;
             border-radius: 1rem 1rem .25rem 1rem;
-            background: #00685B;
+            background: var(--tint-fill);
             color: #fff;
             font-size: .9375rem;
             font-weight: 400;
@@ -500,20 +611,20 @@
         }
         .chat-a {
             padding: .7rem .9rem;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--separator);
             border-radius: .25rem 1rem 1rem 1rem;
-            background: #fff;
+            background: var(--surface);
             font-size: .9375rem;
             line-height: 1.55;
-            color: #374151;
+            color: var(--label);
             overflow-wrap: anywhere;
         }
         .chat-a .reverb-answer > :last-child { margin-bottom: 0; }
-        .chat-a-foot { display: flex; align-items: center; gap: .9rem; margin-top: .45rem; font-size: .75rem; color: #9ca3af; }
-        .chat-a-foot button { color: #6b7280; }
-        .chat-a-foot button:hover { color: #00685B; }
-        .chat-a-error { color: #b45309; }
-        .chat-thinking { display: inline-flex; align-items: center; gap: .45rem; font-size: .8125rem; color: #6b7280; }
+        .chat-a-foot { display: flex; align-items: center; gap: .9rem; margin-top: .45rem; font-size: .75rem; color: var(--label-3); }
+        .chat-a-foot button { color: var(--label-3); }
+        .chat-a-foot button:hover { color: var(--tint); }
+        .chat-a-error { color: var(--warning); }
+        .chat-thinking { display: inline-flex; align-items: center; gap: .45rem; font-size: .8125rem; color: var(--label-3); }
         .chat-thinking svg { width: .95rem; height: .95rem; }
         /* A minute the answer rests on. Clicking it shows that stretch of the transcript. */
         .cite {
@@ -525,10 +636,10 @@
             font-weight: 500;
             line-height: 1.15rem;
             vertical-align: .08em;
-            color: #00685B;
-            background: rgba(0,104,91,.09);
+            color: var(--tint);
+            background: color-mix(in srgb, var(--tint) 9%, transparent);
         }
-        .cite:hover { background: rgba(0,104,91,.18); }
+        .cite:hover { background: color-mix(in srgb, var(--tint) 18%, transparent); }
 
         #chat-form {
             flex-shrink: 0;
@@ -536,8 +647,8 @@
             align-items: flex-end;
             gap: .5rem;
             padding: .6rem .75rem;
-            border-top: 1px solid #e5e7eb;
-            background: #fff;
+            border-top: 1px solid var(--separator);
+            background: var(--surface);
         }
         #chat-input {
             flex: 1 1 auto;
@@ -545,27 +656,27 @@
             max-height: 9rem;
             resize: none;
             padding: .5rem .75rem;
-            border: 1px solid #d1d5db;
+            border: 1px solid var(--separator-strong);
             border-radius: .75rem;
-            background: #fff;
+            background: var(--surface);
             font-size: .9375rem;
             line-height: 1.4;
         }
-        #chat-input:focus { outline: none; border-color: #00685B; box-shadow: 0 0 0 1px #00685B; }
-        #chat-input:disabled { background: #f9fafb; }
+        #chat-input:focus { outline: none; border-color: var(--tint); box-shadow: 0 0 0 1px var(--tint); }
+        #chat-input:disabled { background: var(--surface-2); }
         #chat-send {
             flex-shrink: 0;
             min-height: 2.35rem;
             padding: 0 1.1rem;
-            border: 1px solid #00685B;
+            border: 1px solid var(--tint);
             border-radius: 9999px;
-            background: #00685B;
+            background: var(--tint-fill);
             color: #fff;
             font-size: .875rem;
         }
         #chat-send:hover:not(:disabled) { opacity: .9; }
         #chat-send:disabled { opacity: .45; cursor: default; }
-        #chat-send.stop { border-color: #d1d5db; background: #fff; color: #374151; }
+        #chat-send.stop { border-color: var(--separator-strong); background: var(--surface); color: var(--label); }
 
         /* What the session actually did to the thresholds in this file. Monospace because
            it is a column of numbers meant to be read against the constants above. */
@@ -573,12 +684,12 @@
             margin-top: .6rem;
             padding: .6rem .7rem;
             border-radius: .5rem;
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
+            background: var(--surface-2);
+            border: 1px solid var(--separator);
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
             font-size: .6875rem;
             line-height: 1.5;
-            color: #4b5563;
+            color: var(--label-2);
             white-space: pre-wrap;
             overflow-x: auto;
             max-height: 40vh;
@@ -586,9 +697,9 @@
         #end-diagnostics.hidden { display: none; }
 
         /* End session, asked twice: the first click turns the button into the question. */
-        .end-action { border-color: #fca5a5; color: #dc2626; }
-        .end-action:hover { background: #fef2f2; }
-        .end-action.armed, .end-action.armed:hover { background: #dc2626; border-color: #dc2626; color: #fff; }
+        .end-action { border-color: color-mix(in srgb, var(--danger) 45%, transparent); color: var(--danger); }
+        .end-action:hover { background: var(--danger-wash); }
+        .end-action.armed, .end-action.armed:hover { background: var(--danger-fill); border-color: var(--danger); color: #fff; }
 
         /* A visible seam where the session was paused. */
         .resume-mark {
@@ -597,7 +708,7 @@
             font-size: .7rem;
             letter-spacing: .04em;
             text-transform: uppercase;
-            color: #9ca3af;
+            color: var(--label-3);
         }
 
         /* Following the live edge without taking the reader's place. Scrolled away from it,
@@ -621,11 +732,182 @@
             font-weight: 400;
             white-space: nowrap;
             color: #fff;
-            background: #00685B;
+            background: var(--tint-fill);
             box-shadow: 0 4px 12px rgba(0,0,0,.18);
         }
         .jump-chip.at-bottom { bottom: .75rem; }
         .jump-chip.at-top { top: .75rem; }
+
+        /* ---------- Controls, after Apple's ----------
+           One button family in five roles, so the most important action on screen is always the
+           most visible one: filled (the primary action), tinted (a secondary action), gray (a
+           neutral one), plain (a low-key one), destructive (erases something). */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+            min-height: 2.25rem; padding: 0 1rem; border: 0; border-radius: 9999px;
+            font-size: .9375rem; font-weight: 500; line-height: 1; white-space: nowrap; cursor: pointer;
+            transition: background-color .15s ease, color .15s ease, opacity .15s ease, transform .1s ease;
+        }
+        /* Tailwind's .hidden comes from an earlier stylesheet, so it needs the extra weight here. */
+        .btn.hidden { display: none; }
+        .btn:active { transform: scale(.97); }
+        .btn:disabled { opacity: .4; cursor: default; transform: none; }
+        .btn-small { min-height: 1.85rem; padding: 0 .8rem; font-size: .8125rem; }
+        .btn-large { min-height: 2.75rem; padding: 0 1.4rem; font-size: 1rem; }
+        .btn-filled { background: var(--tint-fill); color: #fff; }
+        .btn-filled:hover:not(:disabled) { background: var(--tint-fill-hover); }
+        .btn-tinted { background: color-mix(in srgb, var(--tint) 14%, transparent); color: var(--tint); }
+        .btn-tinted:hover:not(:disabled) { background: color-mix(in srgb, var(--tint) 22%, transparent); }
+        .btn-gray { background: var(--fill); color: var(--label); }
+        .btn-gray:hover:not(:disabled) { background: var(--fill-2); }
+        .btn-plain { background: transparent; color: var(--tint); padding: 0 .6rem; }
+        .btn-plain:hover:not(:disabled) { background: color-mix(in srgb, var(--tint) 10%, transparent); }
+        .btn-destructive { background: var(--danger-fill); color: #fff; }
+        .btn-destructive:hover:not(:disabled) { background: var(--danger-fill-hover); }
+        .btn-destructive-plain { background: transparent; color: var(--danger); padding: 0 .6rem; }
+        .btn-destructive-plain:hover:not(:disabled) { background: var(--danger-wash); }
+        .link-btn { font-size: .8125rem; color: var(--tint); background: none; border: 0; padding: 0; cursor: pointer; }
+        .link-btn:hover { text-decoration: underline; }
+
+        /* Keyboard focus is always visible, in the tint. */
+        :focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+        .field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: none; }
+
+        /* Segmented control: AI Insights | Chat on desktop, the three panes on a phone. */
+        .segmented { display: flex; padding: 2px; border-radius: 9px; background: var(--seg-fill); }
+        .segmented [role="tab"] {
+            flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: .4rem;
+            border-radius: 7px; font-weight: 400; color: var(--label-2);
+            transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+        }
+        .segmented [role="tab"][aria-selected="true"] {
+            font-weight: 500; color: var(--label);
+            background: var(--surface); box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04);
+        }
+        @media (prefers-color-scheme: dark) { .segmented [role="tab"][aria-selected="true"] { background: #636366; } }
+        .side-tabs.segmented { display: inline-flex; }
+        .side-tabs.segmented [role="tab"] { flex: 0 0 auto; min-height: 1.85rem; padding: 0 1rem; font-size: .875rem; }
+
+        /* Switches for the yes/no choices, as in Settings. */
+        .switch {
+            appearance: none; -webkit-appearance: none; flex-shrink: 0; position: relative;
+            width: 51px; height: 31px; margin: 0; border-radius: 9999px; cursor: pointer;
+            background: var(--fill-3); transition: background-color .2s ease;
+        }
+        .switch::after {
+            content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%;
+            background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.15), 0 3px 1px rgba(0,0,0,.06);
+            transition: transform .2s cubic-bezier(.2,.8,.2,1);
+        }
+        .switch:checked { background: var(--tint-fill); }
+        .switch:checked::after { transform: translateX(20px); }
+        .switch:disabled { opacity: .5; cursor: default; }
+
+        /* Sheets: the brief. A title bar with Cancel and the primary action, grouped sections below. */
+        .sheet-backdrop { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; background: var(--scrim); }
+        .sheet-backdrop.hidden { display: none; }
+        .sheet { display: flex; flex-direction: column; width: 100%; max-width: 34rem; max-height: min(92vh, 52rem); border-radius: 14px; overflow: hidden; background: var(--surface-2); box-shadow: var(--shadow-2); }
+        .sheet-bar {
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .5rem;
+            padding: .55rem .6rem; flex-shrink: 0;
+            background: color-mix(in srgb, var(--surface) 88%, transparent);
+            -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid var(--separator);
+        }
+        .sheet-bar > :first-child { justify-self: start; }
+        .sheet-bar > :last-child { justify-self: end; }
+        .sheet-bar-title { font-size: 1.0625rem; font-weight: 600; color: var(--label); }
+        .sheet-body { overflow-y: auto; padding: 1rem 1rem 1.5rem; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+        .sheet-lede { margin: 0 .25rem .25rem; font-size: .875rem; line-height: 1.5; color: var(--label-3); }
+        .group-head {
+            display: flex; align-items: baseline; justify-content: space-between; gap: .75rem;
+            margin: 1.2rem 1rem .4rem; font-size: .75rem; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; color: var(--label-3);
+        }
+        .group-head .link-btn { text-transform: none; letter-spacing: 0; font-weight: 400; }
+        .group-note { margin: -.1rem 1rem .45rem; font-size: .8125rem; color: var(--tint); }
+        .group-note:empty { display: none; }
+        .group { border-radius: 10px; overflow: hidden; background: var(--surface); }
+        .group > * + * { box-shadow: inset 0 1px 0 var(--separator); }
+        .group-foot { margin: .45rem 1rem 0; font-size: .75rem; line-height: 1.45; color: var(--label-3); }
+        .group-details > summary { list-style: none; cursor: pointer; }
+        .group-details > summary::-webkit-details-marker { display: none; }
+        .group-details > summary::after {
+            content: ''; width: .45rem; height: .45rem; margin-left: auto; margin-right: .2rem;
+            border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .2s ease;
+        }
+        .group-details[open] > summary::after { transform: rotate(45deg); }
+        .field { display: block; padding: .65rem 1rem .7rem; transition: background-color .15s ease; }
+        .field:focus-within { background: color-mix(in srgb, var(--tint) 5%, var(--surface)); }
+        .field-label { display: block; margin-bottom: .25rem; font-size: .8125rem; color: var(--label-2); }
+        .field-hint { font-size: .75rem; color: var(--label-3); }
+        .field input, .field textarea, .field select {
+            display: block; width: 100%; padding: 0; border: 0; border-radius: 0; background: transparent;
+            font-size: 1rem; line-height: 1.45; color: var(--label); outline: none; resize: vertical;
+        }
+        .field select { -webkit-appearance: none; appearance: none; cursor: pointer; }
+        .field-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: .5rem; }
+        .option-row { display: flex; align-items: center; gap: 1rem; padding: .75rem 1rem; cursor: pointer; }
+        .option-row[hidden] { display: none; }
+        .option-text { flex: 1; min-width: 0; }
+        .option-title { display: block; font-size: .9375rem; color: var(--label); }
+        .option-note { display: block; margin-top: .15rem; font-size: .75rem; line-height: 1.45; color: var(--label-3); }
+
+        /* Alerts: a decision that can't be undone gets its own question, with the safe choice
+           as the easy one. */
+        .alert-card { width: 100%; max-width: 19rem; overflow: hidden; border-radius: 14px; text-align: center; background: var(--surface); box-shadow: var(--shadow-2); }
+        .alert-body { padding: 1.15rem 1.1rem 1rem; }
+        .alert-title { font-size: 1.0625rem; font-weight: 600; color: var(--label); }
+        .alert-message { margin-top: .35rem; font-size: .8125rem; line-height: 1.45; color: var(--label-2); }
+        .alert-actions { display: flex; flex-direction: column; }
+        .alert-actions.pair { flex-direction: row; }
+        .alert-actions button {
+            flex: 1 1 0; min-height: 2.75rem; padding: 0 .75rem; border: 0; background: transparent;
+            box-shadow: inset 0 1px 0 var(--separator); font-size: 1.0625rem; color: var(--tint); cursor: pointer;
+        }
+        .alert-actions.pair button + button { box-shadow: inset 0 1px 0 var(--separator), inset 1px 0 0 var(--separator); }
+        .alert-actions button:hover { background: var(--fill); }
+        .alert-actions button.default { font-weight: 600; }
+        .alert-actions button.destructive { color: var(--danger); }
+
+        /* A brief confirmation that something happened — copied, saved — then out of the way. */
+        .toast {
+            position: fixed; left: 50%; bottom: calc(4.5rem + env(safe-area-inset-bottom)); z-index: 70;
+            transform: translateX(-50%); padding: .6rem 1.1rem; border-radius: 9999px;
+            font-size: .875rem; font-weight: 500; color: #fff; background: rgba(28,28,30,.88);
+            -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.2); pointer-events: none;
+        }
+        @media (prefers-color-scheme: dark) { .toast { background: rgba(72,72,74,.92); } }
+        .toast.show { animation: toast-in 1.9s ease both; }
+        @keyframes toast-in {
+            0% { opacity: 0; transform: translate(-50%, 8px); }
+            12%, 82% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, 0); }
+        }
+
+        /* An empty panel says what it is for and how to begin. */
+        .empty-state { display: none; flex-direction: column; align-items: center; justify-content: center; gap: .6rem; height: 100%; padding: 2rem 1rem; text-align: center; }
+        .empty-state svg { width: 2.75rem; height: 2.75rem; color: var(--tint); }
+        .empty-title { font-size: 1.25rem; font-weight: 600; color: var(--label); }
+        .empty-text { max-width: 26rem; font-size: .9375rem; line-height: 1.5; color: var(--label-3); }
+        .empty-state .btn { margin-top: .4rem; }
+        #transcript-container:has(#segments:empty):has(#pending-transcript:empty):has(#interim-transcript:empty) #transcript-empty { display: flex; }
+        body.listening #transcript-container #transcript-empty { display: none !important; }
+        body.listening #transcript-container:has(#segments:empty):has(#pending-transcript:empty):has(#interim-transcript:empty) #transcript-waiting { display: flex; }
+
+        /* Touch: every control gets a 44pt target, however small it is drawn. */
+        @media (pointer: coarse) {
+            .card-feedback button, .card-more-toggle, .cite, .todo-actions button, .chat-a-foot button, .link-btn { position: relative; }
+            .card-feedback button::after, .card-more-toggle::after, .todo-actions button::after, .chat-a-foot button::after, .link-btn::after { content: ''; position: absolute; inset: -.65rem; }
+            .cite::after { content: ''; position: absolute; inset: -.5rem -.25rem; }
+            .btn { min-height: 2.75rem; }
+            .btn-small { min-height: 2.25rem; }
+        }
+
+        /* Motion is a courtesy, never a requirement. */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+        }
 
         /* Phone-only pieces. The header groups dissolve into the header on desktop, so its
            layout is exactly what it was before they existed. */
@@ -661,7 +943,7 @@
                 grid-area: brand;
                 min-width: 0;
                 padding: calc(.5rem + env(safe-area-inset-top)) .5rem .25rem calc(1rem + env(safe-area-inset-left));
-                background: #fff;
+                background: var(--surface);
             }
             #brand svg { width: 1.5rem; height: 1.5rem; }
             #brand h1 { font-size: 1.25rem; line-height: 1.75rem; margin-left: .5rem; }
@@ -673,7 +955,7 @@
                 gap: .75rem;
                 padding: calc(.5rem + env(safe-area-inset-top)) calc(1rem + env(safe-area-inset-right)) .25rem 0;
                 white-space: nowrap;
-                background: #fff;
+                background: var(--surface);
             }
             /* Which transcriber is running is a detail; the bar only has room for state. */
             #mode-badge { display: none; }
@@ -682,29 +964,10 @@
                 grid-area: switch;
                 display: block;
                 padding: .5rem calc(1rem + env(safe-area-inset-right)) .5rem calc(1rem + env(safe-area-inset-left));
-                background: #fff;
-                border-bottom: 1px solid #e5e7eb;
+                background: var(--surface);
+                border-bottom: 1px solid var(--separator);
             }
-            .segmented { display: flex; padding: 2px; border-radius: 9px; background: rgba(118,118,128,.12); }
-            .segmented [role="tab"] {
-                flex: 1 1 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: .4rem;
-                min-height: 2.25rem;
-                border-radius: 7px;
-                font-size: .875rem;
-                font-weight: 400;
-                color: #4b5563;
-                transition: background-color .2s ease, color .2s ease;
-            }
-            .segmented [role="tab"][aria-selected="true"] {
-                font-weight: 500;
-                color: #00685B;
-                background: #fff;
-                box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04);
-            }
+            .segmented [role="tab"] { min-height: 2.25rem; font-size: .875rem; }
             .unread-badge {
                 min-width: 1.125rem;
                 height: 1.125rem;
@@ -715,7 +978,7 @@
                 font-weight: 500;
                 text-align: center;
                 color: #fff;
-                background: #00685B;
+                background: var(--tint-fill);
             }
 
             /* Both panels share the space. The one not showing stays laid out rather than
@@ -734,7 +997,9 @@
             #panels:not([data-pane="chat"]) > #chat-panel { visibility: hidden; pointer-events: none; }
 
             /* The segmented control already names the panel; its header keeps only the tools. */
-            #transcript-panel h2, #insights-panel h2, .side-tabs { display: none; }
+            #transcript-panel h2, #insights-panel h2, .side-tabs, .side-tabs.segmented { display: none; }
+            /* The bottom bar already holds Start, in thumb reach; one is enough. */
+            #transcript-empty .btn { display: none; }
             #chat-header > .flex { min-height: 2.75rem; padding: .25rem .75rem; justify-content: flex-end; }
             #chat-log { padding: .75rem; }
             /* Under 16px, iOS zooms the page into a field on focus and leaves it there. */
@@ -744,16 +1009,7 @@
             #transcript-header { min-height: 2.75rem; padding: .25rem .75rem; }
             #transcript-header > div { flex: 1; justify-content: space-between; }
             #transcript-header .sm\:inline { display: none; }
-            /* A full-height blank panel reads as broken; Insights already has a placeholder. */
-            #transcript-container:has(#segments:empty):has(#pending-transcript:empty):has(#interim-transcript:empty)::before {
-                content: 'What\2019 s said will appear here.';
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100%;
-                font-size: .9375rem;
-                color: #9ca3af;
-            }
+
             #insights-header > .flex { min-height: 2.75rem; padding: .25rem .75rem; }
             #insights-activity { margin-left: 0; }
             #insights-container { padding: .75rem; }
@@ -768,8 +1024,8 @@
                 width: 100%;
                 padding: .5rem .75rem;
                 text-align: left;
-                background: #fff;
-                border-top: 1px solid #e5e7eb;
+                background: var(--surface);
+                border-top: 1px solid var(--separator);
             }
             #live-caption-text {
                 display: flex;
@@ -779,7 +1035,7 @@
                 overflow: hidden;
                 font-size: .875rem;
                 line-height: 1.25rem;
-                color: #4b5563;
+                color: var(--label-2);
                 -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.45), #000 1.25rem);
                 mask-image: linear-gradient(to bottom, rgba(0,0,0,.45), #000 1.25rem);
             }
@@ -809,14 +1065,19 @@
                 display: flex;
                 gap: .5rem;
                 padding: .5rem calc(1rem + env(safe-area-inset-right)) calc(.5rem + env(safe-area-inset-bottom)) calc(1rem + env(safe-area-inset-left));
-                background: #fff;
-                border-top: 1px solid #e5e7eb;
+                background: var(--surface);
+                border-top: 1px solid var(--separator);
             }
             #header-actions > button { flex: 1 1 0; min-height: 2.75rem; padding-top: 0; padding-bottom: 0; }
             #header-actions > #brief-btn, #header-actions > #end-btn { flex: 0 0 auto; }
 
+            /* The brief rises from the bottom edge, as a sheet does on iPhone. */
+            #setup-modal { align-items: flex-end; padding: calc(.75rem + env(safe-area-inset-top)) 0 0; }
+            #setup-modal .sheet { max-width: none; height: 100%; max-height: none; border-radius: 12px 12px 0 0; animation: sheet-up .32s cubic-bezier(.2,.8,.2,1); }
+            #setup-modal .sheet-body { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+
             /* Topics and "Where we are" as a sheet over the content. */
-            #sheet-scrim { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.3); }
+            #sheet-scrim { display: block; position: fixed; inset: 0; z-index: 40; background: var(--scrim); }
             #state-body {
                 position: fixed;
                 left: 0;
@@ -826,7 +1087,7 @@
                 max-height: 80vh;
                 max-height: 80dvh;
                 padding: 0 calc(1rem + env(safe-area-inset-right)) calc(1.25rem + env(safe-area-inset-bottom)) calc(1rem + env(safe-area-inset-left));
-                background: #fff;
+                background: var(--surface);
                 border-radius: 1rem 1rem 0 0;
                 box-shadow: 0 -8px 30px rgba(0,0,0,.15);
                 animation: sheet-up .28s cubic-bezier(.2,.8,.2,1);
@@ -839,10 +1100,10 @@
                 align-items: center;
                 justify-content: space-between;
                 padding-top: .5rem;
-                background: #fff;
+                background: var(--surface);
             }
-            .sheet-title { font-size: 1.0625rem; font-weight: 400; color: #00685B; }
-            #state-done { min-height: 2.75rem; padding: 0 .25rem; font-size: .9375rem; font-weight: 500; color: #00685B; }
+            .sheet-title { font-size: 1.0625rem; font-weight: 400; color: var(--tint); }
+            #state-done { min-height: 2.75rem; padding: 0 .25rem; font-size: .9375rem; font-weight: 500; color: var(--tint); }
         }
         @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
             #state-body { animation: none; }
@@ -852,147 +1113,132 @@
 </head>
 <body class="text-gray-800 flex flex-col h-screen overflow-hidden">
 
-    <!-- Session brief -->
-    <div id="setup-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-full overflow-y-auto">
-            <h2 class="text-xl text-google-green mb-1">Before we start</h2>
-            <p class="text-sm text-gray-500 mb-5">
-                Context sharpens both the transcription and the analysis. Names and terms you
-                list here are sent to the speech model as hints, so it stops mangling them.
-            </p>
-
-            <div class="setup-row" style="margin:-.5rem 0 .9rem">
-                <span id="followup-note" class="text-xs text-google-green"></span>
-                <button id="invite-load" type="button" class="setup-link">Fill from a calendar invite</button>
-                <input id="invite-file" type="file" accept=".ics,text/calendar" hidden>
-            </div>
-            <div id="invite-box" hidden>
-                <textarea id="invite-text" rows="4"
-                    class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
-                    placeholder="Paste the invite — title, guests, description — or choose an .ics file"></textarea>
-                <div class="setup-row" style="margin-bottom:.9rem">
-                    <button id="invite-file-pick" type="button" class="setup-link">Choose an .ics file</button>
-                    <button id="invite-apply" type="button" class="setup-link">Fill the brief</button>
-                </div>
-            </div>
-
-            <label class="block text-sm text-gray-700 mb-1">What's the objective of this session?</label>
-            <textarea id="setup-objective" rows="2"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
-                placeholder="e.g. Align on FY27 platform strategy and decide build vs. buy for identity"></textarea>
-
-            <label class="block text-sm text-gray-700 mt-4 mb-1">Session type</label>
-            <select id="setup-type"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green">
-                <option value="strategy">Strategy / open discussion</option>
-                <option value="design">Design thinking / ideation</option>
-                <option value="technical">Technical review</option>
-                <option value="general">General meeting</option>
-            </select>
-
-            <label class="block text-sm text-gray-700 mt-4 mb-1">
-                Who's in the meeting?
-                <span class="text-gray-400 font-light">(comma separated)</span>
-            </label>
-            <input id="setup-roster" type="text"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
-                placeholder="Dana Whitfield, Priya Raghavan, Tom Okafor">
-            <p class="mt-1 text-xs text-gray-400 font-light">
-                Used to label who said what, and sent to the speech model so it stops
-                mangling their names. Anyone not listed still gets tracked as a speaker.
-            </p>
-
-            <label class="block text-sm text-gray-700 mt-4 mb-1">
-                Names &amp; terms likely to come up
-                <span class="text-gray-400 font-light">(comma separated)</span>
-            </label>
-            <input id="setup-keywords" type="text"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
-                placeholder="Kubernetes, Priya Raghavan, SOC 2, ARR, gRPC">
-
-            <details id="setup-more">
-                <summary>Agenda, length &amp; background material</summary>
-
-                <label class="block text-sm text-gray-700 mt-3 mb-1">
-                    Agenda
-                    <span class="text-gray-400 font-light">(one item per line)</span>
-                </label>
-                <textarea id="setup-agenda" rows="3"
-                    class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
-                    placeholder="Identity: build vs. buy&#10;Q3 hiring plan&#10;Launch date"></textarea>
-
-                <label class="block text-sm text-gray-700 mt-4 mb-1">
-                    Planned length
-                    <span class="text-gray-400 font-light">(minutes)</span>
-                </label>
-                <input id="setup-duration" type="number" min="5" max="600" step="5" inputmode="numeric"
-                    class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
-                    placeholder="45">
-                <p class="mt-1 text-xs text-gray-400 font-light">
-                    With an agenda or a length, ReVerb tells you when time is going to something the
-                    meeting doesn't need, or running out with items still open.
+    <!-- Session brief: a sheet, as on iOS — a title bar with the actions always in reach, then
+         grouped sections, switches for the yes/no choices. -->
+    <div id="setup-modal" class="hidden sheet-backdrop" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+        <div class="sheet">
+            <header class="sheet-bar">
+                <button id="setup-cancel" type="button" class="btn btn-plain">Cancel</button>
+                <h2 id="setup-title" class="sheet-bar-title">New Session</h2>
+                <button id="setup-start" type="button" class="btn btn-filled">Start</button>
+            </header>
+            <div class="sheet-body">
+                <p class="sheet-lede">
+                    A minute of context sharpens both the transcription and the analysis. Names and terms
+                    you list here are sent to the speech model as hints, so it stops mangling them.
                 </p>
 
-                <label class="block text-sm text-gray-700 mt-4 mb-1">Background material</label>
-                <textarea id="setup-materials" rows="4" maxlength="16000"
-                    class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
-                    placeholder="Paste notes from the last meeting, a spec, a doc…"></textarea>
-                <div class="setup-row">
-                    <span id="materials-count" class="text-xs text-gray-400 font-light"></span>
-                    <button id="materials-load" type="button" class="setup-link">Load from a text file</button>
-                    <input id="materials-file" type="file" accept=".txt,.md,.markdown,.csv,text/plain,text/markdown" hidden>
+                <div class="group-head">
+                    <span>Meeting</span>
+                    <button id="invite-load" type="button" class="link-btn">Fill from a calendar invite</button>
+                    <input id="invite-file" type="file" accept=".ics,text/calendar" hidden>
                 </div>
-                <p class="mt-1 text-xs text-gray-400 font-light">
-                    Questions it answers get answered from it, and anything said that reverses a
-                    decision recorded in it is flagged.
+                <p id="followup-note" class="group-note"></p>
+                <div id="invite-box" class="group" hidden>
+                    <div class="field">
+                        <textarea id="invite-text" rows="4" aria-label="Calendar invite"
+                            placeholder="Paste the invite — title, guests, description — or choose an .ics file"></textarea>
+                        <div class="field-actions">
+                            <button id="invite-file-pick" type="button" class="link-btn">Choose an .ics file</button>
+                            <button id="invite-apply" type="button" class="btn btn-tinted btn-small">Fill the Brief</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="group">
+                    <label class="field">
+                        <span class="field-label">Objective</span>
+                        <textarea id="setup-objective" rows="2"
+                            placeholder="e.g. Align on FY27 platform strategy and decide build vs. buy for identity"></textarea>
+                    </label>
+                    <label class="field">
+                        <span class="field-label">Type</span>
+                        <select id="setup-type">
+                            <option value="strategy">Strategy / open discussion</option>
+                            <option value="design">Design thinking / ideation</option>
+                            <option value="technical">Technical review</option>
+                            <option value="general">General meeting</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="group-head"><span>People &amp; Terms</span></div>
+                <div class="group">
+                    <label class="field">
+                        <span class="field-label">Who’s in the meeting</span>
+                        <input id="setup-roster" type="text" autocomplete="off" placeholder="Dana Whitfield, Priya Raghavan, Tom Okafor">
+                    </label>
+                    <label class="field">
+                        <span class="field-label">Names &amp; terms likely to come up</span>
+                        <input id="setup-keywords" type="text" autocomplete="off" placeholder="Kubernetes, SOC 2, ARR, gRPC">
+                    </label>
+                </div>
+                <p class="group-foot">
+                    Separate with commas. People are used to label who said what, and everyone and
+                    everything listed is a hint to the speech model. Anyone not listed is still tracked as a speaker.
                 </p>
-            </details>
 
-            <div class="mt-5 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <label class="flex items-start space-x-3 cursor-pointer">
-                    <input id="setup-accurate" type="checkbox" class="mt-1 accent-[#00685B]">
-                    <span class="text-sm">
-                        <span class="text-gray-700">High-accuracy transcription</span>
-                        <span id="accurate-note" class="block text-xs text-gray-500 mt-0.5">
-                            Streams audio to a speech model that accepts your keyword hints (~$1/hr).
-                            Off = free browser transcription, Chrome/Edge only, no keyword support.
+                <details id="setup-more" class="group-details">
+                    <summary class="group-head"><span>Agenda, Length &amp; Background</span></summary>
+                    <div class="group">
+                        <label class="field">
+                            <span class="field-label">Agenda <span class="field-hint">— one item per line</span></span>
+                            <textarea id="setup-agenda" rows="3" placeholder="Identity: build vs. buy&#10;Q3 hiring plan&#10;Launch date"></textarea>
+                        </label>
+                        <label class="field">
+                            <span class="field-label">Planned length <span class="field-hint">— minutes</span></span>
+                            <input id="setup-duration" type="number" min="5" max="600" step="5" inputmode="numeric" placeholder="45">
+                        </label>
+                        <div class="field">
+                            <label class="field-label" for="setup-materials">Background material</label>
+                            <textarea id="setup-materials" rows="4" maxlength="16000" placeholder="Paste notes from the last meeting, a spec, a doc…"></textarea>
+                            <div class="field-actions">
+                                <span id="materials-count" class="field-hint"></span>
+                                <button id="materials-load" type="button" class="link-btn">Load from a text file</button>
+                                <input id="materials-file" type="file" accept=".txt,.md,.markdown,.csv,text/plain,text/markdown" hidden>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="group-foot">
+                        With an agenda or a length, ReVerb tells you when time is going to something the meeting
+                        doesn’t need, or running out with items still open. Questions the material answers get
+                        answered from it, and anything said that reverses a decision recorded in it is flagged.
+                    </p>
+                </details>
+
+                <div class="group-head"><span>Listening</span></div>
+                <div class="group">
+                    <label class="option-row">
+                        <span class="option-text">
+                            <span class="option-title">High-accuracy transcription</span>
+                            <span id="accurate-note" class="option-note">
+                                A speech model that takes your name and term hints (~$1/hr). Off: free browser
+                                transcription, Chrome and Edge only, no hints.
+                            </span>
                         </span>
-                    </span>
-                </label>
-            </div>
-
-            <div id="tab-option" class="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <label class="flex items-start space-x-3 cursor-pointer">
-                    <input id="setup-tab" type="checkbox" class="mt-1 accent-[#00685B]">
-                    <span class="text-sm">
-                        <span class="text-gray-700">Also listen to a meeting tab</span>
-                        <span class="block text-xs text-gray-500 mt-0.5">
-                            For Zoom, Meet or Teams in the browser: you pick the meeting’s tab and turn on
-                            “Share tab audio”, and ReVerb hears the other people as well as your microphone.
-                            Uses high-accuracy transcription. Best with headphones.
+                        <input id="setup-accurate" type="checkbox" class="switch" role="switch">
+                    </label>
+                    <label id="tab-option" class="option-row">
+                        <span class="option-text">
+                            <span class="option-title">Also listen to a meeting tab</span>
+                            <span class="option-note">
+                                For Zoom, Meet or Teams in the browser: pick the meeting’s tab and turn on
+                                “Share tab audio”, and ReVerb hears the others as well as your microphone.
+                                Uses high-accuracy transcription. Best with headphones.
+                            </span>
                         </span>
-                    </span>
-                </label>
-            </div>
-
-            <div class="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <label class="flex items-start space-x-3 cursor-pointer">
-                    <input id="setup-record" type="checkbox" class="mt-1 accent-[#00685B]">
-                    <span class="text-sm">
-                        <span class="text-gray-700">Record audio to disk</span>
-                        <span id="record-note" class="block text-xs text-gray-500 mt-0.5">
-                            You'll pick a file location. Audio is written continuously, so it survives
-                            a crash or an accidental tab close. A link to the file is shown when you stop.
+                        <input id="setup-tab" type="checkbox" class="switch" role="switch">
+                    </label>
+                    <label class="option-row">
+                        <span class="option-text">
+                            <span class="option-title">Record audio to disk</span>
+                            <span id="record-note" class="option-note">
+                                You pick a file. Audio is written as it goes, so it survives a crash or a closed
+                                tab, and a link to it is shown when you stop.
+                            </span>
                         </span>
-                    </span>
-                </label>
-            </div>
-
-            <div class="flex justify-end space-x-3 mt-6">
-                <button id="setup-cancel" class="px-4 py-2 text-sm text-gray-600 hover:underline">Cancel</button>
-                <button id="setup-start" class="px-5 py-2.5 text-sm text-white bg-google-green rounded-full shadow-sm hover:opacity-90 transition-opacity">
-                    Start session
-                </button>
+                        <input id="setup-record" type="checkbox" class="switch" role="switch">
+                    </label>
+                </div>
             </div>
         </div>
     </div>
@@ -1020,27 +1266,17 @@
 
             <div class="flex items-center space-x-2">
                 <div id="status-light" class="w-3 h-3 rounded-full bg-gray-400"></div>
-                <span id="status" class="text-sm font-normal text-gray-500">Not Listening</span>
+                <span id="status" class="text-sm font-normal text-gray-500">Not listening</span>
             </div>
             </div>
 
             <div id="header-actions" class="header-group">
-            <button id="library-btn" class="hidden px-3 py-2 text-sm text-gray-600 rounded-full border border-gray-300 hover:border-google-green hover:text-google-green transition-colors">
-                Past meetings
-            </button>
-            <button id="brief-btn" class="hidden px-3 py-2 text-sm text-gray-600 rounded-full border border-gray-300 hover:border-google-green hover:text-google-green transition-colors">
-                Brief
-            </button>
-            <button id="end-btn" class="hidden end-action px-3 py-2 text-sm rounded-full border transition-colors">End session</button>
-            <button id="start-btn" class="px-5 py-2.5 text-sm font-normal text-white bg-google-green rounded-full shadow-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-google-green">
-                Start Listening
-            </button>
-            <button id="pause-btn" class="hidden px-5 py-2.5 text-sm font-normal text-gray-700 bg-gray-200 rounded-full shadow-sm hover:opacity-90 transition-opacity">
-                Pause
-            </button>
-            <button id="stop-btn" class="hidden px-5 py-2.5 text-sm font-normal text-white bg-red-600 rounded-full shadow-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                Stop Listening
-            </button>
+            <button id="library-btn" class="hidden btn btn-gray">Past Meetings</button>
+            <button id="brief-btn" class="hidden btn btn-gray">Brief</button>
+            <button id="end-btn" class="hidden btn btn-destructive-plain">End Session</button>
+            <button id="start-btn" class="btn btn-filled btn-large">Start Listening</button>
+            <button id="pause-btn" class="hidden btn btn-gray btn-large">Pause</button>
+            <button id="stop-btn" class="hidden btn btn-destructive btn-large">Stop</button>
             </div>
         </div>
     </header>
@@ -1052,8 +1288,8 @@
                 <span id="restore-detail"></span>
             </p>
             <div class="flex items-center space-x-2">
-                <button id="restore-yes" class="px-3 py-1.5 text-xs text-white bg-google-green rounded-full hover:opacity-90">Restore it</button>
-                <button id="restore-no" class="px-3 py-1.5 text-xs text-gray-600 hover:underline">Discard</button>
+                <button id="restore-yes" class="btn btn-filled btn-small">Restore</button>
+                <button id="restore-no" class="btn btn-destructive-plain btn-small">Discard</button>
             </div>
         </div>
     </section>
@@ -1068,12 +1304,12 @@
                 <pre id="end-diagnostics" class="hidden"></pre>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <button id="end-diagnostics-toggle" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Diagnostics</button>
-                <button id="end-recap" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Recap &amp; share</button>
-                <button id="end-transcript" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Download transcript</button>
-                <button id="end-continue" class="px-3 py-1.5 text-xs text-white bg-google-green rounded-full hover:opacity-90">Continue session</button>
-                <button id="end-session" class="end-action px-3 py-1.5 text-xs rounded-full border transition-colors">End session</button>
-                <button id="end-dismiss" class="px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600">Dismiss</button>
+                <button id="end-continue" class="btn btn-filled btn-small">Continue Session</button>
+                <button id="end-recap" class="btn btn-tinted btn-small">Recap &amp; Share</button>
+                <button id="end-transcript" class="btn btn-gray btn-small">Download Transcript</button>
+                <button id="end-diagnostics-toggle" class="btn btn-plain btn-small">Diagnostics</button>
+                <button id="end-session" class="btn btn-destructive-plain btn-small">End Session</button>
+                <button id="end-dismiss" class="btn btn-plain btn-small">Dismiss</button>
             </div>
         </div>
     </section>
@@ -1170,6 +1406,19 @@
                 </div>
             </div>
             <div id="transcript-container" class="flex-grow p-4 md:p-6 overflow-y-auto text-base leading-relaxed text-gray-700">
+                <div id="transcript-empty" class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+                    </svg>
+                    <p class="empty-title">Ready when you are</p>
+                    <p class="empty-text">Start a session and ReVerb listens along. What’s said appears here — and answers, explanations, fact-checks and to-dos appear beside it.</p>
+                    <button type="button" class="btn btn-filled btn-large" data-start>Start Listening</button>
+                </div>
+                <div id="transcript-waiting" class="empty-state" aria-live="polite">
+                    <p class="empty-title">Listening…</p>
+                    <p class="empty-text">What’s said will appear here.</p>
+                </div>
                 <span id="segments"></span>
                 <span id="pending-transcript"></span>
                 <span id="interim-transcript" class="text-gray-400"></span>
@@ -1184,7 +1433,7 @@
             <div id="insights-header" class="border-b border-gray-200 flex-shrink-0">
                 <div class="flex items-center justify-between p-3">
                     <div class="flex items-center">
-                        <div class="side-tabs" role="tablist" aria-label="Right panel">
+                        <div class="segmented side-tabs" role="tablist" aria-label="Right panel">
                             <button type="button" role="tab" data-side="insights" aria-selected="true">AI Insights <span class="side-unread" hidden></span></button>
                             <button type="button" role="tab" data-side="chat" aria-selected="false">Chat</button>
                         </div>
@@ -1215,7 +1464,7 @@
         <div id="chat-panel" class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
             <div id="chat-header" class="border-b border-gray-200 flex-shrink-0">
                 <div class="flex items-center justify-between p-3">
-                    <div class="side-tabs" role="tablist" aria-label="Right panel">
+                    <div class="segmented side-tabs" role="tablist" aria-label="Right panel">
                         <button type="button" role="tab" data-side="insights" aria-selected="false">AI Insights <span class="side-unread" hidden></span></button>
                         <button type="button" role="tab" data-side="chat" aria-selected="true">Chat</button>
                     </div>
@@ -1251,7 +1500,7 @@
             </div>
             <form id="chat-form" autocomplete="off">
                 <textarea id="chat-input" rows="1" aria-label="Ask about the meeting" placeholder="Ask about the meeting…"></textarea>
-                <button id="chat-send" type="submit">Ask</button>
+                <button id="chat-send" type="submit" class="btn btn-filled">Ask</button>
             </form>
         </div>
 
@@ -1266,10 +1515,10 @@
             </div>
             <pre id="recap-preview" class="recap-preview"></pre>
             <div class="dialog-actions">
-                <button id="recap-copy" type="button" class="dialog-btn primary">Copy</button>
-                <button id="recap-email" type="button" class="dialog-btn">Email</button>
-                <button id="recap-link" type="button" class="dialog-btn">Copy share link</button>
-                <button id="recap-save" type="button" class="dialog-btn">Save to past meetings</button>
+                <button id="recap-copy" type="button" class="btn btn-filled">Copy</button>
+                <button id="recap-email" type="button" class="btn btn-gray">Email</button>
+                <button id="recap-link" type="button" class="btn btn-gray">Copy Link</button>
+                <button id="recap-save" type="button" class="btn btn-gray">Save to Past Meetings</button>
             </div>
             <p id="recap-note" class="dialog-note">
                 A share link carries the recap inside the link itself — it isn’t stored anywhere, and
@@ -1288,6 +1537,19 @@
             <ul id="library-list" class="library-list"></ul>
         </div>
     </div>
+
+    <!-- An alert: one question about something that can't be undone -->
+    <div id="alert" class="hidden sheet-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" aria-describedby="alert-message">
+        <div class="alert-card">
+            <div class="alert-body">
+                <h2 id="alert-title" class="alert-title"></h2>
+                <p id="alert-message" class="alert-message"></p>
+            </div>
+            <div id="alert-actions" class="alert-actions"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
     <!-- Who said this: opened from a speaker label in the transcript -->
     <div id="speaker-editor" role="dialog" aria-modal="false" aria-labelledby="speaker-editor-title" hidden>
@@ -1818,18 +2080,73 @@
             if (insightsContainer.scrollTop !== 0 && !insightsScroll.inHand()) insightsScroll.write(0);
         }
 
-        async function copyToClipboard(text, button) {
-            const flash = (label) => {
-                if (!button.dataset.label) button.dataset.label = button.textContent;
-                button.textContent = label;
-                clearTimeout(Number(button.dataset.flash));
-                button.dataset.flash = String(setTimeout(() => { button.textContent = button.dataset.label; }, 1500));
-            };
-            if (!text) { flash('Nothing yet'); return; }
+        // A short confirmation that floats up and goes, like the system's own "Copied".
+        let toastTimer = 0;
+        function toast(text) {
+            const t = $('toast');
+            t.textContent = text;
+            t.hidden = false;
+            t.classList.remove('show');
+            void t.offsetWidth;
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.hidden = true; t.classList.remove('show'); }, 1900);
+        }
+
+        async function copyToClipboard(text, button, what) {
+            if (!text) { toast('Nothing to copy yet'); return; }
             try {
                 await navigator.clipboard.writeText(text);
-                flash('Copied');
+                toast(what ? `${what} copied` : 'Copied');
             } catch { errorEl.textContent = 'Could not copy to clipboard.'; }
+        }
+
+        // ---------- alerts ----------
+        // For the decisions that can't be undone. The safe choice is the easy one: Escape and a
+        // click outside both cancel, and focus starts on the default, never on a destructive button.
+        let alertDone = null;
+        function showAlert({ title, message, actions }) {
+            const box = $('alert'), list = $('alert-actions');
+            $('alert-title').textContent = title;
+            $('alert-message').textContent = message || '';
+            list.replaceChildren();
+            list.classList.toggle('pair', actions.length === 2);
+            let focus = null;
+            const close = () => { box.classList.add('hidden'); alertDone = null; };
+            for (const a of actions) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = a.label;
+                if (a.style === 'default') b.className = 'default';
+                if (a.style === 'destructive') b.className = 'destructive';
+                b.addEventListener('click', () => { close(); if (a.run) a.run(); });
+                list.append(b);
+                if (a.style === 'default' || (!focus && a.style === 'cancel')) focus = b;
+            }
+            alertDone = () => { close(); const c = actions.find((a) => a.style === 'cancel'); if (c && c.run) c.run(); };
+            box.classList.remove('hidden');
+            (focus || list.firstChild).focus();
+        }
+
+        // Ending erases the meeting, so it asks once — and offers to keep the recap first, the
+        // way a document asks before closing unsaved.
+        function confirmEnd() {
+            if (!segments.length) { endSession(); return; }
+            const saved = readLibrary().some((e) => e.id === meetingId());
+            const erases = 'This erases the transcript, insights, to-dos and brief from this browser.';
+            showAlert(saved ? {
+                title: 'End This Session?',
+                message: `${erases} Its recap stays in Past Meetings.`,
+                actions: [{ label: 'Cancel', style: 'cancel' }, { label: 'End Session', style: 'destructive', run: endSession }],
+            } : {
+                title: 'End This Session?',
+                message: `${erases} Save the recap to Past Meetings to keep what was decided.`,
+                actions: [
+                    { label: 'Save Recap and End', style: 'default', run: () => { recapShown = null; saveToLibrary(); endSession(); } },
+                    { label: 'End Without Saving', style: 'destructive', run: endSession },
+                    { label: 'Cancel', style: 'cancel' },
+                ],
+            });
         }
 
         function downloadBlob(blob, filename) {
@@ -3635,7 +3952,7 @@
             recapLink(shown).then((url) => { if (recapShown === shown) recapUrl = url; }).catch(() => {});
             $('recap-preview').textContent = recapText(recapShown);
             const saved = readLibrary().some((e) => e.id === meetingId());
-            $('recap-save').textContent = saved ? 'Update saved copy' : 'Save to past meetings';
+            $('recap-save').textContent = saved ? 'Update Saved Copy' : 'Save to Past Meetings';
             $('recap-modal').classList.remove('hidden');
             $('recap-copy').focus();
         }
@@ -3674,6 +3991,7 @@
             };
             writeLibrary([entry, ...readLibrary().filter((e) => e.id !== entry.id)]);
             $('recap-save').textContent = 'Saved';
+            toast('Saved to Past Meetings');
         }
         function reflectLibrary() {
             const n = readLibrary().length;
@@ -5026,7 +5344,8 @@ self.onmessage = function (e) {
             // Only a desktop browser can share a tab's audio.
             $('tab-option').hidden = !canShareTab;
             $('setup-tab').checked = canShareTab && Boolean(session.tabAudio);
-            $('setup-start').textContent = segments.length ? 'Continue session' : 'Start session';
+            $('setup-start').textContent = segments.length ? 'Continue' : 'Start';
+            $('setup-title').textContent = segments.length ? 'Session Brief' : session.followUp ? 'Follow-Up Session' : 'New Session';
             $('followup-note').textContent = session.followUp ? `Following up on “${session.followUp.title}”` : '';
             $('setup-objective').placeholder = session.followUp
                 ? `Follow-up: ${session.followUp.title}`
@@ -5199,6 +5518,7 @@ self.onmessage = function (e) {
 
                 isListening = true;
                 isPaused = false;
+                document.body.classList.add('listening');
                 if (!startedAt) startedAt = Date.now();
                 runClock(true);
                 // The first sweep needs a stretch to read, not the opening pleasantries.
@@ -5298,6 +5618,7 @@ self.onmessage = function (e) {
         async function stopListening(opts) {
             const wasListening = isListening;
             isListening = false;
+            document.body.classList.remove('listening');
             isPaused = false;
             runClock(false);
             clearInterval(stateTimer);
@@ -5332,7 +5653,7 @@ self.onmessage = function (e) {
             stopBtn.classList.add('hidden');
             pauseBtn.classList.add('hidden');
             startBtn.classList.remove('hidden');
-            setStatus('Not Listening', 'idle');
+            setStatus('Not listening', 'idle');
             reflectSessionButtons();
 
             persistTranscript(true);
@@ -5503,29 +5824,9 @@ self.onmessage = function (e) {
             modeBadge.classList.add('hidden');
             errorEl.textContent = '';
             clearNotice();
-            setStatus('Not Listening', 'idle');
+            setStatus('Not listening', 'idle');
             reflectSessionButtons();
             updateLiveCaption();
-        }
-
-        // End can't be undone, so it asks twice — with the button itself rather than a modal.
-        // The first click turns it into the question; a second within a few seconds answers
-        // it. Left alone, it quietly goes back to being a button.
-        function confirmOnSecondClick(button, action) {
-            const label = button.textContent.trim();
-            let armed = 0;
-            const disarm = () => {
-                clearTimeout(armed);
-                armed = 0;
-                button.textContent = label;
-                button.classList.remove('armed');
-            };
-            button.addEventListener('click', () => {
-                if (armed) { disarm(); action(); return; }
-                button.textContent = phoneLayout.matches ? 'Tap again to erase everything' : 'Click again to erase everything';
-                button.classList.add('armed');
-                armed = setTimeout(disarm, 4000);
-            });
         }
 
         // ---------- wiring ----------
@@ -5550,8 +5851,13 @@ self.onmessage = function (e) {
         });
 
         $('end-continue').addEventListener('click', () => { sessionEnd.classList.add('hidden'); startListening(); });
-        confirmOnSecondClick($('end-session'), endSession);
-        confirmOnSecondClick(endBtn, endSession);
+        $('end-session').addEventListener('click', confirmEnd);
+        endBtn.addEventListener('click', confirmEnd);
+        $('alert').addEventListener('click', (e) => { if (e.target === $('alert') && alertDone) alertDone(); });
+        $('alert').addEventListener('keydown', (e) => { if (e.key === 'Escape' && alertDone) { e.stopPropagation(); alertDone(); } });
+        // The empty transcript's own Start button does what the header's does.
+        document.querySelector('#transcript-empty [data-start]').addEventListener('click', () => startBtn.click());
+        setupModal.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); closeSetup(); } });
         $('end-dismiss').addEventListener('click', () => sessionEnd.classList.add('hidden'));
         $('end-diagnostics-toggle').addEventListener('click', () => {
             const box = $('end-diagnostics');
@@ -5579,7 +5885,11 @@ self.onmessage = function (e) {
             }
             restoreBar.classList.add('hidden');
         });
-        $('restore-no').addEventListener('click', () => endSession());
+        $('restore-no').addEventListener('click', () => showAlert({
+            title: 'Discard This Session?',
+            message: 'The unfinished session will be erased from this browser.',
+            actions: [{ label: 'Cancel', style: 'cancel' }, { label: 'Discard', style: 'destructive', run: endSession }],
+        }));
 
         // On a phone the same body opens as a sheet, with a scrim and Done to close it.
         function toggleStateBody() {
@@ -5638,17 +5948,17 @@ self.onmessage = function (e) {
             if (!insightsJump.hidden && insightsAtTop()) insightsJump.hidden = true;
         }, { passive: true });
 
-        $('copy-transcript').addEventListener('click', (e) => copyToClipboard(attributedTranscript(), e.currentTarget));
-        $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText({ standalone: true }), e.currentTarget));
+        $('copy-transcript').addEventListener('click', (e) => copyToClipboard(attributedTranscript(), e.currentTarget, 'Transcript'));
+        $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText({ standalone: true }), e.currentTarget, 'Summary'));
 
         // ---------- recap, past meetings, invites ----------
         $('recap-open').addEventListener('click', openRecap);
         $('end-recap').addEventListener('click', openRecap);
-        $('recap-copy').addEventListener('click', (e) => copyToClipboard($('recap-preview').textContent, e.currentTarget));
+        $('recap-copy').addEventListener('click', (e) => copyToClipboard($('recap-preview').textContent, e.currentTarget, 'Recap'));
         $('recap-email').addEventListener('click', () => { emailRecap(); });
         $('recap-link').addEventListener('click', async (e) => {
             const button = e.currentTarget;
-            try { await copyToClipboard(recapUrl || await recapLink(recapShown || buildRecap()), button); }
+            try { await copyToClipboard(recapUrl || await recapLink(recapShown || buildRecap()), button, 'Link'); }
             catch (err) { errorEl.textContent = 'Could not make a link for this recap.'; }
         });
         $('recap-save').addEventListener('click', saveToLibrary);
