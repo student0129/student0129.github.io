@@ -274,6 +274,7 @@
         <h3>A. What is processed, and by whom</h3>
         <ul>
             <li><strong>Speech.</strong> Audio from your microphone, and from a meeting tab if you choose to share one, is transcribed either by your browser’s built-in speech recognition (provided by your browser’s maker) or, in high-accuracy mode, streamed through our server to OpenAI for transcription.</li>
+            <li><strong>Recordings, only if you ask.</strong> If you recorded a meeting and choose “Improve Transcript”, the recording is sent through our server to OpenAI, in pieces, to be transcribed again with each speaker told apart, together with short voice samples of the speakers it has already heard. It is not stored on our server.</li>
             <li><strong>Transcript and context.</strong> The transcript, the brief you give the session (objective, attendees, terms, agenda, background material), your corrections, and your chat questions are sent through our server to Google’s Gemini API to produce insights, summaries, speaker labels, and answers. Answers and fact-checks may use Google Search, in which case the question or claim being checked is part of the search.</li>
             <li>These providers process this data under their API terms, which govern how they handle and retain it.</li>
         </ul>
@@ -287,7 +288,7 @@
         <ul>
             <li>The transcript, summary, insights, to-dos, chat, and corrections are saved in your browser’s local storage so a closed tab or crash loses nothing. “End session” erases them.</li>
             <li>Past meetings you choose to save are kept in your browser until you delete them.</li>
-            <li>Audio is recorded only if you turn recording on, to a file on your device that you choose. It is never uploaded.</li>
+            <li>Audio is recorded only if you turn recording on, to a file on your device that you choose. It leaves your device only if you choose “Improve Transcript” (see A above).</li>
             <li>A recap share link carries the recap inside the link itself, in the part of the address after “#”, which browsers do not send to our servers. Anyone you give the link to can read it.</li>
         </ul>
         <h3>D. Your responsibility to participants</h3>
