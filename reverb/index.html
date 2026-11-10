@@ -1,6 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Decided before the page is drawn, so the way in never changes under the reader's eyes: from
+         what this browser last heard about sign-in, or, the first time, nothing until the server says. -->
+    <script>
+    (function () {
+        var h = document.documentElement, state = 'entry-wait';
+        try {
+            if (/(^#|&)signin=/.test(location.hash)) state = 'auth-arriving';
+            else {
+                var a = JSON.parse(localStorage.getItem('reverb.auth') || 'null');
+                var signedIn = a && a.session && a.expiresAt > Date.now();
+                var mode = localStorage.getItem('reverb.authMode');
+                if (mode === 'off') state = 'auth-off';
+                else if (mode === 'required' || mode === 'optional') state = signedIn ? 'auth-signed-in' : 'auth-' + mode;
+            }
+        } catch (e) { state = 'auth-off'; }
+        h.classList.add(state);
+        if (state === 'entry-wait') setTimeout(function () { h.classList.remove('entry-wait'); }, 4000);
+    })();
+    </script>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
@@ -148,6 +167,19 @@
             border: 1px solid rgba(0,104,91,.25); border-radius: 12px; background: var(--green-wash);
             font-size: .9375rem; color: var(--ink-2);
         }
+        /* The way in, by state. entry-wait: not known yet (first visit) — nothing shown until it is.
+           auth-required / auth-optional: signed out, with sign-in on. auth-arriving: trading an
+           emailed link for a session. auth-signed-in, auth-off: the plain way in. */
+        html.entry-wait #entry, html.entry-wait .cta { visibility: hidden; }
+        #signin { display: none; }
+        html.auth-required #signin, html.auth-optional #signin, html.auth-arriving #signin { display: block; }
+        html.auth-required #entry-actions, html.auth-arriving #entry-actions,
+        html.auth-required #entry-note, html.auth-optional #entry-note, html.auth-arriving #entry-note,
+        html.auth-signed-in #entry-note,
+        html.auth-arriving #signin label, html.auth-arriving .signin__row { display: none; }
+        .cta .when-signin { display: none; }
+        html.auth-required .cta .when-open { display: none; }
+        html.auth-required .cta .when-signin { display: inline; }
         .signin { max-width: 30rem; }
         .signin__row { display: flex; flex-wrap: wrap; gap: .6rem; }
         .signin input {
@@ -296,7 +328,7 @@
             <nav class="topnav" aria-label="Page">
                 <a href="#what" class="hide-sm">What it does</a>
                 <a href="#how" class="hide-sm">How it works</a>
-                <a class="btn btn--primary btn--small" href="app/" data-umami-event="ReVerb open (top bar)">Open ReVerb</a>
+                <a class="btn btn--primary btn--small cta" href="app/" data-umami-event="ReVerb open (top bar)"><span class="when-open">Open ReVerb</span><span class="when-signin">Sign In</span></a>
             </nav>
         </div>
     </header>
@@ -320,7 +352,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             <p id="resume-text"></p>
                         </div>
-                        <form class="signin" id="signin" hidden novalidate>
+                        <form class="signin" id="signin" novalidate>
                             <label for="signin-email" class="entry__note" style="display:block;margin:0 0 .6rem">Sign in with your work email — we’ll send you a link, no password.</label>
                             <div class="signin__row">
                                 <input id="signin-email" type="email" autocomplete="email" inputmode="email" placeholder="you@company.com" required>
@@ -516,8 +548,8 @@
             <div class="shell">
                 <h2>Your next meeting, <em>with a second mind in the room.</em></h2>
                 <div class="entry__actions">
-                    <a class="btn btn--primary" href="app/" data-umami-event="ReVerb open (closing)">
-                        Open ReVerb
+                    <a class="btn btn--primary cta" href="app/" data-umami-event="ReVerb open (closing)">
+                        <span class="when-open">Open ReVerb</span><span class="when-signin">Sign In</span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
                     </a>
                 </div>
@@ -565,7 +597,19 @@
             }
         };
 
+        const STATES = ['entry-wait', 'auth-off', 'auth-optional', 'auth-required', 'auth-signed-in', 'auth-arriving'];
+        function setState(state) {
+            const h = document.documentElement;
+            h.classList.remove(...STATES);
+            h.classList.add(state);
+            // Required and signed out: the calls to action lead to the form, not to the app.
+            for (const a of document.querySelectorAll('a.cta, #open-app')) {
+                a.setAttribute('href', state === 'auth-required' ? '#entry' : 'app/');
+            }
+        }
+
         function showSignedIn(auth) {
+            setState('auth-signed-in');
             const line = $('who-line');
             line.replaceChildren(`Signed in as ${auth.email} · `);
             const out = document.createElement('button');
@@ -577,16 +621,10 @@
             });
             line.append(out);
             line.hidden = false;
-            $('entry-note').hidden = true;
         }
 
         function askToSignIn(required) {
-            $('signin').hidden = false;
-            $('entry-note').hidden = true;
-            if (required) {
-                $('entry-actions').hidden = true;
-                for (const a of document.querySelectorAll('a[href="app/"]')) a.setAttribute('href', '#entry');
-            }
+            setState(required ? 'auth-required' : 'auth-optional');
         }
 
         // The emailed link opened in a tab already showing this page changes only the #fragment.
@@ -611,7 +649,7 @@
             const token = new URLSearchParams(location.hash.slice(1)).get('signin');
             if (token) {
                 history.replaceState(null, '', location.pathname + location.search);
-                askToSignIn(false);
+                setState('auth-arriving');
                 message('Signing you in…');
                 try {
                     const { ok, data } = await post('verify', { token });
@@ -624,14 +662,18 @@
                 } catch (err) { message('Couldn’t reach ReVerb to finish signing in. Try the link again.', true); }
             }
 
-            let mode = 'off';
+            let mode = null;
             try {
-                const r = await fetch(`${API_BASE}/api/reverb/auth/config`, { signal: AbortSignal.timeout(8000) });
+                const r = await fetch(`${API_BASE}/api/reverb/auth/config`, { signal: AbortSignal.timeout(4000) });
                 if (r.ok) mode = (await r.json()).mode || 'off';
-                // The app reads this before it draws anything, to send a signed-out visitor here at once.
-                try { localStorage.setItem('reverb.authMode', mode); } catch (err) { /* ignore */ }
-            } catch (err) { /* unreachable or older server: the page stays as it is */ }
-            if (mode === 'off') return;
+                // Remembered for the next visit, here and in the app, so neither waits to decide.
+                if (mode) try { localStorage.setItem('reverb.authMode', mode); } catch (err) { /* ignore */ }
+            } catch (err) { /* unreachable: keep what this browser last knew */ }
+            if (!mode) {
+                if (document.documentElement.classList.contains('entry-wait')) setState('auth-off');
+                return;
+            }
+            if (mode === 'off') { setState('auth-off'); return; }
             const auth = readAuth();
             if (auth) { showSignedIn(auth); return; }
             askToSignIn(mode === 'required' || location.hash === '#signin-required');
