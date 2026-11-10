@@ -28,6 +28,24 @@
     <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
     <title>ReVerb — Live Meeting Assistant</title>
     <link rel="icon" href="data:,">
+    <!-- Runs before anything is drawn. Someone who has to sign in first is sent to do it without
+         the app flashing up on the way: straight away when this browser already knows sign-in is
+         required, and otherwise the page stays blank until the server says (a few seconds at most). -->
+    <script>
+    (function () {
+        try {
+            var a = JSON.parse(localStorage.getItem('reverb.auth') || 'null');
+            if (a && a.session && a.expiresAt > Date.now()) return;
+            var mode = localStorage.getItem('reverb.authMode');
+            if (mode === 'required') { location.replace('../#signin-required'); return; }
+            if (mode !== 'off' && mode !== 'optional') {
+                document.documentElement.classList.add('auth-pending');
+                setTimeout(function () { document.documentElement.classList.remove('auth-pending'); }, 4000);
+            }
+        } catch (e) { /* storage blocked: the server still checks every request */ }
+    })();
+    </script>
+    <style>html.auth-pending body { visibility: hidden; }</style>
     <link rel="stylesheet" href="../reverb.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -885,6 +903,10 @@
             100% { opacity: 0; transform: translate(-50%, 0); }
         }
 
+        /* Improving from the recording: a thin progress bar under the status line. */
+        .improve-progress { height: 3px; margin-top: .5rem; border-radius: 9999px; background: var(--fill); overflow: hidden; }
+        .improve-progress span { display: block; height: 100%; width: 0; background: var(--tint-fill); transition: width .4s ease; }
+
         /* An empty panel says what it is for and how to begin. */
         .empty-state { display: none; flex-direction: column; align-items: center; justify-content: center; gap: .6rem; height: 100%; padding: 2rem 1rem; text-align: center; }
         .empty-state svg { width: 2.75rem; height: 2.75rem; color: var(--tint); }
@@ -1040,7 +1062,7 @@
                 mask-image: linear-gradient(to bottom, rgba(0,0,0,.45), #000 1.25rem);
             }
 
-            #restore-bar { grid-area: restore; }
+            #restore-bar, #improve-bar { grid-area: restore; }
             body > footer { grid-area: footer; }
             body > footer:has(> #error:empty):has(> #notice:empty) { display: none; }
             #session-end {
@@ -1233,7 +1255,7 @@
                             <span class="option-title">Record audio to disk</span>
                             <span id="record-note" class="option-note">
                                 You pick a file. Audio is written as it goes, so it survives a crash or a closed
-                                tab, and a link to it is shown when you stop.
+                                tab. Afterwards, Improve Transcript can transcribe it again with each voice told apart.
                             </span>
                         </span>
                         <input id="setup-record" type="checkbox" class="switch" role="switch">
@@ -1294,6 +1316,19 @@
         </div>
     </section>
 
+    <!-- Improving the transcript from the recording: progress, then the result and Undo -->
+    <section id="improve-bar" class="hidden flex-shrink-0 px-4 py-2.5 border-b border-gray-200 bg-white" aria-live="polite">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <p id="improve-text" class="text-sm text-gray-700"></p>
+            <div class="flex items-center gap-2">
+                <button id="improve-undo" type="button" class="btn btn-tinted btn-small" hidden>Undo</button>
+                <button id="improve-retry" type="button" class="btn btn-filled btn-small" hidden>Try Again</button>
+                <button id="improve-cancel" type="button" class="btn btn-plain btn-small">Cancel</button>
+            </div>
+        </div>
+        <div id="improve-progress" class="improve-progress" hidden><span></span></div>
+    </section>
+
     <!-- Shown after Stop: everything produced by the session, in one place -->
     <section id="session-end" class="hidden flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
         <div class="flex flex-wrap items-start justify-between gap-3">
@@ -1306,6 +1341,7 @@
             <div class="flex flex-wrap items-center gap-2">
                 <button id="end-continue" class="btn btn-filled btn-small">Continue Session</button>
                 <button id="end-recap" class="btn btn-tinted btn-small">Recap &amp; Share</button>
+                <button id="end-improve" class="btn btn-tinted btn-small hidden">Improve Transcript</button>
                 <button id="end-transcript" class="btn btn-gray btn-small">Download Transcript</button>
                 <button id="end-diagnostics-toggle" class="btn btn-plain btn-small">Diagnostics</button>
                 <button id="end-session" class="btn btn-destructive-plain btn-small">End Session</button>
@@ -1402,6 +1438,8 @@
                 <div class="flex items-center space-x-3">
                     <span class="hidden sm:inline text-xs text-gray-400">Click a line or a name to correct it</span>
                     <span class="phone-only text-xs text-gray-400">Tap a line or a name to fix it</span>
+                    <button id="improve-btn" type="button" class="btn btn-tinted btn-small" hidden title="Transcribe the recording again, telling each voice apart">Improve</button>
+                    <input id="improve-file" type="file" accept="audio/*,.webm,.m4a,.ogg,.wav" hidden>
                     <button id="copy-transcript" class="px-2.5 py-1 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Copy</button>
                 </div>
             </div>
@@ -1586,6 +1624,7 @@
         const speakersUrl = `${API_BASE}/api/reverb/speakers`;
         const sweepUrl = `${API_BASE}/api/reverb/sweep`;
         const chatUrl = `${API_BASE}/api/reverb/chat`;
+        const improveUrl = `${API_BASE}/api/reverb/improve`;
         const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/ws/reverb`;
 
         // Wake the server on page load — it sleeps on the free tier.
@@ -1621,10 +1660,14 @@
             return resp;
         }
 
-        // Required and not signed in: off to the front page before anything starts.
-        fetch(`${API_BASE}/api/reverb/auth/config`).then((r) => (r.ok ? r.json() : null)).then((c) => {
+        // Required and not signed in: off to the front page before anything starts. The answer is
+        // kept, so the check at the top of the page can decide on the next visit without waiting.
+        const revealApp = () => document.documentElement.classList.remove('auth-pending');
+        fetch(`${API_BASE}/api/reverb/auth/config`, { signal: AbortSignal.timeout(4000) }).then((r) => (r.ok ? r.json() : null)).then((c) => {
+            if (c && c.mode) { try { localStorage.setItem('reverb.authMode', c.mode); } catch (err) { /* ignore */ } }
             if (c && c.mode === 'required' && !readAuth()) signInPage();
-        }).catch(() => {});
+            else revealApp();
+        }).catch(revealApp);
 
         const $ = (id) => document.getElementById(id);
         const startBtn = $('start-btn'), stopBtn = $('stop-btn'), pauseBtn = $('pause-btn'), briefBtn = $('brief-btn'), endBtn = $('end-btn');
@@ -1830,6 +1873,10 @@
         let provider = null, recorder = null, micStream = null;
         // A video call's audio, from a shared browser tab, and the context that mixes it with the mic.
         let tabStream = null, mixer = null;
+        // Every recording this meeting made: { name, offsetMs, durationMs } in meeting time. A Stop
+        // and a Continue start a new file, so a meeting can have several.
+        const recordings = [];
+        let improveRun = null, improveUndo = null;
         let pendingUtterance = '';      // finalized text not yet flushed for analysis
         let pendingLow = false;
         let flushTimer = null;
@@ -2099,6 +2146,341 @@
                 await navigator.clipboard.writeText(text);
                 toast(what ? `${what} copied` : 'Copied');
             } catch { errorEl.textContent = 'Could not copy to clipboard.'; }
+        }
+
+        // ---------- improve the transcript from the recording ----------
+        // Live transcription can't tell voices apart; a recording can. On request — the audio
+        // never leaves the device otherwise — the recording is decoded here, cut at quiet moments
+        // into ~10-minute 16 kHz pieces (the model takes ~25 MB and ~25 minutes per request), and
+        // each piece is transcribed with the voices separated. Short samples of up to four voices
+        // go along with every later piece so each person keeps one label throughout. The voices are
+        // then named by lining them up with who the live transcript said was talking at the time,
+        // and the new transcript replaces the recorded stretch — with Undo.
+        const IMPROVE_RATE = 16000;
+        const IMPROVE_SEARCH_S = 30;          // look this far back from a cut for a quiet moment
+        const IMPROVE_SAMPLE_S = [2.5, 8];    // a known-speaker sample: long enough to recognise, under the model's 10s
+        const improvePieceSeconds = () => {
+            // A testing knob, read from this browser only; ten minutes otherwise.
+            let v = NaN;
+            try { v = Number(localStorage.getItem('reverb.improvePieceSeconds')); } catch (err) { /* ignore */ }
+            return Number.isFinite(v) && v >= 3 && v <= 1200 ? v : 600;
+        };
+
+        function reflectImprove() {
+            const source = Boolean(lastAudio && lastAudio.url) || recordings.length > 0;
+            $('improve-btn').hidden = isListening || Boolean(improveRun) || !segments.length || !source;
+            $('end-improve').classList.toggle('hidden', !(lastAudio && lastAudio.url) || Boolean(improveRun));
+        }
+
+        function improveStatus(text, { progress = null, cancel = false, undo = false, retry = null } = {}) {
+            $('improve-bar').classList.remove('hidden');
+            $('improve-text').textContent = text;
+            const bar = $('improve-progress');
+            bar.hidden = progress == null;
+            if (progress != null) bar.firstElementChild.style.width = `${Math.round(Math.min(1, progress) * 100)}%`;
+            $('improve-cancel').textContent = cancel ? 'Cancel' : 'Dismiss';
+            $('improve-undo').hidden = !undo;
+            $('improve-retry').hidden = !retry;
+            $('improve-retry').onclick = retry;
+        }
+
+        function startImprove() {
+            if (improveRun || isListening || !segments.length) return;
+            const ask = (source) => showAlert({
+                title: 'Improve the Transcript?',
+                message: 'ReVerb sends the recording to OpenAI to transcribe it again, telling each voice apart, then replaces the transcript for the recorded part. Line edits there are replaced; names you gave are kept. It takes about a minute for every ten minutes of audio, and you can undo it.',
+                actions: [{ label: 'Cancel', style: 'cancel' }, { label: 'Improve', style: 'default', run: () => runImprove(source) }],
+            });
+            if (lastAudio && lastAudio.url) ask({ url: lastAudio.url, offsetMs: lastAudio.offsetMs || 0 });
+            else $('improve-file').click();     // after a reload: the file the recording was saved to
+        }
+
+        function onImproveFile(file) {
+            if (!file) return;
+            // Its place in the meeting, from the recordings remembered with it.
+            const rec = recordings.find((r) => r.name && r.name === file.name) || recordings[recordings.length - 1] || { offsetMs: 0 };
+            showAlert({
+                title: 'Improve the Transcript?',
+                message: `ReVerb sends “${file.name}” to OpenAI to transcribe it again, telling each voice apart, then replaces the transcript for the part it covers. You can undo it.`,
+                actions: [{ label: 'Cancel', style: 'cancel' }, { label: 'Improve', style: 'default', run: () => runImprove({ file, offsetMs: rec.offsetMs }) }],
+            });
+        }
+
+        // Decoded straight to 16 kHz: a context resamples to its own rate, and an hour at 16 kHz is
+        // a third of the memory it would take at the recording's 48 kHz.
+        async function decodeMono16k(blob) {
+            const ctx = new OfflineAudioContext(1, 1, IMPROVE_RATE);
+            const audio = await ctx.decodeAudioData(await blob.arrayBuffer());
+            if (audio.numberOfChannels === 1) return audio.getChannelData(0);
+            const out = new Float32Array(audio.length);
+            for (let c = 0; c < audio.numberOfChannels; c++) {
+                const ch = audio.getChannelData(c);
+                for (let i = 0; i < out.length; i++) out[i] += ch[i] / audio.numberOfChannels;
+            }
+            return out;
+        }
+
+        // Cut where nobody is talking: the quietest 200ms in the stretch before each mark.
+        function cutPieces(pcm, pieceS) {
+            const step = Math.round(pieceS * IMPROVE_RATE);
+            const search = Math.min(IMPROVE_SEARCH_S * IMPROVE_RATE, Math.floor(step / 2));
+            const win = IMPROVE_RATE / 5;
+            const pieces = [];
+            let start = 0;
+            while (pcm.length - start > step + search) {
+                const target = start + step;
+                let best = target, quietest = Infinity;
+                for (let w = target - search; w + win <= target; w += win / 2) {
+                    let e = 0;
+                    for (let i = w; i < w + win; i++) e += pcm[i] * pcm[i];
+                    if (e < quietest) { quietest = e; best = w + win / 2; }
+                }
+                pieces.push({ start, end: best });
+                start = best;
+            }
+            pieces.push({ start, end: pcm.length });
+            return pieces;
+        }
+
+        function wavBlob(f32) {
+            const n = f32.length;
+            const buf = new ArrayBuffer(44 + n * 2);
+            const v = new DataView(buf);
+            const str = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+            str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE');
+            str(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+            v.setUint32(24, IMPROVE_RATE, true); v.setUint32(28, IMPROVE_RATE * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+            str(36, 'data'); v.setUint32(40, n * 2, true);
+            for (let i = 0; i < n; i++) {
+                const x = Math.max(-1, Math.min(1, f32[i]));
+                v.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7fff, true);
+            }
+            return new Blob([buf], { type: 'audio/wav' });
+        }
+
+        const blobDataUrl = (blob) => new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.onerror = () => reject(r.error);
+            r.readAsDataURL(blob);
+        });
+
+        async function improvePiece(form, signal) {
+            for (let attempt = 0; ; attempt++) {
+                const resp = await apiFetch(improveUrl, { method: 'POST', body: form, signal });
+                const data = await resp.json().catch(() => ({}));
+                if (resp.ok) return Array.isArray(data.segments) ? data.segments : [];
+                if (data.retryable && attempt < 2) {
+                    await new Promise((r) => setTimeout(r, 4000 * (attempt + 1)));
+                    if (signal.aborted) throw Object.assign(new Error('cancelled'), { name: 'AbortError' });
+                    continue;
+                }
+                throw new Error(data.error || `Server error ${resp.status}`);
+            }
+        }
+
+        async function runImprove(source) {
+            if (improveRun) return;
+            const controller = new AbortController();
+            const epoch = sessionEpoch;
+            improveRun = { controller };
+            reflectImprove();
+            improveStatus('Reading the recording…', { progress: 0, cancel: true });
+            try {
+                const blob = source.file || await (await fetch(source.url)).blob();
+                const pcm = await decodeMono16k(blob);
+                if (!pcm.length) throw new Error('The recording is empty.');
+                const pieces = cutPieces(pcm, improvePieceSeconds());
+                const known = [];            // { name, sample } — voices carried to later pieces
+                const all = [];              // { voice, start, end, text }, seconds into the recording
+                let voices = 0;
+                for (let i = 0; i < pieces.length; i++) {
+                    if (controller.signal.aborted) throw Object.assign(new Error('cancelled'), { name: 'AbortError' });
+                    improveStatus(pieces.length > 1 ? `Transcribing part ${i + 1} of ${pieces.length}, telling the voices apart…` : 'Transcribing, telling the voices apart…',
+                        { progress: (i + 0.15) / pieces.length, cancel: true });
+                    const p = pieces[i];
+                    const form = new FormData();
+                    form.append('audio', wavBlob(pcm.subarray(p.start, p.end)), `part-${i + 1}.wav`);
+                    if (known.length) form.append('known', JSON.stringify(known));
+                    const segs = await improvePiece(form, controller.signal);
+                    const offsetS = p.start / IMPROVE_RATE;
+                    // A known voice comes back under its name; a new one as a letter, which means
+                    // nothing outside this piece — so each gets a name of its own here.
+                    const local = new Map();
+                    for (const g of segs) {
+                        let voice = known.some((k) => k.name === g.speaker) ? g.speaker : local.get(g.speaker);
+                        if (!voice) { voice = `Voice ${++voices}`; local.set(g.speaker, voice); }
+                        all.push({ voice, piece: i, start: g.start + offsetS, end: g.end + offsetS, text: g.text });
+                    }
+                    // Samples of the newly heard voices, most talkative first, while there's room.
+                    if (i < pieces.length - 1) {
+                        const talk = new Map();
+                        for (const v of local.values()) talk.set(v, 0);
+                        for (const g of all) if (talk.has(g.voice)) talk.set(g.voice, talk.get(g.voice) + (g.end - g.start));
+                        for (const [voice] of [...talk].sort((a, b) => b[1] - a[1])) {
+                            if (known.length >= 4) break;
+                            // Their turns in this piece, longest first, joined until there's enough
+                            // to recognise them by: someone who only spoke in short bursts counts too.
+                            const turns = all.filter((g) => g.voice === voice && g.piece === i).sort((a, b) => (b.end - b.start) - (a.end - a.start));
+                            const parts = [];
+                            let have = 0;
+                            for (const g of turns) {
+                                if (have >= IMPROVE_SAMPLE_S[1]) break;
+                                const len = Math.min(g.end - g.start, IMPROVE_SAMPLE_S[1] - have);
+                                const from = Math.round(((g.start + g.end) / 2 - len / 2) * IMPROVE_RATE);
+                                parts.push(pcm.subarray(from, from + Math.round(len * IMPROVE_RATE)));
+                                have += len;
+                            }
+                            if (have < IMPROVE_SAMPLE_S[0]) continue;
+                            const sample = new Float32Array(parts.reduce((n, a) => n + a.length, 0));
+                            let at = 0;
+                            for (const a of parts) { sample.set(a, at); at += a.length; }
+                            known.push({ name: voice, sample: await blobDataUrl(wavBlob(sample)) });
+                        }
+                    }
+                }
+                if (epoch !== sessionEpoch) return;
+                if (!all.length) throw new Error('No speech came back from the recording.');
+                const named = applyImproved(all, source.offsetMs || 0, pcm.length / IMPROVE_RATE);
+                const matchedNote = named.matched === named.speakers ? ', all matched to names' : named.matched ? `, ${named.matched} matched to names` : '';
+                improveStatus(`Transcript improved — ${named.speakers} speaker${named.speakers === 1 ? '' : 's'} told apart${matchedNote}. The summary is being rebuilt.`, { undo: true });
+            } catch (err) {
+                if (epoch !== sessionEpoch) return;
+                if (err.name === 'AbortError') { improveStatus('Cancelled — the transcript is unchanged.'); return; }
+                console.error('ReVerb improve error:', err);
+                improveStatus(`${err.message || 'Something went wrong.'} The transcript is unchanged.`, { retry: () => runImprove(source) });
+            } finally {
+                if (epoch === sessionEpoch) improveRun = null;
+                reflectImprove();
+            }
+        }
+
+        // Name each voice by who the live transcript said was speaking while it spoke: the overlap
+        // in time, weighted up for names the user set and down for placeholders. Two voices heard in
+        // the same piece are two people, so a name never covers both; a voice first heard in a later
+        // piece may well be someone from an earlier one, so across pieces it can. A voice nobody can
+        // be matched to keeps a numbered label the user can rename.
+        function applyImproved(all, offsetMs, durationS) {
+            const spanStart = offsetMs, spanEnd = offsetMs + durationS * 1000;
+            // When each live line was spoken: it was logged as it ended, and it began after the line
+            // before it ended — or, for the first, about as long before as its words take to say.
+            const spoken = [];
+            let prevT = -Infinity;
+            for (const s of segments) {
+                if (!Number.isFinite(s.t)) continue;
+                const start = Math.max(prevT, s.t - Math.min(30000, Math.max(1200, wordCount(s.text) * 380)));
+                if (s.speaker) spoken.push({ s, sa: start, sb: s.t });
+                prevT = s.t;
+            }
+            const votes = new Map();
+            for (const g of all) {
+                const a = spanStart + g.start * 1000, b = spanStart + g.end * 1000;
+                for (const { s, sa, sb } of spoken) {
+                    const overlap = Math.min(b, sb) - Math.max(a, sa);
+                    if (overlap <= 0) continue;
+                    const name = resolveSpeaker(s.speaker);
+                    const w = overlap * (s.byUser ? 2 : isPlaceholder(name) ? 0.5 : 1);
+                    const m = votes.get(g.voice) || new Map();
+                    m.set(name, (m.get(name) || 0) + w);
+                    votes.set(g.voice, m);
+                }
+            }
+            const pairs = [];
+            for (const [voice, m] of votes) {
+                const total = [...m.values()].reduce((x, y) => x + y, 0);
+                for (const [name, w] of m) pairs.push({ voice, name, w, share: w / total });
+            }
+            pairs.sort((x, y) => y.w - x.w);
+            const piecesOf = new Map();
+            for (const g of all) piecesOf.set(g.voice, (piecesOf.get(g.voice) || new Set()).add(g.piece));
+            const nameOf = new Map(), holders = new Map();    // name -> voices it already covers
+            const clash = (voice, name) => (holders.get(name) || []).some((v) => [...piecesOf.get(v)].some((pc) => piecesOf.get(voice).has(pc)));
+            const give = (p) => { nameOf.set(p.voice, p.name); holders.set(p.name, [...(holders.get(p.name) || []), p.voice]); };
+            for (const p of pairs) {
+                if (!nameOf.has(p.voice) && p.share >= 0.4 && !clash(p.voice, p.name)) give(p);
+            }
+            // A voice whose likeliest name went to someone else in the same piece — a slice of speech
+            // cut at a piece boundary, say — takes its best remaining name on a lower bar: the model
+            // has already said it isn't that other person.
+            for (const p of pairs) {
+                if (!nameOf.has(p.voice) && p.share >= 0.15 && !clash(p.voice, p.name)) give(p);
+            }
+            const taken = new Set(holders.keys());
+            const used = new Set([...segments.map((s) => s.speaker).filter(Boolean), ...taken]);
+            let n = 1;
+            const distinct = [...new Set(all.map((g) => g.voice))];
+            for (const voice of distinct) {
+                if (nameOf.has(voice)) continue;
+                while (used.has(`Speaker ${n}`)) n++;
+                nameOf.set(voice, `Speaker ${n}`);
+                used.add(`Speaker ${n}`);
+            }
+
+            improveUndo = {
+                segments: segments.map(({ el, tag, ...s }) => ({ ...s })),
+                participants: participants.map((p) => ({ ...p })),
+                todos: todos.map((t) => ({ ...t })),
+            };
+            const kept = segments.filter((s) => !Number.isFinite(s.t) || s.t < spanStart || s.t > spanEnd + 2000);
+            const fresh = all.map((g) => ({
+                id: `seg-${segmentSeq++}`, text: g.text, edited: false, low: false,
+                speaker: nameOf.get(g.voice), confident: true, byUser: false, improved: true,
+                t: Math.round(spanStart + g.end * 1000),
+            }));
+            const order = (s) => (Number.isFinite(s.t) ? s.t : -1);
+            replaceSegments([...kept, ...fresh].sort((x, y) => order(x) - order(y)));
+            const realNames = [...nameOf.values()].filter((nm) => !isPlaceholder(nm));
+            participants = dedupeParticipants([...participants, ...realNames.map((name) => ({ name }))]);
+            afterTranscriptReplaced();
+            const finalNames = new Set(distinct.map((v) => nameOf.get(v)));
+            return { speakers: finalNames.size, matched: [...finalNames].filter((nm) => !isPlaceholder(nm)).length };
+        }
+
+        function replaceSegments(list) {
+            segments.length = 0;
+            segmentsEl.replaceChildren();
+            for (const seg of list) {
+                seg.tag = null;
+                segments.push(seg);
+                segmentsEl.append(renderSegment(seg), document.createTextNode(' '));
+            }
+            refreshSpeakerTags();
+            // To-dos point at the line nearest to when they were said.
+            for (const todo of todos) {
+                if (!Number.isFinite(todo.t)) continue;
+                let best = null;
+                for (const s of segments) if (Number.isFinite(s.t) && (!best || Math.abs(s.t - todo.t) < Math.abs(best.t - todo.t))) best = s;
+                todo.seg = best ? best.id : null;
+            }
+            renderTodos();
+        }
+
+        // The summary was built from the old words: rebuild it from the new ones, whole.
+        function afterTranscriptReplaced() {
+            renderMeetingState();
+            persistTranscript(true);
+            lastStateSegment = 0;
+            lastFullAt = 0;
+            charsSinceState = Math.max(charsSinceState, 1);
+            runState({ full: true });
+        }
+
+        function undoImprove() {
+            if (!improveUndo) return;
+            const snap = improveUndo;
+            improveUndo = null;
+            const list = snap.segments.map((s) => ({ ...s }));
+            for (const s of list) {
+                const n = Number(String(s.id).replace('seg-', ''));
+                if (Number.isFinite(n) && n >= segmentSeq) segmentSeq = n + 1;
+            }
+            todos.length = 0;
+            todos.push(...snap.todos);
+            replaceSegments(list);
+            participants = snap.participants;
+            afterTranscriptReplaced();
+            improveStatus('Back to the live transcript.');
+            setTimeout(() => { if (!improveRun && !improveUndo) $('improve-bar').classList.add('hidden'); }, 4000);
         }
 
         // ---------- alerts ----------
@@ -5078,6 +5460,7 @@ self.onmessage = function (e) {
                     aliases: { ...speakerAliases },
                     todos: todos.map(({ id, ...t }) => t),
                     glossary,
+                    recordings,
                     // An answer still streaming is saved as stopped: a reload ends it.
                     chat: chatTurns.slice(-CHAT_SAVED_TURNS).map((t) => ({
                         question: t.question,
@@ -5226,6 +5609,10 @@ self.onmessage = function (e) {
             }
             renderTodos();
             renderGlossary();
+            recordings.length = 0;
+            for (const r of Array.isArray(data.recordings) ? data.recordings : []) {
+                if (r && Number.isFinite(r.offsetMs)) recordings.push({ name: String(r.name || ''), offsetMs: r.offsetMs, durationMs: Number(r.durationMs) || 0 });
+            }
             refreshSpeakerTags();
             answeredTitles.length = 0;
             // Saved before cards were typed, entries were bare titles; both still suppress repeats.
@@ -5454,6 +5841,7 @@ self.onmessage = function (e) {
         }
 
         function reflectSessionButtons() {
+            reflectImprove();
             const resuming = segments.length > 0 && !isListening;
             startBtn.textContent = resuming ? 'Continue Session' : 'Start Listening';
             briefBtn.classList.toggle('hidden', !resuming);
@@ -5463,6 +5851,7 @@ self.onmessage = function (e) {
 
         async function startListening() {
             if (isListening) return;
+            if (improveRun) { toast('Wait for the transcript to finish improving'); return; }
             errorEl.textContent = '';
             sessionEnd.classList.add('hidden');
             restoreBar.classList.add('hidden');
@@ -5501,6 +5890,7 @@ self.onmessage = function (e) {
                 }
                 if (session.record) {
                     recorder = new DiskRecorder();
+                    recorder.offsetMs = meetingClock();
                     const { streaming } = await recorder.start(captureStream);
                     recordingBadge.classList.remove('hidden');
                     recordingBadge.classList.add('flex');
@@ -5636,7 +6026,14 @@ self.onmessage = function (e) {
 
             let audio = null;
             if (recorder) {
-                try { audio = await recorder.stop(); }
+                try {
+                    audio = await recorder.stop();
+                    if (audio) {
+                        audio.offsetMs = recorder.offsetMs || 0;
+                        audio.durationMs = Math.max(0, meetingClock() - audio.offsetMs);
+                        recordings.push({ name: audio.name, offsetMs: audio.offsetMs, durationMs: audio.durationMs });
+                    }
+                }
                 catch (err) { errorEl.textContent = `Recording could not be finalised: ${err.message}`; }
                 recorder = null;
             }
@@ -5711,6 +6108,7 @@ self.onmessage = function (e) {
             }
 
             sessionEnd.classList.remove('hidden');
+            reflectImprove();     // the recording is known only now
         }
 
         // ---------- ending a session ----------
@@ -5813,6 +6211,11 @@ self.onmessage = function (e) {
             renderGlossary();
             renderBalance();
             closeModal('recap-modal');
+            if (improveRun) improveRun.controller.abort();
+            improveRun = null;
+            improveUndo = null;
+            recordings.length = 0;
+            $('improve-bar').classList.add('hidden');
             reflectChatReady();
 
             // The diagnostics behind the panel that is closing, and its recording link.
@@ -5852,6 +6255,14 @@ self.onmessage = function (e) {
 
         $('end-continue').addEventListener('click', () => { sessionEnd.classList.add('hidden'); startListening(); });
         $('end-session').addEventListener('click', confirmEnd);
+        $('improve-btn').addEventListener('click', startImprove);
+        $('end-improve').addEventListener('click', startImprove);
+        $('improve-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; onImproveFile(f); });
+        $('improve-undo').addEventListener('click', undoImprove);
+        $('improve-cancel').addEventListener('click', () => {
+            if (improveRun) improveRun.controller.abort();
+            else $('improve-bar').classList.add('hidden');
+        });
         endBtn.addEventListener('click', confirmEnd);
         $('alert').addEventListener('click', (e) => { if (e.target === $('alert') && alertDone) alertDone(); });
         $('alert').addEventListener('keydown', (e) => { if (e.key === 'Escape' && alertDone) { e.stopPropagation(); alertDone(); } });
