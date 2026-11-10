@@ -288,6 +288,206 @@
         /* Grouped by turn-taking rather than actually identified. Said quietly, because a
            confident wrong name is worse than an honest placeholder. */
         .speaker-tag.tentative { color: #9ca3af; font-weight: 400; }
+        /* The label is a guess, so it is one click from being fixed. */
+        .speaker-tag { cursor: pointer; border-radius: 4px; padding: 0 2px; margin-left: -2px; }
+        .speaker-tag:hover, .speaker-tag:focus-visible { background-color: rgba(0,104,91,.08); outline: none; text-decoration: underline dotted; text-underline-offset: 3px; }
+
+        /* Who said this: rename a speaker everywhere, or fix one turn. */
+        #speaker-editor {
+            position: fixed;
+            z-index: 60;
+            width: 18rem;
+            max-width: calc(100vw - 1.5rem);
+            padding: .85rem;
+            border: 1px solid #e5e7eb;
+            border-radius: .75rem;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,.15);
+            font-size: .875rem;
+        }
+        #speaker-editor .speaker-editor-title { color: #374151; margin-bottom: .45rem; }
+        #speaker-editor .speaker-editor-title b { font-weight: 500; color: #00685B; }
+        #speaker-name {
+            width: 100%;
+            padding: .45rem .6rem;
+            border: 1px solid #d1d5db;
+            border-radius: .5rem;
+            background: #fff;
+        }
+        #speaker-name:focus { outline: none; border-color: #00685B; box-shadow: 0 0 0 1px #00685B; }
+        .speaker-scope { margin-top: .6rem; display: grid; gap: .3rem; color: #4b5563; font-size: .8125rem; }
+        .speaker-scope label { display: flex; align-items: flex-start; gap: .45rem; cursor: pointer; }
+        .speaker-scope input { margin-top: .2rem; accent-color: #00685B; }
+        .speaker-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .75rem; }
+        .speaker-actions button { padding: .35rem .8rem; border-radius: 9999px; font-size: .8125rem; }
+        #speaker-cancel { color: #6b7280; }
+        #speaker-cancel:hover { text-decoration: underline; }
+        #speaker-save { color: #fff; background: #00685B; }
+        #speaker-save:hover { opacity: .9; }
+
+        /* A cited minute, picked out in the transcript for a moment. */
+        .segment.cite-flash { background-color: rgba(250,204,21,.35); }
+
+        /* ---------- Right column: AI Insights | Chat ---------- */
+        .side-tabs { display: flex; align-items: center; gap: 1rem; }
+        .side-tabs [role="tab"] {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            font-weight: 400;
+            color: #9ca3af;
+            transition: color .15s ease;
+        }
+        .side-tabs [role="tab"]:hover, .side-tabs [role="tab"][aria-selected="true"] { color: #00685B; }
+        .side-unread {
+            min-width: 1.125rem;
+            height: 1.125rem;
+            padding: 0 .3rem;
+            border-radius: 9999px;
+            font-size: .6875rem;
+            line-height: 1.125rem;
+            font-weight: 500;
+            text-align: center;
+            color: #fff;
+            background: #00685B;
+        }
+        /* Desktop shows one of the two in the right column; a phone switches panes instead. */
+        @media (min-width: 768px) {
+            #panels[data-side="chat"] > #insights-panel,
+            #panels:not([data-side="chat"]) > #chat-panel { display: none; }
+        }
+        #insights-header > .flex, #chat-header > .flex { padding-bottom: .4rem; }
+
+        .chat-tools { display: flex; align-items: center; gap: .9rem; }
+        .chat-tools button { position: relative; font-size: .75rem; color: #9ca3af; transition: color .15s ease; }
+        .chat-tools button:hover, .chat-tools button[aria-expanded="true"] { color: #00685B; }
+
+        #notes-box { padding: 0 .75rem .75rem; }
+        #notes-box label { display: block; font-size: .8125rem; color: #374151; margin-bottom: .3rem; }
+        #notes-input {
+            width: 100%;
+            min-height: 4.5rem;
+            max-height: 30vh;
+            resize: vertical;
+            padding: .5rem .65rem;
+            border: 1px solid #d1d5db;
+            border-radius: .5rem;
+            background: #fff;
+            font-size: .875rem;
+            line-height: 1.45;
+        }
+        #notes-input:focus { outline: none; border-color: #00685B; box-shadow: 0 0 0 1px #00685B; }
+        .notes-help { margin-top: .35rem; font-size: .75rem; line-height: 1.45; color: #9ca3af; }
+
+        #chat-log {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: .9rem;
+            padding: 1rem;
+            background: #f9fafb;
+        }
+        #chat-empty { margin: auto 0; padding: 1rem .5rem; text-align: center; color: #6b7280; }
+        .chat-empty-title { font-size: 1rem; font-weight: 400; color: #374151; }
+        .chat-empty-text { max-width: 27rem; margin: .35rem auto 0; font-size: .8125rem; line-height: 1.5; }
+        .chat-suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin-top: 1rem; }
+        .chat-suggestions button {
+            padding: .35rem .75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            background: #fff;
+            font-size: .8125rem;
+            color: #374151;
+            transition: color .15s ease, border-color .15s ease;
+        }
+        .chat-suggestions button:hover:not(:disabled) { border-color: #00685B; color: #00685B; }
+        .chat-suggestions button:disabled { opacity: .5; cursor: default; }
+
+        .chat-turn { display: flex; flex-direction: column; gap: .5rem; }
+        .chat-q {
+            align-self: flex-end;
+            max-width: 85%;
+            padding: .5rem .8rem;
+            border-radius: 1rem 1rem .25rem 1rem;
+            background: #00685B;
+            color: #fff;
+            font-size: .9375rem;
+            font-weight: 400;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+        .chat-a {
+            padding: .7rem .9rem;
+            border: 1px solid #e5e7eb;
+            border-radius: .25rem 1rem 1rem 1rem;
+            background: #fff;
+            font-size: .9375rem;
+            line-height: 1.55;
+            color: #374151;
+            overflow-wrap: anywhere;
+        }
+        .chat-a .reverb-answer > :last-child { margin-bottom: 0; }
+        .chat-a-foot { display: flex; align-items: center; gap: .9rem; margin-top: .45rem; font-size: .75rem; color: #9ca3af; }
+        .chat-a-foot button { color: #6b7280; }
+        .chat-a-foot button:hover { color: #00685B; }
+        .chat-a-error { color: #b45309; }
+        .chat-thinking { display: inline-flex; align-items: center; gap: .45rem; font-size: .8125rem; color: #6b7280; }
+        .chat-thinking svg { width: .95rem; height: .95rem; }
+        /* A minute the answer rests on. Clicking it shows that stretch of the transcript. */
+        .cite {
+            display: inline-block;
+            margin: 0 .1rem;
+            padding: 0 .4rem;
+            border-radius: 9999px;
+            font-size: .6875rem;
+            font-weight: 500;
+            line-height: 1.15rem;
+            vertical-align: .08em;
+            color: #00685B;
+            background: rgba(0,104,91,.09);
+        }
+        .cite:hover { background: rgba(0,104,91,.18); }
+
+        #chat-form {
+            flex-shrink: 0;
+            display: flex;
+            align-items: flex-end;
+            gap: .5rem;
+            padding: .6rem .75rem;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
+        }
+        #chat-input {
+            flex: 1 1 auto;
+            min-width: 0;
+            max-height: 9rem;
+            resize: none;
+            padding: .5rem .75rem;
+            border: 1px solid #d1d5db;
+            border-radius: .75rem;
+            background: #fff;
+            font-size: .9375rem;
+            line-height: 1.4;
+        }
+        #chat-input:focus { outline: none; border-color: #00685B; box-shadow: 0 0 0 1px #00685B; }
+        #chat-input:disabled { background: #f9fafb; }
+        #chat-send {
+            flex-shrink: 0;
+            min-height: 2.35rem;
+            padding: 0 1.1rem;
+            border: 1px solid #00685B;
+            border-radius: 9999px;
+            background: #00685B;
+            color: #fff;
+            font-size: .875rem;
+        }
+        #chat-send:hover:not(:disabled) { opacity: .9; }
+        #chat-send:disabled { opacity: .45; cursor: default; }
+        #chat-send.stop { border-color: #d1d5db; background: #fff; color: #374151; }
 
         /* What the session actually did to the thresholds in this file. Monospace because
            it is a column of numbers meant to be read against the constants above. */
@@ -444,18 +644,24 @@
                display:none, so it keeps its scroll position and keeps following the live
                edge while you're on the other one. */
             #panels { grid-area: main; position: relative; min-height: 0; padding: 0; }
-            #transcript-panel, #insights-panel {
+            #transcript-panel, #insights-panel, #chat-panel {
                 position: absolute;
                 inset: .5rem calc(.5rem + env(safe-area-inset-right)) .5rem calc(.5rem + env(safe-area-inset-left));
                 width: auto;
                 height: auto;
                 margin: 0;
             }
-            #panels[data-pane="transcript"] > #insights-panel,
-            #panels[data-pane="insights"] > #transcript-panel { visibility: hidden; pointer-events: none; }
+            #panels:not([data-pane="transcript"]) > #transcript-panel,
+            #panels:not([data-pane="insights"]) > #insights-panel,
+            #panels:not([data-pane="chat"]) > #chat-panel { visibility: hidden; pointer-events: none; }
 
             /* The segmented control already names the panel; its header keeps only the tools. */
-            #transcript-panel h2, #insights-panel h2 { display: none; }
+            #transcript-panel h2, #insights-panel h2, .side-tabs { display: none; }
+            #chat-header > .flex { min-height: 2.75rem; padding: .25rem .75rem; justify-content: flex-end; }
+            #chat-log { padding: .75rem; }
+            /* Under 16px, iOS zooms the page into a field on focus and leaves it there. */
+            #chat-input, #notes-input, #speaker-name { font-size: 1rem; }
+            .chat-tools button::after { content: ''; position: absolute; inset: -.5rem; }
             .phone-only { display: revert; }
             #transcript-header { min-height: 2.75rem; padding: .25rem .75rem; }
             #transcript-header > div { flex: 1; justify-content: space-between; }
@@ -811,18 +1017,19 @@
             <button type="button" role="tab" data-pane="insights" aria-selected="false" aria-controls="insights-panel">
                 Insights <span id="insights-unread" class="unread-badge" hidden></span>
             </button>
+            <button type="button" role="tab" data-pane="chat" aria-selected="false" aria-controls="chat-panel">Chat</button>
         </div>
     </div>
 
-    <main id="panels" data-pane="transcript" class="flex-grow flex flex-col md:flex-row overflow-hidden space-y-4 md:space-y-0 md:space-x-4 p-4">
+    <main id="panels" data-pane="transcript" data-side="insights" class="flex-grow flex flex-col md:flex-row overflow-hidden space-y-4 md:space-y-0 md:space-x-4 p-4">
 
         <!-- Transcript -->
         <div id="transcript-panel" class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
             <div id="transcript-header" class="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
                 <h2 class="text-lg font-normal text-google-green">Live Transcript</h2>
                 <div class="flex items-center space-x-3">
-                    <span class="hidden sm:inline text-xs text-gray-400">Click a line to correct it</span>
-                    <span class="phone-only text-xs text-gray-400">Tap a line to correct it</span>
+                    <span class="hidden sm:inline text-xs text-gray-400">Click a line or a name to correct it</span>
+                    <span class="phone-only text-xs text-gray-400">Tap a line or a name to fix it</span>
                     <button id="copy-transcript" class="px-2.5 py-1 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Copy</button>
                 </div>
             </div>
@@ -841,7 +1048,10 @@
             <div id="insights-header" class="border-b border-gray-200 flex-shrink-0">
                 <div class="flex items-center justify-between p-3">
                     <div class="flex items-center">
-                        <h2 class="text-lg font-normal text-google-green">AI Insights</h2>
+                        <div class="side-tabs" role="tablist" aria-label="Right panel">
+                            <button type="button" role="tab" data-side="insights" aria-selected="true">AI Insights <span class="side-unread" hidden></span></button>
+                            <button type="button" role="tab" data-side="chat" aria-selected="false">Chat</button>
+                        </div>
                         <span id="insights-activity" class="insights-activity" hidden aria-live="polite"></span>
                     </div>
                     <button id="filter-toggle" class="text-xs text-gray-400 hover:text-google-green transition-colors">Filters</button>
@@ -865,7 +1075,65 @@
             </button>
         </div>
 
+        <!-- Chat with the session: answered only from what was recorded -->
+        <div id="chat-panel" class="flex flex-col flex-1 h-1/2 md:h-full md:w-1/2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <div id="chat-header" class="border-b border-gray-200 flex-shrink-0">
+                <div class="flex items-center justify-between p-3">
+                    <div class="side-tabs" role="tablist" aria-label="Right panel">
+                        <button type="button" role="tab" data-side="insights" aria-selected="false">AI Insights <span class="side-unread" hidden></span></button>
+                        <button type="button" role="tab" data-side="chat" aria-selected="true">Chat</button>
+                    </div>
+                    <div class="chat-tools">
+                        <button id="notes-toggle" type="button" aria-expanded="false" aria-controls="notes-box">Corrections</button>
+                        <button id="chat-clear" type="button" hidden>Clear chat</button>
+                    </div>
+                </div>
+                <div id="notes-box" hidden>
+                    <label for="notes-input">What did the transcript get wrong?</label>
+                    <textarea id="notes-input" rows="3" maxlength="4000" placeholder="Speaker 2 is Dana Whitfield.&#10;Tom, not Priya, agreed to send the deck by Friday.&#10;The “14k” at 22m was 40k."></textarea>
+                    <p class="notes-help">
+                        Chat treats these as fact, and the summary is rebuilt with them. To fix a line,
+                        click it in the transcript; to change who said it, click the name in front of it.
+                    </p>
+                </div>
+            </div>
+            <div id="chat-log" aria-live="polite">
+                <div id="chat-empty">
+                    <p class="chat-empty-title">Ask about this meeting</p>
+                    <p class="chat-empty-text">
+                        Answers come only from what was recorded — the transcript, the summary and your
+                        corrections — with the minute each point was said. Nothing from the web.
+                    </p>
+                    <div class="chat-suggestions">
+                        <button type="button" data-ask="What was decided, and who decided it?">What was decided?</button>
+                        <button type="button" data-ask="List the action items: who owns each one, and by when.">Action items</button>
+                        <button type="button" data-ask="Where did people disagree, and who was on which side?">Disagreements</button>
+                        <button type="button" data-ask="What questions were raised but left unanswered?">Open questions</button>
+                    </div>
+                </div>
+            </div>
+            <form id="chat-form" autocomplete="off">
+                <textarea id="chat-input" rows="1" aria-label="Ask about the meeting" placeholder="Ask about the meeting…"></textarea>
+                <button id="chat-send" type="submit">Ask</button>
+            </form>
+        </div>
+
     </main>
+
+    <!-- Who said this: opened from a speaker label in the transcript -->
+    <div id="speaker-editor" role="dialog" aria-modal="false" aria-labelledby="speaker-editor-title" hidden>
+        <p id="speaker-editor-title" class="speaker-editor-title">Who is <b id="speaker-current"></b>?</p>
+        <input id="speaker-name" type="text" list="speaker-names" maxlength="60" autocomplete="off" aria-label="Speaker name">
+        <datalist id="speaker-names"></datalist>
+        <div class="speaker-scope">
+            <label><input type="radio" name="speaker-scope" value="all" checked> <span id="speaker-scope-all">Everywhere</span></label>
+            <label><input type="radio" name="speaker-scope" value="turn"> <span>Just this turn</span></label>
+        </div>
+        <div class="speaker-actions">
+            <button id="speaker-cancel" type="button">Cancel</button>
+            <button id="speaker-save" type="button">Save</button>
+        </div>
+    </div>
 
     <footer class="flex-shrink-0 p-2 text-center bg-gray-100 border-t border-gray-200">
         <p id="error" class="text-sm text-red-500"></p>
@@ -886,6 +1154,7 @@
         const stateUrl = `${API_BASE}/api/reverb/state`;
         const speakersUrl = `${API_BASE}/api/reverb/speakers`;
         const sweepUrl = `${API_BASE}/api/reverb/sweep`;
+        const chatUrl = `${API_BASE}/api/reverb/chat`;
         const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/ws/reverb`;
 
         // Wake the server on page load — it sleeps on the free tier.
@@ -912,6 +1181,10 @@
         const transcriptJump = $('transcript-jump'), insightsJump = $('insights-jump');
         const liveCaption = $('live-caption'), liveCaptionText = $('live-caption-text');
         const sheetScrim = $('sheet-scrim'), sheetObjective = $('sheet-objective');
+        const chatLog = $('chat-log'), chatEmpty = $('chat-empty'), chatForm = $('chat-form');
+        const chatInput = $('chat-input'), chatSend = $('chat-send'), chatClear = $('chat-clear');
+        const notesBox = $('notes-box'), notesInput = $('notes-input'), notesToggle = $('notes-toggle');
+        const speakerEditor = $('speaker-editor'), speakerName = $('speaker-name');
 
         // Must match the max-width of the phone layout in the stylesheet.
         const phoneLayout = matchMedia('(max-width: 767px)');
@@ -1005,6 +1278,20 @@
         const STATE_TIMEOUT_MS = 45000;
         const STATE_REBUILD_TIMEOUT_MS = 90000;      // the server allows a rebuild 80s
 
+        // --- Chat with the session ---
+        // An answer reads the whole meeting before its first word, so the stall window is
+        // longer than a card's. The server allows a stall of 60s and 150s in all.
+        const CHAT_STALL_MS = 75000;
+        const CHAT_MAX_MS = 180000;
+        const CHAT_HISTORY_TURNS = 8;        // earlier exchanges sent along, for follow-ups
+        const CHAT_SAVED_TURNS = 60;
+        const CHAT_QUESTION_MAX = 2000;
+        const CHAT_INSIGHTS = 30;
+        // Corrections: what the user says the transcript got wrong. After the meeting, the
+        // summary is rebuilt once the fixes stop coming, not after every keystroke.
+        const NOTES_MAX = 4000;
+        const CORRECTION_SETTLE_MS = 5000;
+
         // --- Staying alive ---
         // A phone screen going dark is the most common way a meeting quietly stops being
         // captured: the page is frozen, the AudioContext is suspended, and nothing on
@@ -1083,6 +1370,15 @@
             else if (!on && activeSince) { activeMs += Date.now() - activeSince; activeSince = 0; }
         }
         let participants = [];
+        // Corrections. Notes go to every lane as part of the brief. Aliases record a speaker the
+        // user renamed everywhere, so a label the speaker pass keeps using ("Speaker 2") lands
+        // under the name the user gave it.
+        let sessionNotes = '';
+        const speakerAliases = Object.create(null);
+        let correctionTimer = 0;
+        // { question, answer, status: 'streaming'|'done'|'failed'|'stopped', error, el }
+        const chatTurns = [];
+        let chatActive = null;          // { controller, turn } while an answer streams
         // Bumped by End session. Every request in flight remembers the epoch it started in
         // and discards its result if that has moved on — otherwise a reply landing a second
         // after the wipe would put a card or a summary back on screen.
@@ -1146,6 +1442,7 @@
                 durationMin: session.durationMin || null,
                 elapsedMin: startedAt ? Math.round(meetingClock() / 60000) : null,
                 ...(withMaterials && session.materials ? { materials: session.materials.slice(0, MATERIALS_MAX) } : {}),
+                ...(sessionNotes.trim() ? { notes: sessionNotes.trim().slice(0, NOTES_MAX) } : {}),
             };
         }
         const wordCount = (s) => (s.match(/[\p{L}\p{N}'’-]+/gu) || []).length;
@@ -1293,12 +1590,16 @@
         }
 
         async function copyToClipboard(text, button) {
-            if (!text) return;
+            const flash = (label) => {
+                if (!button.dataset.label) button.dataset.label = button.textContent;
+                button.textContent = label;
+                clearTimeout(Number(button.dataset.flash));
+                button.dataset.flash = String(setTimeout(() => { button.textContent = button.dataset.label; }, 1500));
+            };
+            if (!text) { flash('Nothing yet'); return; }
             try {
                 await navigator.clipboard.writeText(text);
-                const original = button.textContent;
-                button.textContent = 'Copied';
-                setTimeout(() => { button.textContent = original; }, 1500);
+                flash('Copied');
             } catch { errorEl.textContent = 'Could not copy to clipboard.'; }
         }
 
@@ -1330,6 +1631,7 @@
             charsSinceState += clean.length;
             charsSinceSweep += clean.length;
             persistTranscript();
+            if (segments.length === 1) reflectChatReady();
         }
 
         // Attribution arrives up to a minute after the words did, so every segment keeps a
@@ -1348,13 +1650,16 @@
                 }
                 if (!seg.tag) {
                     seg.tag = el('span', 'speaker-tag');
+                    seg.tag.setAttribute('role', 'button');
+                    seg.tag.tabIndex = 0;
                     if (seg.el && seg.el.parentNode) seg.el.parentNode.insertBefore(seg.tag, seg.el);
                 }
+                seg.tag.dataset.seg = seg.id;
                 seg.tag.textContent = wanted;
                 seg.tag.classList.toggle('tentative', seg.confident === false);
-                seg.tag.title = seg.confident === false
-                    ? 'Grouped by turn-taking — not positively identified'
-                    : 'Identified from the conversation';
+                seg.tag.title = (seg.byUser ? 'Set by you'
+                    : seg.confident === false ? 'Grouped by turn-taking — not positively identified'
+                    : 'Identified from the conversation') + ' · click to change who said this';
             }
         }
 
@@ -1390,10 +1695,151 @@
             span.classList.add('edited');
             span.classList.remove('low-conf');
             span.title = 'Corrected';
-            persistTranscript();
+            correctionsChanged();
 
             // The payoff: a term you fix once stops being mangled for the rest of the meeting.
             if (learned.length) learnKeywords(learned);
+        }
+
+        // ---------- corrections ----------
+        // The summary was written from the record as it stood. A fixed line is caught by the
+        // next pass that reads it; a renamed speaker or a new note changes how the whole meeting
+        // reads, so while listening the next pass re-reads everything. After the meeting nothing
+        // else would ever refresh it, so a rebuild follows a few seconds after the last fix —
+        // which is what makes the copied summary come out corrected.
+        function correctionsChanged(opts) {
+            persistTranscript();
+            const wholeRecord = Boolean(opts && opts.wholeRecord);
+            if (isListening) {
+                if (wholeRecord) { lastFullAt = 0; charsSinceState = Math.max(charsSinceState, 1); }
+                return;
+            }
+            if (!segments.length) return;
+            clearTimeout(correctionTimer);
+            const epoch = sessionEpoch;
+            correctionTimer = setTimeout(() => {
+                correctionTimer = 0;
+                if (epoch === sessionEpoch && !isListening && segments.length) runState({ full: true });
+            }, CORRECTION_SETTLE_MS);
+        }
+
+        const isPlaceholder = (name) => /^speaker\s*\d+$/i.test(String(name || '').trim());
+        const resolveSpeaker = (label) => speakerAliases[label] || label;
+
+        // One entry per name, the first role given kept.
+        function dedupeParticipants(list) {
+            const seen = new Map();
+            for (const p of list) {
+                if (!p || !p.name) continue;
+                const key = p.name.trim().toLowerCase();
+                const had = seen.get(key);
+                if (!had) seen.set(key, { ...p, name: p.name.trim() });
+                else if (!had.role && p.role) had.role = p.role;
+            }
+            return [...seen.values()];
+        }
+
+        function knownSpeakerNames() {
+            const names = new Set();
+            for (const n of session.roster || []) if (n) names.add(n);
+            for (const p of participants) if (p && p.name) names.add(p.name);
+            for (const s of segments) if (s.speaker) names.add(s.speaker);
+            return [...names];
+        }
+
+        let speakerEditing = null;      // { seg, label }
+
+        function openSpeakerEditor(tag) {
+            const seg = segments.find((s) => s.id === tag.dataset.seg);
+            if (!seg || !seg.speaker) return;
+            speakerEditing = { seg, label: seg.speaker, tag };
+            const count = segments.filter((s) => s.speaker === seg.speaker).length;
+            $('speaker-current').textContent = seg.speaker;
+            $('speaker-scope-all').textContent = `Everywhere — all ${count} line${count === 1 ? '' : 's'} labelled “${seg.speaker}”`;
+            speakerEditor.querySelector('input[value="all"]').checked = true;
+            const list = $('speaker-names');
+            list.replaceChildren(...knownSpeakerNames().filter((n) => n !== seg.speaker).map((n) => {
+                const o = document.createElement('option');
+                o.value = n;
+                return o;
+            }));
+            speakerName.value = isPlaceholder(seg.speaker) ? '' : seg.speaker;
+            speakerName.placeholder = isPlaceholder(seg.speaker) ? 'Their name' : '';
+            speakerEditor.hidden = false;
+
+            // Under the label, or above it when it sits low on the screen; never off the edge.
+            const r = tag.getBoundingClientRect();
+            const box = speakerEditor.getBoundingClientRect();
+            const left = Math.min(Math.max(8, r.left), window.innerWidth - box.width - 8);
+            const below = r.bottom + 6;
+            const top = below + box.height > window.innerHeight - 8 ? Math.max(8, r.top - box.height - 6) : below;
+            speakerEditor.style.left = `${left}px`;
+            speakerEditor.style.top = `${top}px`;
+            speakerName.focus();
+            speakerName.select();
+        }
+
+        function closeSpeakerEditor() {
+            if (speakerEditor.hidden) return;
+            speakerEditor.hidden = true;
+            const tag = speakerEditing && speakerEditing.tag;
+            speakerEditing = null;
+            if (tag && tag.isConnected) tag.focus({ preventScroll: true });
+        }
+
+        function saveSpeakerEditor() {
+            const editing = speakerEditing;
+            const name = speakerName.value.replace(/\s+/g, ' ').trim().slice(0, 60);
+            const scope = (speakerEditor.querySelector('input[name="speaker-scope"]:checked') || {}).value || 'all';
+            closeSpeakerEditor();
+            if (!editing || !name || name === editing.label) return;
+            renameSpeaker(editing.seg, editing.label, name, scope);
+        }
+
+        // Everywhere: every line with that label, and the label remembered as an alias so the
+        // speaker pass can't bring it back. Just this turn: the run of lines it heads, up to the
+        // next speaker — the fix for a turn the turn-taking grouped under the wrong person.
+        function renameSpeaker(seg, from, to, scope) {
+            const set = (s) => { s.speaker = to; s.confident = true; s.byUser = true; };
+            if (scope === 'turn') {
+                for (let i = segments.indexOf(seg); i >= 0 && i < segments.length; i++) {
+                    const s = segments[i];
+                    if (s.speaker && s.speaker !== from) break;
+                    if (s.speaker === from) set(s);
+                }
+            } else {
+                for (const s of segments) if (s.speaker === from) set(s);
+                delete speakerAliases[to];
+                for (const k of Object.keys(speakerAliases)) if (speakerAliases[k] === from) speakerAliases[k] = to;
+                speakerAliases[from] = to;
+                participants = participants.map((p) => (p && p.name === from ? { ...p, name: to } : p));
+                if (meetingState) {
+                    for (const p of meetingState.positions || []) if (p && p.person === from) p.person = to;
+                    for (const f of meetingState.figures || []) if (f && f.who === from) f.who = to;
+                }
+            }
+            if (!isPlaceholder(to)) {
+                if (!participants.some((p) => p && p.name === to)) participants.push({ name: to });
+                // A name in the roster is a name the speech model is told to expect.
+                if (!(session.roster || []).includes(to)) { session.roster = [...(session.roster || []), to]; persistSession(); }
+                learnKeywords([to]);
+            }
+            participants = dedupeParticipants(participants);
+            refreshSpeakerTags();
+            renderMeetingState();
+            correctionsChanged({ wholeRecord: true });
+        }
+
+        let notesTimer = 0;
+        function reflectNotes() {
+            const lines = sessionNotes.split('\n').filter((l) => l.trim()).length;
+            notesToggle.textContent = lines ? `Corrections (${lines})` : 'Corrections';
+        }
+        function toggleNotes(open) {
+            const show = open != null ? open : notesBox.hidden;
+            notesBox.hidden = !show;
+            notesToggle.setAttribute('aria-expanded', String(show));
+            if (show) notesInput.focus();
         }
 
         // Words in the correction that weren't in the original — likely what was misheard.
@@ -1966,12 +2412,20 @@
 
                 for (const t of data.turns || []) {
                     const seg = segments[t.i];
-                    if (!seg || !t.speaker) continue;
-                    seg.speaker = String(t.speaker).slice(0, 60);
-                    seg.confident = t.confident !== false;
+                    // A line labelled meanwhile — by the user — keeps that label.
+                    if (!seg || !t.speaker || seg.speaker) continue;
+                    const label = String(t.speaker).slice(0, 60);
+                    seg.speaker = resolveSpeaker(label);
+                    // A renamed placeholder is a person the user has identified.
+                    seg.confident = seg.speaker !== label || t.confident !== false;
                 }
                 if (Array.isArray(data.participants) && data.participants.length) {
-                    participants = data.participants;
+                    // The model only knows the labels it used; names the user gave stay in.
+                    const named = segments.filter((s) => s.byUser && !isPlaceholder(s.speaker)).map((s) => ({ name: s.speaker }));
+                    participants = dedupeParticipants([
+                        ...data.participants.map((p) => (p && p.name ? { ...p, name: resolveSpeaker(String(p.name).slice(0, 60)) } : null)),
+                        ...named,
+                    ]);
                 }
                 refreshSpeakerTags();
                 renderMeetingState();
@@ -2226,10 +2680,7 @@
             }
 
             summaryBody.replaceChildren();
-            if (participants.length) {
-                appendSummaryList('In the room', participants.map((p) =>
-                    p && p.name ? (p.role ? `${p.name} — ${p.role}` : p.name) : null).filter(Boolean));
-            }
+            appendSummaryList('In the room', participantLines());
             if (meetingState) {
                 if (meetingState.headline) summaryBody.append(el('p', 'text-gray-700 mt-2', meetingState.headline));
                 if (meetingState.objectiveProgress) summaryBody.append(el('p', 'text-xs text-gray-500 mt-1', meetingState.objectiveProgress));
@@ -2263,24 +2714,352 @@
             summaryBody.append(block);
         }
 
-        function summaryAsText() {
-            if (!meetingState) return '';
+        function participantLines() {
+            return participants.map((p) => (p && p.name ? (p.role ? `${p.name} — ${p.role}` : p.name) : null)).filter(Boolean);
+        }
+
+        // Everything the "Meeting so far" panel shows, in the order it shows it: the objective,
+        // the topic tree with its subtopics and terms, then "Where we are". The copy used to
+        // start at the headline and reduce the topics to a list of names at the bottom, so most
+        // of what sits above the Copy button never made it out.
+        function summaryAsText(opts) {
+            const standalone = Boolean(opts && opts.standalone);
+            const state = meetingState;
+            const topics = state && Array.isArray(state.topics) ? state.topics.filter((t) => t && t.name) : [];
+            const people = participantLines();
+            if (!state && !people.length) return '';
+
             const parts = [];
-            if (session.objective) parts.push(`Objective: ${session.objective}`, '');
-            if (participants.length) {
-                parts.push(`In the room: ${participants.map(p => p && p.name).filter(Boolean).join(', ')}`, '');
+            if (standalone) {
+                const mins = startedAt ? Math.round(meetingClock() / 60000) : 0;
+                parts.push(`Meeting summary — ${new Date(startedAt || Date.now()).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })}${mins ? ` · ${mins} min` : ''}`, '');
             }
-            if (meetingState.headline) parts.push(meetingState.headline, '');
-            if (meetingState.objectiveProgress) parts.push(meetingState.objectiveProgress, '');
+            // The download already opens with the objective; the copy has to carry it itself.
+            if (standalone && session.objective) parts.push(`Objective: ${session.objective}`, '');
+
+            if (topics.length) {
+                parts.push('Topics:');
+                for (const t of topics) {
+                    parts.push(`  • ${t.name}`);
+                    for (const sub of Array.isArray(t.subtopics) ? t.subtopics : []) if (sub) parts.push(`      – ${sub}`);
+                    const terms = (Array.isArray(t.terms) ? t.terms : []).filter(Boolean);
+                    if (terms.length) parts.push(`      Terms: ${terms.join(', ')}`);
+                }
+                parts.push('');
+            }
+
             const section = (label, items) => {
                 if (!items || !items.length) return;
                 parts.push(`${label}:`);
                 for (const i of items) parts.push(`  • ${i}`);
                 parts.push('');
             };
-            section('Topics', (meetingState.topics || []).map(t => t.name));
-            for (const [label, items] of stateSections(meetingState)) section(label, items);
+            section('In the room', people);
+            if (state && state.headline) parts.push(`Where we are: ${state.headline}`, '');
+            if (state && state.objectiveProgress) parts.push(`Against the objective: ${state.objectiveProgress}`, '');
+            if (state) for (const [label, items] of stateSections(state)) section(label, items);
             return parts.join('\n').trim();
+        }
+
+        // ---------- chat with the session ----------
+        // Questions about the meeting, answered only from its own record. The server gets the
+        // whole attributed transcript, the summary, the cards on screen and the user's
+        // corrections, and nothing to search; answers cite the minute each point was said, and
+        // a citation opens that stretch of the transcript so it can be checked.
+        function chatTranscript() {
+            // Speech already final but not yet flushed into a line still counts as said.
+            const live = pendingUtterance.trim();
+            const text = [attributedTranscript(0, { timed: true }), live].filter(Boolean).join(' ');
+            return text.length > STATE_CONTEXT_CHARS
+                ? `[The transcript starts partway through the meeting.]\n${text.slice(-STATE_CONTEXT_CHARS)}`
+                : text;
+        }
+
+        // What the cards on screen say, newest first. Muted types are left out, as on screen.
+        function insightsForChat() {
+            const out = [];
+            const textOf = (card, sel) => {
+                const n = card.querySelector(sel);
+                return n && !n.hidden ? n.textContent.replace(/\s+/g, ' ').trim() : '';
+            };
+            for (const card of insightsContainer.querySelectorAll('[data-card][data-type]')) {
+                const type = card.dataset.type;
+                if (!enabledTypes.has(type) || !card.dataset.title || card.classList.contains('fade-out')) continue;
+                const text = [textOf(card, '.card-verdict'), textOf(card, '.card-subject'), textOf(card, '.card-gist'),
+                    (card.querySelector('.card-more-text') || {}).textContent || '']
+                    .map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean).join(' — ');
+                out.push({ type, title: card.dataset.title, text: text.slice(0, 600), addressed: card.classList.contains('card-resolved') });
+                if (out.length >= CHAT_INSIGHTS) break;
+            }
+            return out;
+        }
+
+        // Earlier exchanges that got a full answer: what lets "and what did Tom say about it?" work.
+        function chatHistory(before) {
+            const out = [];
+            for (const t of chatTurns) {
+                if (t === before) break;
+                if (t.status === 'done' && t.answer.trim()) out.push({ role: 'user', text: t.question }, { role: 'assistant', text: t.answer });
+            }
+            return out.slice(-CHAT_HISTORY_TURNS * 2);
+        }
+
+        // "[14m]", and the variants a model drifts into — "[~14m]", "[14m, 22m]", "[14m–16m]" —
+        // become chips that open the transcript at that minute.
+        function citeMinutes(html) {
+            return html.replace(/\[(~?\d{1,4}m(?:\s*(?:[,–—-]|and)\s*~?\d{1,4}m)*)\]/g, (_, inner) =>
+                inner.match(/\d{1,4}(?=m)/g).map((m) =>
+                    `<button type="button" class="cite" data-min="${m}" title="Show minute ${m} in the transcript">${m}m</button>`).join(''));
+        }
+
+        function jumpToMinute(min) {
+            const inMinute = segments.filter((s) => Number.isFinite(s.t) && Math.floor(s.t / 60000) === min);
+            const target = inMinute[0]
+                || segments.find((s) => Number.isFinite(s.t) && s.t >= min * 60000)
+                || segments[segments.length - 1];
+            if (!target || !target.el) return;
+            if (phoneLayout.matches) showPane('transcript');
+            const top = target.el.getBoundingClientRect().top - transcriptContainer.getBoundingClientRect().top
+                + transcriptContainer.scrollTop - transcriptContainer.clientHeight / 3;
+            transcriptContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+            const lit = inMinute.length ? inMinute : [target];
+            for (const s of lit) s.el.classList.add('cite-flash');
+            setTimeout(() => { for (const s of lit) if (s.el) s.el.classList.remove('cite-flash'); }, 2400);
+        }
+
+        function chatAtBottom() {
+            return chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight < 60;
+        }
+
+        function renderTurn(turn) {
+            if (!turn.el) {
+                turn.el = el('div', 'chat-turn');
+                turn.el.append(el('div', 'chat-q', turn.question));
+                const a = el('div', 'chat-a');
+                a.append(el('div', 'reverb-answer'), el('div', 'chat-a-foot'));
+                turn.el.append(a);
+                chatLog.append(turn.el);
+            }
+            const body = turn.el.querySelector('.reverb-answer');
+            const foot = turn.el.querySelector('.chat-a-foot');
+            foot.replaceChildren();
+
+            if (turn.answer.trim()) body.innerHTML = citeMinutes(renderMarkdown(turn.answer));
+            else if (turn.status === 'streaming') body.innerHTML = `<span class="chat-thinking">${spinnerSvg}<span>Reading the meeting…</span></span>`;
+            else body.replaceChildren();
+
+            const button = (label, act) => {
+                const b = el('button', '', label);
+                b.type = 'button';
+                b.dataset.act = act;
+                foot.append(b);
+            };
+            if (turn.status === 'failed' || turn.status === 'stopped') {
+                foot.append(el('span', 'chat-a-error', turn.status === 'stopped'
+                    ? (turn.answer.trim() ? 'Stopped before the end.' : 'Stopped.')
+                    : turn.error || 'Something went wrong.'));
+                button('Try again', 'retry');
+            }
+            if (turn.status !== 'streaming' && turn.answer.trim()) button('Copy', 'copy');
+            foot.hidden = !foot.childElementCount;
+        }
+
+        let chatFrame = 0;
+        function markTurnDirty(turn) {
+            if (chatFrame) return;
+            chatFrame = requestAnimationFrame(() => {
+                chatFrame = 0;
+                const follow = chatAtBottom();
+                renderTurn(turn);
+                if (follow) chatLog.scrollTop = chatLog.scrollHeight;
+            });
+        }
+
+        function renderChat() {
+            for (const t of chatTurns) { if (t.el) t.el.remove(); t.el = null; }
+            for (const t of chatTurns) renderTurn(t);
+            chatEmpty.hidden = chatTurns.length > 0;
+            chatClear.hidden = chatTurns.length === 0;
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function reflectChatReady() {
+            const ready = segments.length > 0;
+            chatInput.disabled = !ready;
+            chatInput.placeholder = ready ? 'Ask about the meeting…' : 'Chat opens once something has been recorded';
+            for (const b of chatEmpty.querySelectorAll('[data-ask]')) b.disabled = !ready || Boolean(chatActive);
+            chatSend.disabled = !chatActive && (!ready || !chatInput.value.trim());
+            chatSend.textContent = chatActive ? 'Stop' : 'Ask';
+            chatSend.classList.toggle('stop', Boolean(chatActive));
+        }
+
+        function sizeChatInput() {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = `${Math.min(chatInput.scrollHeight + 2, 144)}px`;
+        }
+
+        async function askChat(question, retryOf) {
+            if (chatActive || !segments.length) return;
+            const q = String(question || '').trim().slice(0, CHAT_QUESTION_MAX);
+            if (!q) return;
+
+            let turn = retryOf;
+            if (turn) {
+                Object.assign(turn, { answer: '', status: 'streaming', error: '' });
+            } else {
+                turn = { question: q, answer: '', status: 'streaming', error: '', el: null };
+                chatTurns.push(turn);
+                if (chatTurns.length > CHAT_SAVED_TURNS) {
+                    const old = chatTurns.splice(0, chatTurns.length - CHAT_SAVED_TURNS);
+                    for (const t of old) if (t.el) t.el.remove();
+                }
+            }
+            chatEmpty.hidden = true;
+            chatClear.hidden = false;
+            renderTurn(turn);
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            const controller = new AbortController();
+            const epoch = sessionEpoch;
+            chatActive = { controller, turn };
+            inflight.add(controller);
+            reflectChatReady();
+
+            let stalled = false, expired = false, stopped = false, stallTimer = null;
+            const bump = () => {
+                clearTimeout(stallTimer);
+                stallTimer = setTimeout(() => { stalled = true; controller.abort(); }, CHAT_STALL_MS);
+            };
+            const capTimer = setTimeout(() => { expired = true; controller.abort(); }, CHAT_MAX_MS);
+            chatActive.stop = () => { stopped = true; controller.abort(); };
+
+            let sawDone = false;
+            try {
+                bump();
+                const resp = await fetch(chatUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        question: turn.question,
+                        history: chatHistory(turn),
+                        transcript: chatTranscript(),
+                        state: meetingState,
+                        insights: insightsForChat(),
+                        session: briefForServer({ materials: false }),
+                    }),
+                });
+                if (resp.status === 404) throw new Error('Chat isn’t available on the server yet');
+                if (resp.status === 429) throw new Error('Busy — too many requests. Try again in a moment.');
+                if (!resp.ok || !resp.body) {
+                    const data = await resp.json().catch(() => ({}));
+                    throw new Error(data.error || `Server error ${resp.status}`);
+                }
+
+                const reader = resp.body.getReader();
+                const decoder = new TextDecoder();
+                let buf = '';
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (epoch !== sessionEpoch) return;
+                    if (done) break;
+                    bump();
+                    buf += decoder.decode(value, { stream: true });
+                    let idx;
+                    while ((idx = buf.indexOf('\n\n')) >= 0) {
+                        const chunk = buf.slice(0, idx);
+                        buf = buf.slice(idx + 2);
+                        if (!chunk.trim()) continue;
+                        const { event, data } = parseSse(chunk);
+                        if (event === 'delta') {
+                            turn.answer += (data && data.text) || '';
+                            markTurnDirty(turn);
+                        } else if (event === 'done') {
+                            sawDone = true;
+                        } else if (event === 'error') {
+                            throw new Error((data && data.message) || 'Chat failed');
+                        }
+                    }
+                }
+                if (!sawDone) throw new Error('The connection dropped before the answer finished');
+                turn.status = 'done';
+            } catch (err) {
+                if (epoch !== sessionEpoch) return;
+                if (stopped) turn.status = 'stopped';
+                else {
+                    console.error('ReVerb chat error:', err);
+                    turn.status = 'failed';
+                    turn.error = stalled ? 'The answer stopped partway.'
+                        : expired ? 'That took too long.'
+                        : err.name === 'TypeError' ? 'Couldn’t reach the server.'
+                        : err.message || 'Something went wrong.';
+                }
+            } finally {
+                clearTimeout(stallTimer);
+                clearTimeout(capTimer);
+                inflight.delete(controller);
+                if (epoch === sessionEpoch) {
+                    if (chatFrame) { cancelAnimationFrame(chatFrame); chatFrame = 0; }
+                    const follow = chatAtBottom();
+                    chatActive = null;
+                    renderTurn(turn);
+                    if (follow) chatLog.scrollTop = chatLog.scrollHeight;
+                    reflectChatReady();
+                    persistTranscript();
+                }
+            }
+        }
+
+        function submitChat() {
+            if (chatActive) { chatActive.stop(); return; }
+            const q = chatInput.value.trim();
+            if (!q || !segments.length) return;
+            chatInput.value = '';
+            sizeChatInput();
+            askChat(q);
+        }
+
+        function clearChat() {
+            if (chatActive) chatActive.stop();
+            for (const t of chatTurns) if (t.el) t.el.remove();
+            chatTurns.length = 0;
+            renderChat();
+            reflectChatReady();
+            persistTranscript();
+        }
+
+        // ---------- right column: AI Insights | Chat ----------
+        // A phone shows one pane at a time; a desktop keeps the transcript and swaps the right
+        // column. Both remember the last choice, so turning the device keeps you where you were.
+        const insightsHidden = () => (phoneLayout.matches ? panels.dataset.pane !== 'insights' : panels.dataset.side === 'chat');
+
+        function reflectUnread() {
+            const label = unreadInsights > 9 ? '9+' : String(unreadInsights);
+            insightsUnread.textContent = label;
+            insightsUnread.hidden = !unreadInsights;
+            for (const b of document.querySelectorAll('.side-unread')) { b.textContent = label; b.hidden = !unreadInsights; }
+        }
+
+        function showSide(side) {
+            panels.dataset.side = side;
+            for (const tab of document.querySelectorAll('.side-tabs [role="tab"]')) {
+                tab.setAttribute('aria-selected', String(tab.dataset.side === side));
+            }
+            if (!insightsHidden()) { unreadInsights = 0; reflectUnread(); }
+        }
+
+        function openChat(prefill) {
+            if (phoneLayout.matches) showPane('chat');
+            else showSide('chat');
+            if (prefill) {
+                chatInput.value = prefill;
+                sizeChatInput();
+                reflectChatReady();
+            }
+            if (!chatInput.disabled) {
+                chatInput.focus();
+                chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length);
+            }
         }
 
         // ---------- diagnostics ----------
@@ -2364,10 +3143,9 @@
             insightsContainer.insertBefore(card, older || null);
             if (atTop) pinInsightsTop();
             else insightsJump.hidden = false;
-            if (phoneLayout.matches && panels.dataset.pane !== 'insights') {
+            if (insightsHidden()) {
                 unreadInsights++;
-                insightsUnread.textContent = unreadInsights > 9 ? '9+' : String(unreadInsights);
-                insightsUnread.hidden = false;
+                reflectUnread();
             }
             return card;
         }
@@ -2405,6 +3183,8 @@
         const thumbUp = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V2.75a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z" /></svg>';
         const thumbDown = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-.23l-3.114-1.04a4.5 4.5 0 00-1.423-.23H6.504c-.618 0-1.217.247-1.605.729A11.95 11.95 0 002.25 12c0 .434.023.863.068 1.285C2.427 14.306 3.346 15 4.372 15h3.126c.618 0 .991.724.725 1.282A7.471 7.471 0 007.5 19.5a2.25 2.25 0 002.25 2.25.75.75 0 00.75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 002.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384" /></svg>';
 
+        const chatBubble = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>';
+
         function renderSkeleton(card, meta) {
             const ui = CARD_TYPE_UI[meta.type] || { label: 'Insight' };
             const title = meta.title || ui.label;
@@ -2438,6 +3218,7 @@
                     <div class="card-foot">
                         <button type="button" class="card-more-toggle" aria-expanded="false" hidden>More</button>
                         <div class="card-feedback">
+                            <button type="button" data-ask-card aria-label="Ask about this in chat" title="Ask about this in chat">${chatBubble}</button>
                             <button type="button" data-feedback="up" aria-pressed="false" aria-label="Useful" title="Useful">${thumbUp}</button>
                             <button type="button" data-feedback="down" aria-label="Not useful — hide, and show fewer like this" title="Not useful — hide, and show fewer like this">${thumbDown}</button>
                         </div>
@@ -3148,9 +3929,18 @@ self.onmessage = function (e) {
                         objective: session.objective, type: session.type, keywords: session.keywords, roster: session.roster,
                         agenda: session.agenda, durationMin: session.durationMin, materials: session.materials,
                     },
-                    segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low, speaker: s.speaker, confident: s.confident, t: s.t })),
+                    segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low, speaker: s.speaker, confident: s.confident, byUser: s.byUser || undefined, t: s.t })),
                     meetingState,
                     participants,
+                    notes: sessionNotes,
+                    aliases: { ...speakerAliases },
+                    // An answer still streaming is saved as stopped: a reload ends it.
+                    chat: chatTurns.slice(-CHAT_SAVED_TURNS).map((t) => ({
+                        question: t.question,
+                        answer: t.answer.slice(0, 12000),
+                        status: t.status === 'streaming' ? 'stopped' : t.status,
+                        error: t.error || '',
+                    })),
                     answered: answeredTitles.slice(-ANSWERED_MEMORY),
                     dismissed: dismissedTitles.slice(-DISMISSED_MEMORY),
                     bias: { ...typeBias },
@@ -3251,13 +4041,32 @@ self.onmessage = function (e) {
                 const segment = {
                     id: `seg-${segmentSeq++}`, text: s.text,
                     edited: Boolean(s.edited), low: Boolean(s.low),
-                    speaker: s.speaker || null, confident: s.confident !== false,
+                    speaker: s.speaker || null, confident: s.confident !== false, byUser: Boolean(s.byUser),
                     t: Number.isFinite(s.t) ? s.t : undefined,
                 };
                 segments.push(segment);
                 segmentsEl.append(renderSegment(segment), document.createTextNode(' '));
             }
             participants = Array.isArray(data.participants) ? data.participants : [];
+            sessionNotes = typeof data.notes === 'string' ? data.notes.slice(0, NOTES_MAX) : '';
+            notesInput.value = sessionNotes;
+            reflectNotes();
+            for (const key of Object.keys(speakerAliases)) delete speakerAliases[key];
+            if (data.aliases && typeof data.aliases === 'object') {
+                for (const [from, to] of Object.entries(data.aliases)) if (typeof to === 'string' && to) speakerAliases[from] = to;
+            }
+            for (const t of chatTurns) if (t.el) t.el.remove();
+            chatTurns.length = 0;
+            for (const t of Array.isArray(data.chat) ? data.chat : []) {
+                if (!t || typeof t.question !== 'string') continue;
+                chatTurns.push({
+                    question: t.question, answer: typeof t.answer === 'string' ? t.answer : '',
+                    status: ['done', 'failed', 'stopped'].includes(t.status) ? t.status : 'stopped',
+                    error: typeof t.error === 'string' ? t.error : '', el: null,
+                });
+            }
+            renderChat();
+            reflectChatReady();
             refreshSpeakerTags();
             answeredTitles.length = 0;
             // Saved before cards were typed, entries were bare titles; both still suppress repeats.
@@ -3684,6 +4493,12 @@ self.onmessage = function (e) {
             if (persistTimer) { clearTimeout(persistTimer); persistTimer = null; }
             if (renderFrame) { cancelAnimationFrame(renderFrame); renderFrame = 0; }
             dirtyAnswers.clear();
+            clearTimeout(correctionTimer);
+            correctionTimer = 0;
+            clearTimeout(notesTimer);
+            notesTimer = 0;
+            if (chatFrame) { cancelAnimationFrame(chatFrame); chatFrame = 0; }
+            chatActive = null;
 
             // Storage first: whatever happens below, a reload finds nothing to restore.
             clearSaved();
@@ -3711,7 +4526,7 @@ self.onmessage = function (e) {
             placeholderCard.classList.remove('hidden');
             insightsJump.hidden = true;
             unreadInsights = 0;
-            insightsUnread.hidden = true;
+            reflectUnread();
             answeredTitles.length = 0;
             dismissedTitles.length = 0;
             for (const key of Object.keys(typeBias)) delete typeBias[key];
@@ -3738,6 +4553,20 @@ self.onmessage = function (e) {
             summaryBody.replaceChildren(el('p', 'text-gray-400 italic font-light', 'A summary appears a few minutes in.'));
             stampState(0);
             setStateObjective();
+
+            // The chat about this meeting, and every correction made to it.
+            for (const t of chatTurns) if (t.el) t.el.remove();
+            chatTurns.length = 0;
+            renderChat();
+            chatInput.value = '';
+            sizeChatInput();
+            sessionNotes = '';
+            notesInput.value = '';
+            reflectNotes();
+            toggleNotes(false);
+            for (const key of Object.keys(speakerAliases)) delete speakerAliases[key];
+            closeSpeakerEditor();
+            reflectChatReady();
 
             // The diagnostics behind the panel that is closing, and its recording link.
             Object.assign(stats, freshStats());
@@ -3843,9 +4672,11 @@ self.onmessage = function (e) {
             for (const tab of document.querySelectorAll('#pane-switch [role="tab"]')) {
                 tab.setAttribute('aria-selected', String(tab.dataset.pane === pane));
             }
+            // The right-hand pick carries over to a wider screen.
+            if (pane === 'insights' || pane === 'chat') showSide(pane);
             if (pane === 'insights') {
                 unreadInsights = 0;
-                insightsUnread.hidden = true;
+                reflectUnread();
             }
         }
         $('pane-switch').addEventListener('click', (e) => {
@@ -3882,10 +4713,81 @@ self.onmessage = function (e) {
         }, { passive: true });
 
         $('copy-transcript').addEventListener('click', (e) => copyToClipboard(attributedTranscript(), e.currentTarget));
-        $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText(), e.currentTarget));
+        $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText({ standalone: true }), e.currentTarget));
 
-        // "More" on a card, and the thumbs.
+        // ---------- chat wiring ----------
+        for (const tabs of document.querySelectorAll('.side-tabs')) {
+            tabs.addEventListener('click', (e) => {
+                const tab = e.target.closest('[role="tab"]');
+                if (tab) showSide(tab.dataset.side);
+            });
+        }
+        chatForm.addEventListener('submit', (e) => { e.preventDefault(); submitChat(); });
+        chatInput.addEventListener('input', () => { sizeChatInput(); reflectChatReady(); });
+        chatInput.addEventListener('keydown', (e) => {
+            // Enter sends on a keyboard; on a phone, Return is a new line and the button sends.
+            if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !phoneLayout.matches) {
+                e.preventDefault();
+                submitChat();
+            }
+        });
+        chatEmpty.addEventListener('click', (e) => {
+            const b = e.target.closest('[data-ask]');
+            if (b && !b.disabled) askChat(b.dataset.ask);
+        });
+        chatLog.addEventListener('click', (e) => {
+            const cite = e.target.closest('.cite');
+            if (cite) { jumpToMinute(Number(cite.dataset.min)); return; }
+            const act = e.target.closest('.chat-a-foot [data-act]');
+            if (!act) return;
+            const turn = chatTurns.find((t) => t.el && t.el.contains(act));
+            if (!turn) return;
+            if (act.dataset.act === 'retry') askChat(turn.question, turn);
+            else if (act.dataset.act === 'copy') copyToClipboard(turn.answer.trim(), act);
+        });
+        chatClear.addEventListener('click', clearChat);
+
+        // Corrections: saved as they are typed; the rebuild waits for the typing to stop.
+        notesToggle.addEventListener('click', () => toggleNotes());
+        notesInput.addEventListener('input', () => {
+            sessionNotes = notesInput.value.slice(0, NOTES_MAX);
+            reflectNotes();
+            clearTimeout(notesTimer);
+            notesTimer = setTimeout(() => { notesTimer = 0; correctionsChanged({ wholeRecord: true }); }, 1200);
+        });
+
+        // Who said it: a speaker label opens the editor.
+        segmentsEl.addEventListener('click', (e) => {
+            const tag = e.target.closest('.speaker-tag');
+            if (tag) openSpeakerEditor(tag);
+        });
+        segmentsEl.addEventListener('keydown', (e) => {
+            const tag = e.target.closest('.speaker-tag');
+            if (tag && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openSpeakerEditor(tag); }
+        });
+        $('speaker-save').addEventListener('click', saveSpeakerEditor);
+        $('speaker-cancel').addEventListener('click', closeSpeakerEditor);
+        speakerEditor.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { e.preventDefault(); closeSpeakerEditor(); }
+            else if (e.key === 'Enter' && e.target === speakerName) { e.preventDefault(); saveSpeakerEditor(); }
+        });
+        // A click anywhere else, or the transcript scrolling the label away, closes it.
+        document.addEventListener('pointerdown', (e) => {
+            if (!speakerEditor.hidden && !speakerEditor.contains(e.target) && !e.target.closest('.speaker-tag')) closeSpeakerEditor();
+        });
+        transcriptContainer.addEventListener('scroll', () => {
+            if (!speakerEditor.hidden && !speakerEditor.contains(document.activeElement)) closeSpeakerEditor();
+        }, { passive: true });
+
+        // "More" on a card, the thumbs, and asking about it in chat.
         insightsContainer.addEventListener('click', (e) => {
+            const ask = e.target.closest('[data-ask-card]');
+            if (ask) {
+                const card = ask.closest('[data-card]');
+                const label = CARD_TYPE_UI[card.dataset.type] ? CARD_TYPE_UI[card.dataset.type].label : 'insight';
+                openChat(`About the “${card.dataset.title}” ${label.toLowerCase()} card: `);
+                return;
+            }
             const more = e.target.closest('.card-more-toggle');
             if (more) {
                 const card = more.closest('[data-card]');
@@ -3933,6 +4835,8 @@ self.onmessage = function (e) {
         applyTypeFilters();
         restoreSessionBrief();
         reflectSessionButtons();
+        reflectNotes();
+        reflectChatReady();
 
         claimTab().then(findSaved).then((saved) => {
             // Starting a session before this resolves means the offer no longer applies.
