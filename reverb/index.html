@@ -628,6 +628,8 @@
             try {
                 const r = await fetch(`${API_BASE}/api/reverb/auth/config`, { signal: AbortSignal.timeout(8000) });
                 if (r.ok) mode = (await r.json()).mode || 'off';
+                // The app reads this before it draws anything, to send a signed-out visitor here at once.
+                try { localStorage.setItem('reverb.authMode', mode); } catch (err) { /* ignore */ }
             } catch (err) { /* unreachable or older server: the page stays as it is */ }
             if (mode === 'off') return;
             const auth = readAuth();

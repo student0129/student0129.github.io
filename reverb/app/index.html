@@ -28,6 +28,24 @@
     <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
     <title>ReVerb — Live Meeting Assistant</title>
     <link rel="icon" href="data:,">
+    <!-- Runs before anything is drawn. Someone who has to sign in first is sent to do it without
+         the app flashing up on the way: straight away when this browser already knows sign-in is
+         required, and otherwise the page stays blank until the server says (a few seconds at most). -->
+    <script>
+    (function () {
+        try {
+            var a = JSON.parse(localStorage.getItem('reverb.auth') || 'null');
+            if (a && a.session && a.expiresAt > Date.now()) return;
+            var mode = localStorage.getItem('reverb.authMode');
+            if (mode === 'required') { location.replace('../#signin-required'); return; }
+            if (mode !== 'off' && mode !== 'optional') {
+                document.documentElement.classList.add('auth-pending');
+                setTimeout(function () { document.documentElement.classList.remove('auth-pending'); }, 4000);
+            }
+        } catch (e) { /* storage blocked: the server still checks every request */ }
+    })();
+    </script>
+    <style>html.auth-pending body { visibility: hidden; }</style>
     <link rel="stylesheet" href="../reverb.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1642,10 +1660,14 @@
             return resp;
         }
 
-        // Required and not signed in: off to the front page before anything starts.
-        fetch(`${API_BASE}/api/reverb/auth/config`).then((r) => (r.ok ? r.json() : null)).then((c) => {
+        // Required and not signed in: off to the front page before anything starts. The answer is
+        // kept, so the check at the top of the page can decide on the next visit without waiting.
+        const revealApp = () => document.documentElement.classList.remove('auth-pending');
+        fetch(`${API_BASE}/api/reverb/auth/config`, { signal: AbortSignal.timeout(4000) }).then((r) => (r.ok ? r.json() : null)).then((c) => {
+            if (c && c.mode) { try { localStorage.setItem('reverb.authMode', c.mode); } catch (err) { /* ignore */ } }
             if (c && c.mode === 'required' && !readAuth()) signInPage();
-        }).catch(() => {});
+            else revealApp();
+        }).catch(revealApp);
 
         const $ = (id) => document.getElementById(id);
         const startBtn = $('start-btn'), stopBtn = $('stop-btn'), pauseBtn = $('pause-btn'), briefBtn = $('brief-btn'), endBtn = $('end-btn');
