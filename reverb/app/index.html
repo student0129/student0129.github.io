@@ -325,6 +325,84 @@
         #speaker-save { color: #fff; background: #00685B; }
         #speaker-save:hover { opacity: .9; }
 
+        /* "Meeting so far": topics and where things stand, then what the meeting produced. Wide,
+           that is a third column; medium, a full-width row under the two; a phone stacks it all. */
+        .state-extras { display: grid; gap: 1rem; align-content: start; }
+        @media (min-width: 768px) and (max-width: 1099px) {
+            .state-extras { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 1100px) {
+            #state-body { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        /* To-dos: the commitments, kept as a list you can tick, fix and add to. */
+        .todo-list { display: grid; gap: .35rem; }
+        .todo { display: flex; align-items: flex-start; gap: .5rem; font-size: .8125rem; color: #374151; }
+        .todo input[type="checkbox"] { margin-top: .2rem; accent-color: #00685B; flex-shrink: 0; }
+        .todo-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+        .todo-meta { display: block; font-size: .75rem; color: #6b7280; }
+        .todo.done .todo-main { text-decoration: line-through; color: #9ca3af; }
+        .todo-actions { display: flex; gap: .4rem; flex-shrink: 0; opacity: .0; transition: opacity .15s ease; }
+        .todo:hover .todo-actions, .todo:focus-within .todo-actions { opacity: 1; }
+        @media (pointer: coarse) { .todo-actions { opacity: 1; } }
+        .todo-actions button { font-size: .6875rem; color: #9ca3af; }
+        .todo-actions button:hover { color: #00685B; }
+        .todo-form { display: grid; gap: .35rem; padding: .5rem; border: 1px solid #e5e7eb; border-radius: .5rem; background: #f9fafb; }
+        .todo-form input { width: 100%; padding: .3rem .5rem; border: 1px solid #d1d5db; border-radius: .375rem; background: #fff; font-size: .8125rem; }
+        .todo-form input:focus { outline: none; border-color: #00685B; box-shadow: 0 0 0 1px #00685B; }
+        .todo-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; }
+        .todo-form .buttons { display: flex; justify-content: flex-end; gap: .6rem; font-size: .75rem; }
+        .todo-form .buttons .save { color: #00685B; font-weight: 500; }
+        .todo-form .buttons .cancel { color: #6b7280; }
+
+        /* Who's talking: share of the words said, and how long since each person last spoke. */
+        .balance-list { display: grid; gap: .4rem; }
+        .balance-row { display: grid; grid-template-columns: minmax(0, 7rem) 1fr auto; align-items: center; gap: .5rem; font-size: .75rem; color: #4b5563; }
+        .balance-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .balance-bar { height: .45rem; border-radius: 9999px; background: #f3f4f6; overflow: hidden; }
+        .balance-bar span { display: block; height: 100%; border-radius: inherit; background: #00685B; opacity: .75; }
+        .balance-row.quiet .balance-bar span { background: #0891b2; }
+        .balance-when { color: #9ca3af; white-space: nowrap; }
+        .time-line { margin-bottom: .65rem; font-size: .75rem; color: #4b5563; }
+        .time-line .balance-bar { margin-top: .3rem; }
+        .time-line.over .balance-bar span { background: #dc2626; }
+
+        /* Glossary: every term ReVerb explained, in one place. */
+        .glossary-list { display: grid; gap: .45rem; font-size: .8125rem; }
+        .glossary-list dt { font-weight: 500; color: #4f46e5; }
+        .glossary-list dd { margin: 0; color: #4b5563; }
+
+        /* Where a card came from: the line that raised it, one click away. */
+        .card-when { margin-left: .35rem; vertical-align: .05em; }
+
+        /* Dialogs: recap and past meetings. */
+        .dialog-card { width: 100%; max-width: 40rem; max-height: 100%; overflow-y: auto; padding: 1.25rem 1.25rem 1.1rem; border-radius: 1rem; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,.2); }
+        .dialog-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
+        .dialog-close { width: 2rem; height: 2rem; border-radius: 9999px; font-size: 1.5rem; line-height: 1; color: #9ca3af; }
+        .dialog-close:hover { color: #374151; background: #f3f4f6; }
+        .recap-preview { max-height: 45vh; overflow: auto; margin: 0; padding: .8rem .9rem; border: 1px solid #e5e7eb; border-radius: .6rem; background: #f9fafb; font-family: inherit; font-size: .8125rem; line-height: 1.55; color: #374151; white-space: pre-wrap; }
+        .dialog-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+        .dialog-btn { padding: .45rem .9rem; border: 1px solid #d1d5db; border-radius: 9999px; font-size: .8125rem; color: #374151; background: #fff; }
+        .dialog-btn:hover { border-color: #00685B; color: #00685B; }
+        .dialog-btn.primary { border-color: #00685B; background: #00685B; color: #fff; }
+        .dialog-btn.primary:hover { opacity: .9; color: #fff; }
+        .dialog-btn:disabled { opacity: .5; cursor: default; }
+        .dialog-note { margin-top: .75rem; font-size: .75rem; line-height: 1.5; color: #6b7280; }
+        .library-list { display: grid; gap: .5rem; margin-top: .75rem; }
+        .library-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .7rem .8rem; border: 1px solid #e5e7eb; border-radius: .6rem; }
+        .library-item .title { font-size: .9375rem; color: #1f2937; }
+        .library-item .when { font-size: .75rem; color: #6b7280; }
+        .library-item .actions { display: flex; gap: .75rem; font-size: .8125rem; }
+        .library-item .actions button { color: #00685B; }
+        .library-item .actions button:disabled { color: #9ca3af; cursor: default; }
+        .library-item .actions .delete { color: #9ca3af; }
+        .library-item .actions .delete:hover { color: #dc2626; }
+        .chat-tools button[aria-pressed="true"] { color: #00685B; }
+
+        /* A voice the room hasn't heard from in a while — raised here, not by the server. */
+        [data-type="quiet"] { --card-accent: #0891b2; }
+        #insights-container[data-muted~="quiet"] > [data-card][data-type="quiet"] { display: none; }
+
         /* A cited minute, picked out in the transcript for a moment. */
         .segment.cite-flash { background-color: rgba(250,204,21,.35); }
 
@@ -783,6 +861,21 @@
                 list here are sent to the speech model as hints, so it stops mangling them.
             </p>
 
+            <div class="setup-row" style="margin:-.5rem 0 .9rem">
+                <span id="followup-note" class="text-xs text-google-green"></span>
+                <button id="invite-load" type="button" class="setup-link">Fill from a calendar invite</button>
+                <input id="invite-file" type="file" accept=".ics,text/calendar" hidden>
+            </div>
+            <div id="invite-box" hidden>
+                <textarea id="invite-text" rows="4"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
+                    placeholder="Paste the invite — title, guests, description — or choose an .ics file"></textarea>
+                <div class="setup-row" style="margin-bottom:.9rem">
+                    <button id="invite-file-pick" type="button" class="setup-link">Choose an .ics file</button>
+                    <button id="invite-apply" type="button" class="setup-link">Fill the brief</button>
+                </div>
+            </div>
+
             <label class="block text-sm text-gray-700 mb-1">What's the objective of this session?</label>
             <textarea id="setup-objective" rows="2"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-google-green"
@@ -868,6 +961,20 @@
                 </label>
             </div>
 
+            <div id="tab-option" class="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <label class="flex items-start space-x-3 cursor-pointer">
+                    <input id="setup-tab" type="checkbox" class="mt-1 accent-[#00685B]">
+                    <span class="text-sm">
+                        <span class="text-gray-700">Also listen to a meeting tab</span>
+                        <span class="block text-xs text-gray-500 mt-0.5">
+                            For Zoom, Meet or Teams in the browser: you pick the meeting’s tab and turn on
+                            “Share tab audio”, and ReVerb hears the other people as well as your microphone.
+                            Uses high-accuracy transcription. Best with headphones.
+                        </span>
+                    </span>
+                </label>
+            </div>
+
             <div class="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
                 <label class="flex items-start space-x-3 cursor-pointer">
                     <input id="setup-record" type="checkbox" class="mt-1 accent-[#00685B]">
@@ -918,6 +1025,9 @@
             </div>
 
             <div id="header-actions" class="header-group">
+            <button id="library-btn" class="hidden px-3 py-2 text-sm text-gray-600 rounded-full border border-gray-300 hover:border-google-green hover:text-google-green transition-colors">
+                Past meetings
+            </button>
             <button id="brief-btn" class="hidden px-3 py-2 text-sm text-gray-600 rounded-full border border-gray-300 hover:border-google-green hover:text-google-green transition-colors">
                 Brief
             </button>
@@ -959,6 +1069,7 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <button id="end-diagnostics-toggle" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Diagnostics</button>
+                <button id="end-recap" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Recap &amp; share</button>
                 <button id="end-transcript" class="px-3 py-1.5 text-xs rounded-full border border-gray-300 text-gray-600 hover:border-google-green hover:text-google-green transition-colors">Download transcript</button>
                 <button id="end-continue" class="px-3 py-1.5 text-xs text-white bg-google-green rounded-full hover:opacity-90">Continue session</button>
                 <button id="end-session" class="end-action px-3 py-1.5 text-xs rounded-full border transition-colors">End session</button>
@@ -1001,11 +1112,36 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-xs uppercase tracking-wide text-gray-400">Where we are</h3>
-                    <button id="copy-summary" class="text-xs text-gray-400 hover:text-google-green transition-colors">Copy</button>
+                    <div class="flex items-center gap-3">
+                        <button id="recap-open" class="text-xs text-gray-400 hover:text-google-green transition-colors">Recap</button>
+                        <button id="copy-summary" class="text-xs text-gray-400 hover:text-google-green transition-colors" title="Copy the whole summary — objective, topics and where things stand">Copy</button>
+                    </div>
                 </div>
                 <div id="summary-body" class="text-sm space-y-2 text-gray-600">
                     <p class="text-gray-400 italic font-light">A summary appears a few minutes in.</p>
                 </div>
+            </div>
+            <div class="state-extras">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs uppercase tracking-wide text-gray-400">To-dos</h3>
+                    <button id="todo-add" type="button" class="text-xs text-gray-400 hover:text-google-green transition-colors">Add</button>
+                </div>
+                <ul id="todo-list" class="todo-list"></ul>
+                <p id="todo-empty" class="text-sm text-gray-400 italic font-light">Commitments appear here as people make them.</p>
+            </div>
+            <div>
+                <div id="balance-block">
+                    <h3 class="text-xs uppercase tracking-wide text-gray-400 mb-2">Who’s talking</h3>
+                    <div id="time-line" class="time-line" hidden></div>
+                    <ul id="balance-list" class="balance-list"></ul>
+                    <p id="balance-empty" class="text-sm text-gray-400 italic font-light">Shown once two people have spoken.</p>
+                </div>
+                <div id="glossary-block" class="mt-4" hidden>
+                    <h3 class="text-xs uppercase tracking-wide text-gray-400 mb-2">Glossary</h3>
+                    <dl id="glossary-list" class="glossary-list"></dl>
+                </div>
+            </div>
             </div>
         </div>
     </section>
@@ -1084,6 +1220,7 @@
                         <button type="button" role="tab" data-side="chat" aria-selected="true">Chat</button>
                     </div>
                     <div class="chat-tools">
+                        <button id="past-toggle" type="button" aria-pressed="false" hidden title="Also answer from the meetings saved in this browser">Past meetings</button>
                         <button id="notes-toggle" type="button" aria-expanded="false" aria-controls="notes-box">Corrections</button>
                         <button id="chat-clear" type="button" hidden>Clear chat</button>
                     </div>
@@ -1119,6 +1256,38 @@
         </div>
 
     </main>
+
+    <!-- Recap: what the meeting produced, to copy, email, link or keep -->
+    <div id="recap-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="recap-title">
+        <div class="dialog-card">
+            <div class="dialog-head">
+                <h2 id="recap-title" class="text-xl text-google-green">Meeting recap</h2>
+                <button type="button" class="dialog-close" data-close aria-label="Close">&times;</button>
+            </div>
+            <pre id="recap-preview" class="recap-preview"></pre>
+            <div class="dialog-actions">
+                <button id="recap-copy" type="button" class="dialog-btn primary">Copy</button>
+                <button id="recap-email" type="button" class="dialog-btn">Email</button>
+                <button id="recap-link" type="button" class="dialog-btn">Copy share link</button>
+                <button id="recap-save" type="button" class="dialog-btn">Save to past meetings</button>
+            </div>
+            <p id="recap-note" class="dialog-note">
+                A share link carries the recap inside the link itself — it isn’t stored anywhere, and
+                anyone with the link can read it. Past meetings are kept in this browser only.
+            </p>
+        </div>
+    </div>
+
+    <div id="library-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="library-title">
+        <div class="dialog-card">
+            <div class="dialog-head">
+                <h2 id="library-title" class="text-xl text-google-green">Past meetings</h2>
+                <button type="button" class="dialog-close" data-close aria-label="Close">&times;</button>
+            </div>
+            <p class="dialog-note" style="margin-top:0">Recaps you chose to keep, saved in this browser only. Follow up on one to start a new meeting with its decisions, open questions and to-dos already in the brief.</p>
+            <ul id="library-list" class="library-list"></ul>
+        </div>
+    </div>
 
     <!-- Who said this: opened from a speaker label in the transcript -->
     <div id="speaker-editor" role="dialog" aria-modal="false" aria-labelledby="speaker-editor-title" hidden>
@@ -1159,6 +1328,41 @@
 
         // Wake the server on page load — it sleeps on the free tier.
         fetch(API_BASE, { method: 'GET' }).catch(() => {});
+
+        // ---------- sign-in ----------
+        // Off unless the server turns it on. When it is on, the session the front page got from the
+        // emailed link goes with every request and with the start of the audio stream.
+        const AUTH_KEY = 'reverb.auth';
+        function readAuth() {
+            try {
+                const a = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+                return a && a.session && a.expiresAt > Date.now() ? a : null;
+            } catch (err) { return null; }
+        }
+        const authHeader = () => { const a = readAuth(); return a ? { Authorization: `Bearer ${a.session}` } : {}; };
+        const signInPage = () => location.replace('../#signin-required');
+
+        // Every API call goes through here: it adds the session, and turns the two refusals that
+        // aren't about this one request — signed out, or the day's budget spent — into a notice.
+        async function apiFetch(url, opts = {}) {
+            const resp = await fetch(url, { ...opts, headers: { ...(opts.headers || {}), ...authHeader() } });
+            if (resp.status === 401 || resp.status === 429) {
+                resp.clone().json().then((d) => {
+                    if (d && d.auth === 'required') {
+                        // Mid-meeting, the transcript keeps going and nothing is lost; say so rather
+                        // than navigate away from it.
+                        if (!isListening && !segments.length) signInPage();
+                        else setNotice('Your sign-in has run out. Stop, then open ReVerb’s front page to sign in again — this meeting is saved.');
+                    } else if (d && d.limit === 'daily') setNotice(d.error);
+                }).catch(() => {});
+            }
+            return resp;
+        }
+
+        // Required and not signed in: off to the front page before anything starts.
+        fetch(`${API_BASE}/api/reverb/auth/config`).then((r) => (r.ok ? r.json() : null)).then((c) => {
+            if (c && c.mode === 'required' && !readAuth()) signInPage();
+        }).catch(() => {});
 
         const $ = (id) => document.getElementById(id);
         const startBtn = $('start-btn'), stopBtn = $('stop-btn'), pauseBtn = $('pause-btn'), briefBtn = $('brief-btn'), endBtn = $('end-btn');
@@ -1238,6 +1442,8 @@
             confirm:       { label: 'Confirm it',   cooldown: 180000, sweep: true },
             talkpast:      { label: 'Talking past', cooldown: 300000, sweep: true },
             drift:         { label: 'Off track',    cooldown: 600000, sweep: true },
+            // Raised here, from who has and hasn't been talking — the server never sees this type.
+            quiet:         { label: 'Quiet voice',  cooldown: 0 },
         };
         const CARD_TYPE_ORDER = Object.keys(CARD_TYPE_UI);
         const UTTERANCE_TYPE_ORDER = CARD_TYPE_ORDER.filter((t) => CARD_TYPE_UI[t].utterance);
@@ -1292,6 +1498,20 @@
         const NOTES_MAX = 4000;
         const CORRECTION_SETTLE_MS = 5000;
 
+        // --- Conversation balance ---
+        // A named person who has taken part, then said nothing for this long while the meeting
+        // carried on, is worth bringing back in. Only in a room of three or more: with two,
+        // the silence of one is the other one talking, and that is plain to both.
+        const QUIET_AFTER_MS = 15 * 60 * 1000;
+        const QUIET_MIN_LINES = 3;          // they really took part before going quiet
+        const QUIET_GAP_LINES = 12;         // and the room has really kept talking since
+        const QUIET_RENAG_MS = 20 * 60 * 1000;
+
+        // --- Past meetings: recaps the user chose to keep, in this browser only ---
+        const LIBRARY_KEY = 'reverb.library';
+        const LIBRARY_MAX = 30;
+        const LIBRARY_IN_CHAT = 10;
+
         // --- Staying alive ---
         // A phone screen going dark is the most common way a meeting quietly stops being
         // captured: the page is frozen, the AudioContext is suspended, and nothing on
@@ -1331,7 +1551,7 @@
         const freshBrief = () => ({
             objective: '', type: 'strategy', keywords: [], roster: [],
             agenda: [], durationMin: null, materials: '',
-            accurate: false, record: false,
+            accurate: false, record: false, tabAudio: false, followUp: null,
         });
         const session = freshBrief();
 
@@ -1346,6 +1566,8 @@
         let meetingState = null;
         let isListening = false, isPaused = false;
         let provider = null, recorder = null, micStream = null;
+        // A video call's audio, from a shared browser tab, and the context that mixes it with the mic.
+        let tabStream = null, mixer = null;
         let pendingUtterance = '';      // finalized text not yet flushed for analysis
         let pendingLow = false;
         let flushTimer = null;
@@ -1379,6 +1601,13 @@
         // { question, answer, status: 'streaming'|'done'|'failed'|'stopped', error, el }
         const chatTurns = [];
         let chatActive = null;          // { controller, turn } while an answer streams
+        let includePast = false;        // chat also answers from the saved past meetings
+        // What the meeting produced beyond the summary. To-dos come from the action cards and from
+        // the user; the glossary from the jargon cards. Both outlive the cards, which aren't saved.
+        const todos = [];               // { id, title, task, owner, due, done, t, seg, byUser }
+        const glossary = [];            // { term, definition, t }
+        let todoSeq = 0, todoEditing = null;
+        const quietNudged = Object.create(null);   // name -> meeting time of the last nudge
         // Bumped by End session. Every request in flight remembers the epoch it started in
         // and discards its result if that has moved on — otherwise a reply landing a second
         // after the wipe would put a card or a summary back on screen.
@@ -1699,6 +1928,248 @@
 
             // The payoff: a term you fix once stops being mangled for the rest of the meeting.
             if (learned.length) learnKeywords(learned);
+        }
+
+        // ---------- to-dos and glossary ----------
+        const clipText = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+        const plainText = (md) => clipText(String(md || '').replace(/\*\*|__|`|^#+\s*/gm, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'), 400);
+
+        function noteTodo(meta, seg) {
+            const title = clipText(meta.title || meta.claim, 160);
+            if (!title || todos.some((t) => t.title.toLowerCase() === title.toLowerCase())) return;
+            todos.push({
+                id: `todo-${todoSeq++}`, title,
+                task: clipText(meta.claim || meta.title, 240), owner: clipText(meta.owner, 60), due: clipText(meta.due, 60),
+                done: false, t: seg && Number.isFinite(seg.t) ? seg.t : meetingClock(), seg: seg ? seg.id : null, byUser: false,
+            });
+            renderTodos();
+            stateBar.classList.remove('hidden');
+            persistTranscript();
+        }
+
+        // Accepted, handed over or re-dated in the room. A to-do the user has edited keeps their version.
+        function updateTodo(meta) {
+            const want = clipText(meta.supersedes, 160).toLowerCase();
+            const todo = todos.find((t) => t.title.toLowerCase() === want);
+            if (!todo || todo.byUser) return;
+            if (meta.claim) todo.task = clipText(meta.claim, 240);
+            if (meta.owner) todo.owner = clipText(meta.owner, 60);
+            if (meta.due) todo.due = clipText(meta.due, 60);
+            renderTodos();
+            persistTranscript();
+        }
+
+        function noteGlossary(term, definition, seg) {
+            const t = clipText(term, 80), d = plainText(definition);
+            if (!t || !d || glossary.some((g) => g.term.toLowerCase() === t.toLowerCase())) return;
+            glossary.push({ term: t, definition: d, t: seg && Number.isFinite(seg.t) ? seg.t : meetingClock() });
+            renderGlossary();
+            persistTranscript();
+        }
+
+        // "Not useful" on a card means its to-do or its definition wasn't wanted either.
+        function forgetCardProducts(card) {
+            const title = (card.dataset.title || '').trim().toLowerCase();
+            if (!title) return;
+            if (card.dataset.type === 'action') {
+                const i = todos.findIndex((t) => !t.byUser && t.title.toLowerCase() === title);
+                if (i >= 0) { todos.splice(i, 1); renderTodos(); }
+            } else if (card.dataset.type === 'explanation') {
+                const i = glossary.findIndex((g) => g.term.toLowerCase() === title);
+                if (i >= 0) { glossary.splice(i, 1); renderGlossary(); }
+            }
+        }
+
+        function renderTodos() {
+            if (todoEditing) return;     // never pull a form out from under the person typing in it
+            const list = $('todo-list');
+            list.replaceChildren(...todos.map(todoRow));
+            $('todo-empty').hidden = todos.length > 0;
+        }
+
+        function todoRow(todo) {
+            const li = el('li', 'todo' + (todo.done ? ' done' : ''));
+            const box = document.createElement('input');
+            box.type = 'checkbox';
+            box.checked = todo.done;
+            box.setAttribute('aria-label', `Done: ${todo.task}`);
+            box.addEventListener('change', () => {
+                todo.done = box.checked;
+                li.classList.toggle('done', todo.done);
+                persistTranscript();
+            });
+            const text = el('span', 'todo-text');
+            text.append(el('span', 'todo-main', todo.task));
+            const meta = el('span', 'todo-meta', [todo.owner, todo.due ? `due ${todo.due}` : ''].filter(Boolean).join(' · '));
+            const seg = todo.seg && segments.find((s) => s.id === todo.seg);
+            if (seg && Number.isFinite(seg.t)) {
+                const when = el('button', 'cite', `${Math.floor(seg.t / 60000)}m`);
+                when.type = 'button';
+                when.dataset.seg = seg.id;
+                when.title = 'Show where this was said';
+                meta.append(' ', when);
+            }
+            if (meta.childNodes.length) text.append(meta);
+            const actions = el('span', 'todo-actions');
+            const edit = el('button', '', 'Edit');
+            edit.type = 'button';
+            edit.addEventListener('click', () => openTodoForm(todo, li));
+            const del = el('button', '', 'Remove');
+            del.type = 'button';
+            del.addEventListener('click', () => {
+                todos.splice(todos.indexOf(todo), 1);
+                renderTodos();
+                persistTranscript();
+            });
+            actions.append(edit, del);
+            li.append(box, text, actions);
+            return li;
+        }
+
+        // One small form, for a new to-do or an existing one.
+        function openTodoForm(todo, replace) {
+            if (todoEditing) return;
+            todoEditing = todo ? todo.id : 'new';
+            const form = el('li', 'todo-form');
+            const field = (label, value) => {
+                const i = document.createElement('input');
+                i.type = 'text';
+                i.placeholder = label;
+                i.setAttribute('aria-label', label);
+                i.value = value || '';
+                i.maxLength = label === 'What' ? 240 : 60;
+                return i;
+            };
+            const task = field('What', todo && todo.task), owner = field('Who', todo && todo.owner), due = field('By when', todo && todo.due);
+            const row = el('div', 'row');
+            row.append(owner, due);
+            const buttons = el('div', 'buttons');
+            const cancel = el('button', 'cancel', 'Cancel');
+            const save = el('button', 'save', 'Save');
+            cancel.type = save.type = 'button';
+            buttons.append(cancel, save);
+            form.append(task, row, buttons);
+            const close = () => { todoEditing = null; renderTodos(); };
+            const commit = () => {
+                const t = clipText(task.value, 240);
+                if (!t) { close(); return; }
+                if (todo) Object.assign(todo, { task: t, owner: clipText(owner.value, 60), due: clipText(due.value, 60), byUser: true });
+                else todos.push({ id: `todo-${todoSeq++}`, title: t, task: t, owner: clipText(owner.value, 60), due: clipText(due.value, 60), done: false, t: meetingClock(), seg: null, byUser: true });
+                close();
+                persistTranscript();
+            };
+            cancel.addEventListener('click', close);
+            save.addEventListener('click', commit);
+            form.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); commit(); }
+                else if (e.key === 'Escape') { e.preventDefault(); close(); }
+            });
+            if (replace) replace.replaceWith(form);
+            else $('todo-list').append(form);
+            $('todo-empty').hidden = true;
+            task.focus();
+        }
+
+        function renderGlossary() {
+            const dl = $('glossary-list');
+            dl.replaceChildren();
+            for (const g of glossary) dl.append(el('dt', '', g.term), el('dd', '', g.definition));
+            $('glossary-block').hidden = !glossary.length;
+        }
+
+        // ---------- conversation balance ----------
+        // Share of the words said, by speaker — a fair stand-in for airtime, since lines are cut
+        // where people pause — and how long since each last spoke.
+        function talkShares() {
+            const by = new Map();
+            let total = 0;
+            segments.forEach((s, i) => {
+                if (!s.speaker) return;
+                const n = wordCount(s.text);
+                const row = by.get(s.speaker) || { name: s.speaker, words: 0, lines: 0, confident: false };
+                row.words += n;
+                row.lines += 1;
+                row.lastIdx = i;
+                row.last = s;
+                row.confident = row.confident || s.confident !== false;
+                by.set(s.speaker, row);
+                total += n;
+            });
+            return [...by.values()].map((r) => ({ ...r, share: total ? r.words / total : 0 })).sort((a, b) => b.share - a.share);
+        }
+
+        function renderBalance() {
+            const rows = talkShares();
+            const now = meetingClock();
+            const list = $('balance-list');
+            list.replaceChildren();
+            for (const r of rows.slice(0, 8)) {
+                const lastT = r.last && Number.isFinite(r.last.t) ? r.last.t : null;
+                const ago = lastT != null ? Math.floor((now - lastT) / 60000) : null;
+                const row = el('li', 'balance-row' + (ago != null && ago * 60000 >= QUIET_AFTER_MS ? ' quiet' : ''));
+                const bar = el('span', 'balance-bar');
+                const fill = el('span');
+                fill.style.width = `${Math.max(2, Math.round(r.share * 100))}%`;
+                bar.append(fill);
+                row.append(el('span', 'balance-name', r.name), bar,
+                    el('span', 'balance-when', `${Math.round(r.share * 100)}%${ago != null && ago >= 1 ? ` · ${ago}m ago` : ''}`));
+                row.title = `${r.name}: ${Math.round(r.share * 100)}% of what was said${ago != null ? `, last heard ${ago < 1 ? 'just now' : `${ago} min ago`}` : ''}`;
+                list.append(row);
+            }
+            list.hidden = rows.length < 2;
+            $('balance-empty').hidden = rows.length >= 2;
+
+            // The clock against the plan, and the agenda against the clock.
+            const line = $('time-line');
+            const mins = Math.round(now / 60000);
+            const planned = session.durationMin;
+            const agenda = meetingState && Array.isArray(meetingState.agenda) ? meetingState.agenda.filter((a) => a && a.item) : [];
+            if (!startedAt || (!planned && !agenda.length)) { line.hidden = true; return; }
+            line.hidden = false;
+            line.replaceChildren();
+            const covered = agenda.filter((a) => a.status === 'covered').length;
+            line.append(el('span', '', [
+                planned ? `${mins} of ${planned} min` : `${mins} min so far`,
+                agenda.length ? `${covered} of ${agenda.length} agenda item${agenda.length === 1 ? '' : 's'} covered` : '',
+            ].filter(Boolean).join(' · ')));
+            line.classList.toggle('over', Boolean(planned && mins > planned));
+            if (planned) {
+                const bar = el('span', 'balance-bar');
+                bar.style.display = 'block';
+                const fill = el('span');
+                fill.style.width = `${Math.min(100, Math.round((mins / planned) * 100))}%`;
+                bar.append(fill);
+                line.append(bar);
+            }
+        }
+
+        function checkQuietVoices() {
+            if (!isListening || isPaused || !enabledTypes.has('quiet')) return;
+            const rows = talkShares();
+            if (rows.length < 3) return;
+            const now = meetingClock();
+            for (const r of rows) {
+                if (isPlaceholder(r.name) || !r.confident || r.lines < QUIET_MIN_LINES || !r.last) continue;
+                if (!Number.isFinite(r.last.t) || now - r.last.t < QUIET_AFTER_MS) continue;
+                if (segments.length - 1 - r.lastIdx < QUIET_GAP_LINES) continue;
+                if (quietNudged[r.name] && now - quietNudged[r.name] < QUIET_RENAG_MS) continue;
+                quietNudged[r.name] = now;
+                showQuietCard(r.name, Math.floor((now - r.last.t) / 60000), r.last);
+                return;     // one at a time
+            }
+        }
+
+        function showQuietCard(name, mins, seg) {
+            const card = placeCard(++cardOrder);
+            const refs = renderSkeleton(card, { type: 'quiet', title: `${name} hasn’t spoken in ${mins} minutes` });
+            const topics = meetingState && Array.isArray(meetingState.topics) ? meetingState.topics.filter((t) => t && t.name) : [];
+            const topic = topics.length ? topics[topics.length - 1].name : '';
+            const first = name.split(/\s+/)[0];
+            refs.gist.innerHTML = renderMarkdown(`Last heard at ${Math.floor(seg.t / 60000)}m.${topic ? ` Worth bringing ${first} in on **${topic}**.` : ` Worth bringing ${first} back in.`}`)
+                + askLine(`${first}, what’s your take?`);
+            refs.toggle.hidden = true;
+            addCardSource(card, seg);
+            bumpStat('cards', 'quiet');
         }
 
         // ---------- corrections ----------
@@ -2097,9 +2568,12 @@
             if (existing) {
                 stats.merged++;
                 updateActionCard(existing, meta);
+                updateTodo(meta);
                 retireSlot(slot);
                 return;
             }
+            // The line that raised it. Analysis is queued right after the line is added.
+            slot.source = segments[job.segIndex - 1] || null;
             // Held: nothing on screen yet. The title is remembered now, so a second utterance
             // about the same thing can't raise it while this one waits.
             if (meta.hold) {
@@ -2111,6 +2585,8 @@
             }
             if (!slot.card) slot.card = placeCard(job.order);
             const refs = renderSkeleton(slot.card, meta);
+            addCardSource(slot.card, slot.source);
+            if (meta.type === 'action') noteTodo(meta, slot.source);
             // An action item is complete as classified — owner, task, deadline — so the server
             // sends no answer and there is nothing to stream into.
             slot.entry = refs.gist ? { ...refs, card: slot.card, type: meta.type, text: '', hasSources: false } : null;
@@ -2125,6 +2601,9 @@
             slot.finished = true;
             const verdict = slot.entry ? parseVerdict(slot.entry.text).verdict : null;
             startCooldown(slot.meta, verdict);
+            if (slot.meta && slot.meta.type === 'explanation' && slot.entry) {
+                noteGlossary(slot.meta.term || slot.meta.title, splitGist(slot.entry.text)[0], slot.source);
+            }
         }
 
         // Gone before anyone read it — retracted, superseded, or the meeting moved on. Its subject
@@ -2201,7 +2680,7 @@
 
             try {
                 bump();
-                const resp = await fetch(apiUrl, {
+                const resp = await apiFetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
@@ -2222,7 +2701,10 @@
                         ...(job.forced ? { card: job.forced, after: job.after || '' } : {}),
                     })
                 });
-                if (resp.status === 429) throw Object.assign(new Error('Busy — too many requests'), { retryable: true });
+                if (resp.status === 429) {
+                    const d = await resp.json().catch(() => ({}));
+                    throw Object.assign(new Error(d.error || 'Busy — too many requests'), { retryable: d.limit !== 'daily' });
+                }
                 if (!resp.ok || !resp.body) {
                     throw Object.assign(new Error(`Server error ${resp.status}`), { retryable: resp.status >= 500 });
                 }
@@ -2400,7 +2882,7 @@
             inflight.add(controller);
             const timeout = setTimeout(() => controller.abort(), SPEAKER_TIMEOUT_MS);
             try {
-                const resp = await fetch(speakersUrl, {
+                const resp = await apiFetch(speakersUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
@@ -2477,7 +2959,7 @@
             inflight.add(controller);
             const timeout = setTimeout(() => controller.abort(), SWEEP_TIMEOUT_MS);
             try {
-                const resp = await fetch(sweepUrl, {
+                const resp = await apiFetch(sweepUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
@@ -2586,7 +3068,7 @@
             try {
                 // A rebuild still gets the previous state: it keeps topic names steady, and it
                 // is the only record of anything before a truncated transcript.
-                const resp = await fetch(stateUrl, {
+                const resp = await apiFetch(stateUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
@@ -2651,6 +3133,7 @@
         }
 
         function renderMeetingState() {
+            renderBalance();
             // Participants land before the first state update does, so this no longer bails
             // out when there is no summary yet — it renders what it has.
             if (!meetingState && !participants.length) return;
@@ -2727,7 +3210,7 @@
             const state = meetingState;
             const topics = state && Array.isArray(state.topics) ? state.topics.filter((t) => t && t.name) : [];
             const people = participantLines();
-            if (!state && !people.length) return '';
+            if (!state && !people.length && !todos.length && !glossary.length) return '';
 
             const parts = [];
             if (standalone) {
@@ -2758,6 +3241,10 @@
             if (state && state.headline) parts.push(`Where we are: ${state.headline}`, '');
             if (state && state.objectiveProgress) parts.push(`Against the objective: ${state.objectiveProgress}`, '');
             if (state) for (const [label, items] of stateSections(state)) section(label, items);
+            section('To-dos', todos.map(todoLine));
+            const talk = talkShares();
+            if (talk.length >= 2) parts.push(`Who talked: ${talk.slice(0, 8).map((r) => `${r.name} ${Math.round(r.share * 100)}%`).join(', ')}`, '');
+            section('Glossary', glossary.map((g) => `${g.term} — ${g.definition}`));
             return parts.join('\n').trim();
         }
 
@@ -2791,8 +3278,32 @@
                 out.push({ type, title: card.dataset.title, text: text.slice(0, 600), addressed: card.classList.contains('card-resolved') });
                 if (out.length >= CHAT_INSIGHTS) break;
             }
+            // The to-do list and glossary outlive the cards (a restored meeting has neither card).
+            const have = new Set(out.map((c) => c.title.toLowerCase()));
+            for (const t of todos) {
+                if (out.length >= CHAT_INSIGHTS + 20 || have.has(t.title.toLowerCase())) continue;
+                out.push({ type: 'action', title: t.task, text: [t.owner, t.due ? `due ${t.due}` : '', t.done ? 'done' : 'open', t.byUser ? 'entered by the user' : ''].filter(Boolean).join(' · ') });
+            }
+            for (const g of glossary) {
+                if (out.length >= CHAT_INSIGHTS + 30 || have.has(g.term.toLowerCase())) continue;
+                out.push({ type: 'explanation', title: g.term, text: g.definition });
+            }
             return out;
         }
+
+        // Saved past meetings, as the chat reads them: the recap, never a transcript.
+        function earlierForChat() {
+            if (!includePast) return undefined;
+            const list = readLibrary().slice(0, LIBRARY_IN_CHAT);
+            if (!list.length) return undefined;
+            return list.map((e) => ({
+                title: e.recap.title,
+                date: new Date(e.recap.date).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }),
+                summary: recapText(e.recap, { todos: false }).slice(0, 6000),
+                todos: (e.recap.todos || []).map(todoLine).join('\n').slice(0, 2000),
+            }));
+        }
+        const chatReady = () => segments.length > 0 || (includePast && readLibrary().length > 0);
 
         // Earlier exchanges that got a full answer: what lets "and what did Tom say about it?" work.
         function chatHistory(before) {
@@ -2812,19 +3323,42 @@
                     `<button type="button" class="cite" data-min="${m}" title="Show minute ${m} in the transcript">${m}m</button>`).join(''));
         }
 
+        // Scroll the transcript to the first of these lines and light them all up for a moment.
+        function showInTranscript(lines) {
+            const target = lines[0];
+            if (!target || !target.el) return;
+            if (phoneLayout.matches) showPane('transcript');
+            if (!stateBody.classList.contains('hidden') && phoneLayout.matches) toggleStateBody();
+            const top = target.el.getBoundingClientRect().top - transcriptContainer.getBoundingClientRect().top
+                + transcriptContainer.scrollTop - transcriptContainer.clientHeight / 3;
+            transcriptContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+            for (const s of lines) if (s.el) s.el.classList.add('cite-flash');
+            setTimeout(() => { for (const s of lines) if (s.el) s.el.classList.remove('cite-flash'); }, 2400);
+        }
+
         function jumpToMinute(min) {
             const inMinute = segments.filter((s) => Number.isFinite(s.t) && Math.floor(s.t / 60000) === min);
             const target = inMinute[0]
                 || segments.find((s) => Number.isFinite(s.t) && s.t >= min * 60000)
                 || segments[segments.length - 1];
-            if (!target || !target.el) return;
-            if (phoneLayout.matches) showPane('transcript');
-            const top = target.el.getBoundingClientRect().top - transcriptContainer.getBoundingClientRect().top
-                + transcriptContainer.scrollTop - transcriptContainer.clientHeight / 3;
-            transcriptContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-            const lit = inMinute.length ? inMinute : [target];
-            for (const s of lit) s.el.classList.add('cite-flash');
-            setTimeout(() => { for (const s of lit) if (s.el) s.el.classList.remove('cite-flash'); }, 2400);
+            if (target) showInTranscript(inMinute.length ? inMinute : [target]);
+        }
+
+        function jumpToSegment(id) {
+            const seg = segments.find((s) => s.id === id);
+            if (seg) showInTranscript([seg]);
+        }
+
+        // The minute a card was raised, as a chip beside its type: one click shows the line.
+        function addCardSource(card, seg) {
+            if (!card || !seg || !Number.isFinite(seg.t) || card.querySelector('.card-when')) return;
+            const anchor = card.querySelector('.card-verdict') || card.querySelector('.card-chip');
+            if (!anchor) return;
+            const b = el('button', 'cite card-when', `${Math.floor(seg.t / 60000)}m`);
+            b.type = 'button';
+            b.dataset.seg = seg.id;
+            b.title = 'Show where this was said';
+            anchor.after(b);
         }
 
         function chatAtBottom() {
@@ -2884,9 +3418,11 @@
         }
 
         function reflectChatReady() {
-            const ready = segments.length > 0;
+            const ready = chatReady();
             chatInput.disabled = !ready;
-            chatInput.placeholder = ready ? 'Ask about the meeting…' : 'Chat opens once something has been recorded';
+            chatInput.placeholder = segments.length ? 'Ask about the meeting…'
+                : ready ? 'Ask about your past meetings…'
+                : 'Chat opens once something has been recorded';
             for (const b of chatEmpty.querySelectorAll('[data-ask]')) b.disabled = !ready || Boolean(chatActive);
             chatSend.disabled = !chatActive && (!ready || !chatInput.value.trim());
             chatSend.textContent = chatActive ? 'Stop' : 'Ask';
@@ -2899,7 +3435,7 @@
         }
 
         async function askChat(question, retryOf) {
-            if (chatActive || !segments.length) return;
+            if (chatActive || !chatReady()) return;
             const q = String(question || '').trim().slice(0, CHAT_QUESTION_MAX);
             if (!q) return;
 
@@ -2936,7 +3472,7 @@
             let sawDone = false;
             try {
                 bump();
-                const resp = await fetch(chatUrl, {
+                const resp = await apiFetch(chatUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
@@ -2946,11 +3482,15 @@
                         transcript: chatTranscript(),
                         state: meetingState,
                         insights: insightsForChat(),
+                        earlier: earlierForChat(),
                         session: briefForServer({ materials: false }),
                     }),
                 });
                 if (resp.status === 404) throw new Error('Chat isn’t available on the server yet');
-                if (resp.status === 429) throw new Error('Busy — too many requests. Try again in a moment.');
+                if (resp.status === 429) {
+                    const d = await resp.json().catch(() => ({}));
+                    throw new Error(d.error || 'Busy — too many requests. Try again in a moment.');
+                }
                 if (!resp.ok || !resp.body) {
                     const data = await resp.json().catch(() => ({}));
                     throw new Error(data.error || `Server error ${resp.status}`);
@@ -3013,7 +3553,7 @@
         function submitChat() {
             if (chatActive) { chatActive.stop(); return; }
             const q = chatInput.value.trim();
-            if (!q || !segments.length) return;
+            if (!q || !chatReady()) return;
             chatInput.value = '';
             sizeChatInput();
             askChat(q);
@@ -3026,6 +3566,284 @@
             renderChat();
             reflectChatReady();
             persistTranscript();
+        }
+
+        // ---------- recap: what the meeting produced, to send on ----------
+        // Shorter than the summary: what was decided, who is doing what, and what is still open —
+        // the part people actually forward.
+        function buildRecap() {
+            const state = meetingState || {};
+            const list = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x.trim()) : []);
+            const firstTopic = Array.isArray(state.topics) && state.topics[0] && state.topics[0].name;
+            return {
+                v: 1,
+                title: session.objective || firstTopic || 'Meeting',
+                date: startedAt || Date.now(),
+                minutes: Math.round(meetingClock() / 60000),
+                people: participants.map((p) => p && p.name).filter((n) => n && !isPlaceholder(n)),
+                headline: state.headline || '',
+                decisions: list(state.decisions),
+                todos: todos.map((t) => ({ task: t.task, owner: t.owner, due: t.due, done: t.done })),
+                open: list(state.openThreads),
+                points: list(state.keyPoints),
+                glossary: glossary.map((g) => ({ term: g.term, definition: g.definition })),
+            };
+        }
+
+        const todoLine = (t) => `${t.done ? '☑' : '☐'} ${t.task}${t.owner || t.due ? ` — ${[t.owner, t.due ? `due ${t.due}` : ''].filter(Boolean).join(', ')}` : ''}`;
+
+        function recapText(r, opts) {
+            const withTodos = !(opts && opts.todos === false);
+            const parts = [r.title];
+            const when = new Date(r.date).toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+            parts.push([when, r.minutes ? `${r.minutes} min` : '', (r.people || []).join(', ')].filter(Boolean).join(' · '), '');
+            if (r.headline) parts.push(r.headline, '');
+            const section = (label, items) => {
+                if (!items || !items.length) return;
+                parts.push(`${label}:`, ...items.map((i) => `  ${i}`), '');
+            };
+            section('Decided', (r.decisions || []).map((d) => `• ${d}`));
+            if (withTodos) section('To-dos', (r.todos || []).map(todoLine));
+            section('Still open', (r.open || []).map((o) => `• ${o}`));
+            section('Key points', (r.points || []).map((k) => `• ${k}`));
+            section('Glossary', (r.glossary || []).map((g) => `• ${g.term} — ${g.definition}`));
+            return parts.join('\n').trim();
+        }
+
+        // The recap travels inside the link — compressed, in the part of the URL after "#", which
+        // browsers never send to a server. Nothing is stored anywhere to make the link work.
+        function toBase64Url(bytes) {
+            let bin = '';
+            for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+            return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        async function recapLink(r) {
+            const bytes = new TextEncoder().encode(JSON.stringify(r));
+            let code = 'j' + toBase64Url(bytes);
+            if (typeof CompressionStream === 'function') {
+                const zipped = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+                code = 'z' + toBase64Url(new Uint8Array(await new Response(zipped).arrayBuffer()));
+            }
+            return `${new URL('../recap/', location.href).href}#r=${code}`;
+        }
+
+        let recapShown = null, recapUrl = '';
+        function openRecap() {
+            recapShown = buildRecap();
+            recapUrl = '';
+            const shown = recapShown;
+            recapLink(shown).then((url) => { if (recapShown === shown) recapUrl = url; }).catch(() => {});
+            $('recap-preview').textContent = recapText(recapShown);
+            const saved = readLibrary().some((e) => e.id === meetingId());
+            $('recap-save').textContent = saved ? 'Update saved copy' : 'Save to past meetings';
+            $('recap-modal').classList.remove('hidden');
+            $('recap-copy').focus();
+        }
+        const closeModal = (id) => $(id).classList.add('hidden');
+
+        async function emailRecap() {
+            const r = recapShown || buildRecap();
+            const link = await recapLink(r).catch(() => '');
+            let body = recapText(r);
+            // Mail apps cut long mailto bodies short; past this, the link carries the rest.
+            if (body.length > 1800) body = `${body.slice(0, 1800).replace(/\n[^\n]*$/, '')}\n…`;
+            if (link) body += `\n\nFull recap: ${link}`;
+            location.href = `mailto:?subject=${encodeURIComponent(`Recap: ${r.title}`)}&body=${encodeURIComponent(body)}`;
+        }
+
+        // ---------- past meetings ----------
+        // Kept only when the user asks — End session still erases the meeting itself. One entry
+        // per meeting, keyed by when it started, so saving again updates rather than duplicates.
+        const meetingId = () => `m-${startedAt || 0}`;
+        function readLibrary() {
+            try {
+                const v = JSON.parse(localStorage.getItem(LIBRARY_KEY) || '[]');
+                return Array.isArray(v) ? v.filter((e) => e && e.id && e.recap && e.recap.title) : [];
+            } catch (err) { return []; }
+        }
+        function writeLibrary(list) {
+            try { localStorage.setItem(LIBRARY_KEY, JSON.stringify(list.slice(0, LIBRARY_MAX))); }
+            catch (err) { errorEl.textContent = 'Could not save — this browser’s storage is full or blocked.'; }
+            reflectLibrary();
+        }
+        function saveToLibrary() {
+            if (!segments.length) return;
+            const entry = {
+                id: meetingId(), savedAt: Date.now(), recap: recapShown || buildRecap(),
+                roster: (session.roster || []).slice(0, 40), keywords: session.keywords.slice(0, 100), type: session.type,
+            };
+            writeLibrary([entry, ...readLibrary().filter((e) => e.id !== entry.id)]);
+            $('recap-save').textContent = 'Saved';
+        }
+        function reflectLibrary() {
+            const n = readLibrary().length;
+            $('library-btn').classList.toggle('hidden', isListening || !n);
+            $('past-toggle').hidden = !n;
+            if (!n && includePast) { includePast = false; $('past-toggle').setAttribute('aria-pressed', 'false'); }
+            reflectChatReady();
+        }
+
+        function openLibrary() {
+            const list = $('library-list');
+            list.replaceChildren();
+            for (const entry of readLibrary()) {
+                const r = entry.recap;
+                const li = el('li', 'library-item');
+                const info = el('div');
+                info.append(el('div', 'title', r.title), el('div', 'when',
+                    [new Date(r.date).toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
+                        r.minutes ? `${r.minutes} min` : '', `${(r.todos || []).filter((t) => !t.done).length} open to-dos`].filter(Boolean).join(' · ')));
+                const actions = el('div', 'actions');
+                const view = el('a', '', 'Recap');
+                view.target = '_blank';
+                view.rel = 'noopener';
+                view.className = 'text-google-green';
+                view.href = '#';
+                recapLink(r).then((url) => { view.href = url; }).catch(() => {});
+                const follow = el('button', '', 'Follow up');
+                follow.type = 'button';
+                follow.disabled = segments.length > 0;
+                if (follow.disabled) follow.title = 'End the current session first';
+                follow.addEventListener('click', () => { closeModal('library-modal'); startFollowUp(entry); });
+                const del = el('button', 'delete', 'Delete');
+                del.type = 'button';
+                let armed = 0;
+                del.addEventListener('click', () => {
+                    if (!armed) { del.textContent = 'Delete?'; armed = setTimeout(() => { armed = 0; del.textContent = 'Delete'; }, 3000); return; }
+                    clearTimeout(armed);
+                    writeLibrary(readLibrary().filter((e) => e.id !== entry.id));
+                    li.remove();
+                    if (!readLibrary().length) closeModal('library-modal');
+                });
+                actions.append(view, follow, del);
+                li.append(info, actions);
+                list.append(li);
+            }
+            $('library-modal').classList.remove('hidden');
+        }
+
+        // A follow-up starts with the last meeting's outcome in the brief: its decisions, what was
+        // left open and the to-dos, as background the cards and the chat can check against.
+        function startFollowUp(entry) {
+            const r = entry.recap;
+            const when = new Date(r.date).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+            const block = (label, items) => (items && items.length ? `${label}:\n${items.map((i) => `- ${i}`).join('\n')}` : '');
+            session.objective = '';
+            session.type = entry.type || session.type;
+            session.roster = Array.isArray(entry.roster) ? entry.roster.slice() : [];
+            session.keywords = Array.isArray(entry.keywords) ? entry.keywords.slice() : [];
+            session.agenda = [];
+            session.materials = [
+                `FROM THE LAST MEETING — ${r.title} (${when})`,
+                block('Decided', r.decisions),
+                block('Still open', r.open),
+                block('To-dos', (r.todos || []).map((t) => todoLine(t).replace(/^[☐☑] /, t.done ? '[done] ' : ''))),
+            ].filter(Boolean).join('\n\n').slice(0, MATERIALS_MAX);
+            session.followUp = { id: entry.id, title: r.title };
+            openSetup();
+        }
+
+        // ---------- calendar invites ----------
+        // An .ics file, or whatever gets pasted out of a calendar: the title, the guests, the
+        // description. No calendar sign-in — it works with any calendar that can show an invite.
+        const VIDEO_NOISE = /(zoom\.us|meet\.google|teams\.microsoft|webex|join with|meeting id|passcode|password:|dial[- ]in|one tap|tel:|^-::~|^\+?\d[\d\s().-]{7,}$|invitation from google|reply for|learn more about|view all guest|^─|^_{5,})/i;
+        function personFromAddress(s) {
+            const m = /^(.*?)<\s*([^>]+@[^>]+)>/.exec(s);
+            if (m && m[1].replace(/["']/g, '').trim()) return m[1].replace(/["']/g, '').trim();
+            const email = (s.match(/[\w.+-]+@[\w-]+(\.[\w-]+)+/) || [])[0];
+            if (!email || /resource\.calendar|group\.calendar|noreply|no-reply|calendar-notification/i.test(email)) return '';
+            return email.split('@')[0].split(/[._+-]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
+        }
+
+        function parseIcsDate(v) {
+            const m = /(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?)?(Z)?/.exec(v || '');
+            if (!m) return null;
+            const parts = [+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)];
+            return m[7] ? Date.UTC(...parts) : new Date(...parts).getTime();
+        }
+
+        function parseInvite(text) {
+            const out = { title: '', people: [], agenda: [], notes: '', durationMin: null };
+            if (/BEGIN:VEVENT/i.test(text)) {
+                const lines = text.replace(/\r\n?/g, '\n').replace(/\n[ \t]/g, '').split('\n');
+                const unescape = (v) => v.replace(/\\n/gi, '\n').replace(/\\([,;\\])/g, '$1');
+                let start = null, end = null, description = '';
+                for (const line of lines) {
+                    const i = line.indexOf(':');
+                    if (i < 0) continue;
+                    const head = line.slice(0, i), value = line.slice(i + 1);
+                    const name = head.split(';')[0].toUpperCase();
+                    if (name === 'SUMMARY' && !out.title) out.title = unescape(value).trim();
+                    else if (name === 'DESCRIPTION' && !description) description = unescape(value);
+                    else if (name === 'DTSTART' && start == null) start = parseIcsDate(value);
+                    else if (name === 'DTEND' && end == null) end = parseIcsDate(value);
+                    else if (name === 'ATTENDEE' || name === 'ORGANIZER') {
+                        const cn = /CN=("?)([^";:]+)\1/i.exec(head);
+                        const who = cn ? cn[2].trim() : personFromAddress(value.replace(/^mailto:/i, ''));
+                        if (who && !/@/.test(who)) out.people.push(who);
+                        else if (who) out.people.push(personFromAddress(who));
+                    }
+                }
+                if (start != null && end != null && end > start) out.durationMin = Math.round((end - start) / 60000);
+                text = description;
+            } else {
+                const lines = text.replace(/\r\n?/g, '\n').split('\n');
+                const first = lines.find((l) => l.trim());
+                out.title = first ? first.trim() : '';
+                text = lines.slice(lines.indexOf(first) + 1).join('\n');
+            }
+            // Guests and agenda sections, then whatever is left as background.
+            let mode = '';
+            const rest = [];
+            for (const raw of text.split('\n')) {
+                const line = raw.trim();
+                if (!line) { mode = mode === 'agenda' || mode === 'guests' ? '' : mode; rest.push(''); continue; }
+                if (VIDEO_NOISE.test(line)) continue;
+                if (/^(guests|attendees|participants|invitees|who)\s*:?\s*$/i.test(line)) { mode = 'guests'; continue; }
+                if (/^agenda\s*:?\s*$/i.test(line)) { mode = 'agenda'; continue; }
+                if (mode === 'guests' || /[\w.+-]+@[\w-]+\.[\w.-]+/.test(line)) {
+                    const who = /@/.test(line) ? personFromAddress(line) : line.replace(/\s*[-–(].*$/, '').trim();
+                    if (who) out.people.push(who);
+                    continue;
+                }
+                if (mode === 'agenda') { out.agenda.push(line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '')); continue; }
+                rest.push(line);
+            }
+            out.notes = rest.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+            out.people = [...new Set(out.people.map((p) => p.replace(/\s+/g, ' ').trim()).filter((p) => p && p.length <= 60))];
+            return out;
+        }
+
+        // Fills what is empty; never overwrites what the user already typed.
+        function applyInvite(text) {
+            const info = parseInvite(text || '');
+            if (!info.title && !info.people.length && !info.agenda.length && !info.notes) {
+                $('followup-note').textContent = 'Couldn’t find anything to use in that invite.';
+                return;
+            }
+            const set = (id, value) => { if (value && !$(id).value.trim()) $(id).value = value; };
+            set('setup-objective', info.title);
+            if (info.people.length) {
+                const roster = $('setup-roster');
+                const have = roster.value.split(',').map((n) => n.trim()).filter(Boolean);
+                for (const person of info.people) {
+                    // "Dana" already in the brief is "Dana Whitfield" from the invite, not someone else.
+                    const first = person.split(/\s+/)[0].toLowerCase();
+                    const i = have.findIndex((h) => h.toLowerCase() === person.toLowerCase() || (!/\s/.test(h) && h.toLowerCase() === first));
+                    if (i >= 0) have[i] = person; else have.push(person);
+                }
+                roster.value = [...new Set(have)].join(', ');
+            }
+            if (info.agenda.length) set('setup-agenda', info.agenda.slice(0, 20).join('\n'));
+            if (info.durationMin) set('setup-duration', String(Math.min(600, info.durationMin)));
+            if (info.notes) {
+                const box = $('setup-materials');
+                if (!box.value.includes(info.notes.slice(0, 80))) box.value = [box.value.trim(), info.notes].filter(Boolean).join('\n\n').slice(0, MATERIALS_MAX);
+                reflectMaterialsCount();
+            }
+            if (info.agenda.length || info.durationMin || info.notes) $('setup-more').open = true;
+            $('invite-box').hidden = true;
+            $('followup-note').textContent = `Filled from the invite${info.people.length ? ` · ${info.people.length} ${info.people.length === 1 ? 'person' : 'people'}` : ''}`;
         }
 
         // ---------- right column: AI Insights | Chat ----------
@@ -3294,6 +4112,7 @@
                     dismissedTitles.push({ type, title: card.dataset.title.slice(0, 120) });
                     if (dismissedTitles.length > DISMISSED_MEMORY * 2) dismissedTitles.splice(0, dismissedTitles.length - DISMISSED_MEMORY);
                 }
+                forgetCardProducts(card);
                 removeCard(card);
             } else {
                 const button = card.querySelector('[data-feedback="up"]');
@@ -3650,8 +4469,12 @@ self.onmessage = function (e) {
         class RealtimeProvider {
             static label = 'High accuracy';
 
-            constructor(stream) {
+            // `stream` is what gets transcribed — the microphone, or the microphone mixed with a
+            // meeting tab. `watched` is the microphone itself: a mix never "ends" or "mutes", so
+            // the capture watchdog has to look at the real input to notice one that has.
+            constructor(stream, watched) {
                 this.stream = stream;
+                this.watched = watched || stream;
                 this.partials = new Map();
                 this.level = 0;
                 this.lastSoundAt = Date.now();
@@ -3666,6 +4489,7 @@ self.onmessage = function (e) {
                     prompt: `A ${meetingLabel}.${session.objective ? ' Objective: ' + session.objective : ''}`,
                     keywords: session.keywords,
                     languages: ['en'],
+                    ...(readAuth() ? { token: readAuth().session } : {}),
                 };
             }
 
@@ -3784,7 +4608,7 @@ self.onmessage = function (e) {
             }
 
             health() {
-                const track = this.stream && this.stream.getAudioTracks()[0];
+                const track = this.watched && this.watched.getAudioTracks()[0];
                 return {
                     context: this.audioContext ? this.audioContext.state : 'none',
                     track: track ? track.readyState : 'none',
@@ -3934,6 +4758,8 @@ self.onmessage = function (e) {
                     participants,
                     notes: sessionNotes,
                     aliases: { ...speakerAliases },
+                    todos: todos.map(({ id, ...t }) => t),
+                    glossary,
                     // An answer still streaming is saved as stopped: a reload ends it.
                     chat: chatTurns.slice(-CHAT_SAVED_TURNS).map((t) => ({
                         question: t.question,
@@ -4067,6 +4893,21 @@ self.onmessage = function (e) {
             }
             renderChat();
             reflectChatReady();
+            todos.length = 0;
+            todoEditing = null;
+            for (const t of Array.isArray(data.todos) ? data.todos : []) {
+                if (t && typeof t.task === 'string' && t.task.trim()) {
+                    // Line ids are renumbered on restore; the meeting time finds the line again.
+                    const line = Number.isFinite(t.t) ? segments.find((x) => x.t === t.t) : null;
+                    todos.push({ title: t.title || t.task, owner: '', due: '', t: null, ...t, seg: line ? line.id : null, done: Boolean(t.done), id: `todo-${todoSeq++}` });
+                }
+            }
+            glossary.length = 0;
+            for (const g of Array.isArray(data.glossary) ? data.glossary : []) {
+                if (g && typeof g.term === 'string' && typeof g.definition === 'string') glossary.push(g);
+            }
+            renderTodos();
+            renderGlossary();
             refreshSpeakerTags();
             answeredTitles.length = 0;
             // Saved before cards were typed, entries were bare titles; both still suppress repeats.
@@ -4129,6 +4970,8 @@ self.onmessage = function (e) {
             if (!isListening || isPaused || !provider) return;
 
             if (provider.wake) await provider.wake();
+            // The mixer is a second AudioContext, and is suspended by the same things.
+            if (mixer && mixer.context.state === 'suspended') await mixer.context.resume().catch(() => {});
             if (document.visibilityState === 'visible') await acquireWakeLock();
 
             if (!provider.health) return;
@@ -4180,7 +5023,15 @@ self.onmessage = function (e) {
             $('setup-more').open = Boolean((session.agenda || []).length || session.durationMin || session.materials);
             $('setup-accurate').checked = session.accurate;
             $('setup-record').checked = session.record;
+            // Only a desktop browser can share a tab's audio.
+            $('tab-option').hidden = !canShareTab;
+            $('setup-tab').checked = canShareTab && Boolean(session.tabAudio);
             $('setup-start').textContent = segments.length ? 'Continue session' : 'Start session';
+            $('followup-note').textContent = session.followUp ? `Following up on “${session.followUp.title}”` : '';
+            $('setup-objective').placeholder = session.followUp
+                ? `Follow-up: ${session.followUp.title}`
+                : 'e.g. Align on FY27 platform strategy and decide build vs. buy for identity';
+            $('invite-box').hidden = true;
 
             if (!WebSpeechProvider.supported) {
                 $('setup-accurate').checked = true;
@@ -4198,6 +5049,48 @@ self.onmessage = function (e) {
         }
 
         const closeSetup = () => setupModal.classList.add('hidden');
+
+        // ---------- a meeting tab's audio ----------
+        // On a video call with headphones the microphone hears only you. Chrome and Edge can
+        // share a tab's audio — the call in Meet, Zoom or Teams on the web — and that is mixed
+        // with the microphone so both sides of the conversation are transcribed.
+        const canShareTab = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)
+            && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        async function captureMeetingTab() {
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                // Chrome will not share audio without video. The picture is never used.
+                video: { frameRate: 1 },
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, suppressLocalAudioPlayback: false },
+                preferCurrentTab: false,
+                selfBrowserSurface: 'exclude',
+                systemAudio: 'include',
+                surfaceSwitching: 'include',
+            });
+            for (const t of stream.getVideoTracks()) t.enabled = false;
+            if (!stream.getAudioTracks().length) {
+                stream.getTracks().forEach((t) => t.stop());
+                return null;
+            }
+            stream.getAudioTracks()[0].addEventListener('ended', () => {
+                if (!isListening) return;
+                setNotice('The meeting tab stopped sharing — only your microphone is being heard now.');
+            });
+            return stream;
+        }
+
+        // One stream out of several: what the transcriber and the recorder both take.
+        function mixAudio(streams) {
+            const context = new AudioContext();
+            const dest = context.createMediaStreamDestination();
+            for (const s of streams) if (s && s.getAudioTracks().length) context.createMediaStreamSource(s).connect(dest);
+            return { context, stream: dest.stream };
+        }
+
+        function releaseTab() {
+            if (tabStream) { tabStream.getTracks().forEach((t) => t.stop()); tabStream = null; }
+            if (mixer) { mixer.context.close().catch(() => {}); mixer = null; }
+        }
 
         function reflectMaterialsCount() {
             const n = $('setup-materials').value.length;
@@ -4229,6 +5122,10 @@ self.onmessage = function (e) {
             session.materials = $('setup-materials').value.trim().slice(0, MATERIALS_MAX);
             session.accurate = $('setup-accurate').checked;
             session.record = $('setup-record').checked;
+            session.tabAudio = canShareTab && $('setup-tab').checked;
+            if (!session.objective && session.followUp) session.objective = `Follow-up: ${session.followUp.title}`;
+            // The browser's own recogniser only ever hears the microphone.
+            if (session.tabAudio) session.accurate = true;
             // Names are the single thing a speech model mangles most, and the roster is a
             // list of them — so it doubles as transcription biasing at no extra cost.
             session.keywords = [...new Set([...session.keywords, ...session.roster])];
@@ -4242,6 +5139,7 @@ self.onmessage = function (e) {
             startBtn.textContent = resuming ? 'Continue Session' : 'Start Listening';
             briefBtn.classList.toggle('hidden', !resuming);
             endBtn.classList.toggle('hidden', !resuming);
+            reflectLibrary();
         }
 
         async function startListening() {
@@ -4271,9 +5169,20 @@ self.onmessage = function (e) {
                         },
                     });
                 }
+                let captureStream = micStream;
+                if (session.tabAudio && canShareTab) {
+                    try { tabStream = await captureMeetingTab(); }
+                    catch (err) { tabStream = null; }   // the picker was cancelled
+                    if (tabStream) {
+                        mixer = mixAudio([micStream, tabStream]);
+                        captureStream = mixer.stream;
+                    } else {
+                        setNotice('No tab audio was shared, so only your microphone is being heard. To add the call, stop, then start again and turn on “Share tab audio”.');
+                    }
+                }
                 if (session.record) {
                     recorder = new DiskRecorder();
-                    const { streaming } = await recorder.start(micStream);
+                    const { streaming } = await recorder.start(captureStream);
                     recordingBadge.classList.remove('hidden');
                     recordingBadge.classList.add('flex');
                     recordingBadge.title = streaming
@@ -4285,7 +5194,7 @@ self.onmessage = function (e) {
                     throw new Error('This browser has no built-in speech recognition. Turn on high-accuracy transcription instead.');
                 }
 
-                provider = session.accurate ? new RealtimeProvider(micStream) : new WebSpeechProvider();
+                provider = session.accurate ? new RealtimeProvider(captureStream, micStream) : new WebSpeechProvider();
                 await provider.start();
 
                 isListening = true;
@@ -4305,13 +5214,20 @@ self.onmessage = function (e) {
                 setStateObjective();
                 stateBar.classList.remove('hidden');
 
-                stateTimer = setInterval(() => { maybeRunState(true); maybeRunSweep(); }, STATE_INTERVAL_MS);
+                stateTimer = setInterval(() => {
+                    maybeRunState(true);
+                    maybeRunSweep();
+                    checkQuietVoices();
+                    if (!stateBody.classList.contains('hidden')) renderBalance();
+                }, STATE_INTERVAL_MS);
                 captureTimer = setInterval(checkCapture, CAPTURE_WATCHDOG_MS);
 
                 // Requested inside the click that started the session, which is the user
                 // activation some browsers require before they will grant it.
                 await acquireWakeLock();
-                if (!('wakeLock' in navigator)) {
+                if (session.tabAudio && !tabStream) {
+                    // Already said: the tab wasn't shared. That outranks the screen notices.
+                } else if (!('wakeLock' in navigator)) {
                     setNotice('This browser can’t hold the screen awake — keep ReVerb in the foreground, or the phone will stop listening when the screen sleeps.');
                 } else if (!wakeLock) {
                     setNotice('The screen may still sleep — the browser refused to keep it awake.');
@@ -4322,6 +5238,7 @@ self.onmessage = function (e) {
                 startBtn.classList.add('hidden');
                 briefBtn.classList.add('hidden');
                 endBtn.classList.add('hidden');
+                $('library-btn').classList.add('hidden');
                 stopBtn.classList.remove('hidden');
                 pauseBtn.classList.remove('hidden');
                 pauseBtn.textContent = 'Pause';
@@ -4403,6 +5320,7 @@ self.onmessage = function (e) {
                 recorder = null;
             }
             if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+            releaseTab();
 
             recordingBadge.classList.add('hidden');
             recordingBadge.classList.remove('flex');
@@ -4566,6 +5484,14 @@ self.onmessage = function (e) {
             toggleNotes(false);
             for (const key of Object.keys(speakerAliases)) delete speakerAliases[key];
             closeSpeakerEditor();
+            todos.length = 0;
+            todoEditing = null;
+            glossary.length = 0;
+            for (const key of Object.keys(quietNudged)) delete quietNudged[key];
+            renderTodos();
+            renderGlossary();
+            renderBalance();
+            closeModal('recap-modal');
             reflectChatReady();
 
             // The diagnostics behind the panel that is closing, and its recording link.
@@ -4658,7 +5584,7 @@ self.onmessage = function (e) {
         // On a phone the same body opens as a sheet, with a scrim and Done to close it.
         function toggleStateBody() {
             const hidden = stateBody.classList.toggle('hidden');
-            if (!hidden) refreshStateForReader();
+            if (!hidden) { refreshStateForReader(); renderBalance(); }
             stateChevron.style.transform = hidden ? '' : 'rotate(180deg)';
             sheetScrim.hidden = hidden;
         }
@@ -4714,6 +5640,52 @@ self.onmessage = function (e) {
 
         $('copy-transcript').addEventListener('click', (e) => copyToClipboard(attributedTranscript(), e.currentTarget));
         $('copy-summary').addEventListener('click', (e) => copyToClipboard(summaryAsText({ standalone: true }), e.currentTarget));
+
+        // ---------- recap, past meetings, invites ----------
+        $('recap-open').addEventListener('click', openRecap);
+        $('end-recap').addEventListener('click', openRecap);
+        $('recap-copy').addEventListener('click', (e) => copyToClipboard($('recap-preview').textContent, e.currentTarget));
+        $('recap-email').addEventListener('click', () => { emailRecap(); });
+        $('recap-link').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            try { await copyToClipboard(recapUrl || await recapLink(recapShown || buildRecap()), button); }
+            catch (err) { errorEl.textContent = 'Could not make a link for this recap.'; }
+        });
+        $('recap-save').addEventListener('click', saveToLibrary);
+        $('library-btn').addEventListener('click', () => { openLibrary(); });
+        for (const modal of [$('recap-modal'), $('library-modal')]) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal || e.target.closest('[data-close]')) modal.classList.add('hidden');
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            for (const id of ['recap-modal', 'library-modal']) closeModal(id);
+        });
+        $('past-toggle').addEventListener('click', () => {
+            includePast = !includePast;
+            $('past-toggle').setAttribute('aria-pressed', String(includePast));
+            reflectChatReady();
+        });
+        $('todo-add').addEventListener('click', () => openTodoForm(null));
+        $('todo-list').addEventListener('click', (e) => {
+            const cite = e.target.closest('.cite[data-seg]');
+            if (cite) jumpToSegment(cite.dataset.seg);
+        });
+        $('invite-load').addEventListener('click', () => {
+            const box = $('invite-box');
+            box.hidden = !box.hidden;
+            if (!box.hidden) $('invite-text').focus();
+        });
+        $('invite-file-pick').addEventListener('click', () => $('invite-file').click());
+        $('invite-file').addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
+            if (file.size > 1e6) { $('followup-note').textContent = 'That file is too large to be an invite.'; return; }
+            applyInvite(await file.text());
+        });
+        $('invite-apply').addEventListener('click', () => applyInvite($('invite-text').value));
 
         // ---------- chat wiring ----------
         for (const tabs of document.querySelectorAll('.side-tabs')) {
@@ -4781,6 +5753,8 @@ self.onmessage = function (e) {
 
         // "More" on a card, the thumbs, and asking about it in chat.
         insightsContainer.addEventListener('click', (e) => {
+            const source = e.target.closest('.card-when[data-seg]');
+            if (source) { jumpToSegment(source.dataset.seg); return; }
             const ask = e.target.closest('[data-ask-card]');
             if (ask) {
                 const card = ask.closest('[data-card]');

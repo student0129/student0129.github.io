@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- The recap arrives in the link's #fragment, which is never sent to any server. Everything
+         in it is shown as text, never as markup. -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        base-uri 'self';
+        object-src 'none';
+        form-action 'none';
+        script-src 'self' 'unsafe-inline' https://view.promontoryai.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data:;
+        connect-src 'self' https://view.promontoryai.com;
+    ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+    <meta name="robots" content="noindex">
+    <meta name="referrer" content="no-referrer">
+    <title>Meeting recap — ReVerb</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300685B' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z'/%3E%3Cpath d='M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { color-scheme: light; --green: #00685B; --ink: #1f2937; --ink-2: #374151; --muted: #6b7280; --line: #e5e7eb; --page: #f9fafb; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--page); color: var(--ink); font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 300; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+        h1, h2, p, ul, dl { margin: 0; }
+        .shell { max-width: 46rem; margin: 0 auto; padding: 0 16px; }
+        header { background: #fff; border-bottom: 1px solid var(--line); }
+        .bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 60px; }
+        .brand { display: inline-flex; align-items: center; gap: .5rem; color: var(--green); text-decoration: none; font-size: 1.25rem; font-weight: 400; }
+        .brand svg { width: 24px; height: 24px; }
+        .btn { display: inline-flex; align-items: center; min-height: 36px; padding: 0 .95rem; border: 1px solid #d1d5db; border-radius: 9999px; background: #fff; color: var(--ink-2); font: inherit; font-size: .875rem; cursor: pointer; }
+        .btn:hover { border-color: var(--green); color: var(--green); }
+        main.shell { padding-top: 32px; padding-bottom: 56px; }
+        .paper { padding: 28px 24px 32px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+        @media (min-width: 640px) { .paper { padding: 36px 40px 40px; } }
+        .kicker { font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
+        h1 { margin-top: .4rem; font-size: clamp(1.6rem, 4.5vw, 2.1rem); line-height: 1.2; font-weight: 400; letter-spacing: -.015em; }
+        .meta { margin-top: .5rem; font-size: .875rem; color: var(--muted); }
+        .headline { margin-top: 1.25rem; padding: .85rem 1rem; border-radius: 10px; background: rgba(0,104,91,.06); color: var(--ink-2); }
+        section { margin-top: 1.75rem; }
+        h2 { font-size: .75rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9ca3af; }
+        ul { margin-top: .5rem; padding: 0; list-style: none; display: grid; gap: .45rem; }
+        li { position: relative; padding-left: 1.4rem; color: var(--ink-2); }
+        li::before { content: ''; position: absolute; left: .35rem; top: .7em; width: 6px; height: 6px; border-radius: 50%; background: var(--green); opacity: .55; }
+        li.todo::before { content: '☐'; width: auto; height: auto; top: 0; left: 0; border-radius: 0; background: none; opacity: 1; color: var(--green); }
+        li.todo.done::before { content: '☑'; }
+        li.todo.done .what { text-decoration: line-through; color: #9ca3af; }
+        .who { display: block; font-size: .8125rem; color: var(--muted); }
+        dl { margin-top: .5rem; display: grid; gap: .55rem; }
+        dt { font-weight: 500; color: #4f46e5; }
+        dd { margin: 0; color: var(--ink-2); }
+        .empty { padding: 48px 0; text-align: center; color: var(--muted); }
+        footer { padding: 24px 0 calc(24px + env(safe-area-inset-bottom)); font-size: .8125rem; color: var(--muted); text-align: center; }
+        footer a { color: var(--green); text-decoration: none; }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="shell bar">
+            <a class="brand" href="../">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+                </svg>
+                ReVerb
+            </a>
+            <button class="btn" id="copy" type="button" hidden>Copy as text</button>
+        </div>
+    </header>
+    <main class="shell">
+        <article class="paper" id="recap" hidden></article>
+        <p class="empty" id="empty" hidden>This link doesn’t contain a recap — it may have been cut short when it was pasted.</p>
+    </main>
+    <footer>Written by <a href="../">ReVerb</a>, a live meeting companion. AI-generated from the meeting — worth a check before you act on it.</footer>
+
+    <script>
+    // Another recap opened in this same tab changes only the #fragment; read it afresh.
+    window.addEventListener('hashchange', () => location.reload());
+    (async () => {
+        const $ = (id) => document.getElementById(id);
+        const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+
+        function fromBase64Url(s) {
+            const b64 = s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4);
+            return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+        }
+        async function decode(code) {
+            const bytes = fromBase64Url(code.slice(1));
+            if (code[0] === 'z') {
+                const out = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+                return JSON.parse(await new Response(out).text());
+            }
+            return JSON.parse(new TextDecoder().decode(bytes));
+        }
+
+        let r = null;
+        try {
+            const code = new URLSearchParams(location.hash.slice(1)).get('r');
+            if (code) r = await decode(code);
+        } catch (err) { r = null; }
+        if (!r || typeof r !== 'object' || typeof r.title !== 'string') { $('empty').hidden = false; return; }
+
+        const strings = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x.trim()) : []);
+        const objects = (v) => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object') : []);
+        const when = Number.isFinite(r.date) ? new Date(r.date).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
+        document.title = `${r.title} — recap`;
+
+        const paper = $('recap');
+        paper.append(el('p', 'kicker', 'Meeting recap'), el('h1', '', r.title));
+        const meta = [when, Number.isFinite(r.minutes) && r.minutes ? `${r.minutes} min` : '', strings(r.people).join(', ')].filter(Boolean).join(' · ');
+        if (meta) paper.append(el('p', 'meta', meta));
+        if (typeof r.headline === 'string' && r.headline.trim()) paper.append(el('p', 'headline', r.headline));
+
+        const listSection = (label, items) => {
+            if (!items.length) return;
+            const sec = el('section');
+            const ul = el('ul');
+            for (const i of items) ul.append(el('li', '', i));
+            sec.append(el('h2', '', label), ul);
+            paper.append(sec);
+        };
+        listSection('Decided', strings(r.decisions));
+
+        const todos = objects(r.todos).filter((t) => typeof t.task === 'string' && t.task.trim());
+        if (todos.length) {
+            const sec = el('section');
+            const ul = el('ul');
+            for (const t of todos) {
+                const li = el('li', 'todo' + (t.done ? ' done' : ''));
+                li.append(el('span', 'what', t.task));
+                const who = [t.owner, t.due ? `due ${t.due}` : ''].filter((x) => typeof x === 'string' && x).join(' · ');
+                if (who) li.append(el('span', 'who', who));
+                ul.append(li);
+            }
+            sec.append(el('h2', '', 'To-dos'), ul);
+            paper.append(sec);
+        }
+        listSection('Still open', strings(r.open));
+        listSection('Key points', strings(r.points));
+
+        const terms = objects(r.glossary).filter((g) => typeof g.term === 'string' && typeof g.definition === 'string');
+        if (terms.length) {
+            const sec = el('section');
+            const dl = el('dl');
+            for (const g of terms) dl.append(el('dt', '', g.term), el('dd', '', g.definition));
+            sec.append(el('h2', '', 'Glossary'), dl);
+            paper.append(sec);
+        }
+        paper.hidden = false;
+
+        // The same recap as plain text, for pasting somewhere that doesn't take links.
+        const copy = $('copy');
+        copy.hidden = false;
+        copy.addEventListener('click', async () => {
+            const lines = [r.title, meta, ''];
+            if (r.headline) lines.push(r.headline, '');
+            const add = (label, items) => { if (items.length) lines.push(`${label}:`, ...items.map((i) => `  ${i}`), ''); };
+            add('Decided', strings(r.decisions).map((d) => `• ${d}`));
+            add('To-dos', todos.map((t) => `${t.done ? '☑' : '☐'} ${t.task}${t.owner || t.due ? ` — ${[t.owner, t.due ? `due ${t.due}` : ''].filter(Boolean).join(', ')}` : ''}`));
+            add('Still open', strings(r.open).map((o) => `• ${o}`));
+            add('Key points', strings(r.points).map((k) => `• ${k}`));
+            add('Glossary', terms.map((g) => `• ${g.term} — ${g.definition}`));
+            try {
+                await navigator.clipboard.writeText(lines.join('\n').trim());
+                copy.textContent = 'Copied';
+                setTimeout(() => { copy.textContent = 'Copy as text'; }, 1500);
+            } catch (err) { copy.textContent = 'Copy failed'; }
+        });
+    })();
+    </script>
+</body>
+</html>

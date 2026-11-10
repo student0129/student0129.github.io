@@ -11,7 +11,7 @@
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data:;
-        connect-src 'self' https://view.promontoryai.com;
+        connect-src 'self' https://api-promontory.onrender.com http://localhost:* https://view.promontoryai.com;
     ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- Light only, like the app it opens. -->
@@ -129,6 +129,19 @@
             border: 1px solid rgba(0,104,91,.25); border-radius: 12px; background: var(--green-wash);
             font-size: .9375rem; color: var(--ink-2);
         }
+        .signin { max-width: 30rem; }
+        .signin__row { display: flex; flex-wrap: wrap; gap: .6rem; }
+        .signin input {
+            flex: 1 1 15rem; min-height: 48px; padding: 0 1rem;
+            border: 1px solid #d1d5db; border-radius: 9999px; background: #fff;
+            font: inherit; font-size: 1rem; color: var(--ink);
+        }
+        .signin input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 1px var(--green); }
+        .signin__msg { margin-top: .7rem; font-size: .9375rem; color: var(--ink-2); }
+        .signin__msg.error { color: #b91c1c; }
+        .signin__msg a { color: var(--green); }
+        .who-line { margin-top: .9rem; font-size: .875rem; color: var(--muted); }
+        .who-line button { font: inherit; color: var(--green); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
         .resume svg { flex-shrink: 0; width: 20px; height: 20px; margin-top: .15rem; color: var(--green); }
         .resume b { font-weight: 500; color: var(--ink); }
 
@@ -288,14 +301,23 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             <p id="resume-text"></p>
                         </div>
-                        <div class="entry__actions">
+                        <form class="signin" id="signin" hidden novalidate>
+                            <label for="signin-email" class="entry__note" style="display:block;margin:0 0 .6rem">Sign in with your work email — we’ll send you a link, no password.</label>
+                            <div class="signin__row">
+                                <input id="signin-email" type="email" autocomplete="email" inputmode="email" placeholder="you@company.com" required>
+                                <button class="btn btn--primary" id="signin-send" type="submit">Email me a link</button>
+                            </div>
+                            <p class="signin__msg" id="signin-msg" role="status" hidden></p>
+                        </form>
+                        <div class="entry__actions" id="entry-actions">
                             <a class="btn btn--primary" id="open-app" href="app/" data-umami-event="ReVerb open (hero)">
                                 <span id="open-label">Open ReVerb</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
                             </a>
                             <a class="btn btn--ghost" href="#how">How it works</a>
                         </div>
-                        <p class="entry__note">No account needed. Best in Chrome or Edge — on a laptop or a phone.</p>
+                        <p class="entry__note" id="entry-note">No account needed. Best in Chrome or Edge — on a laptop or a phone.</p>
+                        <p class="who-line" id="who-line" hidden></p>
                     </div>
                 </div>
 
@@ -355,7 +377,7 @@
                     <article class="feature t-jargon">
                         <span class="chip">Jargon</span>
                         <h3>Terms explained, quietly</h3>
-                        <p>The acronym or concept someone might be nodding along to gets a plain-language note — only when it matters to this discussion.</p>
+                        <p>The acronym or concept someone might be nodding along to gets a plain-language note — only when it matters to this discussion — and lands in a glossary for the whole meeting.</p>
                     </article>
                     <article class="feature t-fact">
                         <span class="chip">Fact check</span>
@@ -365,22 +387,22 @@
                     <article class="feature t-action">
                         <span class="chip">To-dos</span>
                         <h3>Who said they’d do what</h3>
-                        <p>Commitments are caught with an owner and a deadline, and updated when someone accepts, hands over or re-dates them.</p>
+                        <p>Commitments become a to-do list with owners and deadlines — updated when someone accepts, hands over or re-dates one, and yours to tick off, fix or add to.</p>
                     </article>
                     <article class="feature t-unanswered">
                         <span class="chip">The bigger picture</span>
                         <h3>What the room is missing</h3>
-                        <p>A question nobody answered, an argument on its third lap, two people meaning different things by one word, a decision that contradicts an earlier one, time slipping away from the agenda.</p>
+                        <p>A question nobody answered, an argument on its third lap, two people meaning different things by one word, a decision that contradicts an earlier one, time slipping away from the agenda — or someone who hasn’t been heard from in a while.</p>
                     </article>
                     <article class="feature t-summary">
                         <span class="chip">Summary</span>
                         <h3>The meeting at a glance</h3>
-                        <p>Topics, decisions, open threads, who holds which view, the numbers said — kept current all meeting, and copied in one click when it’s over.</p>
+                        <p>Topics, decisions, open threads, who holds which view, the numbers said, who’s been doing the talking and how the clock compares with the agenda — kept current all meeting.</p>
                     </article>
                     <article class="feature t-chat">
                         <span class="chip">Chat</span>
                         <h3>Ask the meeting anything</h3>
-                        <p>“What did we decide about pricing?” Answers come only from what was said, with the minute it was said — tap it to see the moment in the transcript.</p>
+                        <p>“What did we decide about pricing?” Answers come only from what was said, with the minute it was said — tap it to see the moment. It can look across your saved past meetings too.</p>
                     </article>
                     <article class="feature t-fix">
                         <span class="chip">Corrections</span>
@@ -390,7 +412,22 @@
                     <article class="feature t-brief">
                         <span class="chip">Your context</span>
                         <h3>Briefed like a colleague</h3>
-                        <p>Give it the objective, who’s attending, the names and terms that will come up, the agenda and last meeting’s notes — and every card gets sharper.</p>
+                        <p>Give it the objective, who’s attending, the names and terms that will come up and the agenda — or paste the calendar invite and it fills them in — and every card gets sharper.</p>
+                    </article>
+                    <article class="feature t-question">
+                        <span class="chip">Video calls</span>
+                        <h3>Hears the whole call</h3>
+                        <p>On Zoom, Meet or Teams in the browser, share the meeting’s tab and ReVerb hears everyone — not just your microphone — even with headphones on.</p>
+                    </article>
+                    <article class="feature t-action">
+                        <span class="chip">Recap</span>
+                        <h3>Send the outcome in one click</h3>
+                        <p>Decisions, to-dos and open questions, ready to copy, email, or share as a link that opens a clean recap — the recap travels in the link itself, stored nowhere.</p>
+                    </article>
+                    <article class="feature t-summary">
+                        <span class="chip">Follow-ups</span>
+                        <h3>Every meeting builds on the last</h3>
+                        <p>Keep a meeting’s recap, and the next one starts with what was decided, what’s still open and who owes what already in the brief.</p>
                     </article>
                 </div>
             </div>
@@ -417,6 +454,7 @@
                         <ul>
                             <li>Free transcription in Chrome and Edge</li>
                             <li>High-accuracy mode for names and jargon</li>
+                            <li>On a video call, the meeting’s tab as well</li>
                             <li>Optional recording, saved to your disk</li>
                         </ul>
                     </div>
@@ -424,7 +462,7 @@
                         <h3>Leave with the outcome</h3>
                         <p>Pause and pick up again any time. When it’s over, everything is there.</p>
                         <ul>
-                            <li>A summary you can copy and send</li>
+                            <li>A recap to copy, email or share by link</li>
                             <li>The full transcript, with who said what</li>
                             <li>A chat to ask the meeting follow-ups</li>
                         </ul>
@@ -441,7 +479,7 @@
                 <div class="trust">
                     <div class="trust__item">
                         <h3>Kept in your browser</h3>
-                        <p>The transcript, summary and chat are saved on your device, so a closed tab or a crash loses nothing. ReVerb doesn’t keep your meetings on its servers.</p>
+                        <p>The transcript, summary, to-dos and chat are saved on your device, so a closed tab or a crash loses nothing — and past meetings stay only if you keep them. ReVerb doesn’t keep your meetings on its servers.</p>
                     </div>
                     <div class="trust__item">
                         <h3>Gone when you say so</h3>
@@ -449,7 +487,7 @@
                     </div>
                     <div class="trust__item">
                         <h3>Tell the room</h3>
-                        <p>What’s said is sent to AI services to be transcribed and analysed. Let people know you’re using ReVerb before you start.</p>
+                        <p>What’s said is sent to AI services to be transcribed and analysed — the <a href="/privacy" style="color:var(--green)">privacy policy</a> has the detail. Let people know you’re using ReVerb before you start.</p>
                     </div>
                 </div>
             </div>
@@ -479,6 +517,107 @@
     </footer>
 
     <script>
+    // Sign-in, when the server asks for it. Off by default: the page then reads exactly as it did,
+    // one button straight into the app. When it is on, the server emails a link back to this page
+    // (#signin=…); the page trades it for a session the app sends with every request.
+    (() => {
+        const API_BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin : 'https://api-promontory.onrender.com';
+        const AUTH_KEY = 'reverb.auth';
+        const $ = (id) => document.getElementById(id);
+        const post = (path, body) => fetch(`${API_BASE}/api/reverb/auth/${path}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+        }).then(async (r) => ({ ok: r.ok, data: await r.json().catch(() => ({})) }));
+        const readAuth = () => {
+            try {
+                const a = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+                return a && a.session && a.expiresAt > Date.now() ? a : null;
+            } catch (err) { return null; }
+        };
+        const message = (text, error, link) => {
+            const msg = $('signin-msg');
+            msg.hidden = !text;
+            msg.className = 'signin__msg' + (error ? ' error' : '');
+            msg.textContent = text || '';
+            if (link) {
+                const a = document.createElement('a');
+                a.href = link;
+                a.textContent = ' Open the link (test mode)';
+                msg.append(a);
+            }
+        };
+
+        function showSignedIn(auth) {
+            const line = $('who-line');
+            line.replaceChildren(`Signed in as ${auth.email} · `);
+            const out = document.createElement('button');
+            out.type = 'button';
+            out.textContent = 'Sign out';
+            out.addEventListener('click', () => {
+                try { localStorage.removeItem(AUTH_KEY); } catch (err) { /* ignore */ }
+                location.reload();
+            });
+            line.append(out);
+            line.hidden = false;
+            $('entry-note').hidden = true;
+        }
+
+        function askToSignIn(required) {
+            $('signin').hidden = false;
+            $('entry-note').hidden = true;
+            if (required) {
+                $('entry-actions').hidden = true;
+                for (const a of document.querySelectorAll('a[href="app/"]')) a.setAttribute('href', '#entry');
+            }
+        }
+
+        // The emailed link opened in a tab already showing this page changes only the #fragment.
+        window.addEventListener('hashchange', () => { if (/(^#|&)signin=/.test(location.hash)) location.reload(); });
+
+        $('signin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = $('signin-email').value.trim();
+            if (!email) { $('signin-email').focus(); return; }
+            $('signin-send').disabled = true;
+            message('Sending…');
+            try {
+                const { ok, data } = await post('start', { email });
+                if (ok) message(`Check your inbox — a sign-in link for ${email} is on its way. It works for 15 minutes.`, false, data.link);
+                else message(data.error || 'Couldn’t send the link. Try again in a moment.', true);
+            } catch (err) { message('Couldn’t reach ReVerb. Check your connection and try again.', true); }
+            $('signin-send').disabled = false;
+        });
+
+        (async () => {
+            // Arrived from the emailed link.
+            const token = new URLSearchParams(location.hash.slice(1)).get('signin');
+            if (token) {
+                history.replaceState(null, '', location.pathname + location.search);
+                askToSignIn(false);
+                message('Signing you in…');
+                try {
+                    const { ok, data } = await post('verify', { token });
+                    if (ok && data.session) {
+                        localStorage.setItem(AUTH_KEY, JSON.stringify({ session: data.session, email: data.email, expiresAt: data.expiresAt }));
+                        location.replace('app/');
+                        return;
+                    }
+                    message(data.error || 'That link didn’t work. Ask for a new one.', true);
+                } catch (err) { message('Couldn’t reach ReVerb to finish signing in. Try the link again.', true); }
+            }
+
+            let mode = 'off';
+            try {
+                const r = await fetch(`${API_BASE}/api/reverb/auth/config`, { signal: AbortSignal.timeout(8000) });
+                if (r.ok) mode = (await r.json()).mode || 'off';
+            } catch (err) { /* unreachable or older server: the page stays as it is */ }
+            if (mode === 'off') return;
+            const auth = readAuth();
+            if (auth) { showSignedIn(auth); return; }
+            askToSignIn(mode === 'required' || location.hash === '#signin-required');
+            if (location.hash === '#signin-required') message('Sign in to use ReVerb.');
+        })();
+    })();
+
     // A meeting left unfinished — a closed tab, a crash — is still saved in this browser. Say so
     // here, so the way back to it is the first thing on the page rather than a surprise inside.
     // Mirrors what the app looks for: one save per tab, and nothing older than two weeks.
