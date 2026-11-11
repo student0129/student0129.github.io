@@ -180,7 +180,7 @@
         .signin__msg.error { color: #b91c1c; }
         .signin__msg a { color: var(--green); }
         .who-line { margin-top: .9rem; font-size: .875rem; color: var(--muted); }
-        .who-line button { font: inherit; color: var(--green); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+        .who-line button, .clear-line button { font: inherit; color: var(--green); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
         .resume svg { flex-shrink: 0; width: 20px; height: 20px; margin-top: .15rem; color: var(--green); }
         .resume b { font-weight: 500; color: var(--ink); }
 
@@ -288,6 +288,7 @@
         .trust__item { padding: 1.25rem 1.35rem; border-radius: var(--radius); background: var(--page); border: 1px solid var(--line); }
         .trust__item h3 { font-size: 1rem; font-weight: 500; }
         .trust__item p { margin-top: .35rem; font-size: .9375rem; color: var(--muted); }
+        .trust__item .clear-line { margin-top: .75rem; font-size: .875rem; }
 
         .closing { padding: 72px 0 80px; text-align: center; }
         .closing h2 { max-width: 34rem; margin: 0 auto; }
@@ -523,6 +524,8 @@
                     <div class="trust__item">
                         <h3>Gone when you say so</h3>
                         <p>End session erases the meeting from the screen and from your browser. Audio is only recorded if you ask, to a file you choose — and only leaves your device if you ask ReVerb to improve the transcript from it.</p>
+                        <p class="clear-line" id="clear-line" hidden>On a shared computer? <button type="button" id="clear-browser">Clear ReVerb From This Browser</button></p>
+                        <p class="clear-line" id="clear-done" role="status" hidden>Cleared. Nothing from ReVerb is saved in this browser now.</p>
                     </div>
                     <div class="trust__item">
                         <h3>Tell the room</h3>
