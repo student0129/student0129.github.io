@@ -24,6 +24,8 @@
     // Off unless the server turns it on. When it is on, the session the front page got from the
     // emailed link goes with every request and with the start of the audio stream.
     const AUTH_KEY = 'reverb.auth';
+    // Set when another tab clears ReVerb from this browser: from then on this tab saves nothing.
+    let clearedElsewhere = false;
     function readAuth() {
         try {
             const a = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
@@ -3814,6 +3816,7 @@ if (m.type === 'close') {
 
     // ---------- persistence ----------
     function persistSession() {
+        if (clearedElsewhere) return;
         try { localStorage.setItem('reverb.session', JSON.stringify(session)); } catch (err) { /* private mode */ }
     }
     function restoreSessionBrief() {
@@ -3832,7 +3835,7 @@ if (m.type === 'close') {
     function persistTranscript(immediate) {
         if (persistTimer) { clearTimeout(persistTimer); persistTimer = null; }
         if (!immediate) { persistTimer = setTimeout(() => persistTranscript(true), PERSIST_DEBOUNCE_MS); return; }
-        if (!segments.length) return;
+        if (!segments.length || clearedElsewhere) return;
         try {
             let kept = segments;
             let total = 0;
@@ -4905,6 +4908,18 @@ if (m.type === 'close') {
         if (!isListening) return;
         e.preventDefault();
         e.returnValue = '';
+    });
+
+    // Cleared from another tab — "Clear ReVerb From This Browser" on the front page. A meeting open
+    // here would write itself straight back, so it ends instead: the recording file is closed
+    // properly, nothing is saved, and the tab goes to the front page, which says it's done.
+    window.addEventListener('storage', async (e) => {
+        const site = window.REVERB_SITE;
+        if (!site || e.key !== site.clearedSignal || !e.newValue || clearedElsewhere) return;
+        clearedElsewhere = true;
+        try { if (isListening) await stopListening({ silent: true }); } catch (err) { /* leaving anyway */ }
+        site.clearBrowser(true);
+        location.replace('../#cleared');
     });
 
     // beforeunload doesn't fire reliably on mobile or on a tab discard; pagehide does.

@@ -141,3 +141,28 @@
     document.getElementById('resume').hidden = false;
     document.getElementById('open-label').textContent = 'Pick up where you left off';
 })();
+
+// On a shared computer: everything ReVerb keeps in this browser, gone in one go — the meeting in
+// progress, past meetings, settings and the sign-in. Offered only when there is something to clear.
+(() => {
+    const site = window.REVERB_SITE;
+    if (!site || !site.clearBrowser) return;
+    const done = () => { history.replaceState(null, '', location.pathname + location.search + '#cleared'); location.reload(); };
+    if (location.hash === '#cleared') {
+        history.replaceState(null, '', location.pathname + location.search);
+        document.getElementById('clear-done').hidden = false;
+    }
+    // Cleared from another tab: this page's resume offer and sign-in line are out of date.
+    window.addEventListener('storage', (e) => { if (e.key === site.clearedSignal && e.newValue) done(); });
+    if (!site.storedKeys().length) return;
+    document.getElementById('clear-line').hidden = false;
+    document.getElementById('clear-browser').addEventListener('click', () => {
+        const sure = confirm('Clear ReVerb from this browser?\n\n'
+            + 'This removes the meeting in progress, past meetings, your settings and your sign-in. '
+            + 'A meeting open in another ReVerb tab ends too. Recordings you saved as files stay where you saved them.\n\n'
+            + 'This can’t be undone.');
+        if (!sure) return;
+        site.clearBrowser();
+        done();
+    });
+})();
