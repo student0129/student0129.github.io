@@ -537,6 +537,26 @@
         .library-item .actions button:disabled { color: var(--label-3); cursor: default; }
         .library-item .actions .delete { color: var(--label-3); }
         .library-item .actions .delete:hover { color: var(--danger); }
+        .library-item .open-meeting { display: block; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+        .library-item .open-meeting:hover .title { color: var(--tint); }
+        /* One past meeting: its recap, then a chat answered from that meeting alone. */
+        .pm-back { margin-bottom: .5rem; }
+        .pm-title { font-size: 1.125rem; font-weight: 500; color: var(--label); }
+        .pm-when { margin-top: .1rem; font-size: .75rem; color: var(--label-3); }
+        .pm-recap { margin-top: .6rem; max-height: 28vh; }
+        .pm-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .55rem; }
+        .pm-delete { color: var(--label-3); }
+        .pm-delete:hover { color: var(--danger); }
+        .pm-chat { margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--separator); }
+        .pm-chat-title { font-size: .9375rem; font-weight: 500; color: var(--label); }
+        .pm-chat-note { margin-top: .15rem; font-size: .75rem; line-height: 1.45; color: var(--label-3); }
+        .pm-log { display: grid; gap: .75rem; margin-top: .75rem; }
+        .pm-log:empty { display: none; }
+        .pm-form { display: flex; align-items: flex-end; gap: .5rem; margin-top: .75rem; }
+        .pm-form textarea { flex: 1; min-height: 2.5rem; max-height: 9rem; padding: .55rem .8rem; border: 1px solid var(--separator-strong); border-radius: 1.25rem; resize: none; font-size: .9375rem; line-height: 1.4; }
+        .pm-form textarea:focus { outline: none; border-color: var(--tint); }
+        .cite-static { cursor: default; }
+        .link-btn.end-diag { color: var(--label-3); }
         .chat-tools button[aria-pressed="true"] { color: var(--tint); }
 
         /* A voice the room hasn't heard from in a while — raised here, not by the server. */
@@ -705,7 +725,7 @@
         }
         #chat-send:hover:not(:disabled) { opacity: .9; }
         #chat-send:disabled { opacity: .45; cursor: default; }
-        #chat-send.stop { border-color: var(--separator-strong); background: var(--surface); color: var(--label); }
+        #chat-send.stop, #pm-send.stop { border-color: var(--separator-strong); background: var(--surface); color: var(--label); }
 
         /* What the session actually did to the thresholds in this file. Monospace because
            it is a column of numbers meant to be read against the constants above. */
@@ -1345,23 +1365,22 @@
         <div id="improve-progress" class="improve-progress" hidden><span></span></div>
     </section>
 
-    <!-- Shown after Stop: everything produced by the session, in one place -->
+    <!-- Shown after Stop: what the meeting produced, to take away. Continue Session and End
+         Session are in the header, with the other session controls, and only there. -->
     <section id="session-end" class="hidden flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
-                <h3 class="text-sm text-google-green">Session ended</h3>
+                <h3 class="text-sm text-google-green">Stopped listening</h3>
                 <p id="end-meta" class="text-xs text-gray-500 mt-0.5"></p>
                 <div id="end-audio" class="mt-2 text-sm"></div>
                 <pre id="end-diagnostics" class="hidden"></pre>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <button id="end-continue" class="btn btn-filled btn-small">Continue Session</button>
-                <button id="end-recap" class="btn btn-tinted btn-small">Recap &amp; Share</button>
+                <button id="end-recap" class="btn btn-filled btn-small">Recap &amp; Share</button>
                 <button id="end-improve" class="btn btn-tinted btn-small hidden">Improve Transcript</button>
                 <button id="end-transcript" class="btn btn-gray btn-small">Download Transcript</button>
-                <button id="end-diagnostics-toggle" class="btn btn-plain btn-small">Diagnostics</button>
-                <button id="end-session" class="btn btn-destructive-plain btn-small">End Session</button>
-                <button id="end-dismiss" class="btn btn-plain btn-small">Dismiss</button>
+                <button id="end-diagnostics-toggle" class="link-btn end-diag">Diagnostics</button>
+                <button id="end-dismiss" type="button" class="dialog-close" aria-label="Hide this bar" title="Hide">&times;</button>
             </div>
         </div>
     </section>
@@ -1527,7 +1546,6 @@
                         <button type="button" role="tab" data-side="chat" aria-selected="true">Chat</button>
                     </div>
                     <div class="chat-tools">
-                        <button id="past-toggle" type="button" aria-pressed="false" hidden title="Also answer from the meetings saved in this browser">Past meetings</button>
                         <button id="notes-toggle" type="button" aria-expanded="false" aria-controls="notes-box">Corrections</button>
                         <button id="chat-clear" type="button" hidden>Clear chat</button>
                     </div>
@@ -1591,8 +1609,30 @@
                 <h2 id="library-title" class="text-xl text-google-green">Past meetings</h2>
                 <button type="button" class="dialog-close" data-close aria-label="Close">&times;</button>
             </div>
-            <p class="dialog-note" style="margin-top:0">Recaps you chose to keep, saved in this browser only. Follow up on one to start a new meeting with its decisions, open questions and to-dos already in the brief.</p>
-            <ul id="library-list" class="library-list"></ul>
+            <div id="library-index">
+                <p class="dialog-note" style="margin-top:0">Meetings you chose to keep, saved in this browser only. Open one to read its recap and ask about it, or follow up on it to start a new meeting with its decisions, open questions and to-dos already in the brief.</p>
+                <ul id="library-list" class="library-list"></ul>
+            </div>
+            <div id="library-meeting" hidden>
+                <button id="pm-back" type="button" class="link-btn pm-back">&lsaquo; All past meetings</button>
+                <h3 id="pm-title" class="pm-title"></h3>
+                <p id="pm-when" class="pm-when"></p>
+                <pre id="pm-recap" class="recap-preview pm-recap"></pre>
+                <div class="pm-actions">
+                    <button id="pm-link" type="button" class="link-btn">Copy Recap Link</button>
+                    <button id="pm-follow" type="button" class="link-btn">Follow Up</button>
+                    <button id="pm-delete" type="button" class="link-btn pm-delete">Delete</button>
+                </div>
+                <div class="pm-chat">
+                    <p class="pm-chat-title">Ask about this meeting</p>
+                    <p id="pm-chat-note" class="pm-chat-note"></p>
+                    <div id="pm-log" class="pm-log" aria-live="polite"></div>
+                    <form id="pm-form" class="pm-form" autocomplete="off">
+                        <textarea id="pm-input" rows="1" aria-label="Ask about this meeting" placeholder="What did we decide about…?"></textarea>
+                        <button id="pm-send" type="submit" class="btn btn-filled">Ask</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
