@@ -13,6 +13,7 @@
     const stateUrl = `${API_BASE}/api/reverb/state`;
     const speakersUrl = `${API_BASE}/api/reverb/speakers`;
     const sweepUrl = `${API_BASE}/api/reverb/sweep`;
+    const questionsUrl = `${API_BASE}/api/reverb/questions`;
     const chatUrl = `${API_BASE}/api/reverb/chat`;
     const improveUrl = `${API_BASE}/api/reverb/improve`;
     const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/ws/reverb`;
@@ -169,6 +170,47 @@
     const SWEEP_CONTEXT_CHARS = 9000;    // ~8 minutes of speech
     const SWEEP_TIMEOUT_MS = 45000;      // the server allows the call 40s
 
+    // --- Ask next (the questions worth asking now) ---
+    // Every minute that brought real speech, and sooner once the list is nearly used up: an empty
+    // list is exactly when someone looks for the next question. Before anyone speaks, openers.
+    const QUESTIONS_INTERVAL_MS = 60 * 1000;
+    const QUESTIONS_MIN_NEW_CHARS = 450;
+    const QUESTIONS_REFILL_MS = 20 * 1000;
+    const QUESTIONS_REFILL_CHARS = 150;
+    const QUESTIONS_CONTEXT_CHARS = 14000;   // ~12 minutes of speech
+    const QUESTIONS_TIMEOUT_MS = 45000;      // the server allows the call 40s
+
+    // --- Kinds of meeting ---
+    // What the brief's menu offers, and what each kind of meeting is for. The server's MEETING_TYPES
+    // (promontory-api, routes/reverb.js) holds what each kind tells the AI under the same keys: its
+    // focus, what a great question looks like, and the checklist the summary tracks.
+    const MEETING_KINDS = [
+        { group: 'Decide & plan', kinds: [
+            { key: 'strategy', name: 'Decision or strategy', goal: 'Reach a decision everyone can stand behind, with the trade-offs on the table.', example: 'e.g. Decide build vs. buy for identity, and who owns the rollout', role: 'e.g. I’m the one making the call' },
+            { key: 'planning', name: 'Planning or kickoff', goal: 'Agree on scope, owners and milestones, and on what could derail it.', example: 'e.g. Kick off the billing migration: scope, owners, first milestone', role: 'e.g. Project lead' },
+            { key: 'technical', name: 'Technical review', goal: 'Find the risks and weak spots before they’re built, and agree on the approach.', example: 'e.g. Sign off the ledger design, or know exactly what blocks it', role: 'e.g. Reviewer from the platform team' },
+            { key: 'design', name: 'Brainstorm', goal: 'Explore the problem, generate lots of options, then pick the few worth trying.', example: 'e.g. Three ideas worth testing to cut onboarding drop-off', role: 'e.g. Facilitator' },
+        ] },
+        { group: 'Check in', kinds: [
+            { key: 'general', name: 'General meeting', goal: 'Leave with clear outcomes: what was decided, and who does what next.', example: 'e.g. Agree the launch date and who owns the announcement', role: 'e.g. I run this meeting' },
+            { key: 'status', name: 'Status update or standup', goal: 'Know where everything stands, surface blockers early, and keep it short.', example: 'e.g. Know what’s blocking launch, and who’s unblocking it', role: 'e.g. Engineering manager' },
+            { key: 'oneonone', name: 'One-on-one', goal: 'A real conversation about how things are going: progress, blockers, feedback and growth.', example: 'e.g. Talk through Sam’s workload and the path to promotion', role: 'e.g. I’m Sam’s manager (or: I’m meeting my manager)' },
+            { key: 'retro', name: 'Retrospective or post-mortem', goal: 'Understand what happened and why, and agree on a few changes, without blame.', example: 'e.g. Why checkout went down on Tuesday, and two fixes with owners', role: 'e.g. Facilitator' },
+        ] },
+        { group: 'With people outside', kinds: [
+            { key: 'sales', name: 'Sales or discovery call', goal: 'Understand the customer’s problem, what it costs them and how they decide, then agree a next step.', example: 'e.g. Learn how Acme’s finance team closes the books, and book a demo', role: 'e.g. Account executive on our side' },
+            { key: 'research', name: 'Customer or user interview', goal: 'Learn what people actually do and why, without leading them.', example: 'e.g. How small agencies get client sign-off today, and where it hurts', role: 'e.g. Product researcher' },
+            { key: 'interview', name: 'Job interview (you’re hiring)', goal: 'Get real evidence of how the candidate works: specific examples, not rehearsed answers.', example: 'e.g. Evidence of system design and ownership for the senior backend role', role: 'e.g. Hiring manager for the role' },
+            { key: 'negotiation', name: 'Negotiation', goal: 'Understand what both sides really need, and reach terms you can accept.', example: 'e.g. Renew the data contract under $120k with a two-year price lock', role: 'e.g. Buyer for our side' },
+            { key: 'board', name: 'Board or investor update', goal: 'Give an honest picture, handle the hard questions, and leave with the guidance you need.', example: 'e.g. Agreement on the runway plan, and intros for the enterprise pivot', role: 'e.g. CEO, presenting' },
+        ] },
+        { group: 'Learn', kinds: [
+            { key: 'learning', name: 'Class, lecture or training', goal: 'Understand the material, and catch what you’d otherwise miss.', example: 'e.g. Understand how Raft elects a leader', role: 'e.g. Student in the class' },
+        ] },
+    ];
+    const KINDS = Object.fromEntries(MEETING_KINDS.flatMap((g) => g.kinds).map((k) => [k.key, k]));
+    const kindOf = (key) => KINDS[key] || KINDS.general;
+
     // --- Speaker attribution ---
     const SPEAKER_INTERVAL_MS = 45000;
     const SPEAKER_MIN_NEW = 3;         // one stray line isn't worth a round trip
@@ -246,7 +288,7 @@
 
     const MATERIALS_MAX = 16000;
     const freshBrief = () => ({
-        objective: '', type: 'strategy', keywords: [], roster: [],
+        objective: '', type: 'general', role: '', keywords: [], roster: [],
         agenda: [], durationMin: null, materials: '',
         accurate: false, record: false, tabAudio: false, followUp: null,
     });
@@ -258,7 +300,8 @@
     // Per-type nudges from the thumbs on each card, sent with every analysis. Down makes a
     // type harder to raise for the rest of the session; up makes it a little easier.
     const typeBias = Object.create(null);
-    const BIAS_DOWN = 0.1, BIAS_UP = 0.05, BIAS_MIN = -0.15, BIAS_MAX = 0.3;
+    // The server caps the nudge at 0.2: at 0.3 one thumbs-down could mute "Ask this" for the meeting.
+    const BIAS_DOWN = 0.1, BIAS_UP = 0.05, BIAS_MIN = -0.15, BIAS_MAX = 0.2;
     let cardOrder = 0;
     let meetingState = null;
     let isListening = false, isPaused = false;
@@ -328,6 +371,7 @@
         noiseFloor: null, threshold: null, wakeLock: 'not requested',
         statePasses: 0, stateFulls: 0, stateFails: 0,
         speakerRuns: 0, speakerFails: 0,
+        questions: 0, questionRuns: 0, questionFails: 0,
     });
     const stats = freshStats();
     const bumpStat = (bag, key) => { stats[bag][key] = (stats[bag][key] || 0) + 1; };
@@ -366,6 +410,7 @@
         return {
             objective: session.objective,
             type: session.type,
+            ...(session.role ? { role: session.role.slice(0, 200) } : {}),
             keywords: session.keywords.slice(0, 100),
             roster: session.roster.slice(0, 40),
             agenda: (session.agenda || []).slice(0, 20),
@@ -408,13 +453,16 @@
 
     const formatBytes = (n) => n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`;
 
+    // With no objective of its own, the meeting is held to what its kind of meeting is for.
     function setStateObjective() {
         const empty = !session.objective;
-        stateObjective.textContent = empty ? 'No objective set' : session.objective;
-        stateObjective.dataset.empty = String(empty);
-        stateObjective.title = empty ? 'Set one in the brief to sharpen both transcription and analysis' : session.objective;
+        const kind = kindOf(session.type);
+        $('state-label').textContent = empty ? 'Goal' : 'Objective';
+        stateObjective.textContent = empty ? kind.goal : session.objective;
+        stateObjective.dataset.empty = 'false';
+        stateObjective.title = empty ? `${kind.name}: ${kind.goal}` : session.objective;
         sheetObjective.textContent = stateObjective.textContent;
-        sheetObjective.dataset.empty = String(empty);
+        sheetObjective.dataset.empty = 'false';
     }
 
     // Minimal, safe markdown -> HTML (escapes first, then formats a useful subset).
@@ -955,6 +1003,7 @@
 
         charsSinceState += clean.length;
         charsSinceSweep += clean.length;
+        charsSinceQuestions += clean.length;
         persistTranscript();
         if (segments.length === 1) reflectChatReady();
     }
@@ -1466,6 +1515,7 @@
         addSegment(utterance, { low });
         maybeRunState();
         maybeRunSpeakers();
+        maybeRunQuestions();
         if (wordCount(utterance) >= MIN_ANALYZE_WORDS) enqueueAnalysis(utterance, context);
     }
 
@@ -1604,7 +1654,7 @@
             slots: [],
             segIndex: segments.length,
             state: meetingState,
-            answered: answeredTitles.slice(-ANSWERED_MEMORY),
+            answered: onScreen(),
             attempt: 0,
         });
     }
@@ -2063,7 +2113,7 @@
                     transcript,
                     session: briefForServer(),
                     state: meetingState,
-                    answered: answeredTitles.slice(-ANSWERED_MEMORY),
+                    answered: onScreen(),
                     dismissed: dismissedTitles.slice(-DISMISSED_MEMORY),
                     types,
                     cooling: coolingTypes(),
@@ -2119,6 +2169,199 @@
             const chip = card.querySelector('.card-chip');
             if (chip) chip.after(el('span', 'card-resolved-mark', 'Addressed'));
             stats.resolved++;
+        }
+    }
+
+
+    // ---------- Ask next: the questions worth asking now ----------
+    // A short list, refreshed in place: the few questions most worth asking in the next few
+    // minutes, for this person, in this kind of meeting. The cards react to single lines and catch
+    // problems; this reads the last stretch as a whole and asks what would move the meeting toward
+    // its goal. A question can be marked asked or skipped, and either way it never comes back.
+    // Before anyone speaks, it offers openers from the brief.
+    const askNext = { shown: [], asked: [], skipped: [], earlier: [] };
+    let questionsRunning = false, lastQuestionsAt = 0, charsSinceQuestions = 0, questionsUnsupported = false;
+    let questionSeq = 0, askStatus = '';
+    let askCollapsed = false;
+    try { askCollapsed = localStorage.getItem('reverb.asknext.collapsed') === '1'; } catch (err) { /* ignore */ }
+    const QUESTION_KIND_LABEL = {
+        clarify: 'Clarify', probe: 'Dig in', 'follow-up': 'Follow up', challenge: 'Challenge',
+        connect: 'Connect', 'next-step': 'Next step', opener: 'To open',
+    };
+    const normQuestion = (t) => String(t).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+    // What the card lanes are told is already on screen: the cards, and the questions in Ask Next,
+    // so an "Ask this" card doesn't repeat a question the list already has.
+    function onScreen() {
+        return [...answeredTitles.slice(-ANSWERED_MEMORY), ...askNext.shown.map((q) => ({ type: 'ask', title: q.text }))];
+    }
+
+    function maybeRunQuestions() {
+        if (questionsRunning || questionsUnsupported || !isListening || isPaused) return;
+        const since = Date.now() - lastQuestionsAt;
+        if (charsSinceQuestions >= QUESTIONS_MIN_NEW_CHARS && since >= QUESTIONS_INTERVAL_MS) runQuestions();
+        else if (askNext.shown.length <= 1 && charsSinceQuestions >= QUESTIONS_REFILL_CHARS && since >= QUESTIONS_REFILL_MS) runQuestions();
+    }
+
+    async function runQuestions(opts) {
+        const manual = Boolean(opts && opts.manual);
+        if (questionsRunning || questionsUnsupported) return;
+        questionsRunning = true;
+        lastQuestionsAt = Date.now();
+        const spent = charsSinceQuestions;
+        charsSinceQuestions = 0;
+        askStatus = '';
+        stats.questionRuns++;
+        reflectAskNext();
+
+        // Cut at a line start, so the stretch never opens mid-sentence with no speaker.
+        let transcript = segments.length ? attributedTranscript(0, { timed: true }) : '';
+        if (transcript.length > QUESTIONS_CONTEXT_CHARS) {
+            const tail = transcript.slice(-QUESTIONS_CONTEXT_CHARS);
+            const nl = tail.indexOf('\n');
+            transcript = nl >= 0 && nl < 2000 ? tail.slice(nl + 1) : tail;
+        }
+
+        const controller = new AbortController();
+        const epoch = sessionEpoch;
+        inflight.add(controller);
+        const timeout = setTimeout(() => controller.abort(), QUESTIONS_TIMEOUT_MS);
+        let failed = false;
+        try {
+            const resp = await apiFetch(questionsUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
+                body: JSON.stringify({
+                    transcript,
+                    session: briefForServer(),
+                    state: meetingState,
+                    answered: answeredTitles.slice(-ANSWERED_MEMORY),
+                    shown: askNext.shown.map((q) => q.text),
+                    asked: askNext.asked.slice(-30),
+                    skipped: askNext.skipped.slice(-20),
+                    earlier: askNext.earlier.slice(-20),
+                }),
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (epoch !== sessionEpoch) return;
+            // A server from before Ask Next existed. Stop asking rather than fail every time.
+            if (resp.status === 404) { questionsUnsupported = true; return; }
+            if (!resp.ok) throw new Error(data.error || `server ${resp.status}`);
+            applyQuestions(data);
+        } catch (err) {
+            if (epoch !== sessionEpoch) return;
+            failed = true;
+            stats.questionFails++;
+            charsSinceQuestions += spent;   // the next pass reads this stretch too
+            console.error('ReVerb questions error:', err);
+        } finally {
+            clearTimeout(timeout);
+            inflight.delete(controller);
+            questionsRunning = false;
+            if (epoch === sessionEpoch) {
+                if (failed && (manual || !askNext.shown.length)) askStatus = 'Couldn’t get questions just now. Try New Questions in a moment.';
+                reflectAskNext();
+            }
+        }
+    }
+
+    function applyQuestions(data) {
+        // The room asked these itself: kept as asked, so they never come back.
+        const done = new Set((Array.isArray(data.done) ? data.done : []).map(normQuestion));
+        for (const q of askNext.shown) if (done.has(normQuestion(q.text))) askNext.asked.push(q.text);
+        const kept = new Map(askNext.shown.filter((q) => !done.has(normQuestion(q.text))).map((q) => [normQuestion(q.text), q]));
+        const next = [];
+        for (const q of Array.isArray(data.questions) ? data.questions : []) {
+            if (!q || typeof q.text !== 'string' || !q.text.trim()) continue;
+            const key = normQuestion(q.text);
+            if (kept.has(key)) { next.push(kept.get(key)); kept.delete(key); continue; }
+            next.push({ id: `q-${questionSeq++}`, text: q.text.trim(), kind: q.kind || 'probe', why: q.why || '', to: q.to || '', fresh: true });
+            stats.questions++;
+        }
+        // Shown and passed over: remembered, so the same question doesn't keep coming back.
+        for (const q of kept.values()) askNext.earlier.push(q.text);
+        askNext.shown = next.slice(0, 3);
+        askNext.asked = askNext.asked.slice(-60);
+        askNext.earlier = askNext.earlier.slice(-40);
+        renderAskNext();
+        persistTranscript();
+    }
+
+    function renderQuestion(q) {
+        const li = el('li', `ask-q${q.fresh ? ' fresh' : ''}`);
+        li.dataset.id = q.id;
+        const main = el('div', 'ask-q-main');
+        const meta = el('div', 'ask-meta');
+        meta.append(el('span', '', QUESTION_KIND_LABEL[q.kind] || 'Ask'));
+        if (q.to) meta.append(el('span', 'ask-to', `to ${q.to}`));
+        main.append(meta, el('p', 'ask-text', q.text));
+        if (q.why) main.append(el('p', 'ask-why', q.why));
+        const actions = el('div', 'ask-actions');
+        const asked = el('button', '', 'Asked');
+        asked.type = 'button';
+        asked.dataset.act = 'asked';
+        asked.title = 'I asked it: don’t suggest it again';
+        const skip = el('button', '', 'Skip');
+        skip.type = 'button';
+        skip.dataset.act = 'skip';
+        skip.title = 'Not useful: nothing like it will come back';
+        actions.append(asked, skip);
+        li.append(main, actions);
+        return li;
+    }
+
+    function renderAskNext() {
+        const list = $('asknext-list');
+        const existing = new Map([...list.children].map((li) => [li.dataset.id, li]));
+        list.replaceChildren(...askNext.shown.map((q) => existing.get(q.id) || renderQuestion(q)));
+        for (const q of askNext.shown) q.fresh = false;
+        reflectAskNext();
+    }
+
+    function settleQuestion(id, how) {
+        const i = askNext.shown.findIndex((q) => q.id === id);
+        if (i < 0) return;
+        const [q] = askNext.shown.splice(i, 1);
+        (how === 'asked' ? askNext.asked : askNext.skipped).push(q.text);
+        const li = $('asknext-list').querySelector(`[data-id="${id}"]`);
+        if (li) {
+            li.classList.add('leaving');
+            setTimeout(() => li.remove(), 280);
+        }
+        reflectAskNext();
+        persistTranscript();
+        maybeRunQuestions();
+    }
+
+    function reflectAskNext() {
+        const section = $('asknext');
+        const active = isListening || segments.length > 0 || askNext.shown.length > 0 || questionsRunning;
+        section.hidden = !active;
+        if (!active) return;
+        const n = askNext.shown.length;
+        const count = $('asknext-count');
+        count.textContent = String(n);
+        count.hidden = !askCollapsed || !n;
+        $('asknext-toggle').setAttribute('aria-expanded', String(!askCollapsed));
+        $('asknext-body').hidden = askCollapsed;
+        const refresh = $('asknext-refresh');
+        refresh.disabled = questionsRunning || questionsUnsupported;
+        refresh.textContent = questionsRunning ? 'Thinking…' : 'New Questions';
+        $('asknext-status').textContent = askStatus
+            || (n ? '' : questionsRunning ? 'Finding the questions worth asking…'
+                : isListening ? 'Questions worth asking appear here as the conversation gets going.'
+                : 'No questions right now. New Questions asks for more.');
+
+        // How far the meeting has got through what its kind of meeting needs.
+        const cover = meetingState && Array.isArray(meetingState.coverage) ? meetingState.coverage.filter((c) => c && c.item) : [];
+        const chip = $('asknext-cover');
+        chip.hidden = !cover.length;
+        if (cover.length) {
+            const covered = cover.filter((c) => c.status === 'covered').length;
+            chip.textContent = `${covered} of ${cover.length} covered`;
+            const left = cover.filter((c) => c.status !== 'covered').map((c) => c.item);
+            chip.title = left.length ? `Still to cover: ${left.join(', ')}` : 'Everything this meeting needs has been covered';
         }
     }
 
@@ -2265,13 +2508,17 @@
             if (meetingState.objectiveProgress) summaryBody.append(el('p', 'text-xs text-gray-500 mt-1', meetingState.objectiveProgress));
             for (const [label, items] of stateSections(meetingState)) appendSummaryList(label, items);
         }
+        reflectAskNext();
     }
 
     // Everything in the state past the headline, as labelled lists — shared by the panel and
     // the copied summary so the two never disagree about what the meeting produced.
     function stateSections(state) {
         const list = (v) => (Array.isArray(v) ? v : []);
+        const mark = { covered: '✓', partly: '◐' };
         return [
+            ['What this meeting needs', list(state.coverage).filter((c) => c && c.item)
+                .map((c) => `${mark[c.status] || '○'} ${c.item}${c.note ? ` — ${c.note}` : ''}`)],
             ['Agenda', list(state.agenda).filter((a) => a && a.item).map((a) => `${a.item} — ${a.status || '?'}`)],
             ['Key points', list(state.keyPoints)],
             ['Decided', list(state.decisions)],
@@ -2288,7 +2535,8 @@
         const block = el('div', 'mt-2');
         block.append(el('div', 'text-xs uppercase tracking-wide text-gray-400', label));
         const list = el('ul', 'mt-1 space-y-0.5');
-        for (const item of items) list.append(el('li', 'text-xs text-gray-600', `• ${item}`));
+        // Checklist lines carry their own mark.
+        for (const item of items) list.append(el('li', 'text-xs text-gray-600', /^[✓◐○] /.test(item) ? item : `• ${item}`));
         block.append(list);
         summaryBody.append(block);
     }
@@ -3010,6 +3258,7 @@
             `  filtered as not worth raising ${stats.filtered} · retracted at answer time ${stats.dropped} · action updates merged ${stats.merged}`,
             `  held to hear what came next ${stats.held} · of those dropped because the room covered it ${stats.heldDropped}`,
             `  sweeps ${stats.sweeps} (${stats.sweepFails} failed) · cards the room later addressed ${stats.resolved}`,
+            `  ask next: ${stats.questionRuns} runs (${stats.questionFails} failed) · ${stats.questions} questions suggested · ${askNext.asked.length} asked · ${askNext.skipped.length} skipped`,
             `  → a held card dropped is a card that would have been noise; if that is most`,
             `    of them, the hold is earning its delay.`,
             `  feedback: useful ${stats.useful} · not useful ${stats.notUseful} · bias now ${tally(typeBias, cardLabel)}`,
@@ -3580,10 +3829,10 @@ if (m.type === 'close') {
         }
 
         hello() {
-            const meetingLabel = ($('setup-type').selectedOptions[0] || {}).text || 'meeting';
+            const meetingLabel = kindOf(session.type).name.replace(/\s*\(.*\)$/, '');
             return {
                 type: 'start',
-                prompt: `A ${meetingLabel}.${session.objective ? ' Objective: ' + session.objective : ''}`,
+                prompt: `Meeting type: ${meetingLabel}.${session.objective ? ' Objective: ' + session.objective : ''}`,
                 keywords: session.keywords,
                 languages: ['en'],
                 ...(readAuth() ? { token: readAuth().session } : {}),
@@ -3869,6 +4118,10 @@ if (m.type === 'close') {
                 answered: answeredTitles.slice(-ANSWERED_MEMORY),
                 dismissed: dismissedTitles.slice(-DISMISSED_MEMORY),
                 bias: { ...typeBias },
+                askNext: {
+                    shown: askNext.shown.map(({ text, kind, why, to }) => ({ text, kind, why, to })),
+                    asked: askNext.asked, skipped: askNext.skipped, earlier: askNext.earlier,
+                },
             }));
         } catch (err) { /* quota or private mode — the session still runs */ }
     }
@@ -4021,6 +4274,15 @@ if (m.type === 'close') {
         if (Array.isArray(data.dismissed)) {
             dismissedTitles.push(...data.dismissed.filter((a) => a && typeof a.title === 'string'));
         }
+        const savedAsk = data.askNext && typeof data.askNext === 'object' ? data.askNext : {};
+        const texts = (v, n) => (Array.isArray(v) ? v.filter((t) => typeof t === 'string' && t.trim()).slice(-n) : []);
+        askNext.asked = texts(savedAsk.asked, 60);
+        askNext.skipped = texts(savedAsk.skipped, 40);
+        askNext.earlier = texts(savedAsk.earlier, 40);
+        askNext.shown = (Array.isArray(savedAsk.shown) ? savedAsk.shown : [])
+            .filter((q) => q && typeof q.text === 'string' && q.text.trim()).slice(0, 3)
+            .map((q) => ({ id: `q-${questionSeq++}`, text: q.text, kind: q.kind || 'probe', why: q.why || '', to: q.to || '' }));
+        renderAskNext();
         for (const key of Object.keys(typeBias)) delete typeBias[key];
         if (data.bias && typeof data.bias === 'object') {
             for (const [type, value] of Object.entries(data.bias)) {
@@ -4113,9 +4375,35 @@ if (m.type === 'close') {
     }
 
     // ---------- session lifecycle ----------
+    // The kind-of-meeting menu, grouped, and what the chosen kind is for right under it.
+    function fillKindMenu() {
+        const select = $('setup-type');
+        select.replaceChildren();
+        for (const g of MEETING_KINDS) {
+            const group = document.createElement('optgroup');
+            group.label = g.group;
+            for (const k of g.kinds) {
+                const option = document.createElement('option');
+                option.value = k.key;
+                option.textContent = k.name;
+                group.append(option);
+            }
+            select.append(group);
+        }
+        select.addEventListener('change', reflectKind);
+    }
+    function reflectKind() {
+        const kind = kindOf($('setup-type').value);
+        $('setup-goal').replaceChildren(el('b', '', 'Goal'), ` · ${kind.goal}`);
+        $('setup-objective').placeholder = session.followUp ? `Follow-up: ${session.followUp.title}` : kind.example;
+        $('setup-role').placeholder = kind.role;
+    }
+
     function openSetup() {
         $('setup-objective').value = session.objective;
-        $('setup-type').value = session.type;
+        $('setup-type').value = KINDS[session.type] ? session.type : 'general';
+        reflectKind();
+        $('setup-role').value = session.role || '';
         $('setup-roster').value = (session.roster || []).join(', ');
         $('setup-keywords').value = session.keywords.join(', ');
         $('setup-agenda').value = (session.agenda || []).join('\n');
@@ -4123,7 +4411,7 @@ if (m.type === 'close') {
         $('setup-materials').value = session.materials || '';
         reflectMaterialsCount();
         // Open when there is something in it, so a filled-in brief doesn't look empty.
-        $('setup-more').open = Boolean((session.agenda || []).length || session.durationMin || session.materials);
+        $('setup-more').open = Boolean((session.agenda || []).length || session.durationMin || session.materials || session.role);
         $('setup-accurate').checked = session.accurate;
         $('setup-record').checked = session.record;
         // Only a desktop browser can share a tab's audio.
@@ -4132,9 +4420,6 @@ if (m.type === 'close') {
         $('setup-start').textContent = segments.length ? 'Continue' : 'Start';
         $('setup-title').textContent = segments.length ? 'Session Brief' : session.followUp ? 'Follow-Up Session' : 'New Session';
         $('followup-note').textContent = session.followUp ? `Following up on “${session.followUp.title}”` : '';
-        $('setup-objective').placeholder = session.followUp
-            ? `Follow-up: ${session.followUp.title}`
-            : 'e.g. Align on FY27 platform strategy and decide build vs. buy for identity';
         $('invite-box').hidden = true;
 
         if (!WebSpeechProvider.supported) {
@@ -4216,7 +4501,8 @@ if (m.type === 'close') {
 
     async function beginSession() {
         session.objective = $('setup-objective').value.trim();
-        session.type = $('setup-type').value;
+        session.type = KINDS[$('setup-type').value] ? $('setup-type').value : 'general';
+        session.role = $('setup-role').value.replace(/\s+/g, ' ').trim().slice(0, 200);
         const typed = $('setup-keywords').value.split(',').map(k => k.trim()).filter(Boolean);
         session.keywords = [...new Set(typed)];
         session.roster = [...new Set($('setup-roster').value.split(',').map(n => n.trim()).filter(Boolean))];
@@ -4321,10 +4607,14 @@ if (m.type === 'close') {
             // hidden until the first state update landed, which is minutes in.
             setStateObjective();
             stateBar.classList.remove('hidden');
+            // Openers from the brief, before anyone has said a word.
+            reflectAskNext();
+            if (!segments.length && !askNext.shown.length) runQuestions();
 
             stateTimer = setInterval(() => {
                 maybeRunState(true);
                 maybeRunSweep();
+                maybeRunQuestions();
                 checkQuietVoices();
                 if (!stateBody.classList.contains('hidden')) renderBalance();
             }, STATE_INTERVAL_MS);
@@ -4450,6 +4740,7 @@ if (m.type === 'close') {
         startBtn.classList.remove('hidden');
         setStatus('Not listening', 'idle');
         reflectSessionButtons();
+        reflectAskNext();
 
         persistTranscript(true);
 
@@ -4582,6 +4873,15 @@ if (m.type === 'close') {
         charsSinceSweep = 0;
         lastSweepAt = 0;
         sweepUnsupported = false;
+        askNext.shown = [];
+        askNext.asked = [];
+        askNext.skipped = [];
+        askNext.earlier = [];
+        lastQuestionsAt = 0;
+        charsSinceQuestions = 0;
+        questionsUnsupported = false;
+        askStatus = '';
+        renderAskNext();
         if (!stateBody.classList.contains('hidden')) toggleStateBody();
         stateBar.classList.add('hidden');
         topicTree.replaceChildren(el('p', 'text-gray-400 italic font-light', 'Listening for the shape of the discussion…'));
@@ -4772,6 +5072,20 @@ if (m.type === 'close') {
     });
     $('recap-save').addEventListener('click', saveToLibrary);
     $('library-btn').addEventListener('click', () => { openLibrary(); });
+
+    fillKindMenu();
+    $('asknext-toggle').addEventListener('click', () => {
+        askCollapsed = !askCollapsed;
+        try { localStorage.setItem('reverb.asknext.collapsed', askCollapsed ? '1' : '0'); } catch (err) { /* ignore */ }
+        reflectAskNext();
+    });
+    $('asknext-refresh').addEventListener('click', () => runQuestions({ manual: true }));
+    $('asknext-cover').addEventListener('click', () => { if (stateBody.classList.contains('hidden')) toggleStateBody(); });
+    $('asknext-list').addEventListener('click', (e) => {
+        const button = e.target.closest('[data-act]');
+        const item = button && button.closest('.ask-q');
+        if (item) settleQuestion(item.dataset.id, button.dataset.act);
+    });
     for (const modal of [$('recap-modal'), $('library-modal')]) {
         modal.addEventListener('click', (e) => {
             if (e.target === modal || e.target.closest('[data-close]')) modal.classList.add('hidden');

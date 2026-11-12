@@ -861,6 +861,54 @@
         .option-text { flex: 1; min-width: 0; }
         .option-title { display: block; font-size: .9375rem; color: var(--label); }
         .option-note { display: block; margin-top: .15rem; font-size: .75rem; line-height: 1.45; color: var(--label-3); }
+        /* The kind of meeting: a pop-up menu, and what that kind of meeting is for right under it. */
+        .select-wrap { position: relative; }
+        .select-wrap::after {
+            content: ''; position: absolute; right: .2rem; top: 50%; width: .45rem; height: .45rem; margin-top: -.35rem;
+            border-right: 2px solid var(--label-3); border-bottom: 2px solid var(--label-3); transform: rotate(45deg); pointer-events: none;
+        }
+        .field .select-wrap select { padding-right: 1.5rem; font-weight: 500; }
+        .kind-goal { margin-top: .4rem; font-size: .8125rem; line-height: 1.45; color: var(--label-2); }
+        .kind-goal b { font-weight: 600; color: var(--tint); }
+
+        /* Ask next: the few questions most worth asking now. Pinned above the cards, refreshed in
+           place, so it reads as a short list rather than another stream. */
+        .asknext { flex-shrink: 0; border-bottom: 1px solid var(--separator); background: var(--surface); }
+        .asknext[hidden] { display: none; }
+        .asknext-head { display: flex; align-items: center; gap: .6rem; padding: .55rem .9rem .45rem; }
+        .asknext-toggle { display: inline-flex; align-items: center; gap: .4rem; min-height: 1.75rem; padding: 0; border: 0; background: none; cursor: pointer; color: var(--label); }
+        .asknext-title { font-size: .8125rem; font-weight: 600; letter-spacing: .01em; }
+        .asknext-toggle svg { width: .85rem; height: .85rem; color: var(--label-3); transition: transform .2s ease; }
+        .asknext-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
+        .asknext-count { min-width: 1.15rem; padding: 0 .35rem; border-radius: 9999px; background: var(--tint-fill); color: #fff; font-size: .6875rem; line-height: 1.15rem; text-align: center; }
+        .asknext-count[hidden] { display: none; }
+        .asknext-cover { margin-left: auto; padding: .1rem .5rem; border: 1px solid var(--separator-strong); border-radius: 9999px; background: none; font-size: .6875rem; color: var(--label-2); cursor: pointer; white-space: nowrap; }
+        .asknext-cover:hover { border-color: var(--tint); color: var(--tint); }
+        .asknext-cover[hidden] { display: none; }
+        .asknext-cover:not([hidden]) + .asknext-refresh { margin-left: .25rem; }
+        .asknext-refresh { margin-left: auto; white-space: nowrap; }
+        .asknext-refresh:disabled { color: var(--label-4); cursor: default; text-decoration: none; }
+        .asknext-body { max-height: min(22rem, 42vh); overflow-y: auto; padding: 0 .9rem .7rem; }
+        .asknext-body[hidden] { display: none; }
+        .asknext-list { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+        .ask-q { display: flex; align-items: flex-start; gap: .6rem; padding: .55rem .65rem .55rem .75rem; border-radius: 10px; background: color-mix(in srgb, var(--tint) 7%, var(--surface)); transition: opacity .3s ease, transform .3s ease; }
+        .ask-q.fresh { animation: ask-in .35s ease; }
+        @keyframes ask-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+        .ask-q.leaving { opacity: 0; transform: translateX(8px); }
+        .ask-q-main { flex: 1; min-width: 0; }
+        .ask-meta { display: flex; flex-wrap: wrap; gap: .35rem; font-size: .6875rem; font-weight: 500; letter-spacing: .03em; text-transform: uppercase; color: var(--tint); }
+        .ask-meta .ask-to { color: var(--label-3); text-transform: none; letter-spacing: 0; font-weight: 400; }
+        .ask-text { margin-top: .15rem; font-size: .9375rem; line-height: 1.4; color: var(--label); font-weight: 500; }
+        .ask-why { margin-top: .2rem; font-size: .75rem; line-height: 1.4; color: var(--label-3); }
+        .ask-actions { display: flex; flex-direction: column; gap: .3rem; flex-shrink: 0; }
+        .ask-actions button { min-width: 2rem; min-height: 1.75rem; padding: 0 .55rem; border: 1px solid var(--separator-strong); border-radius: 9999px; background: var(--surface); font-size: .75rem; color: var(--label-2); cursor: pointer; }
+        .ask-actions button:hover { border-color: var(--tint); color: var(--tint); }
+        .ask-actions button[data-act="asked"] { border-color: transparent; background: var(--tint-fill); color: #fff; }
+        .ask-actions button[data-act="asked"]:hover { background: var(--tint-fill-hover); color: #fff; }
+        .asknext-status { margin-top: .35rem; font-size: .75rem; color: var(--label-3); }
+        .asknext-status:empty { display: none; }
+        .asknext-list:empty + .asknext-status { margin-top: 0; }
+        @media (prefers-reduced-motion: reduce) { .ask-q, .ask-q.fresh, .asknext-toggle svg { animation: none; transition: none; } }
 
         /* Alerts: a decision that can't be undone gets its own question, with the safe choice
            as the easy one. */
@@ -1138,8 +1186,7 @@
             </header>
             <div class="sheet-body">
                 <p class="sheet-lede">
-                    A minute of context sharpens both the transcription and the analysis. Names and terms
-                    you list here are sent to the speech model as hints, so it stops mangling them.
+                    Pick the kind of meeting and start. Everything else is optional and only makes ReVerb sharper.
                 </p>
 
                 <div class="group-head">
@@ -1159,41 +1206,71 @@
                     </div>
                 </div>
                 <div class="group">
+                    <div class="field field-kind">
+                        <label class="field-label" for="setup-type">Kind of meeting</label>
+                        <div class="select-wrap">
+                            <!-- Filled from MEETING_KINDS in app.js -->
+                            <select id="setup-type" aria-describedby="setup-goal"></select>
+                        </div>
+                        <p id="setup-goal" class="kind-goal"></p>
+                    </div>
                     <label class="field">
-                        <span class="field-label">Objective</span>
-                        <textarea id="setup-objective" rows="2"
-                            placeholder="e.g. Align on FY27 platform strategy and decide build vs. buy for identity"></textarea>
+                        <span class="field-label">What do you want out of it? <span class="field-hint">— optional</span></span>
+                        <textarea id="setup-objective" rows="2"></textarea>
                     </label>
                     <label class="field">
-                        <span class="field-label">Type</span>
-                        <select id="setup-type">
-                            <option value="strategy">Strategy / open discussion</option>
-                            <option value="design">Design thinking / ideation</option>
-                            <option value="technical">Technical review</option>
-                            <option value="general">General meeting</option>
-                        </select>
-                    </label>
-                </div>
-
-                <div class="group-head"><span>People &amp; Terms</span></div>
-                <div class="group">
-                    <label class="field">
-                        <span class="field-label">Who’s in the meeting</span>
+                        <span class="field-label">Who’s in it <span class="field-hint">— optional, separate with commas</span></span>
                         <input id="setup-roster" type="text" autocomplete="off" placeholder="Dana Whitfield, Priya Raghavan, Tom Okafor">
-                    </label>
-                    <label class="field">
-                        <span class="field-label">Names &amp; terms likely to come up</span>
-                        <input id="setup-keywords" type="text" autocomplete="off" placeholder="Kubernetes, SOC 2, ARR, gRPC">
                     </label>
                 </div>
                 <p class="group-foot">
-                    Separate with commas. People are used to label who said what, and everyone and
-                    everything listed is a hint to the speech model. Anyone not listed is still tracked as a speaker.
+                    ReVerb suggests questions to ask, tracks what this kind of meeting needs to cover, and
+                    flags what matters as it’s said. Names you list help it spell them and tell who said what.
                 </p>
 
+                <div class="group-head"><span>Listening</span></div>
+                <div class="group">
+                    <label id="tab-option" class="option-row">
+                        <span class="option-text">
+                            <span class="option-title">It’s a video call in this browser</span>
+                            <span class="option-note">
+                                Zoom, Meet or Teams in a tab: you’ll pick that tab and turn on “Share tab audio”, so
+                                ReVerb hears everyone, not just your microphone. Best with headphones.
+                            </span>
+                        </span>
+                        <input id="setup-tab" type="checkbox" class="switch" role="switch">
+                    </label>
+                    <label class="option-row">
+                        <span class="option-text">
+                            <span class="option-title">High-accuracy transcription</span>
+                            <span id="accurate-note" class="option-note">
+                                Gets names and terms right (~$1/hr). Off: your browser’s free transcription, Chrome and Edge only.
+                            </span>
+                        </span>
+                        <input id="setup-accurate" type="checkbox" class="switch" role="switch">
+                    </label>
+                    <label class="option-row">
+                        <span class="option-text">
+                            <span class="option-title">Record audio to disk</span>
+                            <span id="record-note" class="option-note">
+                                To a file you pick. Afterwards, Improve Transcript can tell each voice apart.
+                            </span>
+                        </span>
+                        <input id="setup-record" type="checkbox" class="switch" role="switch">
+                    </label>
+                </div>
+
                 <details id="setup-more" class="group-details">
-                    <summary class="group-head"><span>Agenda, Length &amp; Background</span></summary>
+                    <summary class="group-head"><span>More Options</span></summary>
                     <div class="group">
+                        <label class="field">
+                            <span class="field-label">Your role <span class="field-hint">— so suggestions are for your side of the table</span></span>
+                            <input id="setup-role" type="text" autocomplete="off" maxlength="200">
+                        </label>
+                        <label class="field">
+                            <span class="field-label">Names &amp; terms likely to come up</span>
+                            <input id="setup-keywords" type="text" autocomplete="off" placeholder="Kubernetes, SOC 2, ARR, gRPC">
+                        </label>
                         <label class="field">
                             <span class="field-label">Agenda <span class="field-hint">— one item per line</span></span>
                             <textarea id="setup-agenda" rows="3" placeholder="Identity: build vs. buy&#10;Q3 hiring plan&#10;Launch date"></textarea>
@@ -1213,46 +1290,12 @@
                         </div>
                     </div>
                     <p class="group-foot">
-                        With an agenda or a length, ReVerb tells you when time is going to something the meeting
-                        doesn’t need, or running out with items still open. Questions the material answers get
+                        Terms are spelling hints for the speech model. With an agenda or a length, ReVerb tells you
+                        when time is going to the wrong thing or running out. Questions the material answers get
                         answered from it, and anything said that reverses a decision recorded in it is flagged.
                     </p>
                 </details>
 
-                <div class="group-head"><span>Listening</span></div>
-                <div class="group">
-                    <label class="option-row">
-                        <span class="option-text">
-                            <span class="option-title">High-accuracy transcription</span>
-                            <span id="accurate-note" class="option-note">
-                                A speech model that takes your name and term hints (~$1/hr). Off: free browser
-                                transcription, Chrome and Edge only, no hints.
-                            </span>
-                        </span>
-                        <input id="setup-accurate" type="checkbox" class="switch" role="switch">
-                    </label>
-                    <label id="tab-option" class="option-row">
-                        <span class="option-text">
-                            <span class="option-title">Also listen to a meeting tab</span>
-                            <span class="option-note">
-                                For Zoom, Meet or Teams in the browser: pick the meeting’s tab and turn on
-                                “Share tab audio”, and ReVerb hears the others as well as your microphone.
-                                Uses high-accuracy transcription. Best with headphones.
-                            </span>
-                        </span>
-                        <input id="setup-tab" type="checkbox" class="switch" role="switch">
-                    </label>
-                    <label class="option-row">
-                        <span class="option-text">
-                            <span class="option-title">Record audio to disk</span>
-                            <span id="record-note" class="option-note">
-                                You pick a file. Audio is written as it goes, so it survives a crash or a closed
-                                tab. Afterwards, Improve Transcript can transcribe it again with each voice told apart.
-                            </span>
-                        </span>
-                        <input id="setup-record" type="checkbox" class="switch" role="switch">
-                    </label>
-                </div>
             </div>
         </div>
     </div>
@@ -1346,7 +1389,7 @@
     <section id="state-bar" class="hidden flex-shrink-0 border-b border-gray-200 bg-white">
         <button id="state-toggle" class="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-50 transition-colors">
             <div class="flex items-center space-x-3 min-w-0">
-                <span class="text-xs uppercase tracking-wide text-gray-400 flex-shrink-0">Objective</span>
+                <span id="state-label" class="text-xs uppercase tracking-wide text-gray-400 flex-shrink-0">Objective</span>
                 <span id="state-objective" class="text-sm text-gray-700 truncate" data-empty="false"></span>
             </div>
             <div class="flex items-center space-x-3 flex-shrink-0 ml-4">
@@ -1473,6 +1516,22 @@
                 </div>
                 <div id="type-filters" class="hidden"></div>
             </div>
+            <!-- Ask next: the few questions most worth asking now, refreshed as the meeting goes -->
+            <section id="asknext" class="asknext" hidden aria-labelledby="asknext-title">
+                <div class="asknext-head">
+                    <button id="asknext-toggle" type="button" class="asknext-toggle" aria-expanded="true" aria-controls="asknext-body">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                        <span id="asknext-title" class="asknext-title">Ask Next</span>
+                        <span id="asknext-count" class="asknext-count" hidden></span>
+                    </button>
+                    <button id="asknext-cover" type="button" class="asknext-cover" hidden title="What this meeting needs to cover — open the summary"></button>
+                    <button id="asknext-refresh" type="button" class="link-btn asknext-refresh">New Questions</button>
+                </div>
+                <div id="asknext-body" class="asknext-body">
+                    <ol id="asknext-list" class="asknext-list"></ol>
+                    <p id="asknext-status" class="asknext-status" aria-live="polite"></p>
+                </div>
+            </section>
             <div class="chip-anchor">
                 <button id="insights-jump" type="button" class="jump-chip at-top" hidden>&uarr;&ensp;New insights</button>
             </div>
@@ -1481,7 +1540,7 @@
                     <svg class="w-16 h-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM18 13.5l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 18l-1.035.259a3.375 3.375 0 00-2.456 2.456L18 21.75l-.259-1.035a3.375 3.375 0 00-2.456-2.456L14.25 18l1.035-.259a3.375 3.375 0 002.456-2.456L18 13.5z" />
                     </svg>
-                    <p>Questions, jargon, fact-checks, questions worth asking, and what the discussion is skipping past will appear here.</p>
+                    <p>Answers, jargon, fact-checks, to-dos, and what the discussion is skipping past will appear here.</p>
                 </div>
             </div>
             <!-- Phone only: what's being said, while you read the cards. Opens the transcript. -->
