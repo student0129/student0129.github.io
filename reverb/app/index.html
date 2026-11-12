@@ -124,6 +124,7 @@
             [data-type="gap"]           { --card-accent: #b99cff !important; }
             [data-type="action"]        { --card-accent: #40c8b4 !important; }
             [data-type="ask"]           { --card-accent: #5ac8fa !important; }
+            [data-type="recall"]        { --card-accent: #a5b4fc !important; }
             [data-type="unanswered"]    { --card-accent: #ff9f5a !important; }
             [data-type="loop"]          { --card-accent: #e3b341 !important; }
             [data-type="confirm"]       { --card-accent: #4cd27a !important; }
@@ -257,6 +258,7 @@
         [data-type="gap"]           { --card-accent: #7c3aed; }
         [data-type="action"]        { --card-accent: #0f766e; }
         [data-type="ask"]           { --card-accent: #0369a1; }
+        [data-type="recall"]        { --card-accent: #4338ca; }
         [data-type="unanswered"]    { --card-accent: #c2410c; }
         [data-type="loop"]          { --card-accent: #a16207; }
         [data-type="confirm"]       { --card-accent: #15803d; }
@@ -382,6 +384,7 @@
            container carries the muted list. A card still waiting on the classifier has no
            type yet, so it always shows. */
         #insights-container[data-muted~="question"] > [data-card][data-type="question"],
+        #insights-container[data-muted~="recall"] > [data-card][data-type="recall"],
         #insights-container[data-muted~="explanation"] > [data-card][data-type="explanation"],
         #insights-container[data-muted~="factcheck"] > [data-card][data-type="factcheck"],
         #insights-container[data-muted~="contradiction"] > [data-card][data-type="contradiction"],
@@ -900,6 +903,20 @@
         .option-text { flex: 1; min-width: 0; }
         .option-title { display: block; font-size: .9375rem; color: var(--label); }
         .option-note { display: block; margin-top: .15rem; font-size: .75rem; line-height: 1.45; color: var(--label-3); }
+        /* Your voice sample: recorded once, tested, kept in this browser. */
+        .voice-panel { padding: .7rem 1rem .85rem; }
+        .voice-panel[hidden] { display: none; }
+        .voice-status { font-size: .875rem; color: var(--label); }
+        .voice-script { margin-top: .35rem; font-size: .8125rem; line-height: 1.5; color: var(--label-2); }
+        .voice-script q { display: block; margin-top: .3rem; padding: .5rem .7rem; border-radius: .5rem; background: var(--fill); color: var(--label); font-style: italic; quotes: none; }
+        .voice-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: .6rem; }
+        .voice-actions .btn.recording { background: var(--danger-fill); color: #fff; }
+        .voice-delete { color: var(--label-3); }
+        .voice-delete:hover { color: var(--danger); }
+        .voice-result { margin-top: .5rem; font-size: .8125rem; line-height: 1.45; color: var(--label-2); }
+        .voice-result:empty { display: none; }
+        .voice-result[data-tone="good"] { color: var(--success); }
+        .voice-result[data-tone="bad"] { color: var(--warning); }
         /* The kind of meeting: a pop-up menu, and what that kind of meeting is for right under it. */
         .select-wrap { position: relative; }
         .select-wrap::after {
@@ -1259,6 +1276,34 @@
                         </span>
                         <input id="setup-record" type="checkbox" class="switch" role="switch">
                     </label>
+                    <label class="option-row">
+                        <span class="option-text">
+                            <span class="option-title">Recognise my voice</span>
+                            <span class="option-note">
+                                Marks your lines as “You”, so suggestions are for you and never repeat what you
+                                asked. Needs a short voice sample, once. Uses high-accuracy transcription.
+                            </span>
+                        </span>
+                        <input id="setup-voice" type="checkbox" class="switch" role="switch">
+                    </label>
+                    <div id="voice-panel" class="voice-panel" hidden>
+                        <p id="voice-status" class="voice-status"></p>
+                        <p id="voice-script" class="voice-script">
+                            Press Record, then read this aloud in your normal voice:
+                            <q>This is my voice for ReVerb. I’m recording a short sample so it can tell when I’m the one talking in a meeting.</q>
+                        </p>
+                        <div class="voice-actions">
+                            <button id="voice-record" type="button" class="btn btn-tinted btn-small">Record Sample</button>
+                            <button id="voice-play" type="button" class="link-btn" hidden>Play</button>
+                            <button id="voice-test" type="button" class="link-btn" hidden>Test It</button>
+                            <button id="voice-delete" type="button" class="link-btn voice-delete" hidden>Delete</button>
+                        </div>
+                        <p id="voice-result" class="voice-result" role="status"></p>
+                        <p class="option-note">
+                            Your sample stays in this browser. During a meeting it goes, with short stretches of the
+                            meeting’s audio, through our server to OpenAI to match voices; nothing is kept on our server.
+                        </p>
+                    </div>
                 </div>
 
                 <details id="setup-more" class="group-details">

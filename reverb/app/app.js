@@ -14,6 +14,7 @@
     const speakersUrl = `${API_BASE}/api/reverb/speakers`;
     const sweepUrl = `${API_BASE}/api/reverb/sweep`;
     const questionsUrl = `${API_BASE}/api/reverb/questions`;
+    const voiceUrl = `${API_BASE}/api/reverb/voice`;
     const chatUrl = `${API_BASE}/api/reverb/chat`;
     const improveUrl = `${API_BASE}/api/reverb/improve`;
     const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/ws/reverb`;
@@ -129,6 +130,8 @@
     // is said, `sweep` types from the read of the last few minutes; "Ask this" comes from both.
     const CARD_TYPE_UI = {
         question:      { label: 'Question',     cooldown: 0,      utterance: true },
+        // A question the meeting already answered: answered from the transcript, with the minute.
+        recall:        { label: 'From earlier', cooldown: 0,      utterance: true },
         explanation:   { label: 'Jargon',       cooldown: 0,      utterance: true },
         factcheck:     { label: 'Fact check',   cooldown: 45000,  utterance: true },
         contradiction: { label: 'Conflict',     cooldown: 150000, utterance: true },
@@ -179,7 +182,7 @@
     const QUESTIONS_REFILL_MS = 15 * 1000;
     const QUESTIONS_REFILL_CHARS = 120;
     const QUESTIONS_MAX_OPEN = 3;        // open question cards at once; the oldest is quieted past this
-    const QUESTIONS_CONTEXT_CHARS = 14000;   // ~12 minutes of speech
+    const QUESTIONS_CONTEXT_CHARS = 30000;   // ~25 minutes of speech
     const QUESTIONS_TIMEOUT_MS = 45000;      // the server allows the call 40s
 
     // --- Kinds of meeting ---
@@ -293,7 +296,7 @@
     const freshBrief = () => ({
         objective: '', type: 'general', role: '', keywords: [], roster: [],
         agenda: [], durationMin: null, materials: '',
-        accurate: false, record: false, tabAudio: false, followUp: null,
+        accurate: false, record: false, tabAudio: false, voiceId: false, followUp: null,
     });
     const session = freshBrief();
 
@@ -374,6 +377,7 @@
         statePasses: 0, stateFulls: 0, stateFails: 0,
         speakerRuns: 0, speakerFails: 0,
         questions: 0, questionRuns: 0, questionFails: 0,
+        voiceChecks: 0, voiceFails: 0, voiceYou: 0,
     });
     const stats = freshStats();
     const bumpStat = (bag, key) => { stats[bag][key] = (stats[bag][key] || 0) + 1; };
@@ -413,6 +417,7 @@
             objective: session.objective,
             type: session.type,
             ...(session.role ? { role: session.role.slice(0, 200) } : {}),
+            ...(voiceIdOn() ? { voice: true } : {}),
             keywords: session.keywords.slice(0, 100),
             roster: session.roster.slice(0, 40),
             agenda: (session.agenda || []).slice(0, 20),
@@ -992,7 +997,9 @@
         const clean = text.trim();
         if (!clean) return;
 
-        const segment = { id: `seg-${segmentSeq++}`, text: clean, edited: false, low: Boolean(opts && opts.low), t: meetingClock() };
+        // `at` is when the line arrived, by the wall clock: what lines it up with the audio for
+        // telling the user's voice apart. Not saved: after a reload there is no audio to match.
+        const segment = { id: `seg-${segmentSeq++}`, text: clean, edited: false, low: Boolean(opts && opts.low), t: meetingClock(), at: Date.now() };
         segments.push(segment);
 
         const atBottom = transcriptAtBottom();
@@ -1034,6 +1041,7 @@
             seg.tag.textContent = wanted;
             seg.tag.classList.toggle('tentative', seg.confident === false);
             seg.tag.title = (seg.byUser ? 'Set by you'
+                : seg.voice === 'you' && wanted === 'You' ? 'Recognised by your voice'
                 : seg.confident === false ? 'Grouped by turn-taking — not positively identified'
                 : 'Identified from the conversation') + ' · click to change who said this';
         }
@@ -1639,6 +1647,19 @@
         return { event, data: data ? JSON.parse(data) : null };
     }
 
+    // Most lines aren't questions, and only a question (or a held card) needs the whole meeting
+    // sent with it — a hundred kilobytes, for a long one.
+    const looksLikeQuestion = (t) => /\?/.test(t)
+        || /^\s*(what|who|whom|whose|when|where|why|how|which|did|do|does|is|are|was|were|can|could|should|would|will|have|has|remind)\b/i.test(t);
+    const RECORD_CHARS = 100000;
+    function meetingRecord() {
+        const text = attributedTranscript(0, { timed: true });
+        if (text.length <= RECORD_CHARS) return text;
+        const tail = text.slice(-RECORD_CHARS);
+        const nl = tail.indexOf('\n');
+        return nl >= 0 && nl < 2000 ? tail.slice(nl + 1) : tail;
+    }
+
     function enqueueAnalysis(utterance, context) {
         // Every type is muted — there is nothing this utterance could produce, so don't
         // spend the round trip finding that out.
@@ -1848,6 +1869,9 @@
                     multi: true,
                     canHold: !job.forced,
                     ...(job.forced ? { card: job.forced, after: job.after || '' } : {}),
+                    // The whole meeting, for the cards that must check it: a question that may
+                    // already have been answered, and every held card (ask, gap…) before it speaks.
+                    ...(job.forced || looksLikeQuestion(job.utterance) ? { transcript: meetingRecord() } : {}),
                 })
             });
             if (resp.status === 429) {
@@ -2371,6 +2395,305 @@
         chip.textContent = `${covered} of ${cover.length} covered`;
         const left = cover.filter((c) => c.status !== 'covered').map((c) => c.item);
         chip.title = left.length ? `Still to cover: ${left.join(', ')}` : 'Everything this meeting needs has been covered';
+    }
+
+
+    // ---------- your voice: telling your lines from everyone else's ----------
+    // Live transcription can't tell voices apart, so ReVerb couldn't tell the person using it from
+    // anyone else: an "Ask this" card could suggest the question they had just asked. When they turn
+    // this on, a short sample of their voice (recorded once, kept in this browser) goes with each
+    // stretch of the meeting's audio, every half-minute or so, to OpenAI's speaker-separating model
+    // through /reverb/voice. The stretches are cut where lines end, so each line is checked once.
+    // What comes back is lined up with the transcript by the words, and the user's lines are
+    // labelled "You". A line the user labelled themselves keeps their label.
+    const VOICE_KEY = 'reverb.voice';          // { sample: "data:audio/wav;base64,…", seconds, at }
+    const VOICE_SAMPLE_S = [2.5, 9.5];         // the model takes references of up to ten seconds
+    const VOICE_RECORD_S = 9;
+    const VOICE_TEST_S = 5;
+    const VOICE_TICK_MS = 5000;
+    const VOICE_LAG_MS = 1800;                 // a line arrives about this long after it was said
+    const VOICE_BATCH_MS = 25000;              // speech to gather before a check…
+    const VOICE_WAIT_MS = 30000;               // …or this long after the oldest unchecked line
+    const VOICE_MAX_MS = 45000;
+    const VOICE_KEEP_MS = 120000;              // audio kept in memory, for the checks only
+    let voiceTimer = null, voiceRunning = false, voiceFailures = 0, voiceUnsupported = false, voiceNextAt = 0;
+
+    function readVoiceSample() {
+        try {
+            const v = JSON.parse(localStorage.getItem(VOICE_KEY) || 'null');
+            return v && typeof v.sample === 'string' && v.sample.startsWith('data:audio/wav;base64,') ? v : null;
+        } catch (err) { return null; }
+    }
+    const voiceIdOn = () => Boolean(session.voiceId && isListening && voiceTap.on && readVoiceSample() && !voiceUnsupported);
+
+    // The microphone frames, as they go to the transcriber, kept for the last two minutes.
+    const voiceTap = {
+        on: false, since: 0, rate: 24000, chunks: [],   // { at, pcm: Int16Array }
+        start() { this.on = true; this.since = Date.now(); this.chunks = []; },
+        stop() { this.on = false; this.chunks = []; },
+        push(buf, rate) {
+            const at = Date.now();
+            this.rate = rate || this.rate;
+            this.chunks.push({ at, pcm: new Int16Array(buf.slice(0)) });
+            let drop = 0;
+            while (drop < this.chunks.length && this.chunks[drop].at < at - VOICE_KEEP_MS) drop++;
+            if (drop) this.chunks.splice(0, drop);
+        },
+        // The audio between two wall-clock times, at 16 kHz.
+        slice16k(from, to) {
+            const parts = this.chunks.filter((c) => c.at > from && c.at - (c.pcm.length / this.rate) * 1000 < to);
+            const n = parts.reduce((k, c) => k + c.pcm.length, 0);
+            const src = new Float32Array(n);
+            let o = 0;
+            for (const c of parts) for (let i = 0; i < c.pcm.length; i++) src[o++] = c.pcm[i] / 32768;
+            const ratio = this.rate / IMPROVE_RATE;
+            const out = new Float32Array(Math.floor(n / ratio));
+            for (let i = 0; i < out.length; i++) {
+                const x = i * ratio, j = Math.floor(x), f = x - j;
+                out[i] = j + 1 < n ? src[j] * (1 - f) + src[j + 1] * f : src[j] || 0;
+            }
+            return out;
+        },
+    };
+
+    function startVoiceId() {
+        stopVoiceId();
+        if (!session.voiceId || !readVoiceSample() || voiceUnsupported || !(provider instanceof RealtimeProvider)) return;
+        voiceTap.start();
+        voiceTimer = setInterval(maybeCheckVoices, VOICE_TICK_MS);
+    }
+    function stopVoiceId() {
+        if (voiceTimer) { clearInterval(voiceTimer); voiceTimer = null; }
+        voiceTap.stop();
+    }
+
+    // When each line was said, roughly: it ends a moment before it arrived, and lasts about as
+    // long as its words take to say.
+    const lineEnd = (seg) => seg.at - VOICE_LAG_MS;
+    const lineStart = (seg) => lineEnd(seg) - Math.min(25000, Math.max(1000, wordCount(seg.text) / 2.5 * 1000)) - 300;
+
+    function maybeCheckVoices() {
+        if (voiceRunning || !voiceIdOn() || isPaused || Date.now() < voiceNextAt) return;
+        const now = Date.now();
+        // Lines that arrived since the audio started being kept; a stretch before that has no audio.
+        const pending = segments.filter((seg) => seg.at && seg.at > voiceTap.since && !seg.voice && !seg.byUser);
+        if (!pending.length) return;
+        const first = pending[0];
+        const gathered = lineEnd(pending[pending.length - 1]) - lineStart(first);
+        if (gathered < VOICE_BATCH_MS && now - first.at < VOICE_WAIT_MS) return;
+        const from = Math.max(voiceTap.since, lineStart(first) - 1500);
+        const batch = [];
+        for (const seg of pending) {
+            if (batch.length && lineEnd(seg) + 1000 - from > VOICE_MAX_MS) break;
+            batch.push(seg);
+        }
+        const to = Math.min(now, lineEnd(batch[batch.length - 1]) + 1000);
+        checkVoices(batch, from, to);
+    }
+
+    async function checkVoices(batch, from, to) {
+        const voice = readVoiceSample();
+        if (!voice) return;
+        const pcm = voiceTap.slice16k(from, to);
+        if (pcm.length < IMPROVE_RATE * 1.5) { for (const seg of batch) seg.voice = 'unsure'; return; }
+        voiceRunning = true;
+        stats.voiceChecks++;
+        const controller = new AbortController();
+        const epoch = sessionEpoch;
+        inflight.add(controller);
+        const timeout = setTimeout(() => controller.abort(), 70000);
+        try {
+            const form = new FormData();
+            form.append('audio', wavBlob(pcm), 'stretch.wav');
+            form.append('sample', voice.sample);
+            const resp = await apiFetch(voiceUrl, { method: 'POST', body: form, signal: controller.signal });
+            const data = await resp.json().catch(() => ({}));
+            if (epoch !== sessionEpoch) return;
+            if (resp.status === 404) { voiceUnsupported = true; return; }
+            // Busy: this stretch waits for the next tick rather than being sent again at once.
+            if (resp.status === 503 && data.busy) { voiceNextAt = Date.now() + VOICE_TICK_MS * 2; return; }
+            if (!resp.ok) throw new Error(data.error || `server ${resp.status}`);
+            voiceFailures = 0;
+            applyVoices(batch, Array.isArray(data.segments) ? data.segments : []);
+        } catch (err) {
+            if (epoch !== sessionEpoch) return;
+            stats.voiceFails++;
+            for (const seg of batch) seg.voice = seg.voice || 'unsure';   // not sent twice: it costs
+            if (++voiceFailures === 3) setNotice('Recognising your voice isn’t working right now — your lines won’t be marked “You”.');
+            console.error('ReVerb voice error:', err);
+        } finally {
+            clearTimeout(timeout);
+            inflight.delete(controller);
+            voiceRunning = false;
+        }
+    }
+
+    // The model's transcript of the stretch and ReVerb's own are of the same audio, so each line is
+    // matched to whichever voice said most of its words. Short words and filler say nothing about
+    // who spoke, so only the content words count; a line too short to tell stays unlabelled.
+    const VOICE_STOP = new Set('the and that this with for you are was were but have has had not what about just like they them there their then than from will would can could should our your his her its it’s it\'s yes yeah okay well also into been being because which when where who how why all any some one two get got going know think really very much more most here over only out off one'.split(' '));
+    const contentWords = (t) => (String(t).toLowerCase().match(/[\p{L}\p{N}']+/gu) || []).filter((w) => w.length >= 3 && !VOICE_STOP.has(w));
+
+    function applyVoices(batch, segs) {
+        const bags = new Map();   // voice → Set of content words
+        for (const g of segs) {
+            const key = g.speaker === 'You' ? 'You' : `other:${g.speaker}`;
+            if (!bags.has(key)) bags.set(key, new Set());
+            for (const w of contentWords(g.text)) bags.get(key).add(w);
+        }
+        let anyYou = false;
+        for (const seg of batch) {
+            const words = contentWords(seg.text);
+            if (words.length < 2) { seg.voice = 'unsure'; continue; }
+            const cover = (bag) => (bag ? words.filter((w) => bag.has(w)).length / words.length : 0);
+            const you = cover(bags.get('You'));
+            let other = 0;
+            for (const [key, bag] of bags) if (key !== 'You') other = Math.max(other, cover(bag));
+            if (you >= 0.5 && you - other >= 0.2) {
+                seg.voice = 'you';
+                if (!seg.byUser) { seg.speaker = 'You'; seg.confident = true; }
+                anyYou = true;
+            } else if (other >= 0.5 && other - you >= 0.2) {
+                seg.voice = 'other';
+                // Labelled "You" by an earlier guess that this check contradicts: back to the speaker pass.
+                if (!seg.byUser && seg.speaker === 'You') seg.speaker = null;
+            } else seg.voice = 'unsure';
+        }
+        stats.voiceYou = segments.filter((seg) => seg.voice === 'you').length;
+        if (anyYou && !participants.some((p) => p && p.name === 'You')) {
+            participants = dedupeParticipants([{ name: 'You', role: 'using ReVerb' }, ...participants]);
+        }
+        refreshSpeakerTags();
+        renderMeetingState();
+        persistTranscript();
+        // Someone else's line with no name yet would read as a continuation of the last label —
+        // often "You" — so it gets one now rather than at the next scheduled pass.
+        maybeRunSpeakers(batch.some((seg) => seg.voice === 'other' && !seg.speaker));
+    }
+
+    // ---- recording the sample, once, in the brief ----
+    function voiceResult(text, tone) {
+        const r = $('voice-result');
+        r.textContent = text || '';
+        if (tone) r.dataset.tone = tone; else delete r.dataset.tone;
+    }
+
+    function reflectVoicePanel() {
+        const on = $('setup-voice').checked;
+        $('voice-panel').hidden = !on;
+        const v = readVoiceSample();
+        $('voice-status').textContent = v
+            ? `Your voice sample: ${v.seconds.toFixed(1)} seconds, recorded ${new Date(v.at).toLocaleDateString([], { month: 'short', day: 'numeric' })}.`
+            : 'No voice sample yet.';
+        $('voice-script').hidden = Boolean(v);
+        $('voice-record').textContent = v ? 'Record Again' : 'Record Sample';
+        for (const id of ['voice-play', 'voice-test', 'voice-delete']) $(id).hidden = !v;
+    }
+
+    // Records the microphone for up to `seconds` (the button stops it sooner), at 16 kHz.
+    let voiceRecording = null;
+    async function recordMic(seconds, button, label) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        const format = pickAudioFormat();
+        const rec = new MediaRecorder(stream, format.mimeType ? { mimeType: format.mimeType } : undefined);
+        const chunks = [];
+        rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        const done = new Promise((resolve) => rec.addEventListener('stop', resolve, { once: true }));
+        const started = Date.now();
+        let left = seconds;
+        button.classList.add('recording');
+        button.textContent = `${label}… ${left}`;
+        const tick = setInterval(() => { left -= 1; button.textContent = `${label}… ${Math.max(0, left)}`; }, 1000);
+        const stop = () => { if (rec.state !== 'inactive') rec.stop(); };
+        const cap = setTimeout(stop, seconds * 1000);
+        voiceRecording = { stop, started };
+        rec.start();
+        await done;
+        clearInterval(tick);
+        clearTimeout(cap);
+        voiceRecording = null;
+        stream.getTracks().forEach((t) => t.stop());
+        button.classList.remove('recording');
+        return decodeMono16k(new Blob(chunks, { type: format.accept }));
+    }
+
+    // Leading and trailing quiet trimmed, so the sample is the voice and not the room.
+    function trimQuiet(pcm) {
+        const frame = IMPROVE_RATE / 20;
+        const energy = [];
+        for (let i = 0; i + frame <= pcm.length; i += frame) {
+            let e = 0;
+            for (let j = i; j < i + frame; j++) e += pcm[j] * pcm[j];
+            energy.push(Math.sqrt(e / frame));
+        }
+        if (!energy.length) return pcm;
+        const sorted = [...energy].sort((a, b) => a - b);
+        const floor = sorted[Math.floor(sorted.length * 0.2)];
+        const loud = Math.max(0.01, floor * 3);
+        const first = energy.findIndex((e) => e > loud);
+        let last = energy.length - 1;
+        while (last > 0 && energy[last] <= loud) last--;
+        if (first < 0) return new Float32Array(0);
+        return pcm.subarray(Math.max(0, (first - 4) * frame), Math.min(pcm.length, (last + 6) * frame));
+    }
+
+    async function recordVoiceSample() {
+        const button = $('voice-record');
+        if (voiceRecording) {
+            if (Date.now() - voiceRecording.started > 3000) voiceRecording.stop();
+            return;
+        }
+        voiceResult('Recording — read the sentence aloud. Press again to stop.');
+        try {
+            let pcm = trimQuiet(await recordMic(VOICE_RECORD_S, button, 'Recording'));
+            const seconds = pcm.length / IMPROVE_RATE;
+            if (seconds < VOICE_SAMPLE_S[0]) {
+                voiceResult('That was too short or too quiet. Record again, a little closer to the microphone.', 'bad');
+                reflectVoicePanel();
+                return;
+            }
+            if (seconds > VOICE_SAMPLE_S[1]) pcm = pcm.subarray(0, Math.round(VOICE_SAMPLE_S[1] * IMPROVE_RATE));
+            const sample = await blobDataUrl(wavBlob(pcm));
+            try {
+                localStorage.setItem(VOICE_KEY, JSON.stringify({ sample, seconds: Math.min(seconds, VOICE_SAMPLE_S[1]), at: Date.now() }));
+            } catch (err) {
+                voiceResult('This browser’s storage is full or blocked, so the sample couldn’t be kept.', 'bad');
+                return;
+            }
+            reflectVoicePanel();
+            voiceResult('Saved. Press Test It to check ReVerb recognises you.', 'good');
+        } catch (err) {
+            console.error('ReVerb voice sample error:', err);
+            voiceResult(err.name === 'NotAllowedError' ? 'ReVerb wasn’t allowed to use the microphone.' : 'Couldn’t record. Check the microphone and try again.', 'bad');
+            reflectVoicePanel();
+        }
+    }
+
+    // A fresh recording, checked against the sample by the same model the meeting uses.
+    async function testVoiceSample() {
+        const voice = readVoiceSample();
+        if (!voice || voiceRecording) return;
+        const button = $('voice-test');
+        voiceResult('Say anything for a few seconds…');
+        try {
+            const pcm = trimQuiet(await recordMic(VOICE_TEST_S, button, 'Listening'));
+            button.textContent = 'Test It';
+            if (pcm.length < IMPROVE_RATE) { voiceResult('Nothing was heard. Check the microphone and try again.', 'bad'); return; }
+            voiceResult('Checking…');
+            const form = new FormData();
+            form.append('audio', wavBlob(pcm), 'test.wav');
+            form.append('sample', voice.sample);
+            const resp = await apiFetch(voiceUrl, { method: 'POST', body: form });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) { voiceResult(data.error || 'The check didn’t work just now. Try again in a moment.', 'bad'); return; }
+            const segs = Array.isArray(data.segments) ? data.segments : [];
+            if (segs.some((g) => g.speaker === 'You')) voiceResult('✓ Recognised you. You’re all set.', 'good');
+            else if (segs.length) voiceResult('It heard you but didn’t match your sample. Record the sample again, somewhere quieter and a little closer to the microphone.', 'bad');
+            else voiceResult('Nothing was heard. Check the microphone and try again.', 'bad');
+        } catch (err) {
+            button.textContent = 'Test It';
+            voiceResult(err.name === 'NotAllowedError' ? 'ReVerb wasn’t allowed to use the microphone.' : 'Couldn’t reach ReVerb to check. Try again in a moment.', 'bad');
+        }
     }
 
     // ---------- slow lane: topic tree + rolling summary ----------
@@ -3464,6 +3787,7 @@
             `  filtered as not worth raising ${stats.filtered} · retracted at answer time ${stats.dropped} · action updates merged ${stats.merged}`,
             `  held to hear what came next ${stats.held} · of those dropped because the room covered it ${stats.heldDropped}`,
             `  sweeps ${stats.sweeps} (${stats.sweepFails} failed) · cards the room later addressed ${stats.resolved}`,
+            `  your voice: ${session.voiceId ? `${stats.voiceChecks} checks (${stats.voiceFails} failed) · ${stats.voiceYou} lines recognised as yours` : 'off'}`,
             `  suggested questions: ${stats.questionRuns} looks (${stats.questionFails} failed) · ${stats.questions} suggested · ${askNext.asked.length} asked · ${askNext.skipped.length} skipped`,
             `  → a held card dropped is a card that would have been noise; if that is most`,
             `    of them, the hold is earning its delay.`,
@@ -3528,6 +3852,7 @@
         const q = escapeHtmlText;
         switch (meta.type) {
             case 'question':      return meta.question ? q(meta.question) : '';
+            case 'recall':        return meta.question ? q(meta.question) : '';
             case 'explanation':   return meta.term ? `<b>${q(meta.term)}</b>` : '';
             case 'factcheck':     return meta.claim ? `Claim: “${q(meta.claim)}”` : '';
             case 'contradiction': return [
@@ -3639,8 +3964,9 @@
                 entry.card.classList.toggle('card-compact', v.verdict === 'correct' || v.verdict === 'unverified');
             }
         }
-        entry.gist.innerHTML = gist.trim() ? renderMarkdown(gist) : '<span class="text-gray-400">…</span>';
-        entry.moreText.innerHTML = renderMarkdown(more);
+        // "[14m]" in an answer becomes a chip that shows that moment in the transcript.
+        entry.gist.innerHTML = gist.trim() ? citeMinutes(renderMarkdown(gist)) : '<span class="text-gray-400">…</span>';
+        entry.moreText.innerHTML = citeMinutes(renderMarkdown(more));
         entry.toggle.hidden = !more.trim() && !entry.hasSources;
     }
 
@@ -4123,6 +4449,7 @@ if (m.type === 'close') {
                 // the worker — no encoding, no allocation on this thread. The periodic
                 // peak level stays here, as the evidence that audio is really flowing.
                 if (e.data instanceof ArrayBuffer) {
+                    if (voiceTap.on) voiceTap.push(e.data, this.audioContext.sampleRate);
                     this.worker.postMessage({ type: 'audio', buffer: e.data }, [e.data]);
                 } else if (e.data && typeof e.data.level === 'number') {
                     this.noteLevel(e.data.level);
@@ -4315,7 +4642,7 @@ if (m.type === 'close') {
                     objective: session.objective, type: session.type, keywords: session.keywords, roster: session.roster,
                     agenda: session.agenda, durationMin: session.durationMin, materials: session.materials,
                 },
-                segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low, speaker: s.speaker, confident: s.confident, byUser: s.byUser || undefined, t: s.t })),
+                segments: kept.map(s => ({ text: s.text, edited: s.edited, low: s.low, speaker: s.speaker, confident: s.confident, byUser: s.byUser || undefined, voice: s.voice || undefined, t: s.t })),
                 meetingState,
                 participants,
                 notes: sessionNotes,
@@ -4434,6 +4761,7 @@ if (m.type === 'close') {
                 id: `seg-${segmentSeq++}`, text: s.text,
                 edited: Boolean(s.edited), low: Boolean(s.low),
                 speaker: s.speaker || null, confident: s.confident !== false, byUser: Boolean(s.byUser),
+                voice: ['you', 'other', 'unsure'].includes(s.voice) ? s.voice : undefined,
                 t: Number.isFinite(s.t) ? s.t : undefined,
             };
             segments.push(segment);
@@ -4626,6 +4954,8 @@ if (m.type === 'close') {
         $('setup-more').open = Boolean((session.agenda || []).length || session.durationMin || session.materials || session.role);
         $('setup-accurate').checked = session.accurate;
         $('setup-record').checked = session.record;
+        $('setup-voice').checked = Boolean(session.voiceId);
+        reflectVoicePanel();
         // Only a desktop browser can share a tab's audio.
         $('tab-option').hidden = !canShareTab;
         $('setup-tab').checked = canShareTab && Boolean(session.tabAudio);
@@ -4725,6 +5055,16 @@ if (m.type === 'close') {
         session.accurate = $('setup-accurate').checked;
         session.record = $('setup-record').checked;
         session.tabAudio = canShareTab && $('setup-tab').checked;
+        // Recognising your voice needs a sample; asking for one rather than starting without it.
+        session.voiceId = $('setup-voice').checked;
+        if (session.voiceId && !readVoiceSample()) {
+            $('voice-panel').hidden = false;
+            voiceResult('Record a voice sample first, or turn “Recognise my voice” off.', 'bad');
+            $('voice-record').focus();
+            return;
+        }
+        // The voice check works from the audio the high-accuracy path captures.
+        if (session.voiceId) session.accurate = true;
         if (!session.objective && session.followUp) session.objective = `Follow-up: ${session.followUp.title}`;
         // The browser's own recogniser only ever hears the microphone.
         if (session.tabAudio) session.accurate = true;
@@ -4819,6 +5159,7 @@ if (m.type === 'close') {
             // hidden until the first state update landed, which is minutes in.
             setStateObjective();
             stateBar.classList.remove('hidden');
+            startVoiceId();
             // Openers from the brief, before anyone has said a word.
             reflectQuestionsButton();
             if (!segments.length && !askNext.open.length) runQuestions();
@@ -4953,6 +5294,7 @@ if (m.type === 'close') {
         setStatus('Not listening', 'idle');
         reflectSessionButtons();
         reflectQuestionsButton();
+        stopVoiceId();
 
         persistTranscript(true);
 
@@ -5082,6 +5424,9 @@ if (m.type === 'close') {
         charsSinceSweep = 0;
         lastSweepAt = 0;
         sweepUnsupported = false;
+        stopVoiceId();
+        voiceFailures = 0;
+        voiceUnsupported = false;
         askNext.open = [];
         askNext.asked = [];
         askNext.skipped = [];
@@ -5281,6 +5626,18 @@ if (m.type === 'close') {
     $('library-btn').addEventListener('click', () => { openLibrary(); });
 
     fillKindMenu();
+    $('setup-voice').addEventListener('change', () => { voiceResult(''); reflectVoicePanel(); });
+    $('voice-record').addEventListener('click', recordVoiceSample);
+    $('voice-test').addEventListener('click', testVoiceSample);
+    $('voice-play').addEventListener('click', () => {
+        const v = readVoiceSample();
+        if (v) new Audio(v.sample).play().catch(() => {});
+    });
+    $('voice-delete').addEventListener('click', () => {
+        try { localStorage.removeItem(VOICE_KEY); } catch (err) { /* ignore */ }
+        voiceResult('Deleted.');
+        reflectVoicePanel();
+    });
     $('pm-back').addEventListener('click', showLibraryIndex);
     $('pm-form').addEventListener('submit', (e) => { e.preventDefault(); submitPast(); });
     $('pm-input').addEventListener('input', reflectPastChat);
@@ -5420,6 +5777,8 @@ if (m.type === 'close') {
     insightsContainer.addEventListener('click', (e) => {
         const source = e.target.closest('.card-when[data-seg]');
         if (source) { jumpToSegment(source.dataset.seg); return; }
+        const minute = e.target.closest('.cite[data-min]');
+        if (minute) { jumpToMinute(Number(minute.dataset.min)); return; }
         const ask = e.target.closest('[data-ask-card]');
         if (ask) {
             const card = ask.closest('[data-card]');
