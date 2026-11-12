@@ -251,7 +251,8 @@
     // --- Past meetings: recaps the user chose to keep, in this browser only ---
     const LIBRARY_KEY = 'reverb.library';
     const LIBRARY_MAX = 30;
-    const LIBRARY_IN_CHAT = 10;
+    // A saved meeting keeps its transcript too, so it can be asked about later: about two hours of speech.
+    const LIBRARY_TRANSCRIPT_CHARS = 150000;
 
     // --- Staying alive ---
     // A phone screen going dark is the most common way a meeting quietly stops being
@@ -347,7 +348,6 @@
     // { question, answer, status: 'streaming'|'done'|'failed'|'stopped', error, el }
     const chatTurns = [];
     let chatActive = null;          // { controller, turn } while an answer streams
-    let includePast = false;        // chat also answers from the saved past meetings
     // What the meeting produced beyond the summary. To-dos come from the action cards and from
     // the user; the glossary from the jargon cards. Both outlive the cards, which aren't saved.
     const todos = [];               // { id, title, task, owner, due, done, t, seg, byUser }
@@ -962,16 +962,16 @@
     function confirmEnd() {
         if (!segments.length) { endSession(); return; }
         const saved = readLibrary().some((e) => e.id === meetingId());
-        const erases = 'This erases the transcript, insights, to-dos and brief from this browser.';
+        const erases = 'This clears the transcript, insights, to-dos and brief from this screen and this browser.';
         showAlert(saved ? {
             title: 'End This Session?',
-            message: `${erases} Its recap stays in Past Meetings.`,
+            message: `${erases} The copy you saved stays in Past Meetings, where you can open it and ask about it.`,
             actions: [{ label: 'Cancel', style: 'cancel' }, { label: 'End Session', style: 'destructive', run: endSession }],
         } : {
             title: 'End This Session?',
-            message: `${erases} Save the recap to Past Meetings to keep what was decided.`,
+            message: `${erases} Save it to Past Meetings to keep the recap and transcript, and ask about it later.`,
             actions: [
-                { label: 'Save Recap and End', style: 'default', run: () => { recapShown = null; saveToLibrary(); endSession(); } },
+                { label: 'Save and End', style: 'default', run: () => { recapShown = null; saveToLibrary(); endSession(); } },
                 { label: 'End Without Saving', style: 'destructive', run: endSession },
                 { label: 'Cancel', style: 'cancel' },
             ],
@@ -2643,19 +2643,7 @@
         return out;
     }
 
-    // Saved past meetings, as the chat reads them: the recap, never a transcript.
-    function earlierForChat() {
-        if (!includePast) return undefined;
-        const list = readLibrary().slice(0, LIBRARY_IN_CHAT);
-        if (!list.length) return undefined;
-        return list.map((e) => ({
-            title: e.recap.title,
-            date: new Date(e.recap.date).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }),
-            summary: recapText(e.recap, { todos: false }).slice(0, 6000),
-            todos: (e.recap.todos || []).map(todoLine).join('\n').slice(0, 2000),
-        }));
-    }
-    const chatReady = () => segments.length > 0 || (includePast && readLibrary().length > 0);
+    const chatReady = () => segments.length > 0;
 
     // Earlier exchanges that got a full answer: what lets "and what did Tom say about it?" work.
     function chatHistory(before) {
@@ -2772,9 +2760,7 @@
     function reflectChatReady() {
         const ready = chatReady();
         chatInput.disabled = !ready;
-        chatInput.placeholder = segments.length ? 'Ask about the meeting…'
-            : ready ? 'Ask about your past meetings…'
-            : 'Chat opens once something has been recorded';
+        chatInput.placeholder = ready ? 'Ask about the meeting…' : 'Chat opens once something has been recorded';
         for (const b of chatEmpty.querySelectorAll('[data-ask]')) b.disabled = !ready || Boolean(chatActive);
         chatSend.disabled = !chatActive && (!ready || !chatInput.value.trim());
         chatSend.textContent = chatActive ? 'Stop' : 'Ask';
@@ -2784,6 +2770,49 @@
     function sizeChatInput() {
         chatInput.style.height = 'auto';
         chatInput.style.height = `${Math.min(chatInput.scrollHeight + 2, 144)}px`;
+    }
+
+    // Ask the chat and read its answer as it streams: onDelta(text) for each piece, onBytes()
+    // whenever anything arrives (it keeps the stall timer quiet). Resolves true once the server
+    // says it is done, false if alive() says the answer is no longer wanted; throws otherwise.
+    async function streamChat(body, signal, { onDelta, onBytes, alive }) {
+        const resp = await apiFetch(chatUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal,
+            body: JSON.stringify(body),
+        });
+        if (resp.status === 404) throw new Error('Chat isn’t available on the server yet');
+        if (resp.status === 429) {
+            const d = await resp.json().catch(() => ({}));
+            throw new Error(d.error || 'Busy — too many requests. Try again in a moment.');
+        }
+        if (!resp.ok || !resp.body) {
+            const data = await resp.json().catch(() => ({}));
+            throw new Error(data.error || `Server error ${resp.status}`);
+        }
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = '', sawDone = false;
+        while (true) {
+            const { done, value } = await reader.read();
+            if (alive && !alive()) return false;
+            if (done) break;
+            if (onBytes) onBytes();
+            buf += decoder.decode(value, { stream: true });
+            let idx;
+            while ((idx = buf.indexOf('\n\n')) >= 0) {
+                const chunk = buf.slice(0, idx);
+                buf = buf.slice(idx + 2);
+                if (!chunk.trim()) continue;
+                const { event, data } = parseSse(chunk);
+                if (event === 'delta') onDelta((data && data.text) || '');
+                else if (event === 'done') sawDone = true;
+                else if (event === 'error') throw new Error((data && data.message) || 'Chat failed');
+            }
+        }
+        if (!sawDone) throw new Error('The connection dropped before the answer finished');
+        return true;
     }
 
     async function askChat(question, retryOf) {
@@ -2821,59 +2850,21 @@
         const capTimer = setTimeout(() => { expired = true; controller.abort(); }, CHAT_MAX_MS);
         chatActive.stop = () => { stopped = true; controller.abort(); };
 
-        let sawDone = false;
         try {
             bump();
-            const resp = await apiFetch(chatUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                signal: controller.signal,
-                body: JSON.stringify({
-                    question: turn.question,
-                    history: chatHistory(turn),
-                    transcript: chatTranscript(),
-                    state: meetingState,
-                    insights: insightsForChat(),
-                    earlier: earlierForChat(),
-                    session: briefForServer({ materials: false }),
-                }),
+            const finished = await streamChat({
+                question: turn.question,
+                history: chatHistory(turn),
+                transcript: chatTranscript(),
+                state: meetingState,
+                insights: insightsForChat(),
+                session: briefForServer({ materials: false }),
+            }, controller.signal, {
+                onBytes: bump,
+                alive: () => epoch === sessionEpoch,
+                onDelta: (text) => { turn.answer += text; markTurnDirty(turn); },
             });
-            if (resp.status === 404) throw new Error('Chat isn’t available on the server yet');
-            if (resp.status === 429) {
-                const d = await resp.json().catch(() => ({}));
-                throw new Error(d.error || 'Busy — too many requests. Try again in a moment.');
-            }
-            if (!resp.ok || !resp.body) {
-                const data = await resp.json().catch(() => ({}));
-                throw new Error(data.error || `Server error ${resp.status}`);
-            }
-
-            const reader = resp.body.getReader();
-            const decoder = new TextDecoder();
-            let buf = '';
-            while (true) {
-                const { done, value } = await reader.read();
-                if (epoch !== sessionEpoch) return;
-                if (done) break;
-                bump();
-                buf += decoder.decode(value, { stream: true });
-                let idx;
-                while ((idx = buf.indexOf('\n\n')) >= 0) {
-                    const chunk = buf.slice(0, idx);
-                    buf = buf.slice(idx + 2);
-                    if (!chunk.trim()) continue;
-                    const { event, data } = parseSse(chunk);
-                    if (event === 'delta') {
-                        turn.answer += (data && data.text) || '';
-                        markTurnDirty(turn);
-                    } else if (event === 'done') {
-                        sawDone = true;
-                    } else if (event === 'error') {
-                        throw new Error((data && data.message) || 'Chat failed');
-                    }
-                }
-            }
-            if (!sawDone) throw new Error('The connection dropped before the answer finished');
+            if (!finished) return;
             turn.status = 'done';
         } catch (err) {
             if (epoch !== sessionEpoch) return;
@@ -3013,26 +3004,48 @@
             return Array.isArray(v) ? v.filter((e) => e && e.id && e.recap && e.recap.title) : [];
         } catch (err) { return []; }
     }
+    // When the browser's storage is full, the oldest meetings give up their transcripts first;
+    // their recaps stay, and can still be asked about.
     function writeLibrary(list) {
-        try { localStorage.setItem(LIBRARY_KEY, JSON.stringify(list.slice(0, LIBRARY_MAX))); }
-        catch (err) { errorEl.textContent = 'Could not save — this browser’s storage is full or blocked.'; }
+        let entries = list.slice(0, LIBRARY_MAX);
+        for (;;) {
+            try {
+                localStorage.setItem(LIBRARY_KEY, JSON.stringify(entries));
+                reflectLibrary();
+                return true;
+            } catch (err) {
+                let oldest = -1;
+                entries.forEach((e, i) => { if (e.transcript) oldest = i; });
+                if (oldest < 0) break;
+                entries = entries.map((e, i) => (i === oldest ? { ...e, transcript: '' } : e));
+            }
+        }
+        errorEl.textContent = 'Could not save — this browser’s storage is full or blocked.';
         reflectLibrary();
+        return false;
     }
+    // A saved meeting keeps its recap and, so it can be asked about later, its transcript, its
+    // summary and the corrections made to it. In this browser only, until it is deleted.
     function saveToLibrary() {
         if (!segments.length) return;
+        const transcript = attributedTranscript(0, { timed: true });
         const entry = {
             id: meetingId(), savedAt: Date.now(), recap: recapShown || buildRecap(),
             roster: (session.roster || []).slice(0, 40), keywords: session.keywords.slice(0, 100), type: session.type,
+            objective: session.objective || '',
+            transcript: transcript.length > LIBRARY_TRANSCRIPT_CHARS
+                ? `[The transcript starts partway through the meeting.]\n${transcript.slice(-LIBRARY_TRANSCRIPT_CHARS)}`
+                : transcript,
+            state: meetingState || null,
+            notes: sessionNotes.trim().slice(0, NOTES_MAX),
         };
-        writeLibrary([entry, ...readLibrary().filter((e) => e.id !== entry.id)]);
+        if (!writeLibrary([entry, ...readLibrary().filter((e) => e.id !== entry.id)])) return;
         $('recap-save').textContent = 'Saved';
         toast('Saved to Past Meetings');
     }
     function reflectLibrary() {
         const n = readLibrary().length;
         $('library-btn').classList.toggle('hidden', isListening || !n);
-        $('past-toggle').hidden = !n;
-        if (!n && includePast) { includePast = false; $('past-toggle').setAttribute('aria-pressed', 'false'); }
         reflectChatReady();
     }
 
@@ -3042,17 +3055,17 @@
         for (const entry of readLibrary()) {
             const r = entry.recap;
             const li = el('li', 'library-item');
-            const info = el('div');
+            const info = el('button', 'open-meeting');
+            info.type = 'button';
+            info.title = 'Open its recap and ask about it';
             info.append(el('div', 'title', r.title), el('div', 'when',
                 [new Date(r.date).toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
                     r.minutes ? `${r.minutes} min` : '', `${(r.todos || []).filter((t) => !t.done).length} open to-dos`].filter(Boolean).join(' · ')));
+            info.addEventListener('click', () => showPastMeeting(entry));
             const actions = el('div', 'actions');
-            const view = el('a', '', 'Recap');
-            view.target = '_blank';
-            view.rel = 'noopener';
-            view.className = 'text-google-green';
-            view.href = '#';
-            recapLink(r).then((url) => { view.href = url; }).catch(() => {});
+            const view = el('button', '', 'Open');
+            view.type = 'button';
+            view.addEventListener('click', () => showPastMeeting(entry));
             const follow = el('button', '', 'Follow up');
             follow.type = 'button';
             follow.disabled = segments.length > 0;
@@ -3072,7 +3085,192 @@
             li.append(info, actions);
             list.append(li);
         }
+        $('library-index').hidden = false;
+        $('library-meeting').hidden = true;
         $('library-modal').classList.remove('hidden');
+    }
+
+    // ---------- one past meeting: its recap, and a chat about it alone ----------
+    // Past meetings are rarely about the same thing, so each is asked about on its own, from its
+    // own screen, with only its own record: the transcript, summary and corrections saved with it.
+    // A meeting saved before transcripts were kept is answered from its recap.
+    const pastChats = new Map();   // meeting id → [{ question, answer, status, error, el }]
+    let pastOpen = null, pastActive = null;
+    const pastTurns = (entry) => {
+        if (!pastChats.has(entry.id)) pastChats.set(entry.id, []);
+        return pastChats.get(entry.id);
+    };
+
+    function showPastMeeting(entry) {
+        if (pastActive) pastActive.stop();
+        pastOpen = entry;
+        const r = entry.recap;
+        $('library-index').hidden = true;
+        $('library-meeting').hidden = false;
+        $('pm-title').textContent = r.title;
+        $('pm-when').textContent = [
+            new Date(r.date).toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
+            r.minutes ? `${r.minutes} min` : '', (r.people || []).join(', '),
+        ].filter(Boolean).join(' · ');
+        // The title and date are already above it.
+        $('pm-recap').textContent = recapText(r).split('\n').slice(2).join('\n').trim();
+        $('pm-chat-note').textContent = entry.transcript
+            ? 'Answered only from this meeting’s transcript, summary and corrections, with the minute each point was said.'
+            : 'Saved before transcripts were kept, so answers come from its recap only.';
+        $('pm-follow').disabled = segments.length > 0;
+        $('pm-follow').title = segments.length ? 'End the current session first' : 'Start a new meeting that picks up from this one';
+        $('pm-delete').textContent = 'Delete';
+        const log = $('pm-log');
+        log.replaceChildren();
+        for (const t of pastTurns(entry)) { t.el = null; renderPastTurn(t); }
+        reflectPastChat();
+        $('pm-input').focus();
+    }
+
+    function showLibraryIndex() {
+        if (pastActive) pastActive.stop();
+        pastOpen = null;
+        if (readLibrary().length) openLibrary();
+        else closeModal('library-modal');
+    }
+
+    // Minutes in a past meeting's answer can't jump to a transcript on screen, so each shows the
+    // line it points at when hovered.
+    function pastCites(html, entry) {
+        const text = (entry && entry.transcript) || '';
+        const lineAt = (m) => {
+            const i = text.indexOf(`[${m}m]`);
+            return i < 0 ? `Minute ${m}` : `${text.slice(i + m.length + 3, i + 200).replace(/\s+/g, ' ').trim()}…`;
+        };
+        return html.replace(/\[(~?\d{1,4}m(?:\s*(?:[,–—-]|and)\s*~?\d{1,4}m)*)\]/g, (_, inner) =>
+            inner.match(/\d{1,4}(?=m)/g).map((m) =>
+                `<span class="cite cite-static" title="${escapeHtmlText(lineAt(m))}">${m}m</span>`).join(''));
+    }
+
+    function renderPastTurn(turn) {
+        const log = $('pm-log');
+        if (!turn.el) {
+            turn.el = el('div', 'chat-turn');
+            turn.el.append(el('div', 'chat-q', turn.question));
+            const a = el('div', 'chat-a');
+            a.append(el('div', 'reverb-answer'), el('div', 'chat-a-foot'));
+            turn.el.append(a);
+            log.append(turn.el);
+        }
+        const body = turn.el.querySelector('.reverb-answer');
+        const foot = turn.el.querySelector('.chat-a-foot');
+        foot.replaceChildren();
+        if (turn.answer.trim()) body.innerHTML = pastCites(renderMarkdown(turn.answer), pastOpen);
+        else if (turn.status === 'streaming') body.innerHTML = `<span class="chat-thinking">${spinnerSvg}<span>Reading the meeting…</span></span>`;
+        else body.replaceChildren();
+        const button = (label, act) => {
+            const b = el('button', '', label);
+            b.type = 'button';
+            b.dataset.act = act;
+            foot.append(b);
+        };
+        if (turn.status === 'failed' || turn.status === 'stopped') {
+            foot.append(el('span', 'chat-a-error', turn.status === 'stopped' ? 'Stopped.' : turn.error || 'Something went wrong.'));
+            button('Try again', 'retry');
+        }
+        if (turn.status !== 'streaming' && turn.answer.trim()) button('Copy', 'copy');
+        foot.hidden = !foot.childElementCount;
+    }
+
+    function reflectPastChat() {
+        const input = $('pm-input'), send = $('pm-send');
+        send.textContent = pastActive ? 'Stop' : 'Ask';
+        send.classList.toggle('stop', Boolean(pastActive));
+        send.disabled = !pastActive && !input.value.trim();
+    }
+
+    async function askPast(question, retryOf) {
+        const entry = pastOpen;
+        if (!entry || pastActive) return;
+        const q = String(question || '').trim().slice(0, CHAT_QUESTION_MAX);
+        if (!q) return;
+        const turns = pastTurns(entry);
+        let turn = retryOf;
+        if (turn) Object.assign(turn, { answer: '', status: 'streaming', error: '' });
+        else {
+            turn = { question: q, answer: '', status: 'streaming', error: '', el: null };
+            turns.push(turn);
+        }
+        renderPastTurn(turn);
+        turn.el.scrollIntoView({ block: 'nearest' });
+
+        const controller = new AbortController();
+        let stalled = false, stopped = false, stallTimer = null;
+        const bump = () => {
+            clearTimeout(stallTimer);
+            stallTimer = setTimeout(() => { stalled = true; controller.abort(); }, CHAT_STALL_MS);
+        };
+        const capTimer = setTimeout(() => controller.abort(), CHAT_MAX_MS);
+        pastActive = { controller, turn, stop: () => { stopped = true; controller.abort(); } };
+        reflectPastChat();
+
+        const history = [];
+        for (const t of turns) {
+            if (t === turn) break;
+            if (t.status === 'done' && t.answer.trim()) history.push({ role: 'user', text: t.question }, { role: 'assistant', text: t.answer });
+        }
+        const r = entry.recap;
+        const date = new Date(r.date).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+        let frame = 0;
+        try {
+            bump();
+            await streamChat({
+                question: turn.question,
+                history: history.slice(-CHAT_HISTORY_TURNS * 2),
+                transcript: entry.transcript || '',
+                state: entry.state || null,
+                insights: [],
+                session: {
+                    type: entry.type, objective: entry.objective || r.title,
+                    roster: entry.roster || [], keywords: (entry.keywords || []).slice(0, 100),
+                    ...(entry.notes ? { notes: entry.notes } : {}),
+                },
+                // Saved before transcripts were kept: its recap is all there is to answer from.
+                ...(entry.transcript ? {} : { earlier: [{
+                    title: r.title, date,
+                    summary: recapText(r, { todos: false }).slice(0, 6000),
+                    todos: (r.todos || []).map(todoLine).join('\n').slice(0, 2000),
+                }] }),
+            }, controller.signal, {
+                onBytes: bump,
+                onDelta: (text) => {
+                    turn.answer += text;
+                    if (!frame && pastOpen === entry) frame = requestAnimationFrame(() => { frame = 0; renderPastTurn(turn); });
+                },
+            });
+            turn.status = 'done';
+        } catch (err) {
+            if (stopped) turn.status = 'stopped';
+            else {
+                console.error('ReVerb past-meeting chat error:', err);
+                turn.status = 'failed';
+                turn.error = stalled ? 'The answer stopped partway.'
+                    : err.name === 'TypeError' ? 'Couldn’t reach the server.'
+                    : err.message || 'Something went wrong.';
+            }
+        } finally {
+            clearTimeout(stallTimer);
+            clearTimeout(capTimer);
+            if (frame) cancelAnimationFrame(frame);
+            pastActive = null;
+            if (pastOpen === entry) renderPastTurn(turn);
+            reflectPastChat();
+        }
+    }
+
+    function submitPast() {
+        if (pastActive) { pastActive.stop(); return; }
+        const input = $('pm-input');
+        const q = input.value.trim();
+        if (!q) return;
+        input.value = '';
+        reflectPastChat();
+        askPast(q);
     }
 
     // A follow-up starts with the last meeting's outcome in the brief: its decisions, what was
@@ -4780,11 +4978,8 @@ if (m.type === 'close') {
             `${segments.length} transcript segment${segments.length === 1 ? '' : 's'}`,
             minutes ? `${minutes} min` : null,
             session.record
-                ? 'Continue session keeps the full context, but starts a new recording file — use Pause for a break.'
-                : 'Nothing is lost — Continue session picks up with the full context.',
-            session.record
-                ? 'End session erases the transcript, insights and brief; the recording file on disk is kept.'
-                : 'End session erases the transcript, insights and brief.',
+                ? 'Nothing is lost: Continue Session picks up where you left off, in a new recording file (use Pause for a break), and End Session clears the meeting from this browser — the recording on disk is kept.'
+                : 'Nothing is lost: Continue Session picks up where you left off, and End Session clears the meeting from this browser.',
         ].filter(Boolean).join(' · ');
 
         endAudio.replaceChildren();
@@ -4965,8 +5160,6 @@ if (m.type === 'close') {
         e.target.value = '';
     });
 
-    $('end-continue').addEventListener('click', () => { sessionEnd.classList.add('hidden'); startListening(); });
-    $('end-session').addEventListener('click', confirmEnd);
     $('improve-btn').addEventListener('click', startImprove);
     $('end-improve').addEventListener('click', startImprove);
     $('improve-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; onImproveFile(f); });
@@ -5088,6 +5281,47 @@ if (m.type === 'close') {
     $('library-btn').addEventListener('click', () => { openLibrary(); });
 
     fillKindMenu();
+    $('pm-back').addEventListener('click', showLibraryIndex);
+    $('pm-form').addEventListener('submit', (e) => { e.preventDefault(); submitPast(); });
+    $('pm-input').addEventListener('input', reflectPastChat);
+    $('pm-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); submitPast(); }
+    });
+    $('pm-log').addEventListener('click', (e) => {
+        const act = e.target.closest('.chat-a-foot [data-act]');
+        if (!act || !pastOpen) return;
+        const turn = pastTurns(pastOpen).find((t) => t.el && t.el.contains(act));
+        if (!turn) return;
+        if (act.dataset.act === 'retry') askPast(turn.question, turn);
+        else if (act.dataset.act === 'copy') copyToClipboard(turn.answer.trim(), act);
+    });
+    $('pm-link').addEventListener('click', async () => {
+        if (!pastOpen) return;
+        const url = await recapLink(pastOpen.recap).catch(() => '');
+        copyToClipboard(url, $('pm-link'), 'Link');
+    });
+    $('pm-follow').addEventListener('click', () => {
+        if (!pastOpen || segments.length) return;
+        const entry = pastOpen;
+        closeModal('library-modal');
+        startFollowUp(entry);
+    });
+    let pmDeleteArmed = 0;
+    $('pm-delete').addEventListener('click', () => {
+        if (!pastOpen) return;
+        const button = $('pm-delete');
+        if (!pmDeleteArmed) {
+            button.textContent = 'Delete? Click again';
+            pmDeleteArmed = setTimeout(() => { pmDeleteArmed = 0; button.textContent = 'Delete'; }, 3000);
+            return;
+        }
+        clearTimeout(pmDeleteArmed);
+        pmDeleteArmed = 0;
+        const id = pastOpen.id;
+        pastChats.delete(id);
+        writeLibrary(readLibrary().filter((e) => e.id !== id));
+        showLibraryIndex();
+    });
     $('questions-refresh').addEventListener('click', () => runQuestions({ manual: true }));
     for (const modal of [$('recap-modal'), $('library-modal')]) {
         modal.addEventListener('click', (e) => {
@@ -5097,11 +5331,6 @@ if (m.type === 'close') {
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         for (const id of ['recap-modal', 'library-modal']) closeModal(id);
-    });
-    $('past-toggle').addEventListener('click', () => {
-        includePast = !includePast;
-        $('past-toggle').setAttribute('aria-pressed', String(includePast));
-        reflectChatReady();
     });
     $('todo-add').addEventListener('click', () => openTodoForm(null));
     $('todo-list').addEventListener('click', (e) => {
