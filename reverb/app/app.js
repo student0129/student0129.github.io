@@ -170,13 +170,15 @@
     const SWEEP_CONTEXT_CHARS = 9000;    // ~8 minutes of speech
     const SWEEP_TIMEOUT_MS = 45000;      // the server allows the call 40s
 
-    // --- Ask next (the questions worth asking now) ---
-    // Every minute that brought real speech, and sooner once the list is nearly used up: an empty
-    // list is exactly when someone looks for the next question. Before anyone speaks, openers.
-    const QUESTIONS_INTERVAL_MS = 60 * 1000;
-    const QUESTIONS_MIN_NEW_CHARS = 450;
-    const QUESTIONS_REFILL_MS = 20 * 1000;
-    const QUESTIONS_REFILL_CHARS = 150;
+    // --- Suggested questions ---
+    // Looked for again every half-minute that brought a couple of sentences of new talk, and sooner
+    // when fewer than two are open: that is exactly when someone looks for the next question.
+    // Before anyone speaks, openers.
+    const QUESTIONS_INTERVAL_MS = 30 * 1000;
+    const QUESTIONS_MIN_NEW_CHARS = 250;
+    const QUESTIONS_REFILL_MS = 15 * 1000;
+    const QUESTIONS_REFILL_CHARS = 120;
+    const QUESTIONS_MAX_OPEN = 3;        // open question cards at once; the oldest is quieted past this
     const QUESTIONS_CONTEXT_CHARS = 14000;   // ~12 minutes of speech
     const QUESTIONS_TIMEOUT_MS = 45000;      // the server allows the call 40s
 
@@ -1573,6 +1575,7 @@
         const muted = CARD_TYPE_ORDER.filter((t) => !enabledTypes.has(t));
         insightsContainer.dataset.muted = muted.join(' ');
         filterToggle.textContent = muted.length ? `Filters · ${muted.length} muted` : 'Filters';
+        reflectQuestionsButton();
     }
 
     function resetTypePrefs() {
@@ -2173,46 +2176,44 @@
     }
 
 
-    // ---------- Ask next: the questions worth asking now ----------
-    // A short list, refreshed in place: the few questions most worth asking in the next few
-    // minutes, for this person, in this kind of meeting. The cards react to single lines and catch
-    // problems; this reads the last stretch as a whole and asks what would move the meeting toward
-    // its goal. A question can be marked asked or skipped, and either way it never comes back.
-    // Before anyone speaks, it offers openers from the brief.
-    const askNext = { shown: [], asked: [], skipped: [], earlier: [] };
+    // ---------- suggested questions ----------
+    // Every half-minute or so of talk, ReVerb reads the recent stretch as a whole and asks what is
+    // most worth asking next, for this person in this kind of meeting. Each new question becomes an
+    // "Ask this" card, alongside the ones the card lane raises from a single line, and the filters
+    // treat them alike. Asked or Skip settles a question for good. One the room asked anyway is
+    // marked Asked, and one a later look passed over is quieted as Earlier rather than removed, so
+    // the panel stays a record of the meeting. Before anyone speaks, it offers openers.
+    const askNext = { open: [], asked: [], skipped: [], earlier: [] };   // open: { text, kind, why, to, card }
     let questionsRunning = false, lastQuestionsAt = 0, charsSinceQuestions = 0, questionsUnsupported = false;
-    let questionSeq = 0, askStatus = '';
-    let askCollapsed = false;
-    try { askCollapsed = localStorage.getItem('reverb.asknext.collapsed') === '1'; } catch (err) { /* ignore */ }
     const QUESTION_KIND_LABEL = {
         clarify: 'Clarify', probe: 'Dig in', 'follow-up': 'Follow up', challenge: 'Challenge',
         connect: 'Connect', 'next-step': 'Next step', opener: 'To open',
     };
     const normQuestion = (t) => String(t).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    const questionsOn = () => enabledTypes.has('ask') && !questionsUnsupported;
 
-    // What the card lanes are told is already on screen: the cards, and the questions in Ask Next,
-    // so an "Ask this" card doesn't repeat a question the list already has.
+    // What the card lane is told is already on screen: the cards, and the open questions, so a
+    // card from a single line doesn't repeat a question already suggested.
     function onScreen() {
-        return [...answeredTitles.slice(-ANSWERED_MEMORY), ...askNext.shown.map((q) => ({ type: 'ask', title: q.text }))];
+        return [...answeredTitles.slice(-ANSWERED_MEMORY), ...askNext.open.map((q) => ({ type: 'ask', title: q.text }))];
     }
 
     function maybeRunQuestions() {
-        if (questionsRunning || questionsUnsupported || !isListening || isPaused) return;
+        if (questionsRunning || !questionsOn() || !isListening || isPaused) return;
         const since = Date.now() - lastQuestionsAt;
         if (charsSinceQuestions >= QUESTIONS_MIN_NEW_CHARS && since >= QUESTIONS_INTERVAL_MS) runQuestions();
-        else if (askNext.shown.length <= 1 && charsSinceQuestions >= QUESTIONS_REFILL_CHARS && since >= QUESTIONS_REFILL_MS) runQuestions();
+        else if (askNext.open.length < 2 && charsSinceQuestions >= QUESTIONS_REFILL_CHARS && since >= QUESTIONS_REFILL_MS) runQuestions();
     }
 
     async function runQuestions(opts) {
         const manual = Boolean(opts && opts.manual);
-        if (questionsRunning || questionsUnsupported) return;
+        if (questionsRunning || !questionsOn()) return;
         questionsRunning = true;
         lastQuestionsAt = Date.now();
         const spent = charsSinceQuestions;
         charsSinceQuestions = 0;
-        askStatus = '';
         stats.questionRuns++;
-        reflectAskNext();
+        reflectQuestionsButton();
 
         // Cut at a line start, so the stretch never opens mid-sentence with no speaker.
         let transcript = segments.length ? attributedTranscript(0, { timed: true }) : '';
@@ -2221,12 +2222,12 @@
             const nl = tail.indexOf('\n');
             transcript = nl >= 0 && nl < 2000 ? tail.slice(nl + 1) : tail;
         }
+        const opening = transcript.length < 200;
 
         const controller = new AbortController();
         const epoch = sessionEpoch;
         inflight.add(controller);
         const timeout = setTimeout(() => controller.abort(), QUESTIONS_TIMEOUT_MS);
-        let failed = false;
         try {
             const resp = await apiFetch(questionsUrl, {
                 method: 'POST',
@@ -2237,7 +2238,7 @@
                     session: briefForServer(),
                     state: meetingState,
                     answered: answeredTitles.slice(-ANSWERED_MEMORY),
-                    shown: askNext.shown.map((q) => q.text),
+                    shown: askNext.open.map((q) => q.text),
                     asked: askNext.asked.slice(-30),
                     skipped: askNext.skipped.slice(-20),
                     earlier: askNext.earlier.slice(-20),
@@ -2245,124 +2246,131 @@
             });
             const data = await resp.json().catch(() => ({}));
             if (epoch !== sessionEpoch) return;
-            // A server from before Ask Next existed. Stop asking rather than fail every time.
+            // A server from before suggested questions existed. Stop asking rather than fail every time.
             if (resp.status === 404) { questionsUnsupported = true; return; }
             if (!resp.ok) throw new Error(data.error || `server ${resp.status}`);
-            applyQuestions(data);
+            applyQuestions(data, { opening, manual });
         } catch (err) {
             if (epoch !== sessionEpoch) return;
-            failed = true;
             stats.questionFails++;
-            charsSinceQuestions += spent;   // the next pass reads this stretch too
+            charsSinceQuestions += spent;   // the next look reads this stretch too
+            if (manual) toast('Couldn’t get questions just now');
             console.error('ReVerb questions error:', err);
         } finally {
             clearTimeout(timeout);
             inflight.delete(controller);
             questionsRunning = false;
-            if (epoch === sessionEpoch) {
-                if (failed && (manual || !askNext.shown.length)) askStatus = 'Couldn’t get questions just now. Try New Questions in a moment.';
-                reflectAskNext();
-            }
+            reflectQuestionsButton();
         }
     }
 
-    function applyQuestions(data) {
-        // The room asked these itself: kept as asked, so they never come back.
+    function applyQuestions(data, opts) {
         const done = new Set((Array.isArray(data.done) ? data.done : []).map(normQuestion));
-        for (const q of askNext.shown) if (done.has(normQuestion(q.text))) askNext.asked.push(q.text);
-        const kept = new Map(askNext.shown.filter((q) => !done.has(normQuestion(q.text))).map((q) => [normQuestion(q.text), q]));
-        const next = [];
+        for (const q of [...askNext.open]) if (done.has(normQuestion(q.text))) settleQuestion(q, 'room');
+
+        const settled = new Set([...askNext.asked, ...askNext.skipped].map(normQuestion));
+        const keep = new Set();
+        const fresh = [];
         for (const q of Array.isArray(data.questions) ? data.questions : []) {
             if (!q || typeof q.text !== 'string' || !q.text.trim()) continue;
             const key = normQuestion(q.text);
-            if (kept.has(key)) { next.push(kept.get(key)); kept.delete(key); continue; }
-            next.push({ id: `q-${questionSeq++}`, text: q.text.trim(), kind: q.kind || 'probe', why: q.why || '', to: q.to || '', fresh: true });
-            stats.questions++;
+            const open = askNext.open.find((o) => normQuestion(o.text) === key);
+            if (open) keep.add(open);
+            else if (!settled.has(key) && !fresh.some((f) => normQuestion(f.text) === key)) fresh.push(q);
         }
-        // Shown and passed over: remembered, so the same question doesn't keep coming back.
-        for (const q of kept.values()) askNext.earlier.push(q.text);
-        askNext.shown = next.slice(0, 3);
+        // Passed over by this look: quieted, not removed.
+        for (const q of [...askNext.open]) if (!keep.has(q)) settleQuestion(q, 'earlier');
+
+        // A couple of new cards at a time, the best on top; the rest can come next time.
+        const adding = fresh.slice(0, opts && opts.opening ? 3 : 2);
+        for (const q of adding.reverse()) showQuestionCard(q);
+        while (askNext.open.length > QUESTIONS_MAX_OPEN) settleQuestion(askNext.open[0], 'earlier');
+        if (opts && opts.manual && !adding.length) toast(askNext.open.length ? 'Nothing better to ask yet' : 'No questions worth asking yet');
+
         askNext.asked = askNext.asked.slice(-60);
+        askNext.skipped = askNext.skipped.slice(-40);
         askNext.earlier = askNext.earlier.slice(-40);
-        renderAskNext();
         persistTranscript();
     }
 
-    function renderQuestion(q) {
-        const li = el('li', `ask-q${q.fresh ? ' fresh' : ''}`);
-        li.dataset.id = q.id;
-        const main = el('div', 'ask-q-main');
-        const meta = el('div', 'ask-meta');
-        meta.append(el('span', '', QUESTION_KIND_LABEL[q.kind] || 'Ask'));
-        if (q.to) meta.append(el('span', 'ask-to', `to ${q.to}`));
-        main.append(meta, el('p', 'ask-text', q.text));
-        if (q.why) main.append(el('p', 'ask-why', q.why));
-        const actions = el('div', 'ask-actions');
-        const asked = el('button', '', 'Asked');
-        asked.type = 'button';
-        asked.dataset.act = 'asked';
-        asked.title = 'I asked it: don’t suggest it again';
-        const skip = el('button', '', 'Skip');
-        skip.type = 'button';
-        skip.dataset.act = 'skip';
-        skip.title = 'Not useful: nothing like it will come back';
-        actions.append(asked, skip);
-        li.append(main, actions);
-        return li;
+    // The question is the card's headline; who to ask, the kind of question and why sit around it.
+    function showQuestionCard(q) {
+        const card = placeCard(++cardOrder);
+        renderSkeleton(card, { type: 'ask', title: q.text.trim(), to: q.to || '' });
+        const kind = QUESTION_KIND_LABEL[q.kind];
+        if (kind) card.querySelector('.card-chip').after(el('span', 'card-kind', kind));
+        const gist = card.querySelector('.card-gist');
+        gist.replaceChildren();
+        if (q.why) gist.append(el('p', 'card-why', q.why));
+        askNext.open.push({ text: q.text.trim(), kind: q.kind || 'probe', why: q.why || '', to: q.to || '', card });
+        bumpStat('cards', 'ask');
+        stats.questions++;
     }
 
-    function renderAskNext() {
-        const list = $('asknext-list');
-        const existing = new Map([...list.children].map((li) => [li.dataset.id, li]));
-        list.replaceChildren(...askNext.shown.map((q) => existing.get(q.id) || renderQuestion(q)));
-        for (const q of askNext.shown) q.fresh = false;
-        reflectAskNext();
+    function markQuestionCard(card, label) {
+        if (!card || card.classList.contains('card-resolved')) return;
+        card.classList.add('card-resolved');
+        if (label === 'Earlier') card.classList.add('card-compact');
+        const mark = el('span', 'card-resolved-mark', label);
+        if (label === 'Earlier') mark.dataset.mark = 'earlier';
+        (card.querySelector('.card-kind') || card.querySelector('.card-chip')).after(mark);
     }
 
-    function settleQuestion(id, how) {
-        const i = askNext.shown.findIndex((q) => q.id === id);
-        if (i < 0) return;
-        const [q] = askNext.shown.splice(i, 1);
-        (how === 'asked' ? askNext.asked : askNext.skipped).push(q.text);
-        const li = $('asknext-list').querySelector(`[data-id="${id}"]`);
-        if (li) {
-            li.classList.add('leaving');
-            setTimeout(() => li.remove(), 280);
+    // how: 'asked' (by the user), 'room' (asked by someone, or answered, anyway), 'skipped', 'earlier'.
+    function settleQuestion(q, how) {
+        askNext.open = askNext.open.filter((o) => o !== q);
+        if (how === 'skipped') {
+            askNext.skipped.push(q.text);
+            dismissedTitles.push({ type: 'ask', title: q.text.slice(0, 120) });
+            removeCard(q.card);
+            return;
         }
-        reflectAskNext();
+        (how === 'earlier' ? askNext.earlier : askNext.asked).push(q.text);
+        markQuestionCard(q.card, how === 'earlier' ? 'Earlier' : 'Asked');
+    }
+
+    // Asked or Skip, on any "Ask this" card: a suggested question, or one the card lane raised from
+    // a single line (whose question is the bold line of its answer).
+    function onAskAct(card, act) {
+        const q = askNext.open.find((o) => o.card === card);
+        if (q) settleQuestion(q, act === 'asked' ? 'asked' : 'skipped');
+        else {
+            const strong = card.querySelector('.card-gist strong');
+            const text = (strong && strong.textContent.trim()) || card.dataset.title || '';
+            if (act === 'asked') {
+                askNext.asked.push(text);
+                markQuestionCard(card, 'Asked');
+            } else {
+                askNext.skipped.push(text);
+                if (card.dataset.title) dismissedTitles.push({ type: 'ask', title: card.dataset.title.slice(0, 120) });
+                forgetCardProducts(card);
+                removeCard(card);
+            }
+        }
+        if (act === 'asked') stats.useful++; else stats.notUseful++;
         persistTranscript();
         maybeRunQuestions();
     }
 
-    function reflectAskNext() {
-        const section = $('asknext');
-        const active = isListening || segments.length > 0 || askNext.shown.length > 0 || questionsRunning;
-        section.hidden = !active;
-        if (!active) return;
-        const n = askNext.shown.length;
-        const count = $('asknext-count');
-        count.textContent = String(n);
-        count.hidden = !askCollapsed || !n;
-        $('asknext-toggle').setAttribute('aria-expanded', String(!askCollapsed));
-        $('asknext-body').hidden = askCollapsed;
-        const refresh = $('asknext-refresh');
-        refresh.disabled = questionsRunning || questionsUnsupported;
-        refresh.textContent = questionsRunning ? 'Thinking…' : 'New Questions';
-        $('asknext-status').textContent = askStatus
-            || (n ? '' : questionsRunning ? 'Finding the questions worth asking…'
-                : isListening ? 'Questions worth asking appear here as the conversation gets going.'
-                : 'No questions right now. New Questions asks for more.');
+    // "Suggest Questions", beside Filters: there whenever a meeting is on screen and the "Ask this"
+    // cards aren't muted.
+    function reflectQuestionsButton() {
+        const button = $('questions-refresh');
+        button.hidden = !questionsOn() || !(isListening || segments.length);
+        button.disabled = questionsRunning;
+        button.textContent = questionsRunning ? 'Thinking…' : 'Suggest Questions';
+    }
 
-        // How far the meeting has got through what its kind of meeting needs.
+    // How far the meeting has got through what its kind of meeting needs, on the summary bar.
+    function reflectCoverage() {
         const cover = meetingState && Array.isArray(meetingState.coverage) ? meetingState.coverage.filter((c) => c && c.item) : [];
-        const chip = $('asknext-cover');
+        const chip = $('cover-chip');
         chip.hidden = !cover.length;
-        if (cover.length) {
-            const covered = cover.filter((c) => c.status === 'covered').length;
-            chip.textContent = `${covered} of ${cover.length} covered`;
-            const left = cover.filter((c) => c.status !== 'covered').map((c) => c.item);
-            chip.title = left.length ? `Still to cover: ${left.join(', ')}` : 'Everything this meeting needs has been covered';
-        }
+        if (!cover.length) return;
+        const covered = cover.filter((c) => c.status === 'covered').length;
+        chip.textContent = `${covered} of ${cover.length} covered`;
+        const left = cover.filter((c) => c.status !== 'covered').map((c) => c.item);
+        chip.title = left.length ? `Still to cover: ${left.join(', ')}` : 'Everything this meeting needs has been covered';
     }
 
     // ---------- slow lane: topic tree + rolling summary ----------
@@ -2508,7 +2516,7 @@
             if (meetingState.objectiveProgress) summaryBody.append(el('p', 'text-xs text-gray-500 mt-1', meetingState.objectiveProgress));
             for (const [label, items] of stateSections(meetingState)) appendSummaryList(label, items);
         }
-        reflectAskNext();
+        reflectCoverage();
     }
 
     // Everything in the state past the headline, as labelled lists — shared by the panel and
@@ -3258,7 +3266,7 @@
             `  filtered as not worth raising ${stats.filtered} · retracted at answer time ${stats.dropped} · action updates merged ${stats.merged}`,
             `  held to hear what came next ${stats.held} · of those dropped because the room covered it ${stats.heldDropped}`,
             `  sweeps ${stats.sweeps} (${stats.sweepFails} failed) · cards the room later addressed ${stats.resolved}`,
-            `  ask next: ${stats.questionRuns} runs (${stats.questionFails} failed) · ${stats.questions} questions suggested · ${askNext.asked.length} asked · ${askNext.skipped.length} skipped`,
+            `  suggested questions: ${stats.questionRuns} looks (${stats.questionFails} failed) · ${stats.questions} suggested · ${askNext.asked.length} asked · ${askNext.skipped.length} skipped`,
             `  → a held card dropped is a card that would have been noise; if that is most`,
             `    of them, the hold is earning its delay.`,
             `  feedback: useful ${stats.useful} · not useful ${stats.notUseful} · bias now ${tally(typeBias, cardLabel)}`,
@@ -3331,8 +3339,9 @@
             // A dig-deeper card's gist already names what is being skipped; repeating it as a
             // subject line only doubled the text.
             case 'gap':           return '';
-            // The gist is the question to ask; this says what it would clear up.
-            case 'ask':           return meta.claim ? `Unclear: ${q(meta.claim)}` : '';
+            // From a single line, the gist is the question and this says what it would clear up;
+            // a suggested question is its own title, and this says who to ask.
+            case 'ask':           return meta.claim ? `Unclear: ${q(meta.claim)}` : meta.to ? `Ask ${q(meta.to)}` : '';
             default:              return '';
         }
     }
@@ -3354,6 +3363,18 @@
         const title = meta.title || ui.label;
         const subject = cardSubject(meta);
         const isAction = meta.type === 'action';
+        // A question to ask is settled by asking it or skipping it, not by thumbs.
+        const isAsk = meta.type === 'ask';
+        const foot = isAsk
+            ? `<div class="card-ask-actions">
+                        <button type="button" data-ask-act="asked" title="I asked it: don’t suggest it again">Asked</button>
+                        <button type="button" data-ask-act="skip" title="Not useful: nothing like it will come back">Skip</button>
+                    </div>`
+            : `<div class="card-feedback">
+                        <button type="button" data-ask-card aria-label="Ask about this in chat" title="Ask about this in chat">${chatBubble}</button>
+                        <button type="button" data-feedback="up" aria-pressed="false" aria-label="Useful" title="Useful">${thumbUp}</button>
+                        <button type="button" data-feedback="down" aria-label="Not useful — hide, and show fewer like this" title="Not useful — hide, and show fewer like this">${thumbDown}</button>
+                    </div>`;
 
         // Drives the accent colour, via the [data-type] custom properties in the stylesheet.
         card.dataset.type = meta.type;
@@ -3381,11 +3402,7 @@
                 </div>
                 <div class="card-foot">
                     <button type="button" class="card-more-toggle" aria-expanded="false" hidden>More</button>
-                    <div class="card-feedback">
-                        <button type="button" data-ask-card aria-label="Ask about this in chat" title="Ask about this in chat">${chatBubble}</button>
-                        <button type="button" data-feedback="up" aria-pressed="false" aria-label="Useful" title="Useful">${thumbUp}</button>
-                        <button type="button" data-feedback="down" aria-label="Not useful — hide, and show fewer like this" title="Not useful — hide, and show fewer like this">${thumbDown}</button>
-                    </div>
+                    ${foot}
                 </div>
             </div>`;
         return {
@@ -4118,10 +4135,9 @@ if (m.type === 'close') {
                 answered: answeredTitles.slice(-ANSWERED_MEMORY),
                 dismissed: dismissedTitles.slice(-DISMISSED_MEMORY),
                 bias: { ...typeBias },
-                askNext: {
-                    shown: askNext.shown.map(({ text, kind, why, to }) => ({ text, kind, why, to })),
-                    asked: askNext.asked, skipped: askNext.skipped, earlier: askNext.earlier,
-                },
+                // The cards themselves aren't kept, like every other card; what was asked, skipped and
+                // passed over is, so none of it is suggested again after a reload.
+                askNext: { asked: askNext.asked, skipped: askNext.skipped, earlier: askNext.earlier },
             }));
         } catch (err) { /* quota or private mode — the session still runs */ }
     }
@@ -4279,10 +4295,8 @@ if (m.type === 'close') {
         askNext.asked = texts(savedAsk.asked, 60);
         askNext.skipped = texts(savedAsk.skipped, 40);
         askNext.earlier = texts(savedAsk.earlier, 40);
-        askNext.shown = (Array.isArray(savedAsk.shown) ? savedAsk.shown : [])
-            .filter((q) => q && typeof q.text === 'string' && q.text.trim()).slice(0, 3)
-            .map((q) => ({ id: `q-${questionSeq++}`, text: q.text, kind: q.kind || 'probe', why: q.why || '', to: q.to || '' }));
-        renderAskNext();
+        askNext.open = [];
+        reflectQuestionsButton();
         for (const key of Object.keys(typeBias)) delete typeBias[key];
         if (data.bias && typeof data.bias === 'object') {
             for (const [type, value] of Object.entries(data.bias)) {
@@ -4608,8 +4622,8 @@ if (m.type === 'close') {
             setStateObjective();
             stateBar.classList.remove('hidden');
             // Openers from the brief, before anyone has said a word.
-            reflectAskNext();
-            if (!segments.length && !askNext.shown.length) runQuestions();
+            reflectQuestionsButton();
+            if (!segments.length && !askNext.open.length) runQuestions();
 
             stateTimer = setInterval(() => {
                 maybeRunState(true);
@@ -4740,7 +4754,7 @@ if (m.type === 'close') {
         startBtn.classList.remove('hidden');
         setStatus('Not listening', 'idle');
         reflectSessionButtons();
-        reflectAskNext();
+        reflectQuestionsButton();
 
         persistTranscript(true);
 
@@ -4873,15 +4887,15 @@ if (m.type === 'close') {
         charsSinceSweep = 0;
         lastSweepAt = 0;
         sweepUnsupported = false;
-        askNext.shown = [];
+        askNext.open = [];
         askNext.asked = [];
         askNext.skipped = [];
         askNext.earlier = [];
         lastQuestionsAt = 0;
         charsSinceQuestions = 0;
         questionsUnsupported = false;
-        askStatus = '';
-        renderAskNext();
+        reflectQuestionsButton();
+        reflectCoverage();
         if (!stateBody.classList.contains('hidden')) toggleStateBody();
         stateBar.classList.add('hidden');
         topicTree.replaceChildren(el('p', 'text-gray-400 italic font-light', 'Listening for the shape of the discussion…'));
@@ -5074,18 +5088,7 @@ if (m.type === 'close') {
     $('library-btn').addEventListener('click', () => { openLibrary(); });
 
     fillKindMenu();
-    $('asknext-toggle').addEventListener('click', () => {
-        askCollapsed = !askCollapsed;
-        try { localStorage.setItem('reverb.asknext.collapsed', askCollapsed ? '1' : '0'); } catch (err) { /* ignore */ }
-        reflectAskNext();
-    });
-    $('asknext-refresh').addEventListener('click', () => runQuestions({ manual: true }));
-    $('asknext-cover').addEventListener('click', () => { if (stateBody.classList.contains('hidden')) toggleStateBody(); });
-    $('asknext-list').addEventListener('click', (e) => {
-        const button = e.target.closest('[data-act]');
-        const item = button && button.closest('.ask-q');
-        if (item) settleQuestion(item.dataset.id, button.dataset.act);
-    });
+    $('questions-refresh').addEventListener('click', () => runQuestions({ manual: true }));
     for (const modal of [$('recap-modal'), $('library-modal')]) {
         modal.addEventListener('click', (e) => {
             if (e.target === modal || e.target.closest('[data-close]')) modal.classList.add('hidden');
@@ -5205,7 +5208,9 @@ if (m.type === 'close') {
             return;
         }
         const vote = e.target.closest('[data-feedback]');
-        if (vote) onFeedback(vote.closest('[data-card]'), vote.dataset.feedback);
+        if (vote) { onFeedback(vote.closest('[data-card]'), vote.dataset.feedback); return; }
+        const settle = e.target.closest('[data-ask-act]');
+        if (settle) onAskAct(settle.closest('[data-card]'), settle.dataset.askAct);
     });
 
     // Collapse / expand insight cards
