@@ -275,6 +275,25 @@
         .card-resolved .card-more, .card-resolved .card-more-toggle { display: none; }
         .card-resolved-mark { display: inline-block; margin-left: .35rem; padding: .1rem .45rem; border-radius: 9999px;
             font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--success); background: var(--success-wash); }
+        .card-resolved-mark[data-mark="earlier"] { color: var(--label-3); background: var(--fill); }
+
+        /* A suggested question: the question is the headline, with the kind of question beside
+           the chip, who to ask under it, and why below. Settled by Asked or Skip, not thumbs. */
+        .card-kind { display: inline-block; margin-left: .35rem; padding: .1rem .45rem; border-radius: 9999px;
+            font-size: .625rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--label-2); background: var(--fill); }
+        .card-why { font-size: .875rem; color: var(--label-3); }
+        .card-ask-actions { display: flex; gap: .4rem; margin-left: auto; }
+        .card-ask-actions button { min-height: 1.75rem; padding: 0 .75rem; border: 1px solid var(--separator-strong); border-radius: 9999px;
+            background: var(--surface); font-size: .75rem; color: var(--label-2); cursor: pointer; }
+        .card-ask-actions button:hover { border-color: var(--tint); color: var(--tint); }
+        .card-ask-actions button[data-ask-act="asked"] { border-color: transparent; background: var(--tint-fill); color: #fff; }
+        .card-ask-actions button[data-ask-act="asked"]:hover { background: var(--tint-fill-hover); color: #fff; }
+        .card-resolved .card-ask-actions { display: none; }
+        /* How far the meeting has got through what its kind of meeting needs, on the summary bar. */
+        .questions-btn { font-size: .75rem; color: var(--tint); background: none; border: 0; padding: 0; cursor: pointer; }
+        .questions-btn:hover { text-decoration: underline; }
+        .questions-btn:disabled { color: var(--label-3); text-decoration: none; cursor: default; }
+        .cover-chip { padding: .1rem .5rem; border: 1px solid var(--separator-strong); border-radius: 9999px; font-size: .6875rem; color: var(--label-2); white-space: nowrap; }
 
 
         .setup-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .25rem; }
@@ -871,44 +890,6 @@
         .kind-goal { margin-top: .4rem; font-size: .8125rem; line-height: 1.45; color: var(--label-2); }
         .kind-goal b { font-weight: 600; color: var(--tint); }
 
-        /* Ask next: the few questions most worth asking now. Pinned above the cards, refreshed in
-           place, so it reads as a short list rather than another stream. */
-        .asknext { flex-shrink: 0; border-bottom: 1px solid var(--separator); background: var(--surface); }
-        .asknext[hidden] { display: none; }
-        .asknext-head { display: flex; align-items: center; gap: .6rem; padding: .55rem .9rem .45rem; }
-        .asknext-toggle { display: inline-flex; align-items: center; gap: .4rem; min-height: 1.75rem; padding: 0; border: 0; background: none; cursor: pointer; color: var(--label); }
-        .asknext-title { font-size: .8125rem; font-weight: 600; letter-spacing: .01em; }
-        .asknext-toggle svg { width: .85rem; height: .85rem; color: var(--label-3); transition: transform .2s ease; }
-        .asknext-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
-        .asknext-count { min-width: 1.15rem; padding: 0 .35rem; border-radius: 9999px; background: var(--tint-fill); color: #fff; font-size: .6875rem; line-height: 1.15rem; text-align: center; }
-        .asknext-count[hidden] { display: none; }
-        .asknext-cover { margin-left: auto; padding: .1rem .5rem; border: 1px solid var(--separator-strong); border-radius: 9999px; background: none; font-size: .6875rem; color: var(--label-2); cursor: pointer; white-space: nowrap; }
-        .asknext-cover:hover { border-color: var(--tint); color: var(--tint); }
-        .asknext-cover[hidden] { display: none; }
-        .asknext-cover:not([hidden]) + .asknext-refresh { margin-left: .25rem; }
-        .asknext-refresh { margin-left: auto; white-space: nowrap; }
-        .asknext-refresh:disabled { color: var(--label-4); cursor: default; text-decoration: none; }
-        .asknext-body { max-height: min(22rem, 42vh); overflow-y: auto; padding: 0 .9rem .7rem; }
-        .asknext-body[hidden] { display: none; }
-        .asknext-list { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
-        .ask-q { display: flex; align-items: flex-start; gap: .6rem; padding: .55rem .65rem .55rem .75rem; border-radius: 10px; background: color-mix(in srgb, var(--tint) 7%, var(--surface)); transition: opacity .3s ease, transform .3s ease; }
-        .ask-q.fresh { animation: ask-in .35s ease; }
-        @keyframes ask-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-        .ask-q.leaving { opacity: 0; transform: translateX(8px); }
-        .ask-q-main { flex: 1; min-width: 0; }
-        .ask-meta { display: flex; flex-wrap: wrap; gap: .35rem; font-size: .6875rem; font-weight: 500; letter-spacing: .03em; text-transform: uppercase; color: var(--tint); }
-        .ask-meta .ask-to { color: var(--label-3); text-transform: none; letter-spacing: 0; font-weight: 400; }
-        .ask-text { margin-top: .15rem; font-size: .9375rem; line-height: 1.4; color: var(--label); font-weight: 500; }
-        .ask-why { margin-top: .2rem; font-size: .75rem; line-height: 1.4; color: var(--label-3); }
-        .ask-actions { display: flex; flex-direction: column; gap: .3rem; flex-shrink: 0; }
-        .ask-actions button { min-width: 2rem; min-height: 1.75rem; padding: 0 .55rem; border: 1px solid var(--separator-strong); border-radius: 9999px; background: var(--surface); font-size: .75rem; color: var(--label-2); cursor: pointer; }
-        .ask-actions button:hover { border-color: var(--tint); color: var(--tint); }
-        .ask-actions button[data-act="asked"] { border-color: transparent; background: var(--tint-fill); color: #fff; }
-        .ask-actions button[data-act="asked"]:hover { background: var(--tint-fill-hover); color: #fff; }
-        .asknext-status { margin-top: .35rem; font-size: .75rem; color: var(--label-3); }
-        .asknext-status:empty { display: none; }
-        .asknext-list:empty + .asknext-status { margin-top: 0; }
-        @media (prefers-reduced-motion: reduce) { .ask-q, .ask-q.fresh, .asknext-toggle svg { animation: none; transition: none; } }
 
         /* Alerts: a decision that can't be undone gets its own question, with the safe choice
            as the easy one. */
@@ -1393,6 +1374,7 @@
                 <span id="state-objective" class="text-sm text-gray-700 truncate" data-empty="false"></span>
             </div>
             <div class="flex items-center space-x-3 flex-shrink-0 ml-4">
+                <span id="cover-chip" class="cover-chip" hidden title="What this meeting needs to cover"></span>
                 <span id="state-updated" class="text-xs text-gray-400"></span>
                 <svg id="state-chevron" class="w-4 h-4 text-gray-400 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -1512,26 +1494,13 @@
                         </div>
                         <span id="insights-activity" class="insights-activity" hidden aria-live="polite"></span>
                     </div>
-                    <button id="filter-toggle" class="text-xs text-gray-400 hover:text-google-green transition-colors">Filters</button>
+                    <div class="flex items-center gap-4">
+                        <button id="questions-refresh" type="button" class="questions-btn" hidden title="Look for questions worth asking now">Suggest Questions</button>
+                        <button id="filter-toggle" class="text-xs text-gray-400 hover:text-google-green transition-colors">Filters</button>
+                    </div>
                 </div>
                 <div id="type-filters" class="hidden"></div>
             </div>
-            <!-- Ask next: the few questions most worth asking now, refreshed as the meeting goes -->
-            <section id="asknext" class="asknext" hidden aria-labelledby="asknext-title">
-                <div class="asknext-head">
-                    <button id="asknext-toggle" type="button" class="asknext-toggle" aria-expanded="true" aria-controls="asknext-body">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
-                        <span id="asknext-title" class="asknext-title">Ask Next</span>
-                        <span id="asknext-count" class="asknext-count" hidden></span>
-                    </button>
-                    <button id="asknext-cover" type="button" class="asknext-cover" hidden title="What this meeting needs to cover — open the summary"></button>
-                    <button id="asknext-refresh" type="button" class="link-btn asknext-refresh">New Questions</button>
-                </div>
-                <div id="asknext-body" class="asknext-body">
-                    <ol id="asknext-list" class="asknext-list"></ol>
-                    <p id="asknext-status" class="asknext-status" aria-live="polite"></p>
-                </div>
-            </section>
             <div class="chip-anchor">
                 <button id="insights-jump" type="button" class="jump-chip at-top" hidden>&uarr;&ensp;New insights</button>
             </div>
@@ -1540,7 +1509,7 @@
                     <svg class="w-16 h-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM18 13.5l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 18l-1.035.259a3.375 3.375 0 00-2.456 2.456L18 21.75l-.259-1.035a3.375 3.375 0 00-2.456-2.456L14.25 18l1.035-.259a3.375 3.375 0 002.456-2.456L18 13.5z" />
                     </svg>
-                    <p>Answers, jargon, fact-checks, to-dos, and what the discussion is skipping past will appear here.</p>
+                    <p>Questions worth asking, answers, jargon, fact-checks, to-dos, and what the discussion is skipping past will appear here.</p>
                 </div>
             </div>
             <!-- Phone only: what's being said, while you read the cards. Opens the transcript. -->
