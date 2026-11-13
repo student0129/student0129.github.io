@@ -531,6 +531,24 @@
         .dialog-btn.primary:hover { opacity: .9; color: #fff; }
         .dialog-btn:disabled { opacity: .5; cursor: default; }
         .dialog-note { margin-top: .75rem; font-size: .75rem; line-height: 1.5; color: var(--label-3); }
+        /* After the meeting: recap, the kind's own document, the follow-up email, your private note. */
+        .recap-tabs { margin-bottom: .75rem; }
+        .recap-tabs [role="tab"] { flex: 1 1 0; min-height: 1.9rem; padding: 0 .5rem; font-size: .8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .recap-tabs[hidden] { display: none; }
+        .outcome-empty { padding: 1.5rem 1rem; border: 1px dashed var(--separator-strong); border-radius: .6rem; text-align: center; }
+        .outcome-empty p { max-width: 30rem; margin: 0 auto .9rem; font-size: .875rem; line-height: 1.5; color: var(--label-2); }
+        .outcome-empty[hidden] { display: none; }
+        .outcome-text { white-space: normal; font-size: .875rem; }
+        .outcome-text.plain, .pm-recap.plain { white-space: pre-wrap; }
+        .outcome-text h4, .pm-recap h4 { margin: .8rem 0 .25rem; font-size: .8125rem; font-weight: 600; letter-spacing: .02em; color: var(--tint); }
+        .outcome-text h4:first-child, .pm-recap h4:first-child { margin-top: 0; }
+        .outcome-error { margin-top: .5rem; font-size: .8125rem; color: var(--warning); }
+        .coach-numbers { margin-bottom: .75rem; padding: .7rem .9rem; border-radius: .6rem; background: var(--fill); font-size: .8125rem; line-height: 1.55; color: var(--label-2); }
+        .coach-numbers[hidden] { display: none; }
+        .coach-numbers b { font-weight: 600; color: var(--label); }
+        .coach-numbers .over { color: var(--warning); }
+        .coach-numbers ul { margin: 0; padding: 0; list-style: none; }
+        .coach-numbers select { margin-left: .4rem; padding: .15rem .4rem; border: 1px solid var(--separator-strong); border-radius: .4rem; font-size: .8125rem; }
         .library-list { display: grid; gap: .5rem; margin-top: .75rem; }
         .library-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .7rem .8rem; border: 1px solid var(--separator); border-radius: .6rem; }
         .library-item .title { font-size: .9375rem; color: var(--label); }
@@ -540,6 +558,8 @@
         .library-item .actions button:disabled { color: var(--label-3); cursor: default; }
         .library-item .actions .delete { color: var(--label-3); }
         .library-item .actions .delete:hover { color: var(--danger); }
+        .library-empty { margin-top: .75rem; padding: 1.25rem 1rem; border: 1px dashed var(--separator-strong); border-radius: .6rem; text-align: center; font-size: .875rem; color: var(--label-3); }
+        .library-tools { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: .9rem; }
         .library-item .open-meeting { display: block; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
         .library-item .open-meeting:hover .title { color: var(--tint); }
         /* One past meeting: its recap, then a chat answered from that meeting alone. */
@@ -547,6 +567,7 @@
         .pm-title { font-size: 1.125rem; font-weight: 500; color: var(--label); }
         .pm-when { margin-top: .1rem; font-size: .75rem; color: var(--label-3); }
         .pm-recap { margin-top: .6rem; max-height: 28vh; }
+        .pm-recap:not(.plain) { white-space: normal; }
         .pm-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .55rem; }
         .pm-delete { color: var(--label-3); }
         .pm-delete:hover { color: var(--danger); }
@@ -904,6 +925,9 @@
         .option-title { display: block; font-size: .9375rem; color: var(--label); }
         .option-note { display: block; margin-top: .15rem; font-size: .75rem; line-height: 1.45; color: var(--label-3); }
         /* Your voice sample: recorded once, tested, kept in this browser. */
+        .recording-row[hidden] { display: none; }
+        .recording-row { margin-bottom: .6rem; }
+        .recording-name { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .75rem; font-size: 1rem; color: var(--label); }
         .voice-panel { padding: .7rem 1rem .85rem; }
         .voice-panel[hidden] { display: none; }
         .voice-status { font-size: .875rem; color: var(--label); }
@@ -1246,8 +1270,23 @@
                     flags what matters as it’s said. Names you list help it spell them and tell who said what.
                 </p>
 
-                <div class="group-head"><span>Listening</span></div>
-                <div class="group">
+                <div class="group-head">
+                    <span>Listening</span>
+                    <button id="recording-pick" type="button" class="link-btn">Use a recording instead</button>
+                    <input id="recording-file" type="file" accept="audio/*,video/mp4,video/webm,.mp3,.m4a,.wav,.webm,.ogg,.mp4,.aac,.flac" hidden>
+                </div>
+                <div id="recording-row" class="group recording-row" hidden>
+                    <div class="field">
+                        <span class="field-label">Recording</span>
+                        <div class="recording-name"><span id="recording-name"></span><button id="recording-clear" type="button" class="link-btn">Listen live instead</button></div>
+                        <p class="option-note">
+                            ReVerb transcribes it, tells the voices apart, then reads through it as if it had been in the room:
+                            cards, to-dos, the summary and the recap. The recording goes through our server to OpenAI to be
+                            transcribed; it isn’t kept there. About a minute for every ten minutes of audio, then a few more.
+                        </p>
+                    </div>
+                </div>
+                <div id="listening-group" class="group">
                     <label id="tab-option" class="option-row">
                         <span class="option-text">
                             <span class="option-title">It’s a video call in this browser</span>
@@ -1258,7 +1297,7 @@
                         </span>
                         <input id="setup-tab" type="checkbox" class="switch" role="switch">
                     </label>
-                    <label class="option-row">
+                    <label id="accurate-option" class="option-row">
                         <span class="option-text">
                             <span class="option-title">High-accuracy transcription</span>
                             <span id="accurate-note" class="option-note">
@@ -1267,7 +1306,7 @@
                         </span>
                         <input id="setup-accurate" type="checkbox" class="switch" role="switch">
                     </label>
-                    <label class="option-row">
+                    <label id="record-option" class="option-row">
                         <span class="option-text">
                             <span class="option-title">Record audio to disk</span>
                             <span id="record-note" class="option-note">
@@ -1312,6 +1351,12 @@
                         <label class="field">
                             <span class="field-label">Your role <span class="field-hint">— so suggestions are for your side of the table</span></span>
                             <input id="setup-role" type="text" autocomplete="off" maxlength="200">
+                        </label>
+                        <label class="field">
+                            <span class="field-label">Meeting language <span class="field-hint">— what’s spoken; cards and notes are written in it too</span></span>
+                            <div class="select-wrap">
+                                <select id="setup-language"></select>
+                            </div>
                         </label>
                         <label class="field">
                             <span class="field-label">Names &amp; terms likely to come up</span>
@@ -1404,6 +1449,7 @@
             <div class="flex items-center gap-2">
                 <button id="improve-undo" type="button" class="btn btn-tinted btn-small" hidden>Undo</button>
                 <button id="improve-retry" type="button" class="btn btn-filled btn-small" hidden>Try Again</button>
+                <button id="replay-skip" type="button" class="btn btn-tinted btn-small" hidden title="Stop adding cards and to-dos, and go straight to the summary of the whole recording">Skip to the Summary</button>
                 <button id="improve-cancel" type="button" class="btn btn-plain btn-small">Cancel</button>
             </div>
         </div>
@@ -1415,7 +1461,7 @@
     <section id="session-end" class="hidden flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-white">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
-                <h3 class="text-sm text-google-green">Stopped listening</h3>
+                <h3 id="end-title" class="text-sm text-google-green">Stopped listening</h3>
                 <p id="end-meta" class="text-xs text-gray-500 mt-0.5"></p>
                 <div id="end-audio" class="mt-2 text-sm"></div>
                 <pre id="end-diagnostics" class="hidden"></pre>
@@ -1631,20 +1677,35 @@
     <div id="recap-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="recap-title">
         <div class="dialog-card">
             <div class="dialog-head">
-                <h2 id="recap-title" class="text-xl text-google-green">Meeting recap</h2>
+                <h2 id="recap-title" class="text-xl text-google-green">From This Meeting</h2>
                 <button type="button" class="dialog-close" data-close aria-label="Close">&times;</button>
             </div>
+            <!-- What the meeting produced: the recap, the document this kind of meeting ends in,
+                 the follow-up email, and a private note on how you handled your side. -->
+            <div id="recap-tabs" class="segmented recap-tabs" role="tablist" aria-label="What to take away">
+                <button type="button" role="tab" data-tab="recap" aria-selected="true">Recap</button>
+                <button type="button" role="tab" data-tab="notes" aria-selected="false">Meeting Notes</button>
+                <button type="button" role="tab" data-tab="email" aria-selected="false">Follow-Up Email</button>
+                <button type="button" role="tab" data-tab="coach" aria-selected="false">How You Did</button>
+            </div>
             <pre id="recap-preview" class="recap-preview"></pre>
+            <div id="outcome-pane" hidden>
+                <div id="coach-numbers" class="coach-numbers" hidden></div>
+                <div id="outcome-empty" class="outcome-empty">
+                    <p id="outcome-about"></p>
+                    <button id="outcome-write" type="button" class="btn btn-filled"></button>
+                </div>
+                <div id="outcome-text" class="recap-preview reverb-answer outcome-text" hidden></div>
+                <p id="outcome-error" class="outcome-error" role="status" hidden></p>
+            </div>
             <div class="dialog-actions">
                 <button id="recap-copy" type="button" class="btn btn-filled">Copy</button>
                 <button id="recap-email" type="button" class="btn btn-gray">Email</button>
                 <button id="recap-link" type="button" class="btn btn-gray">Copy Link</button>
                 <button id="recap-save" type="button" class="btn btn-gray">Save to Past Meetings</button>
+                <button id="outcome-rewrite" type="button" class="btn btn-gray" hidden>Write Again</button>
             </div>
-            <p id="recap-note" class="dialog-note">
-                A share link carries the recap inside the link itself — it isn’t stored anywhere, and
-                anyone with the link can read it. Past meetings are kept in this browser only.
-            </p>
+            <p id="recap-note" class="dialog-note"></p>
         </div>
     </div>
 
@@ -1657,12 +1718,19 @@
             <div id="library-index">
                 <p class="dialog-note" style="margin-top:0">Meetings you chose to keep, saved in this browser only. Open one to read its recap and ask about it, or follow up on it to start a new meeting with its decisions, open questions and to-dos already in the brief.</p>
                 <ul id="library-list" class="library-list"></ul>
+                <p id="library-empty" class="library-empty" hidden>No saved meetings yet. Save one from Recap &amp; Share after a meeting — or restore a backup file.</p>
+                <div class="library-tools">
+                    <button id="library-backup" type="button" class="link-btn" title="Download every saved meeting as one file">Back Up to a File</button>
+                    <button id="library-restore" type="button" class="link-btn" title="Bring back meetings from a backup file">Restore From a File</button>
+                    <input id="library-file" type="file" accept=".json,application/json" hidden>
+                </div>
             </div>
             <div id="library-meeting" hidden>
                 <button id="pm-back" type="button" class="link-btn pm-back">&lsaquo; All past meetings</button>
                 <h3 id="pm-title" class="pm-title"></h3>
                 <p id="pm-when" class="pm-when"></p>
-                <pre id="pm-recap" class="recap-preview pm-recap"></pre>
+                <div id="pm-tabs" class="segmented recap-tabs" role="tablist" aria-label="Saved with this meeting" hidden></div>
+                <div id="pm-recap" class="recap-preview pm-recap reverb-answer"></div>
                 <div class="pm-actions">
                     <button id="pm-link" type="button" class="link-btn">Copy Recap Link</button>
                     <button id="pm-follow" type="button" class="link-btn">Follow Up</button>

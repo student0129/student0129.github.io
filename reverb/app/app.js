@@ -15,6 +15,7 @@
     const sweepUrl = `${API_BASE}/api/reverb/sweep`;
     const questionsUrl = `${API_BASE}/api/reverb/questions`;
     const voiceUrl = `${API_BASE}/api/reverb/voice`;
+    const outcomeUrl = `${API_BASE}/api/reverb/outcome`;
     const chatUrl = `${API_BASE}/api/reverb/chat`;
     const improveUrl = `${API_BASE}/api/reverb/improve`;
     const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/ws/reverb`;
@@ -48,7 +49,7 @@
                     // than navigate away from it.
                     if (!isListening && !segments.length) signInPage();
                     else setNotice('Your sign-in has run out. Stop, then open ReVerb’s front page to sign in again — this meeting is saved.');
-                } else if (d && d.limit === 'daily') setNotice(d.error);
+                } else if (d && d.limit === 'daily') { setNotice(d.error); if (replay) replay.spent = true; }
             }).catch(() => {});
         }
         return resp;
@@ -106,6 +107,7 @@
 
     // --- Analysis lane ---
     const MAX_ANALYZE_CONCURRENCY = 2;   // bounded so streaming answers can't swamp capture
+    const REPLAY_CONCURRENCY = 4;        // reading a recording, there is no capture to protect
     const MAX_ANALYZE_QUEUE = 6;         // beyond this the meeting has moved on
     // A flat 40s budget was killing healthy answers: a grounded one spends its first
     // seconds searching, and a long one legitimately streams for a while. What actually
@@ -213,6 +215,33 @@
             { key: 'learning', name: 'Class, lecture or training', goal: 'Understand the material, and catch what you’d otherwise miss.', example: 'e.g. Understand how Raft elects a leader', role: 'e.g. Student in the class' },
         ] },
     ];
+    // The document each kind of meeting ends in (written on request, from the recap dialog), and
+    // roughly how much of the talking the person running it should be doing.
+    const KIND_EXTRAS = {
+        strategy: { doc: 'Decision Record' }, planning: { doc: 'Plan' }, technical: { doc: 'Review Record' }, design: { doc: 'Ideas Board' },
+        general: { doc: 'Meeting Notes' }, status: { doc: 'Status Report' }, retro: { doc: 'Retro Summary' }, board: { doc: 'Board Follow-Up' },
+        learning: { doc: 'Study Notes' }, negotiation: { doc: 'Terms Summary', talkMax: 50, talkWhy: 'you learn what they need by listening' },
+        oneonone: { doc: '1:1 Notes', talkMax: 50, talkWhy: 'it’s their time as much as yours' },
+        interview: { doc: 'Scorecard', talkMax: 35, talkWhy: 'the candidate should do most of the talking' },
+        sales: { doc: 'Call Notes', talkMax: 45, talkWhy: 'discovery works when the customer does most of the talking' },
+        research: { doc: 'Synthesis', talkMax: 30, talkWhy: 'the participant should do nearly all of the talking' },
+    };
+    for (const g of MEETING_KINDS) for (const k of g.kinds) Object.assign(k, KIND_EXTRAS[k.key] || { doc: 'Meeting Notes' });
+
+    // The languages a meeting can be held in: what the transcriber listens for, and what ReVerb
+    // writes in. The server keeps the same codes. ReVerb's own buttons and labels stay in English.
+    const LANGUAGES = [
+        ['en', 'English', 'en-US'], ['es', 'Spanish', 'es-ES'], ['fr', 'French', 'fr-FR'], ['de', 'German', 'de-DE'],
+        ['pt', 'Portuguese', 'pt-BR'], ['it', 'Italian', 'it-IT'], ['nl', 'Dutch', 'nl-NL'], ['sv', 'Swedish', 'sv-SE'],
+        ['da', 'Danish', 'da-DK'], ['no', 'Norwegian', 'nb-NO'], ['fi', 'Finnish', 'fi-FI'], ['pl', 'Polish', 'pl-PL'],
+        ['cs', 'Czech', 'cs-CZ'], ['ro', 'Romanian', 'ro-RO'], ['el', 'Greek', 'el-GR'], ['tr', 'Turkish', 'tr-TR'],
+        ['uk', 'Ukrainian', 'uk-UA'], ['ru', 'Russian', 'ru-RU'], ['ar', 'Arabic', 'ar-SA'], ['he', 'Hebrew', 'he-IL'],
+        ['fa', 'Persian', 'fa-IR'], ['hi', 'Hindi', 'hi-IN'], ['bn', 'Bengali', 'bn-IN'], ['ur', 'Urdu', 'ur-PK'],
+        ['id', 'Indonesian', 'id-ID'], ['ms', 'Malay', 'ms-MY'], ['vi', 'Vietnamese', 'vi-VN'], ['th', 'Thai', 'th-TH'],
+        ['zh', 'Chinese', 'zh-CN'], ['ja', 'Japanese', 'ja-JP'], ['ko', 'Korean', 'ko-KR'],
+    ].map(([code, name, speech]) => ({ code, name, speech }));
+    const languageOf = (code) => LANGUAGES.find((l) => l.code === code) || LANGUAGES[0];
+
     const KINDS = Object.fromEntries(MEETING_KINDS.flatMap((g) => g.kinds).map((k) => [k.key, k]));
     const kindOf = (key) => KINDS[key] || KINDS.general;
 
@@ -293,8 +322,9 @@
     const MAX_PERSIST_CHARS = 200000;
 
     const MATERIALS_MAX = 16000;
+    const lastLanguage = () => { try { return localStorage.getItem('reverb.language') || 'en'; } catch (err) { return 'en'; } };
     const freshBrief = () => ({
-        objective: '', type: 'general', role: '', keywords: [], roster: [],
+        objective: '', type: 'general', role: '', language: lastLanguage(), me: '', keywords: [], roster: [],
         agenda: [], durationMin: null, materials: '',
         accurate: false, record: false, tabAudio: false, voiceId: false, followUp: null,
     });
@@ -336,7 +366,12 @@
     // Continue an hour later is still a forty-minute meeting, and "time is running out" has
     // to be judged against that.
     let activeMs = 0, activeSince = 0;
-    const meetingClock = () => activeMs + (activeSince ? Date.now() - activeSince : 0);
+    // A recording being read through sets `replay`: meeting time is then the place it has reached
+    // in the recording, and the lanes that pace themselves by the clock pace themselves by that.
+    let replay = null;
+    const meetingClock = () => (replay ? replay.clockMs : activeMs + (activeSince ? Date.now() - activeSince : 0));
+    const lanesNow = () => (replay ? replay.epoch0 + replay.clockMs : Date.now());
+    const lanesLive = () => Boolean(replay) || (isListening && !isPaused);
     function runClock(on) {
         if (on && !activeSince) activeSince = Date.now();
         else if (!on && activeSince) { activeMs += Date.now() - activeSince; activeSince = 0; }
@@ -417,7 +452,8 @@
             objective: session.objective,
             type: session.type,
             ...(session.role ? { role: session.role.slice(0, 200) } : {}),
-            ...(voiceIdOn() ? { voice: true } : {}),
+            ...(voiceIdOn() || segments.some((seg) => seg.voice === 'you') ? { voice: true } : {}),
+            ...(session.language && session.language !== 'en' ? { language: session.language } : {}),
             keywords: session.keywords.slice(0, 100),
             roster: session.roster.slice(0, 40),
             agenda: (session.agenda || []).slice(0, 20),
@@ -427,7 +463,17 @@
             ...(sessionNotes.trim() ? { notes: sessionNotes.trim().slice(0, NOTES_MAX) } : {}),
         };
     }
-    const wordCount = (s) => (s.match(/[\p{L}\p{N}'’-]+/gu) || []).length;
+    // Chinese, Japanese and Thai don't put spaces between words: a run of their characters counts
+    // as about one word per two characters, or a whole sentence would count as a single word.
+    const UNSPACED = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Thai}]/gu;
+    const wordCount = (s) => {
+        let n = 0;
+        for (const w of String(s).match(/[\p{L}\p{N}'’-]+/gu) || []) {
+            const c = (w.match(UNSPACED) || []).length;
+            n += c ? Math.max(1, Math.round(c / 2)) : 1;
+        }
+        return n;
+    };
 
     // ---------- small helpers ----------
     function escapeHtmlText(s) {
@@ -731,6 +777,61 @@
         }
     }
 
+    // The recording, a piece at a time, through the model that tells voices apart. Resolves with
+    // every stretch of speech as { voice, piece, start, end, text } (seconds into the recording).
+    // `known` starts the list of voices the model is told to recognise: the user's own, as "You".
+    async function transcribeRecording(pcm, signal, status, known0 = []) {
+        const pieces = cutPieces(pcm, improvePieceSeconds());
+        const known = known0.slice(0, 4);   // { name, sample } — voices carried to later pieces
+        const all = [];
+        let voices = 0;
+        for (let i = 0; i < pieces.length; i++) {
+            if (signal.aborted) throw Object.assign(new Error('cancelled'), { name: 'AbortError' });
+            status(pieces.length > 1 ? `Transcribing part ${i + 1} of ${pieces.length}, telling the voices apart…` : 'Transcribing, telling the voices apart…', (i + 0.15) / pieces.length);
+            const p = pieces[i];
+            const form = new FormData();
+            form.append('audio', wavBlob(pcm.subarray(p.start, p.end)), `part-${i + 1}.wav`);
+            if (known.length) form.append('known', JSON.stringify(known));
+            const segs = await improvePiece(form, signal, () => status('Waiting for a turn — other recordings are being transcribed…', (i + 0.1) / pieces.length));
+            const offsetS = p.start / IMPROVE_RATE;
+            // A known voice comes back under its name; a new one as a letter, which means
+            // nothing outside this piece — so each gets a name of its own here.
+            const local = new Map();
+            for (const g of segs) {
+                let voice = known.some((k) => k.name === g.speaker) ? g.speaker : local.get(g.speaker);
+                if (!voice) { voice = `Voice ${++voices}`; local.set(g.speaker, voice); }
+                all.push({ voice, piece: i, start: g.start + offsetS, end: g.end + offsetS, text: g.text });
+            }
+            // Samples of the newly heard voices, most talkative first, while there's room.
+            if (i < pieces.length - 1) {
+                const talk = new Map();
+                for (const v of local.values()) talk.set(v, 0);
+                for (const g of all) if (talk.has(g.voice)) talk.set(g.voice, talk.get(g.voice) + (g.end - g.start));
+                for (const [voice] of [...talk].sort((a, b) => b[1] - a[1])) {
+                    if (known.length >= 4) break;
+                    // Their turns in this piece, longest first, joined until there's enough
+                    // to recognise them by: someone who only spoke in short bursts counts too.
+                    const turns = all.filter((g) => g.voice === voice && g.piece === i).sort((a, b) => (b.end - b.start) - (a.end - a.start));
+                    const parts = [];
+                    let have = 0;
+                    for (const g of turns) {
+                        if (have >= IMPROVE_SAMPLE_S[1]) break;
+                        const len = Math.min(g.end - g.start, IMPROVE_SAMPLE_S[1] - have);
+                        const from = Math.round(((g.start + g.end) / 2 - len / 2) * IMPROVE_RATE);
+                        parts.push(pcm.subarray(from, from + Math.round(len * IMPROVE_RATE)));
+                        have += len;
+                    }
+                    if (have < IMPROVE_SAMPLE_S[0]) continue;
+                    const sample = new Float32Array(parts.reduce((n, a) => n + a.length, 0));
+                    let at = 0;
+                    for (const a of parts) { sample.set(a, at); at += a.length; }
+                    known.push({ name: voice, sample: await blobDataUrl(wavBlob(sample)) });
+                }
+            }
+        }
+        return all;
+    }
+
     async function runImprove(source) {
         if (improveRun) return;
         const controller = new AbortController();
@@ -742,55 +843,7 @@
             const blob = source.file || await (await fetch(source.url)).blob();
             const pcm = await decodeMono16k(blob);
             if (!pcm.length) throw new Error('The recording is empty.');
-            const pieces = cutPieces(pcm, improvePieceSeconds());
-            const known = [];            // { name, sample } — voices carried to later pieces
-            const all = [];              // { voice, start, end, text }, seconds into the recording
-            let voices = 0;
-            for (let i = 0; i < pieces.length; i++) {
-                if (controller.signal.aborted) throw Object.assign(new Error('cancelled'), { name: 'AbortError' });
-                improveStatus(pieces.length > 1 ? `Transcribing part ${i + 1} of ${pieces.length}, telling the voices apart…` : 'Transcribing, telling the voices apart…',
-                    { progress: (i + 0.15) / pieces.length, cancel: true });
-                const p = pieces[i];
-                const form = new FormData();
-                form.append('audio', wavBlob(pcm.subarray(p.start, p.end)), `part-${i + 1}.wav`);
-                if (known.length) form.append('known', JSON.stringify(known));
-                const segs = await improvePiece(form, controller.signal, () => improveStatus('Waiting for a turn — other transcripts are being improved…', { progress: (i + 0.1) / pieces.length, cancel: true }));
-                const offsetS = p.start / IMPROVE_RATE;
-                // A known voice comes back under its name; a new one as a letter, which means
-                // nothing outside this piece — so each gets a name of its own here.
-                const local = new Map();
-                for (const g of segs) {
-                    let voice = known.some((k) => k.name === g.speaker) ? g.speaker : local.get(g.speaker);
-                    if (!voice) { voice = `Voice ${++voices}`; local.set(g.speaker, voice); }
-                    all.push({ voice, piece: i, start: g.start + offsetS, end: g.end + offsetS, text: g.text });
-                }
-                // Samples of the newly heard voices, most talkative first, while there's room.
-                if (i < pieces.length - 1) {
-                    const talk = new Map();
-                    for (const v of local.values()) talk.set(v, 0);
-                    for (const g of all) if (talk.has(g.voice)) talk.set(g.voice, talk.get(g.voice) + (g.end - g.start));
-                    for (const [voice] of [...talk].sort((a, b) => b[1] - a[1])) {
-                        if (known.length >= 4) break;
-                        // Their turns in this piece, longest first, joined until there's enough
-                        // to recognise them by: someone who only spoke in short bursts counts too.
-                        const turns = all.filter((g) => g.voice === voice && g.piece === i).sort((a, b) => (b.end - b.start) - (a.end - a.start));
-                        const parts = [];
-                        let have = 0;
-                        for (const g of turns) {
-                            if (have >= IMPROVE_SAMPLE_S[1]) break;
-                            const len = Math.min(g.end - g.start, IMPROVE_SAMPLE_S[1] - have);
-                            const from = Math.round(((g.start + g.end) / 2 - len / 2) * IMPROVE_RATE);
-                            parts.push(pcm.subarray(from, from + Math.round(len * IMPROVE_RATE)));
-                            have += len;
-                        }
-                        if (have < IMPROVE_SAMPLE_S[0]) continue;
-                        const sample = new Float32Array(parts.reduce((n, a) => n + a.length, 0));
-                        let at = 0;
-                        for (const a of parts) { sample.set(a, at); at += a.length; }
-                        known.push({ name: voice, sample: await blobDataUrl(wavBlob(sample)) });
-                    }
-                }
-            }
+            const all = await transcribeRecording(pcm, controller.signal, (text, progress) => improveStatus(text, { progress, cancel: true }));
             if (epoch !== sessionEpoch) return;
             if (!all.length) throw new Error('No speech came back from the recording.');
             const named = applyImproved(all, source.offsetMs || 0, pcm.length / IMPROVE_RATE);
@@ -1299,7 +1352,7 @@
     }
 
     function checkQuietVoices() {
-        if (!isListening || isPaused || !enabledTypes.has('quiet')) return;
+        if (!lanesLive() || !enabledTypes.has('quiet')) return;
         const rows = talkShares();
         if (rows.length < 3) return;
         const now = meetingClock();
@@ -1506,9 +1559,9 @@
         if (t.length >= MAX_UTTERANCE) { flushUtterance(); return; }
         // A question mark is the one thing worth acting on immediately — that's the
         // utterance the user is waiting on an answer for.
-        if (/\?["')\]]?\s*$/.test(t) && wordCount(t) >= MIN_ANALYZE_WORDS) { flushUtterance(); return; }
+        if (/[?？؟]["')\]]?\s*$/.test(t) && wordCount(t) >= MIN_ANALYZE_WORDS) { flushUtterance(); return; }
 
-        const endsSentence = /[.!]["')\]]?\s*$/.test(t);
+        const endsSentence = /[.!。！｡।]["')\]]?\s*$/.test(t);
         flushTimer = setTimeout(flushUtterance, endsSentence ? BOUNDARY_PAUSE_MS : FLUSH_PAUSE_MS);
     }
 
@@ -1619,7 +1672,7 @@
      * fact-check hide the one claim in the meeting that was actually wrong.
      */
     function coolingTypes() {
-        const now = Date.now();
+        const now = lanesNow();
         return CARD_TYPE_ORDER.filter((t) => {
             const cd = CARD_TYPE_UI[t].cooldown;
             return enabledTypes.has(t) && cd && now - (typeLastShown[t] || 0) < cd;
@@ -1631,7 +1684,7 @@
     function startCooldown(meta, verdict) {
         if (!meta || !CARD_TYPE_UI[meta.type]) return;
         if (meta.type === 'factcheck' && !['incorrect', 'partly'].includes(verdict)) return;
-        typeLastShown[meta.type] = Date.now();
+        typeLastShown[meta.type] = lanesNow();
     }
 
     // ---------- analysis lane (queued, bounded, streamed over SSE) ----------
@@ -1649,7 +1702,7 @@
 
     // Most lines aren't questions, and only a question (or a held card) needs the whole meeting
     // sent with it — a hundred kilobytes, for a long one.
-    const looksLikeQuestion = (t) => /\?/.test(t)
+    const looksLikeQuestion = (t) => /[?？؟]/.test(t)
         || /^\s*(what|who|whom|whose|when|where|why|how|which|did|do|does|is|are|was|were|can|could|should|would|will|have|has|remind)\b/i.test(t);
     const RECORD_CHARS = 100000;
     function meetingRecord() {
@@ -1714,7 +1767,7 @@
     }
 
     function pumpAnalysis() {
-        while (analyzeActive < MAX_ANALYZE_CONCURRENCY && analyzeQueue.length) {
+        while (analyzeActive < (replay ? REPLAY_CONCURRENCY : MAX_ANALYZE_CONCURRENCY) && analyzeQueue.length) {
             const job = analyzeQueue.shift();
             analyzeActive++;
             runAnalysis(job).finally(() => { analyzeActive--; pumpAnalysis(); });
@@ -1787,15 +1840,17 @@
 
     function scheduleHeld(job, slot) {
         const epoch = sessionEpoch;
-        const timer = setTimeout(() => {
-            heldTimers.delete(timer);
+        const wait = Math.min(Number(slot.meta.hold) || 0, MAX_HOLD_MS);
+        const release = () => {
             if (epoch !== sessionEpoch) return;
             if (!enabledTypes.has(slot.meta.type)) { retireSlot(slot); return; }
             // Everything said since, including the sentence still being spoken.
             const after = [attributedTranscript(job.segIndex), pendingUtterance, interimEl.textContent]
                 .join(' ').replace(/\s+/g, ' ').trim();
             queueJob(answerJob(job, slot, 0, after), true);
-        }, Math.min(Number(slot.meta.hold) || 0, MAX_HOLD_MS));
+        };
+        if (replay) { replay.held.push({ due: replay.clockMs + wait, release }); return; }
+        const timer = setTimeout(() => { heldTimers.delete(timer); release(); }, wait);
         heldTimers.add(timer);
     }
 
@@ -2104,9 +2159,9 @@
     // things by one word, time going to the wrong thing. Silent when it fails, like the
     // other slow lanes — a missed sweep costs nothing the next one won't catch.
     function maybeRunSweep() {
-        if (sweepRunning || sweepUnsupported || !isListening || isPaused) return;
+        if (sweepRunning || sweepUnsupported || !lanesLive()) return;
         if (charsSinceSweep < SWEEP_MIN_NEW_CHARS) return;
-        if (Date.now() - lastSweepAt < SWEEP_INTERVAL_MS) return;
+        if (lanesNow() - lastSweepAt < SWEEP_INTERVAL_MS) return;
         runSweep();
     }
 
@@ -2114,7 +2169,7 @@
         const types = SWEEP_TYPE_ORDER.filter((t) => enabledTypes.has(t));
         if (!types.length) return;
         sweepRunning = true;
-        lastSweepAt = Date.now();
+        lastSweepAt = lanesNow();
         const spent = charsSinceSweep;
         charsSinceSweep = 0;
         stats.sweeps++;
@@ -2223,8 +2278,8 @@
     }
 
     function maybeRunQuestions() {
-        if (questionsRunning || !questionsOn() || !isListening || isPaused) return;
-        const since = Date.now() - lastQuestionsAt;
+        if (questionsRunning || !questionsOn() || !lanesLive()) return;
+        const since = lanesNow() - lastQuestionsAt;
         if (charsSinceQuestions >= QUESTIONS_MIN_NEW_CHARS && since >= QUESTIONS_INTERVAL_MS) runQuestions();
         else if (askNext.open.length < 2 && charsSinceQuestions >= QUESTIONS_REFILL_CHARS && since >= QUESTIONS_REFILL_MS) runQuestions();
     }
@@ -2233,7 +2288,7 @@
         const manual = Boolean(opts && opts.manual);
         if (questionsRunning || !questionsOn()) return;
         questionsRunning = true;
-        lastQuestionsAt = Date.now();
+        lastQuestionsAt = lanesNow();
         const spent = charsSinceQuestions;
         charsSinceQuestions = 0;
         stats.questionRuns++;
@@ -2398,6 +2453,249 @@
     }
 
 
+
+    // ---------- use a recording ----------
+    // A meeting that already happened: the recording is transcribed with the voices told apart (as
+    // Improve Transcript does), the voices are named, and then ReVerb reads through it line by line
+    // as if it had been listening — the same cards, to-dos, summary and suggested questions, paced
+    // by the recording's own clock instead of the wall's. So what comes out is what a live session
+    // would have shown, which is also how a real meeting can be used to judge and tune the cards.
+    const RECORDING_MAX_S = 3 * 60 * 60;
+    const RECORDING_MAX_BYTES = 800e6;
+    const REPLAY_STATE_EVERY_MS = 60000;      // meeting time between summary updates while reading
+    let pickedRecording = null;               // the file chosen in the brief
+
+    function reflectRecordingPick() {
+        const file = pickedRecording;
+        $('recording-pick').hidden = segments.length > 0 || Boolean(file);
+        $('recording-row').hidden = !file;
+        $('tab-option').hidden = Boolean(file) || !canShareTab;
+        $('accurate-option').hidden = Boolean(file);
+        $('record-option').hidden = Boolean(file);
+        if (file) $('recording-name').textContent = `${file.name} · ${formatBytes(file.size)}`;
+        $('setup-start').textContent = segments.length ? 'Continue' : file ? 'Read It' : 'Start';
+    }
+
+    // The model returns speech in short stretches; a line is one person's stretch of them.
+    function recordingLines(all) {
+        const lines = [];
+        for (const g of all) {
+            const text = g.text.trim();
+            if (!text) continue;
+            const last = lines[lines.length - 1];
+            if (last && last.voice === g.voice && g.start - last.end < 2 && last.text.length + text.length < 320) {
+                last.text += ` ${text}`;
+                last.end = g.end;
+            } else lines.push({ voice: g.voice, start: g.start, end: g.end, text });
+        }
+        return lines;
+    }
+
+    // Voices are told apart by sound; names come from the words. The speaker pass reads the opening
+    // lines the way it reads a live meeting ("Sam here", "over to you, Priya"), and each voice takes
+    // the name most of its lines were given. A voice nobody names keeps a number, to rename by hand.
+    async function nameVoices(lines, signal) {
+        const names = new Map();
+        const voices = [...new Set(lines.map((l) => l.voice))];
+        if (voices.includes('You')) names.set('You', 'You');
+        const votes = new Map(), attributed = [];
+        try {
+            for (let from = 0; from < Math.min(lines.length, 180); from += 60) {
+                const chunk = lines.slice(from, from + 60);
+                const resp = await apiFetch(speakersUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal,
+                    body: JSON.stringify({
+                        turns: chunk.map((l, k) => ({ i: from + k, text: l.text })),
+                        attributed: attributed.slice(-12),
+                        session: briefForServer({ materials: false }),
+                    }),
+                });
+                if (!resp.ok) break;
+                const data = await resp.json().catch(() => ({}));
+                for (const t of data.turns || []) {
+                    const line = lines[t.i];
+                    if (!line || !t.speaker) continue;
+                    const name = String(t.speaker).slice(0, 60);
+                    attributed.push({ speaker: name, text: line.text });
+                    if (t.confident === false || isPlaceholder(name) || name === 'You' || line.voice === 'You') continue;
+                    const m = votes.get(line.voice) || new Map();
+                    m.set(name, (m.get(name) || 0) + 1);
+                    votes.set(line.voice, m);
+                }
+            }
+        } catch (err) {
+            if (err.name === 'AbortError') throw err;
+            console.error('ReVerb naming error:', err);   // unnamed voices get numbers
+        }
+        const claims = [];
+        for (const [voice, m] of votes) {
+            const total = [...m.values()].reduce((a, b) => a + b, 0);
+            const said = lines.filter((l) => l.voice === voice).length;
+            for (const [name, n] of m) claims.push({ voice, name, n, share: n / total, said });
+        }
+        claims.sort((a, b) => b.n - a.n);
+        const taken = new Set(names.values());
+        for (const c of claims) {
+            // Most of the voice's named lines, and more than a single guess unless it barely spoke.
+            if (names.has(c.voice) || taken.has(c.name) || c.share < 0.5 || (c.n < 2 && !(c.share === 1 && c.said <= 3))) continue;
+            names.set(c.voice, c.name);
+            taken.add(c.name);
+        }
+        let n = 1;
+        for (const voice of voices) {
+            if (names.has(voice)) continue;
+            while (taken.has(`Speaker ${n}`)) n++;
+            names.set(voice, `Speaker ${n}`);
+            taken.add(`Speaker ${n}`);
+        }
+        return names;
+    }
+
+    async function runRecording(file) {
+        if (improveRun || isListening || segments.length) return;
+        const controller = new AbortController();
+        const epoch = sessionEpoch;
+        improveRun = { controller, recording: true };
+        reflectImprove();
+        errorEl.textContent = '';
+        sessionEnd.classList.add('hidden');
+        restoreBar.classList.add('hidden');
+        if (offeredSave) {
+            if (offeredSave.key !== STORE_KEY) { try { localStorage.removeItem(offeredSave.key); } catch (err) { /* ignore */ } }
+            offeredSave = null;
+        }
+        const status = (text, progress) => improveStatus(text, { progress, cancel: true });
+        let lines, durationS;
+        try {
+            if (file.size > RECORDING_MAX_BYTES) throw new Error('That file is over 800 MB. Export just the audio (MP3 or M4A) and try that.');
+            status('Opening the recording…', 0);
+            let pcm;
+            try { pcm = await decodeMono16k(file); }
+            catch (err) { throw new Error('This browser couldn’t read that file. An MP3, M4A or WAV should work.'); }
+            durationS = pcm.length / IMPROVE_RATE;
+            if (durationS < 3) throw new Error('That recording is too short to read.');
+            if (durationS > RECORDING_MAX_S) throw new Error('That recording is over three hours. Split it, and read the parts one at a time.');
+            const voice = session.voiceId ? readVoiceSample() : null;
+            const all = await transcribeRecording(pcm, controller.signal, (t, p) => status(t, p * 0.5), voice ? [{ name: 'You', sample: voice.sample }] : []);
+            if (epoch !== sessionEpoch) return;
+            lines = recordingLines(all);
+            if (!lines.length) throw new Error('No speech was found in that recording.');
+            status('Working out who is who…', 0.5);
+            const names = await nameVoices(lines, controller.signal);
+            if (epoch !== sessionEpoch) return;
+            for (const l of lines) l.speaker = names.get(l.voice);
+        } catch (err) {
+            if (epoch !== sessionEpoch) return;
+            improveRun = null;
+            reflectImprove();
+            if (err.name === 'AbortError') improveStatus('Cancelled. Nothing was read.');
+            else { console.error('ReVerb recording error:', err); improveStatus(err.message || 'Something went wrong.', { retry: () => runRecording(file) }); }
+            return;
+        }
+
+        // From here the recording is a meeting being read through.
+        const totalMs = Math.round(durationS * 1000);
+        startedAt = (Number.isFinite(file.lastModified) && file.lastModified > 0 ? file.lastModified : Date.now()) - totalMs;
+        replay = { clockMs: 0, epoch0: Date.now(), held: [], spent: false, skip: false };
+        lastSweepAt = lanesNow();
+        lastQuestionsAt = lanesNow();
+        const speakers = [...new Set(lines.map((l) => l.speaker))];
+        participants = dedupeParticipants(speakers.filter((nm) => !isPlaceholder(nm)).map((name) => (name === 'You' ? { name, role: 'using ReVerb' } : { name })));
+        setStateObjective();
+        stateBar.classList.remove('hidden');
+        $('replay-skip').hidden = false;
+        reflectSessionButtons();
+        reflectQuestionsButton();
+        const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+        const gone = () => epoch !== sessionEpoch;
+        const fireHeld = (all) => {
+            const due = replay.held.filter((h) => all || h.due <= replay.clockMs);
+            replay.held = replay.held.filter((h) => !due.includes(h));
+            for (const h of due) h.release();
+        };
+        let lastStateClock = 0, stoppedAt = null, readTo = 0;
+        try {
+            for (const line of lines) {
+                if (gone()) return;
+                if (controller.signal.aborted) { stoppedAt = replay.clockMs; break; }
+                replay.clockMs = Math.round(line.end * 1000);
+                const reading = !replay.skip && !replay.spent;
+                if (reading) fireHeld(false);
+                const context = attributedTranscript().slice(-CONTEXT_CHARS);
+                addSegment(line.text);
+                const seg = segments[segments.length - 1];
+                seg.speaker = line.speaker;
+                seg.confident = true;
+                if (line.speaker === 'You') seg.voice = 'you';
+                delete seg.at;
+                if (!reading) continue;
+                readTo = replay.clockMs;
+                refreshSpeakerTags();
+                if (wordCount(line.text) >= MIN_ANALYZE_WORDS) enqueueAnalysis(line.text, context);
+                // Room in the queue before the next line: nothing is dropped, and the order holds.
+                while (analyzeQueue.length >= 2 && !controller.signal.aborted && !gone()) await pause(40);
+                if (charsSinceState > 0 && (!meetingState ? charsSinceState >= STATE_MIN_NEW_CHARS : replay.clockMs - lastStateClock >= REPLAY_STATE_EVERY_MS)) {
+                    lastStateClock = replay.clockMs;
+                    await runState();
+                    if (gone()) return;
+                }
+                maybeRunSweep();
+                maybeRunQuestions();
+                checkQuietVoices();
+                status(`Reading the meeting… ${Math.floor(replay.clockMs / 60000)} of ${Math.max(1, Math.round(durationS / 60))} min`, 0.5 + 0.5 * (replay.clockMs / totalMs));
+            }
+            refreshSpeakerTags();
+            if (stoppedAt == null) {
+                status('Finishing the last cards…', 0.99);
+                // A card can still ask to be held after the last line was read: the end of the
+                // recording is as much "what was said next" as it will ever hear.
+                const deadline = Date.now() + 60000;
+                const busy = () => analyzeActive || analyzeQueue.length || sweepRunning || questionsRunning || replay.held.length;
+                while (busy() && Date.now() < deadline && !gone() && !controller.signal.aborted) {
+                    if (!replay.skip && !replay.spent) fireHeld(true); else replay.held.length = 0;
+                    await pause(100);
+                }
+            }
+        } finally {
+            const state = replay;
+            replay = null;
+            if (!gone()) {
+                // Back on the wall clock, with the meeting as long as what was read.
+                activeMs = stoppedAt != null ? stoppedAt : totalMs;
+                activeSince = 0;
+                lastSweepAt = lastQuestionsAt = lastFullAt = Date.now();
+                for (const key of Object.keys(typeLastShown)) delete typeLastShown[key];
+                $('replay-skip').hidden = true;
+                improveRun = null;
+                reflectImprove();
+                $('improve-bar').classList.add('hidden');
+                // The summary people keep covers everything that was read.
+                charsSinceState = Math.max(charsSinceState, 1);
+                runState({ full: true });
+                reflectSessionButtons();
+                reflectQuestionsButton();
+                renderMeetingState();
+                reflectChatReady();
+                persistTranscript(true);
+                const partial = state.skip || state.spent;
+                $('end-title').textContent = stoppedAt != null ? 'Stopped reading the recording' : 'Finished reading the recording';
+                endMeta.textContent = [
+                    `${segments.length} line${segments.length === 1 ? '' : 's'}`,
+                    `${Math.max(1, Math.round(activeMs / 60000))} min`,
+                    `${speakers.length} speaker${speakers.length === 1 ? '' : 's'} told apart`,
+                    stoppedAt != null ? 'Stopped partway: what was read so far is here.'
+                        : partial ? `${state.spent ? 'Today’s allowance ran out, so cards' : 'Cards'} and to-dos cover the first ${Math.max(1, Math.round(readTo / 60000))} min; the transcript and summary cover all of it.`
+                        : 'Read through as if ReVerb had been listening. Click a name in the transcript to correct who is who.',
+                ].join(' · ');
+                endAudio.replaceChildren();
+                $('end-diagnostics').classList.add('hidden');
+                sessionEnd.classList.remove('hidden');
+            }
+        }
+    }
+
     // ---------- your voice: telling your lines from everyone else's ----------
     // Live transcription can't tell voices apart, so ReVerb couldn't tell the person using it from
     // anyone else: an "Ask this" card could suggest the question they had just asked. When they turn
@@ -2532,7 +2830,15 @@
     // matched to whichever voice said most of its words. Short words and filler say nothing about
     // who spoke, so only the content words count; a line too short to tell stays unlabelled.
     const VOICE_STOP = new Set('the and that this with for you are was were but have has had not what about just like they them there their then than from will would can could should our your his her its it’s it\'s yes yeah okay well also into been being because which when where who how why all any some one two get got going know think really very much more most here over only out off one'.split(' '));
-    const contentWords = (t) => (String(t).toLowerCase().match(/[\p{L}\p{N}']+/gu) || []).filter((w) => w.length >= 3 && !VOICE_STOP.has(w));
+    const contentWords = (t) => {
+        const out = [];
+        for (const w of String(t).toLowerCase().match(/[\p{L}\p{N}']+/gu) || []) {
+            // Unspaced scripts: pairs of characters stand in for words.
+            if (w.search(UNSPACED) >= 0) { for (let i = 0; i + 2 <= w.length; i++) out.push(w.slice(i, i + 2)); }
+            else if (w.length >= 3 && !VOICE_STOP.has(w)) out.push(w);
+        }
+        return out;
+    };
 
     function applyVoices(batch, segs) {
         const bags = new Map();   // voice → Set of content words
@@ -2720,7 +3026,7 @@
         // freshness is what the conflict and dig-deeper cards live on. Every
         // STATE_FULL_EVERY passes we re-read the whole transcript instead: incremental
         // updates each carry a little error, and only a full pass clears the buildup.
-        const full = !meetingState || Boolean(opts && opts.full) || Date.now() - lastFullAt >= STATE_FULL_EVERY_MS;
+        const full = !meetingState || Boolean(opts && opts.full) || lanesNow() - lastFullAt >= STATE_FULL_EVERY_MS;
         const upTo = segments.length;
         // Sliced by segment rather than by character count, so correcting a line
         // upstream can't shift the window and duplicate or skip speech.
@@ -2758,7 +3064,7 @@
             statePasses++;
             stats.statePasses++;
             lastPassFull = full;
-            if (full) { stats.stateFulls++; lastFullAt = Date.now(); }
+            if (full) { stats.stateFulls++; lastFullAt = lanesNow(); }
             renderMeetingState();
             // Stamped here rather than in the render, which also runs when speakers
             // land or a session is restored — neither of which is a fresh summary.
@@ -3098,14 +3404,15 @@
     // Ask the chat and read its answer as it streams: onDelta(text) for each piece, onBytes()
     // whenever anything arrives (it keeps the stall timer quiet). Resolves true once the server
     // says it is done, false if alive() says the answer is no longer wanted; throws otherwise.
-    async function streamChat(body, signal, { onDelta, onBytes, alive }) {
-        const resp = await apiFetch(chatUrl, {
+    const streamChat = (body, signal, handlers) => streamSse(chatUrl, body, signal, handlers);
+    async function streamSse(url, body, signal, { onDelta, onBytes, alive }) {
+        const resp = await apiFetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             signal,
             body: JSON.stringify(body),
         });
-        if (resp.status === 404) throw new Error('Chat isn’t available on the server yet');
+        if (resp.status === 404) throw new Error('That isn’t available on the server yet');
         if (resp.status === 429) {
             const d = await resp.json().catch(() => ({}));
             throw new Error(d.error || 'Busy — too many requests. Try again in a moment.');
@@ -3234,6 +3541,210 @@
         persistTranscript();
     }
 
+
+    // ---------- after the meeting: the kind's own document, the follow-up email, and you ----------
+    // Beside the recap, written when asked: the document this kind of meeting ends in (a scorecard
+    // for an interview, call notes for a sales call…), the follow-up email, and "How You Did" — a
+    // private note on the user's own side of the conversation, with a few numbers counted here.
+    // The numbers and the note need to know which lines are the user's: "You" when their voice is
+    // recognised, otherwise the speaker they pick.
+    const docs = { notes: '', email: '', coach: '' };
+    let docRun = null, docError = '', recapTab = 'recap', docFrame = 0;
+    const DOC_ABOUT = {
+        notes: () => `${kindOf(session.type).doc}: what a ${kindOf(session.type).name.replace(/\s*\(.*\)$/, '').toLowerCase()} should leave you with, written from what was said, with the minute for each point.`,
+        email: () => 'A follow-up email, drafted from what was said and agreed. Yours to edit before it goes anywhere.',
+        coach: () => 'A private note on how you handled your side: what worked, what to try next time, and one moment worth a second look. Only you see it.',
+    };
+    const DOC_BUTTON = { notes: () => `Write the ${kindOf(session.type).doc}`, email: () => 'Draft the Email', coach: () => 'Write My Feedback' };
+    const RECAP_NOTE = {
+        recap: 'A share link carries the recap inside the link itself — it isn’t stored anywhere, and anyone with the link can read it. Past meetings are kept in this browser only.',
+        notes: 'Written by AI from this meeting’s record. Worth a read before you rely on it or pass it on.',
+        email: 'A draft, from this meeting’s record. Read it before you send it — names and dates most of all.',
+        coach: 'Only you see this. It isn’t part of the recap, the share link or the follow-up email.',
+    };
+
+    function mineLabel() {
+        if (segments.some((seg) => seg.speaker === 'You')) return 'You';
+        return session.me && segments.some((seg) => seg.speaker === session.me) ? session.me : '';
+    }
+
+    // What can be counted without asking anyone: how much of the talking was yours, the longest
+    // you went without anyone else speaking, and the questions you asked.
+    function coachStats() {
+        const me = mineLabel();
+        if (!me) return null;
+        let mine = 0, total = 0, questions = 0, run = 0, runStart = null, longest = 0, longestAt = null, last = null;
+        const others = new Map();
+        for (const seg of segments) {
+            const who = seg.speaker || last;
+            last = who;
+            const n = wordCount(seg.text);
+            total += n;
+            if (who === me) {
+                mine += n;
+                questions += (seg.text.match(/[?？؟]/g) || []).length;
+                if (!run) runStart = seg;
+                run += n;
+                if (run > longest) { longest = run; longestAt = runStart; }
+            } else {
+                run = 0;
+                if (who) others.set(who, (others.get(who) || 0) + n);
+            }
+        }
+        if (!total || !mine) return null;
+        return {
+            me, share: mine / total, people: others.size + 1,
+            others: [...others].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([name, n]) => ({ name, share: n / total })),
+            longestS: Math.round(longest / 2.5), longestMin: longestAt && Number.isFinite(longestAt.t) ? Math.floor(longestAt.t / 60000) : null,
+            questions, asked: askNext.asked.length, suggested: stats.questions,
+        };
+    }
+    const spanText = (s) => (s >= 60 ? `${Math.floor(s / 60)} min ${s % 60 ? `${s % 60} s` : ''}`.trim() : `${s} s`);
+
+    function renderCoachNumbers() {
+        const box = $('coach-numbers');
+        box.replaceChildren();
+        const c = coachStats();
+        if (!c) {
+            // No line is known to be the user's: they say which speaker they were.
+            const names = [...new Set(segments.map((seg) => seg.speaker).filter(Boolean))];
+            if (!names.length) { box.append('Once speakers are told apart, this shows how much of the talking was yours.'); return; }
+            const label = el('label', '', 'Which speaker were you?');
+            const select = document.createElement('select');
+            select.id = 'coach-me';
+            select.append(new Option('Choose…', ''));
+            for (const name of names) select.append(new Option(name, name));
+            select.addEventListener('change', () => {
+                session.me = select.value;
+                persistSession();
+                reflectOutcome();
+            });
+            label.append(select);
+            box.append(label, el('div', '', 'Or turn on “Recognise my voice” next time, and ReVerb will know.'));
+            return;
+        }
+        const kind = kindOf(session.type);
+        const pct = Math.round(c.share * 100);
+        const list = el('ul');
+        const line = (...parts) => { const li = el('li'); li.append(...parts); list.append(li); };
+        const guide = kind.talkMax
+            ? `In a ${kind.name.replace(/\s*\(.*\)$/, '').toLowerCase()}, aim for under about ${kind.talkMax}% — ${kind.talkWhy}.`
+            : `An even share among ${c.people} would be ${Math.round(100 / c.people)}%.`;
+        const share = el('b', kind.talkMax && pct > kind.talkMax ? 'over' : '', `${pct}% of the talking`);
+        line(c.me === 'You' ? 'You did ' : `${c.me} (you) did `, share, `. ${guide}`);
+        if (c.longestS >= 20) line('Longest stretch without anyone else speaking: ', el('b', '', `about ${spanText(c.longestS)}`), c.longestMin != null ? `, around ${c.longestMin}m.` : '.');
+        line('Questions you asked: ', el('b', '', String(c.questions)), '.');
+        if (c.suggested) line('Suggested questions that got asked: ', el('b', '', `${c.asked} of ${c.suggested}`), '.');
+        box.append(list);
+    }
+
+    // The same counts, as a sentence for the model writing the note.
+    function coachNumbersText() {
+        const c = coachStats();
+        if (!c) return '';
+        return [
+            `"${c.me}" spoke about ${Math.round(c.share * 100)}% of the words${c.others.length ? ` (${c.others.map((o) => `${o.name} ${Math.round(o.share * 100)}%`).join(', ')})` : ''}.`,
+            c.longestS >= 20 ? `Longest uninterrupted stretch about ${spanText(c.longestS)}${c.longestMin != null ? ` at [${c.longestMin}m]` : ''}.` : '',
+            `Asked ${c.questions} question${c.questions === 1 ? '' : 's'}.`,
+        ].filter(Boolean).join(' ');
+    }
+
+    function renderDoc(target, what, text, cite) {
+        const plain = what === 'recap' || what === 'email';
+        target.classList.toggle('plain', plain);
+        if (plain) target.textContent = text;
+        else target.innerHTML = cite(renderMarkdown(text));
+    }
+
+    function reflectOutcome() {
+        for (const tab of $('recap-tabs').querySelectorAll('[role="tab"]')) tab.setAttribute('aria-selected', String(tab.dataset.tab === recapTab));
+        $('recap-tabs').querySelector('[data-tab="notes"]').textContent = kindOf(session.type).doc;
+        const isRecap = recapTab === 'recap';
+        $('recap-preview').hidden = !isRecap;
+        $('outcome-pane').hidden = isRecap;
+        $('recap-link').hidden = !isRecap;
+        $('recap-email').hidden = !(isRecap || (recapTab === 'email' && docs.email && !docRun));
+        $('recap-email').textContent = isRecap ? 'Email' : 'Open in Mail';
+        $('recap-note').textContent = RECAP_NOTE[recapTab];
+        $('outcome-rewrite').hidden = true;
+        if (isRecap) return;
+
+        const text = docs[recapTab];
+        const running = Boolean(docRun && docRun.what === recapTab);
+        $('coach-numbers').hidden = recapTab !== 'coach';
+        if (recapTab === 'coach') renderCoachNumbers();
+        // The note is about the user's own lines, so it waits until ReVerb knows which they are.
+        const blocked = recapTab === 'coach' && !mineLabel();
+        $('outcome-empty').hidden = Boolean(text) || running || blocked;
+        $('outcome-about').textContent = DOC_ABOUT[recapTab]();
+        $('outcome-write').textContent = DOC_BUTTON[recapTab]();
+        $('outcome-write').disabled = Boolean(docRun);
+        const out = $('outcome-text');
+        out.hidden = !(text || running);
+        if (text) renderDoc(out, recapTab, text, citeMinutes);
+        else if (running) out.innerHTML = `<span class="chat-thinking">${spinnerSvg}<span>Reading the meeting…</span></span>`;
+        $('outcome-error').hidden = !(docError && !running && docErrorFor === recapTab);
+        $('outcome-error').textContent = docError;
+        $('outcome-rewrite').hidden = !text || Boolean(docRun);
+    }
+
+    let docErrorFor = '';
+    async function writeDoc(what) {
+        if (docRun || !segments.length || !docs.hasOwnProperty(what)) return;
+        const controller = new AbortController();
+        const epoch = sessionEpoch;
+        docRun = { what, controller };
+        docs[what] = '';
+        docError = '';
+        inflight.add(controller);
+        const cap = setTimeout(() => controller.abort(), CHAT_MAX_MS);
+        reflectOutcome();
+        try {
+            await streamSse(outcomeUrl, {
+                what,
+                transcript: chatTranscript(),
+                state: meetingState,
+                session: briefForServer({ materials: false }),
+                todos: todos.map(todoLine).join('\n'),
+                ...(what === 'coach' ? { me: mineLabel(), numbers: coachNumbersText() } : {}),
+            }, controller.signal, {
+                alive: () => epoch === sessionEpoch,
+                onDelta: (text) => {
+                    docs[what] += text;
+                    if (!docFrame) docFrame = requestAnimationFrame(() => { docFrame = 0; if (recapTab === what) reflectOutcome(); });
+                },
+            });
+        } catch (err) {
+            if (epoch !== sessionEpoch) return;
+            console.error('ReVerb outcome error:', err);
+            docErrorFor = what;
+            docError = `${err.name === 'AbortError' ? 'That took too long.' : err.name === 'TypeError' ? 'Couldn’t reach the server.' : err.message || 'Something went wrong.'} ${docs[what] ? 'What arrived is above.' : 'Try again.'}`;
+        } finally {
+            clearTimeout(cap);
+            inflight.delete(controller);
+            if (epoch === sessionEpoch) {
+                docRun = null;
+                docs[what] = docs[what].trim();
+                reflectOutcome();
+                persistTranscript();
+                // A meeting already saved keeps what is written for it afterwards.
+                const saved = readLibrary();
+                const entry = saved.find((e) => e.id === meetingId());
+                if (entry && docs[what]) { entry.docs = savedDocs(); writeLibrary(saved); }
+            }
+        }
+    }
+    const savedDocs = () => Object.fromEntries(Object.entries(docs).filter(([, text]) => text));
+
+    // "Subject: …" on the first line of the draft becomes the mail's subject.
+    function mailDraft() {
+        const m = /^\s*Subject:\s*(.*)\n+([\s\S]*)$/i.exec(docs.email);
+        const subject = m ? m[1].trim() : `Follow-up: ${session.objective || 'our meeting'}`;
+        let body = (m ? m[2] : docs.email).replace(/\n+Check before sending:[\s\S]*$/i, '').trim();
+        if (body.length > 1800) body = `${body.slice(0, 1800).replace(/\n[^\n]*$/, '')}\n…`;
+        location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
     // ---------- recap: what the meeting produced, to send on ----------
     // Shorter than the summary: what was decided, who is doing what, and what is still open —
     // the part people actually forward.
@@ -3302,6 +3813,8 @@
         $('recap-preview').textContent = recapText(recapShown);
         const saved = readLibrary().some((e) => e.id === meetingId());
         $('recap-save').textContent = saved ? 'Update Saved Copy' : 'Save to Past Meetings';
+        recapTab = 'recap';
+        reflectOutcome();
         $('recap-modal').classList.remove('hidden');
         $('recap-copy').focus();
     }
@@ -3361,14 +3874,14 @@
                 : transcript,
             state: meetingState || null,
             notes: sessionNotes.trim().slice(0, NOTES_MAX),
+            ...(Object.keys(savedDocs()).length ? { docs: savedDocs() } : {}),
         };
         if (!writeLibrary([entry, ...readLibrary().filter((e) => e.id !== entry.id)])) return;
         $('recap-save').textContent = 'Saved';
         toast('Saved to Past Meetings');
     }
     function reflectLibrary() {
-        const n = readLibrary().length;
-        $('library-btn').classList.toggle('hidden', isListening || !n);
+        $('library-btn').classList.toggle('hidden', isListening);
         reflectChatReady();
     }
 
@@ -3402,15 +3915,92 @@
                 clearTimeout(armed);
                 writeLibrary(readLibrary().filter((e) => e.id !== entry.id));
                 li.remove();
-                if (!readLibrary().length) closeModal('library-modal');
+                if (!readLibrary().length) openLibrary();
             });
             actions.append(view, follow, del);
             li.append(info, actions);
             list.append(li);
         }
+        const n = list.childElementCount;
+        $('library-empty').hidden = n > 0;
+        $('library-backup').hidden = !n;
         $('library-index').hidden = false;
         $('library-meeting').hidden = true;
         $('library-modal').classList.remove('hidden');
+    }
+
+    // ---------- backup: saved meetings as a file ----------
+    // Saved meetings live in this one browser. A backup file is the way to keep them safe, or to
+    // carry them to another browser or computer: everything a saved meeting holds, and nothing
+    // else — not the sign-in, not the voice sample.
+    function backupLibrary() {
+        const meetings = readLibrary();
+        if (!meetings.length) return;
+        const file = { app: 'ReVerb', kind: 'backup', v: 1, exportedAt: new Date().toISOString(), meetings };
+        downloadBlob(new Blob([JSON.stringify(file)], { type: 'application/json' }), `reverb-meetings-${fileStamp().slice(0, 10)}.json`);
+        toast(`Backed up ${meetings.length} meeting${meetings.length === 1 ? '' : 's'}`);
+    }
+
+    // A backup is a file from outside: every field is checked and clipped before it is kept, and
+    // nothing in it is ever treated as markup.
+    function cleanMeeting(m) {
+        if (!m || typeof m !== 'object' || !m.recap || typeof m.recap !== 'object') return null;
+        const str = (v, n) => (typeof v === 'string' ? v.slice(0, n) : '');
+        const list = (v, n, len) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x.trim()).slice(0, n).map((x) => x.slice(0, len)) : []);
+        const r = m.recap;
+        const title = str(r.title, 300).trim();
+        if (!title) return null;
+        const date = Number.isFinite(r.date) ? r.date : Date.now();
+        const recap = {
+            v: 1, title, date,
+            minutes: Number.isFinite(r.minutes) ? Math.max(0, Math.min(1440, Math.round(r.minutes))) : 0,
+            people: list(r.people, 40, 80), headline: str(r.headline, 600),
+            decisions: list(r.decisions, 40, 400), open: list(r.open, 40, 400), points: list(r.points, 40, 400),
+            todos: (Array.isArray(r.todos) ? r.todos : []).filter((t) => t && typeof t.task === 'string' && t.task.trim()).slice(0, 80)
+                .map((t) => ({ task: t.task.slice(0, 300), owner: str(t.owner, 80), due: str(t.due, 80), done: Boolean(t.done) })),
+            glossary: (Array.isArray(r.glossary) ? r.glossary : []).filter((g) => g && typeof g.term === 'string' && typeof g.definition === 'string').slice(0, 80)
+                .map((g) => ({ term: g.term.slice(0, 120), definition: g.definition.slice(0, 600) })),
+        };
+        let state = null;
+        try { if (m.state && typeof m.state === 'object' && JSON.stringify(m.state).length <= 60000) state = m.state; } catch (err) { /* not kept */ }
+        const docs = {};
+        for (const key of ['notes', 'email', 'coach']) {
+            const text = m.docs && str(m.docs[key], 12000).trim();
+            if (text) docs[key] = text;
+        }
+        return {
+            id: typeof m.id === 'string' && /^m-\d{1,16}$/.test(m.id) ? m.id : `m-${date}`,
+            savedAt: Number.isFinite(m.savedAt) ? m.savedAt : Date.now(),
+            recap, roster: list(m.roster, 40, 80), keywords: list(m.keywords, 100, 80),
+            type: KINDS[m.type] ? m.type : 'general', objective: str(m.objective, 600),
+            transcript: str(m.transcript, LIBRARY_TRANSCRIPT_CHARS + 100), state, notes: str(m.notes, NOTES_MAX),
+            ...(Object.keys(docs).length ? { docs } : {}),
+        };
+    }
+
+    async function restoreLibrary(file) {
+        if (!file) return;
+        if (file.size > 25e6) { toast('That file is too large to be a ReVerb backup'); return; }
+        let data;
+        try { data = JSON.parse(await file.text()); } catch (err) { toast('That isn’t a ReVerb backup file'); return; }
+        if (!data || data.app !== 'ReVerb' || data.kind !== 'backup' || !Array.isArray(data.meetings)) { toast('That isn’t a ReVerb backup file'); return; }
+        const incoming = data.meetings.slice(0, 200).map(cleanMeeting).filter(Boolean);
+        if (!incoming.length) { toast('No meetings in that backup'); return; }
+        // The same meeting in both: the copy saved later wins.
+        const byId = new Map(readLibrary().map((e) => [e.id, e]));
+        let added = 0, updated = 0;
+        for (const m of incoming) {
+            const have = byId.get(m.id);
+            if (!have) { byId.set(m.id, m); added++; }
+            else if (m.savedAt > (have.savedAt || 0)) { byId.set(m.id, m); updated++; }
+        }
+        const merged = [...byId.values()].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+        const dropped = Math.max(0, merged.length - LIBRARY_MAX);
+        if (!writeLibrary(merged)) return;
+        openLibrary();
+        toast(added || updated
+            ? `Restored ${added + updated} meeting${added + updated === 1 ? '' : 's'}${dropped ? ` — the ${dropped} oldest didn’t fit` : ''}`
+            : 'Those meetings are already here');
     }
 
     // ---------- one past meeting: its recap, and a chat about it alone ----------
@@ -3435,8 +4025,27 @@
             new Date(r.date).toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
             r.minutes ? `${r.minutes} min` : '', (r.people || []).join(', '),
         ].filter(Boolean).join(' · ');
-        // The title and date are already above it.
-        $('pm-recap').textContent = recapText(r).split('\n').slice(2).join('\n').trim();
+        // The title and date are already above the recap. Anything written for the meeting — its
+        // notes, the email draft, the private feedback — was saved with it, each behind a tab.
+        const views = { recap: recapText(r).split('\n').slice(2).join('\n').trim(), ...(entry.docs || {}) };
+        const labels = { recap: 'Recap', notes: kindOf(entry.type).doc, email: 'Follow-Up Email', coach: 'How You Did' };
+        const tabs = $('pm-tabs');
+        tabs.replaceChildren();
+        const show = (key) => {
+            for (const b of tabs.children) b.setAttribute('aria-selected', String(b.dataset.tab === key));
+            renderDoc($('pm-recap'), key, views[key], (html) => pastCites(html, entry));
+        };
+        for (const key of ['recap', 'notes', 'email', 'coach']) {
+            if (!views[key]) continue;
+            const b = el('button', '', labels[key]);
+            b.type = 'button';
+            b.setAttribute('role', 'tab');
+            b.dataset.tab = key;
+            b.addEventListener('click', () => show(key));
+            tabs.append(b);
+        }
+        tabs.hidden = tabs.childElementCount < 2;
+        show('recap');
         $('pm-chat-note').textContent = entry.transcript
             ? 'Answered only from this meeting’s transcript, summary and corrections, with the minute each point was said.'
             : 'Saved before transcripts were kept, so answers come from its recap only.';
@@ -3453,8 +4062,7 @@
     function showLibraryIndex() {
         if (pastActive) pastActive.stop();
         pastOpen = null;
-        if (readLibrary().length) openLibrary();
-        else closeModal('library-modal');
+        openLibrary();
     }
 
     // Minutes in a past meeting's answer can't jump to a transcript on screen, so each shows the
@@ -4139,7 +4747,7 @@
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
-            recognition.lang = 'en-US';
+            recognition.lang = languageOf(session.language).speech;
 
             recognition.onstart = () => {
                 this.running = true;
@@ -4375,7 +4983,7 @@ if (m.type === 'close') {
                 type: 'start',
                 prompt: `Meeting type: ${meetingLabel}.${session.objective ? ' Objective: ' + session.objective : ''}`,
                 keywords: session.keywords,
-                languages: ['en'],
+                languages: [languageOf(session.language).code],
                 ...(readAuth() ? { token: readAuth().session } : {}),
             };
         }
@@ -4663,6 +5271,7 @@ if (m.type === 'close') {
                 // The cards themselves aren't kept, like every other card; what was asked, skipped and
                 // passed over is, so none of it is suggested again after a reload.
                 askNext: { asked: askNext.asked, skipped: askNext.skipped, earlier: askNext.earlier },
+                docs: savedDocs(),
             }));
         } catch (err) { /* quota or private mode — the session still runs */ }
     }
@@ -4816,6 +5425,7 @@ if (m.type === 'close') {
         if (Array.isArray(data.dismissed)) {
             dismissedTitles.push(...data.dismissed.filter((a) => a && typeof a.title === 'string'));
         }
+        for (const key of Object.keys(docs)) docs[key] = data.docs && typeof data.docs[key] === 'string' ? data.docs[key].slice(0, 12000) : '';
         const savedAsk = data.askNext && typeof data.askNext === 'object' ? data.askNext : {};
         const texts = (v, n) => (Array.isArray(v) ? v.filter((t) => typeof t === 'string' && t.trim()).slice(-n) : []);
         askNext.asked = texts(savedAsk.asked, 60);
@@ -4931,6 +5541,13 @@ if (m.type === 'close') {
             select.append(group);
         }
         select.addEventListener('change', reflectKind);
+        const language = $('setup-language');
+        for (const l of LANGUAGES) {
+            const option = document.createElement('option');
+            option.value = l.code;
+            option.textContent = l.name;
+            language.append(option);
+        }
     }
     function reflectKind() {
         const kind = kindOf($('setup-type').value);
@@ -4944,6 +5561,7 @@ if (m.type === 'close') {
         $('setup-type').value = KINDS[session.type] ? session.type : 'general';
         reflectKind();
         $('setup-role').value = session.role || '';
+        $('setup-language').value = languageOf(session.language).code;
         $('setup-roster').value = (session.roster || []).join(', ');
         $('setup-keywords').value = session.keywords.join(', ');
         $('setup-agenda').value = (session.agenda || []).join('\n');
@@ -4951,7 +5569,7 @@ if (m.type === 'close') {
         $('setup-materials').value = session.materials || '';
         reflectMaterialsCount();
         // Open when there is something in it, so a filled-in brief doesn't look empty.
-        $('setup-more').open = Boolean((session.agenda || []).length || session.durationMin || session.materials || session.role);
+        $('setup-more').open = Boolean((session.agenda || []).length || session.durationMin || session.materials || session.role || (session.language && session.language !== 'en'));
         $('setup-accurate').checked = session.accurate;
         $('setup-record').checked = session.record;
         $('setup-voice').checked = Boolean(session.voiceId);
@@ -4959,7 +5577,8 @@ if (m.type === 'close') {
         // Only a desktop browser can share a tab's audio.
         $('tab-option').hidden = !canShareTab;
         $('setup-tab').checked = canShareTab && Boolean(session.tabAudio);
-        $('setup-start').textContent = segments.length ? 'Continue' : 'Start';
+        pickedRecording = null;
+        reflectRecordingPick();
         $('setup-title').textContent = segments.length ? 'Session Brief' : session.followUp ? 'Follow-Up Session' : 'New Session';
         $('followup-note').textContent = session.followUp ? `Following up on “${session.followUp.title}”` : '';
         $('invite-box').hidden = true;
@@ -5045,6 +5664,8 @@ if (m.type === 'close') {
         session.objective = $('setup-objective').value.trim();
         session.type = KINDS[$('setup-type').value] ? $('setup-type').value : 'general';
         session.role = $('setup-role').value.replace(/\s+/g, ' ').trim().slice(0, 200);
+        session.language = languageOf($('setup-language').value).code;
+        try { localStorage.setItem('reverb.language', session.language); } catch (err) { /* ignore */ }
         const typed = $('setup-keywords').value.split(',').map(k => k.trim()).filter(Boolean);
         session.keywords = [...new Set(typed)];
         session.roster = [...new Set($('setup-roster').value.split(',').map(n => n.trim()).filter(Boolean))];
@@ -5073,6 +5694,13 @@ if (m.type === 'close') {
         session.keywords = [...new Set([...session.keywords, ...session.roster])];
         persistSession();
         closeSetup();
+        // A recording was chosen: read it, rather than listen.
+        if (pickedRecording && !segments.length) {
+            const file = pickedRecording;
+            pickedRecording = null;
+            runRecording(file);
+            return;
+        }
         await startListening();
     }
 
@@ -5311,6 +5939,7 @@ if (m.type === 'close') {
     }
 
     function showSessionEnd(audio) {
+        $('end-title').textContent = 'Stopped listening';
         releaseLastAudio();
         lastAudio = audio || null;
         $('end-diagnostics').classList.add('hidden');
@@ -5427,6 +6056,9 @@ if (m.type === 'close') {
         stopVoiceId();
         voiceFailures = 0;
         voiceUnsupported = false;
+        for (const key of Object.keys(docs)) docs[key] = '';
+        docError = '';
+        recapTab = 'recap';
         askNext.open = [];
         askNext.asked = [];
         askNext.skipped = [];
@@ -5509,6 +6141,18 @@ if (m.type === 'close') {
     $('end-improve').addEventListener('click', startImprove);
     $('improve-file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; onImproveFile(f); });
     $('improve-undo').addEventListener('click', undoImprove);
+    $('recording-pick').addEventListener('click', () => $('recording-file').click());
+    $('recording-file').addEventListener('change', (e) => {
+        pickedRecording = e.target.files[0] || null;
+        e.target.value = '';
+        reflectRecordingPick();
+    });
+    $('recording-clear').addEventListener('click', () => { pickedRecording = null; reflectRecordingPick(); });
+    $('replay-skip').addEventListener('click', () => {
+        if (!replay) return;
+        replay.skip = true;
+        $('replay-skip').hidden = true;
+    });
     $('improve-cancel').addEventListener('click', () => {
         if (improveRun) improveRun.controller.abort();
         else $('improve-bar').classList.add('hidden');
@@ -5615,8 +6259,24 @@ if (m.type === 'close') {
     // ---------- recap, past meetings, invites ----------
     $('recap-open').addEventListener('click', openRecap);
     $('end-recap').addEventListener('click', openRecap);
-    $('recap-copy').addEventListener('click', (e) => copyToClipboard($('recap-preview').textContent, e.currentTarget, 'Recap'));
-    $('recap-email').addEventListener('click', () => { emailRecap(); });
+    $('recap-copy').addEventListener('click', (e) => (recapTab === 'recap'
+        ? copyToClipboard($('recap-preview').textContent, e.currentTarget, 'Recap')
+        : copyToClipboard(docs[recapTab], e.currentTarget)));
+    $('recap-email').addEventListener('click', () => { if (recapTab === 'email') mailDraft(); else emailRecap(); });
+    $('recap-tabs').addEventListener('click', (e) => {
+        const tab = e.target.closest('[role="tab"]');
+        if (!tab) return;
+        recapTab = tab.dataset.tab;
+        reflectOutcome();
+    });
+    $('outcome-write').addEventListener('click', () => writeDoc(recapTab));
+    $('outcome-rewrite').addEventListener('click', () => writeDoc(recapTab));
+    $('outcome-text').addEventListener('click', (e) => {
+        const cite = e.target.closest('.cite[data-min]');
+        if (!cite) return;
+        closeModal('recap-modal');
+        jumpToMinute(Number(cite.dataset.min));
+    });
     $('recap-link').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         try { await copyToClipboard(recapUrl || await recapLink(recapShown || buildRecap()), button, 'Link'); }
@@ -5638,6 +6298,9 @@ if (m.type === 'close') {
         voiceResult('Deleted.');
         reflectVoicePanel();
     });
+    $('library-backup').addEventListener('click', backupLibrary);
+    $('library-restore').addEventListener('click', () => $('library-file').click());
+    $('library-file').addEventListener('change', (e) => { restoreLibrary(e.target.files[0]); e.target.value = ''; });
     $('pm-back').addEventListener('click', showLibraryIndex);
     $('pm-form').addEventListener('submit', (e) => { e.preventDefault(); submitPast(); });
     $('pm-input').addEventListener('input', reflectPastChat);
