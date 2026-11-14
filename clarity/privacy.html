@@ -40,7 +40,7 @@
     <p class="label">Legal</p>
     <h1 class="doc__title">Privacy Policy</h1>
     <div class="doc__meta">
-      <span>Last updated: October 18, 2026</span>
+      <span>Last updated: November 14, 2026</span>
       <span>Effective: August 31, 2026</span>
       <span>Applies to: Clarity for iOS (com.promontoryai.Clarity)</span>
     </div>
@@ -157,6 +157,21 @@
       investigate suspicious activity, and meet our legal obligations.
     </p>
 
+    <h3>Notifications</h3>
+    <p>
+      Notifications are off until you turn one on in the App and allow them in iOS. If you turn
+      on notifications about score changes, iOS gives the App a push token for your device (an
+      identifier Apple issues so that notifications can reach that installation of the App), and
+      we store it with your account, together with the App's language and which notifications you
+      chose. We use it only to send the notifications you asked for. When your scores change
+      overnight because new economic data came in, the notification shows your old and new
+      scores; it is delivered to your device through Apple's push notification service.
+    </p>
+    <p>
+      The monthly reminder to update your figures is scheduled on your device by iOS; nothing
+      about it is sent to us.
+    </p>
+
     <h2 id="what-we-dont">3. What we don't collect</h2>
     <p>To be explicit, the App does <strong>not</strong>:</p>
     <ul>
@@ -181,6 +196,7 @@
       <li>Compare your position against public statistical benchmarks for households with similar characteristics;</li>
       <li>Generate written explanations and assistant replies about your own figures;</li>
       <li>Present the App in your chosen language;</li>
+      <li>Send the notifications you turn on;</li>
       <li>Authenticate you and keep your account secure;</li>
       <li>Respond to your requests and provide customer support;</li>
       <li>Detect, prevent, and address technical problems, fraud, abuse, or misuse; and</li>
@@ -267,8 +283,8 @@
           </tr>
           <tr>
             <td>Apple Inc.</td>
-            <td>App Store distribution, and any crash or usage diagnostics you have chosen to share with developers in iOS Settings</td>
-            <td>Governed by Apple's own privacy policy and your iOS settings</td>
+            <td>App Store distribution; delivery of the notifications you turn on; and any crash or usage diagnostics you have chosen to share with developers in iOS Settings</td>
+            <td>For notifications, your device's push token and the notification text (your old and new scores). Otherwise governed by Apple's own privacy policy and your iOS settings</td>
             <td>United States</td>
           </tr>
         </tbody>
@@ -317,6 +333,17 @@
       removes this local copy.
     </p>
     <p>
+      If you add the Clarity widget to your Home Screen, the App leaves your two scores and the
+      date they were calculated in storage on your device that the widget can read. The widget
+      makes no network requests, and it shows no figures while the App is locked or you are
+      signed out.
+    </p>
+    <p>
+      If you turn on <strong>Lock Clarity</strong>, the App asks iOS to confirm it is you with
+      Face ID, Touch ID, or your device passcode. iOS performs the check and tells the App only
+      whether it succeeded; we never receive your face, fingerprint, or passcode data.
+    </p>
+    <p>
       No method of transmission or storage is completely secure, and we cannot guarantee absolute
       security. Protecting your account also depends on you: use a strong, unique password, and
       tell us promptly if you believe your account has been compromised.
@@ -348,6 +375,10 @@
           <tr>
             <td>Cached explanations, summaries, and insights</td>
             <td>Until superseded by an updated version or until you delete your account</td>
+          </tr>
+          <tr>
+            <td>Your device's push token and notification choices</td>
+            <td>Until you sign out of the App on that device or delete your account, or until Apple reports that the token no longer works</td>
           </tr>
           <tr>
             <td>Server diagnostic logs</td>
@@ -389,7 +420,8 @@
     <p>
       This permanently removes your account record and everything linked to it — profile and
       demographic details, financial entries, goals, calculated metrics, cached insights and
-      summaries, saved scenarios, and your assistant history — from our database. It happens
+      summaries, saved scenarios, notification registrations, and your assistant history — from
+      our database. It happens
       immediately, it is not a deactivation, and it cannot be undone.
     </p>
     <p>
