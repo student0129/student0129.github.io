@@ -5557,6 +5557,13 @@ if (m.type === 'close') {
     }
 
     function openSetup() {
+        // A new meeting starts with a blank brief: what the last one was about, and who was in it,
+        // never carries over to the next. Settings stay (kind of meeting, language, your role,
+        // listening options). A follow-up is the exception: it is meant to start from the last one.
+        if (!segments.length && !session.followUp) {
+            Object.assign(session, { objective: '', roster: [], keywords: [], agenda: [], durationMin: null, materials: '', me: '' });
+            persistSession();
+        }
         $('setup-objective').value = session.objective;
         $('setup-type').value = KINDS[session.type] ? session.type : 'general';
         reflectKind();
