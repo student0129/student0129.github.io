@@ -40,7 +40,7 @@
     <p class="label">Legal</p>
     <h1 class="doc__title">Privacy Policy</h1>
     <div class="doc__meta">
-      <span>Last updated: November 15, 2026</span>
+      <span>Last updated: November 16, 2026</span>
       <span>Effective: August 31, 2026</span>
       <span>Applies to: Clarity for iOS (com.promontoryai.Clarity)</span>
     </div>
@@ -125,6 +125,13 @@
       and debts, savings, and the goals you set. You decide what to enter, at what level of
       detail, and you can change or remove any of it at any time.
     </p>
+    <p>
+      Along with your current figures, we keep their history: your net worth on each day you save
+      your figures, and any earlier balances you add for days before you used the App; each time
+      you record money put aside for a goal, or say nothing was added, with its date; and when you
+      last confirmed that each section of your figures was up to date. We use it to show your
+      history and progress, and for the reminders you choose.
+    </p>
 
     <h3>Content you create in the App</h3>
     <p>
@@ -160,12 +167,19 @@
     <h3>Notifications</h3>
     <p>
       Notifications are off until you turn one on in the App and allow them in iOS. If you turn
-      on notifications about score changes, iOS gives the App a push token for your device (an
+      on notifications about score changes or goal reminders, iOS gives the App a push token for your device (an
       identifier Apple issues so that notifications can reach that installation of the App), and
       we store it with your account, together with the App's language and which notifications you
       chose. We use it only to send the notifications you asked for. When your scores change
       overnight because new economic data came in, the notification shows your old and new
       scores; it is delivered to your device through Apple's push notification service.
+    </p>
+    <p>
+      With goal reminders on, we use your goals (their names, amounts, monthly plans, target
+      dates, and when you last updated them) to tell you when a goal's target date is 30 days away
+      or the goal falls behind pace; the notification shows the goal's name and the amounts. We
+      keep a record of each goal reminder sent, so that you get each one once and at most one a
+      week.
     </p>
     <p>
       The monthly reminder to update your figures is scheduled on your device by iOS; nothing
@@ -177,7 +191,7 @@
       If you link your account with another person's in Household, each of you sees the other's
       first name, Risk and Opportunity Scores, and totals (net worth, assets, debts, and monthly
       income, spending, and cash flow), worked out from what each of you entered, and the two
-      added together. Neither of you sees the other's individual entries, profile or demographic
+      added together. Neither of you sees the other's individual entries (except items marked Shared, below), profile or demographic
       details, goals, assistant conversations, email address, or phone number.
     </p>
     <p>
@@ -187,6 +201,14 @@
       leaving are recorded in the security audit records described above.
       If you compare yourselves as a household in Compare Wellness, the comparison uses your
       combined figures and the age group of the older of you.
+    </p>
+    <p>
+      If you mark accounts, properties, or loans you own together as Shared, your partner also
+      sees each Shared item's name and amount, so that the two of you can tell which are the same;
+      what both of you entered and marked Shared is counted once in your combined figures. We
+      store which of your Shared items you said are, or are not, the same as your partner's until
+      the household ends. The household's own Risk and Opportunity Scores are worked out from your
+      combined figures.
     </p>
 
     <h2 id="what-we-dont">3. What we don't collect</h2>
@@ -399,7 +421,15 @@
           </tr>
           <tr>
             <td>Household link and invite codes</td>
-            <td>The link until either of you leaves the household or deletes your account; an invite code until it is used or withdrawn, and never more than three days</td>
+            <td>The link, and which Shared items are the same, until either of you leaves the household or deletes your account; an invite code until it is used or withdrawn, and never more than three days</td>
+          </tr>
+          <tr>
+            <td>Net worth history, goal progress, and update dates</td>
+            <td>Until you delete your account (a goal's progress also when you delete the goal); you can remove an earlier balance you added at any time</td>
+          </tr>
+          <tr>
+            <td>Records of goal reminders sent</td>
+            <td>Until you delete the goal or your account</td>
           </tr>
           <tr>
             <td>Server diagnostic logs</td>
