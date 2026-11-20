@@ -130,6 +130,7 @@
             [data-type="confirm"]       { --card-accent: #4cd27a !important; }
             [data-type="talkpast"]      { --card-accent: #ff7ab6 !important; }
             [data-type="drift"]         { --card-accent: #a7b4c8 !important; }
+            [data-type="insight"]       { --card-accent: #d8b4fe !important; }
             [data-type="quiet"]         { --card-accent: #50d0f0 !important; }
         }
 
@@ -264,6 +265,7 @@
         [data-type="confirm"]       { --card-accent: #15803d; }
         [data-type="talkpast"]      { --card-accent: #be185d; }
         [data-type="drift"]         { --card-accent: #475569; }
+        [data-type="insight"]       { --card-accent: #9333ea; }
 
         /* The question worth saying out loud. Set apart from the observation above it, because
            it is the part someone actually uses. */
@@ -395,7 +397,8 @@
         #insights-container[data-muted~="loop"] > [data-card][data-type="loop"],
         #insights-container[data-muted~="confirm"] > [data-card][data-type="confirm"],
         #insights-container[data-muted~="talkpast"] > [data-card][data-type="talkpast"],
-        #insights-container[data-muted~="drift"] > [data-card][data-type="drift"] { display: none; }
+        #insights-container[data-muted~="drift"] > [data-card][data-type="drift"],
+        #insights-container[data-muted~="insight"] > [data-card][data-type="insight"] { display: none; }
 
         /* An answer that arrived partly. Kept, marked, and re-runnable — the alternative
            was a card that simply stopped mid-sentence and looked finished. */

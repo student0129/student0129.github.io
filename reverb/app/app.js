@@ -138,13 +138,15 @@
         factcheck:     { label: 'Fact check',   cooldown: 45000,  utterance: true },
         contradiction: { label: 'Conflict',     cooldown: 150000, utterance: true },
         gap:           { label: 'Dig deeper',   cooldown: 180000, utterance: true },
-        ask:           { label: 'Ask this',     cooldown: 60000,  utterance: true, sweep: true },
+        ask:           { label: 'Ask this',     cooldown: 180000, utterance: true, sweep: true },
         action:        { label: 'Action',       cooldown: 0,      utterance: true },
         unanswered:    { label: 'Unanswered',   cooldown: 120000, sweep: true },
         loop:          { label: 'Going round',  cooldown: 300000, sweep: true },
         confirm:       { label: 'Confirm it',   cooldown: 180000, sweep: true },
         talkpast:      { label: 'Talking past', cooldown: 300000, sweep: true },
         drift:         { label: 'Off track',    cooldown: 600000, sweep: true },
+        // What follows from what was said, that nobody has said: read across the last few minutes.
+        insight:       { label: 'Insight',      cooldown: 180000, sweep: true },
         // Raised here, from who has and hasn't been talking — the server never sees this type.
         quiet:         { label: 'Quiet voice',  cooldown: 0 },
     };
@@ -176,14 +178,14 @@
     const SWEEP_TIMEOUT_MS = 45000;      // the server allows the call 40s
 
     // --- Suggested questions ---
-    // Looked for again every half-minute that brought a couple of sentences of new talk, and sooner
-    // when fewer than two are open: that is exactly when someone looks for the next question.
-    // Before anyone speaks, openers.
-    const QUESTIONS_INTERVAL_MS = 30 * 1000;
-    const QUESTIONS_MIN_NEW_CHARS = 250;
-    const QUESTIONS_REFILL_MS = 15 * 1000;
-    const QUESTIONS_REFILL_CHARS = 120;
-    const QUESTIONS_MAX_OPEN = 3;        // open question cards at once; the oldest is quieted past this
+    // Looked for again about every minute of real talk, and sooner when none is open. Few and good
+    // beats many: a look adds at most one card, and the server only passes questions it scores highly.
+    // Before anyone speaks, openers — but only from what the brief says.
+    const QUESTIONS_INTERVAL_MS = 60 * 1000;
+    const QUESTIONS_MIN_NEW_CHARS = 500;
+    const QUESTIONS_REFILL_MS = 40 * 1000;
+    const QUESTIONS_REFILL_CHARS = 300;
+    const QUESTIONS_MAX_OPEN = 2;        // open question cards at once; the oldest is quieted past this
     const QUESTIONS_CONTEXT_CHARS = 30000;   // ~25 minutes of speech
     const QUESTIONS_TIMEOUT_MS = 45000;      // the server allows the call 40s
 
@@ -2281,7 +2283,7 @@
         if (questionsRunning || !questionsOn() || !lanesLive()) return;
         const since = lanesNow() - lastQuestionsAt;
         if (charsSinceQuestions >= QUESTIONS_MIN_NEW_CHARS && since >= QUESTIONS_INTERVAL_MS) runQuestions();
-        else if (askNext.open.length < 2 && charsSinceQuestions >= QUESTIONS_REFILL_CHARS && since >= QUESTIONS_REFILL_MS) runQuestions();
+        else if (!askNext.open.length && charsSinceQuestions >= QUESTIONS_REFILL_CHARS && since >= QUESTIONS_REFILL_MS) runQuestions();
     }
 
     async function runQuestions(opts) {
@@ -2360,8 +2362,8 @@
         // Passed over by this look: quieted, not removed.
         for (const q of [...askNext.open]) if (!keep.has(q)) settleQuestion(q, 'earlier');
 
-        // A couple of new cards at a time, the best on top; the rest can come next time.
-        const adding = fresh.slice(0, opts && opts.opening ? 3 : 2);
+        // One new card a look (two openers), the best; the rest can come next time if still good.
+        const adding = fresh.slice(0, opts && opts.opening ? 2 : 1);
         for (const q of adding.reverse()) showQuestionCard(q);
         while (askNext.open.length > QUESTIONS_MAX_OPEN) settleQuestion(askNext.open[0], 'earlier');
         if (opts && opts.manual && !adding.length) toast(askNext.open.length ? 'Nothing better to ask yet' : 'No questions worth asking yet');
