@@ -40,7 +40,7 @@
     <p class="label">Legal</p>
     <h1 class="doc__title">Privacy Policy</h1>
     <div class="doc__meta">
-      <span>Last updated: November 16, 2026</span>
+      <span>Last updated: November 23, 2026</span>
       <span>Effective: August 31, 2026</span>
       <span>Applies to: Clarity for iOS (com.promontoryai.Clarity)</span>
     </div>
@@ -138,6 +138,11 @@
       If you use the built-in assistant, we store the messages you send and the replies you
       receive so that a conversation can continue across sessions. See
       <a href="#ai">AI features</a> and <a href="#retention">Data retention</a>.
+    </p>
+
+    <h3>Statements you scan</h3>
+    <p>
+      If you choose to scan a statement or pay stub, the App reads it on your device: the picture or file stays on your device and is not uploaded. Before anything is sent, the App removes your name, street address, city and ZIP code, email addresses, phone numbers, and account, card, and Social Security numbers from the text it read; the last four digits of an account number stay on your device, to match the statement to your account. The remaining text of the first two pages is sent to our servers, which remove any such numbers that remain and pass it to our AI provider to read the figures printed on it. Neither we nor the provider store that text or what was read from it: only the figures you confirm are saved, like any figures you type in.
     </p>
 
     <h3>Support communications</h3>
@@ -265,7 +270,8 @@
       (currently Anthropic, PBC). How this works matters, so we are specific:
     </p>
     <ul>
-      <li><strong>Financial figures only.</strong> The information sent for processing consists of financial metrics and the text of your own questions. Your name, email address, and phone number are not sent.</li>
+      <li><strong>Financial figures only.</strong> The information sent for processing consists of financial metrics, the text of your own questions, and the text of statements you choose to scan with personal details removed. Your name, email address, and phone number are not sent.</li>
+      <li><strong>Scanned statements.</strong> When you scan a statement, the text of its first pages, with your name, address, and account numbers removed, is sent so that the figures printed on it can be read. It is used only to show you those figures to confirm, and it is not stored.</li>
       <li><strong>No training on your data.</strong> Under our agreement with the provider, information sent through the API is not used to train their models.</li>
       <li><strong>Conversation memory.</strong> So that the assistant can follow a conversation, recent messages from your chat history are replayed as context along with a current snapshot of your figures.</li>
       <li><strong>Generated output is stored.</strong> Explanations and summaries are cached against your account, per language, so the App does not regenerate them on every screen.</li>
@@ -310,8 +316,8 @@
           </tr>
           <tr>
             <td>Anthropic, PBC</td>
-            <td>Large language model processing for explanations, summaries, translations, and the assistant</td>
-            <td>Financial metrics and your assistant messages — not your name, email, or phone number</td>
+            <td>Large language model processing for explanations, summaries, translations, the assistant, and reading statements you scan</td>
+            <td>Financial metrics, your assistant messages, and the text of statements you scan with personal details removed — not your name, email, or phone number</td>
             <td>United States</td>
           </tr>
           <tr>
@@ -381,6 +387,9 @@
       If you turn on <strong>Lock Clarity</strong>, the App asks iOS to confirm it is you with
       Face ID, Touch ID, or your device passcode. iOS performs the check and tells the App only
       whether it succeeded; we never receive your face, fingerprint, or passcode data.
+    </p>
+    <p>
+      If you scan a statement with the camera, the App uses the camera only while you scan; the pictures are read on your device and are not kept.
     </p>
     <p>
       No method of transmission or storage is completely secure, and we cannot guarantee absolute
