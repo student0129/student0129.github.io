@@ -309,6 +309,37 @@
             }
             return ends;
         }
+        // Complete sentences as { end, size }, size in letters. A piece with no words (a "." that
+        // arrived late) joins the sentence after it rather than counting as one.
+        const LETTERS = /[\p{L}\p{N}]/gu;
+        const letterCount = (text) => (text.match(LETTERS) || []).length;
+        function sentences(text) {
+            const out = [];
+            let from = 0;
+            for (const end of sentenceEnds(text)) {
+                const size = letterCount(text.slice(from, end));
+                if (!size) continue;
+                out.push({ end, size });
+                from = end;
+            }
+            return out;
+        }
+        const sizeOf = (list, from, n) => list.slice(from, from + n).reduce((sum, s) => sum + s.size, 0);
+
+        // Which of the interpreter's sentences translate which of the speaker's. The interpreter often
+        // splits a sentence in two or joins two into one, so counting sentences pairs them wrong, and
+        // once wrong every row after it is off by one. Instead, as in Gale & Church's sentence
+        // alignment, a translation is about as long as what it translates (in letters, times a ratio
+        // for the language pair), and pairings that fit the lengths best win.
+        const PAIR_SHAPES = [[1, 1, 0.55], [1, 2, 0.18], [2, 1, 0.18], [2, 2, 0.05], [1, 3, 0.02], [3, 1, 0.02]];
+        function pairFit(sourceSize, translationSize, prior, ratio) {
+            const z = (translationSize - ratio * sourceSize) / Math.sqrt(Math.max(sourceSize, 1) * ratio * 6.8);
+            // Two-sided normal tail (Abramowitz & Stegun 26.2.17)
+            const t = 1 / (1 + 0.2316419 * Math.abs(z));
+            const tail = 2 * 0.3989423 * Math.exp(-z * z / 2) * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+            return { z, cost: -Math.log(prior) - Math.log(Math.max(tail, 1e-12)) };
+        }
+
         const wordSegmenter = window.Intl && Intl.Segmenter ? new Intl.Segmenter(undefined, { granularity: 'word' }) : null;
         function countWords(text) {
             if (!wordSegmenter) return text.split(/\s+/).filter(Boolean).length;
@@ -1467,7 +1498,7 @@
         const setText = (el, text) => { if (el.textContent !== text) el.textContent = text; };
 
         const transcript = {
-            rows: [], current: null, nextSeq: 0, lastSourceAt: 0, lastTextAt: 0,
+            rows: [], current: null, nextSeq: 0, lastSourceAt: 0, lastTextAt: 0, lettersHeard: 0, lettersInterpreted: 0,
 
             // Instant needs a live session that speaks the target language.
             mode() {
@@ -1499,36 +1530,112 @@
             // Instant: both transcripts stream in; deltas are fragments that carry their own spacing.
             instantText(field, delta) {
                 if (!delta) return;
-                // A late closing mark ("." or "?") belongs to the row that just ended, not to a new one.
-                const last = this.rows.at(-1);
-                if (!this.current && !hasWords(delta) && last && last.kind === 'instant' && !last.removed) {
-                    last[field] += delta;
-                    return this.render(last);
+                // A late closing mark ("." or "?") belongs to the row before, not to the start of a new one.
+                if (/^[\s.!?。！？…,;:、，"'”’»」』)\]）]+$/u.test(delta)) {
+                    const open = this.current;
+                    const prev = open ? this.rows[this.rows.indexOf(open) - 1] : this.rows.at(-1);
+                    if ((!open || !hasWords(open[field])) && prev && prev.kind === 'instant' && !prev.removed && hasWords(prev[field])) {
+                        prev[field] += delta;
+                        return this.render(prev);
+                    }
                 }
                 const row = this.openRow('instant');
                 row[field] += delta;
                 this.lastTextAt = performance.now();
-                this.splitAtSentence(row);
+                this.pairSentences(row);
             },
 
-            // The translation trails the speaker by a second or two. Once it has completed as many
-            // sentences as the transcript, both halves cover the same speech: the row closes there and
-            // the rest starts the next one. If the interpreter merges or splits sentences the counts
-            // never match and the pause rule applies instead: long rows, never misaligned ones.
-            splitAtSentence(row) {
-                const sourceEnds = sentenceEnds(row.source);
-                const translationEnds = sentenceEnds(row.translation);
-                if (!sourceEnds.length || sourceEnds.length !== translationEnds.length) return this.render(row);
-                const rest = { source: row.source.slice(sourceEnds.at(-1)), translation: row.translation.slice(translationEnds.at(-1)) };
-                row.source = row.source.slice(0, sourceEnds.at(-1));
-                row.translation = row.translation.slice(0, translationEnds.at(-1));
-                this.closeRow();
-                if (hasWords(rest.source) || hasWords(rest.translation)) {
-                    const next = this.openRow('instant');
-                    next.source = rest.source;
-                    next.translation = rest.translation;
-                    this.render(next);
+            // Letters of translation per letter heard, over every closed row: a pairing mistake doesn't
+            // change the totals. Until there's enough, from this row's sentences.
+            letterRatio(S, T) {
+                if (this.lettersHeard >= 80 && this.lettersInterpreted >= 40) return this.lettersInterpreted / this.lettersHeard;
+                const n = Math.min(S.length, T.length);
+                const heard = sizeOf(S, 0, n), interpreted = sizeOf(T, 0, n);
+                return heard && interpreted ? interpreted / heard : 1;
+            },
+
+            // The row's first sentences become a row of their own once the pairing is clear: the best
+            // fit for them and for the pair after them beats every other shape. Waiting for that next
+            // pair is what tells "the interpreter split this sentence" from "it is a sentence behind".
+            pairSentences(row) {
+                for (;;) {
+                    const S = sentences(row.source), T = sentences(row.translation);
+                    if (!S.length || !T.length) break;
+                    const ratio = this.letterRatio(S, T);
+                    const options = [];
+                    for (const [p, q, prior] of PAIR_SHAPES) {
+                        let next = null;
+                        for (const [p2, q2, prior2] of PAIR_SHAPES.slice(0, 3)) {
+                            if (p + p2 > S.length || q + q2 > T.length) continue;
+                            const fit = pairFit(sizeOf(S, p, p2), sizeOf(T, q, q2), prior2, ratio);
+                            if (!next || fit.cost < next.cost) next = fit;
+                        }
+                        if (!next) { options.push({ p, q, open: true }); continue; }
+                        const first = pairFit(sizeOf(S, 0, p), sizeOf(T, 0, q), prior, ratio);
+                        options.push({ p, q, cost: first.cost + next.cost, good: Math.abs(first.z) <= 1 && Math.abs(next.z) <= 1 });
+                    }
+                    const ranked = options.filter((o) => !o.open).sort((a, b) => a.cost - b.cost);
+                    if (!ranked.length) break;
+                    const best = ranked[0];
+                    const clear = ranked.length === 1 || ranked[1].cost - best.cost >= 1;
+                    // A 1:2 or 2:1 that can't be weighed yet could still win, unless one-to-one fits well.
+                    const undecided = options.some((o) => o.open && o.p <= 2 && o.q <= 2);
+                    const sure = (clear && (!undecided || (best.p === 1 && best.q === 1 && best.good)))
+                        || (S.length >= 5 && T.length >= 5);   // a run-on row closes on its best guess
+                    if (!sure) break;
+                    row = this.cutRow(row, S[best.p - 1].end, T[best.q - 1].end);
+                    if (!row) return;
                 }
+                this.render(row);
+            },
+
+            // At a pause, the row's complete sentences are paired as a whole: the best-fitting shapes
+            // over all of them. Anything unfinished stays with the last pair.
+            pairRemaining(row) {
+                const S = sentences(row.source), T = sentences(row.translation);
+                if (S.length < 2 || T.length < 2) return row;
+                const ratio = this.letterRatio(S, T);
+                const memo = new Map();
+                const best = (i, j) => {
+                    if (i === S.length && j === T.length) return { cost: 0, path: [] };
+                    const key = `${i},${j}`;
+                    if (memo.has(key)) return memo.get(key);
+                    let found = { cost: Infinity, path: null };
+                    for (const [p, q, prior] of PAIR_SHAPES) {
+                        if (i + p > S.length || j + q > T.length) continue;
+                        const rest = best(i + p, j + q);
+                        const cost = pairFit(sizeOf(S, i, p), sizeOf(T, j, q), prior, ratio).cost + rest.cost;
+                        if (cost < found.cost) found = { cost, path: [[p, q], ...rest.path] };
+                    }
+                    memo.set(key, found);
+                    return found;
+                };
+                const { path } = best(0, 0);
+                if (!path) return row;
+                let i = 0, j = 0, sourceCut = 0, translationCut = 0;
+                for (const [p, q] of path.slice(0, -1)) {
+                    i += p;
+                    j += q;
+                    row = this.cutRow(row, S[i - 1].end - sourceCut, T[j - 1].end - translationCut);
+                    sourceCut = S[i - 1].end;
+                    translationCut = T[j - 1].end;
+                    if (!row) break;
+                }
+                return row;
+            },
+
+            // Ends the current row at these offsets; what follows starts the next row, which is returned.
+            cutRow(row, sourceEnd, translationEnd) {
+                const rest = { source: row.source.slice(sourceEnd), translation: row.translation.slice(translationEnd) };
+                row.source = row.source.slice(0, sourceEnd);
+                row.translation = row.translation.slice(0, translationEnd);
+                this.finishRow();
+                if (!hasWords(rest.source) && !hasWords(rest.translation)) return null;
+                const next = this.openRow('instant');
+                next.source = rest.source;
+                next.translation = rest.translation;
+                this.render(next);
+                return next;
             },
 
             // Accurate: the transcript streams in, and each sentence is final the moment the next begins.
@@ -1561,15 +1668,23 @@
                     const quiet = now - this.lastSourceAt;
                     if ((quiet >= SENTENCE_PAUSE_MS && silence >= 500) || (row.source.length > 400 && quiet >= 600) || quiet >= ROW_MAX_QUIET_MS) this.closeRow();
                 } else {
-                    // The translation trails the speaker: a pause doesn't end a row whose translation hasn't
-                    // caught up, or it arrives as a row of its own with no original beside it.
+                    // Either side can trail the other by seconds (the speaker's transcript often comes last):
+                    // a pause doesn't end a row whose translation hasn't caught up, or it arrives as a row of
+                    // its own with no original beside it.
                     const quiet = now - this.lastTextAt;
-                    const behind = hasWords(row.source) && (!hasWords(row.translation) || sentenceEnds(row.source).length > sentenceEnds(row.translation).length);
+                    const behind = hasWords(row.source) && (!hasWords(row.translation) || sentences(row.source).length > sentences(row.translation).length);
                     if ((quiet >= ROW_GAP_MS && silence >= 600 && !behind) || quiet >= ROW_MAX_QUIET_MS) this.closeRow();
                 }
             },
 
             closeRow() {
+                const row = this.current;
+                if (!row) return;
+                if (row.kind === 'instant' && this.pairRemaining(row) === null) return;
+                this.finishRow();
+            },
+
+            finishRow() {
                 const row = this.current;
                 if (!row) return;
                 this.current = null;
@@ -1580,6 +1695,8 @@
                 if (row.kind === 'instant') {
                     row.sourceFinal = row.translationFinal = true;
                     if (!hasWords(row.source) && !hasWords(row.translation)) return this.remove(row);
+                    this.lettersHeard += letterCount(row.source);
+                    this.lettersInterpreted += letterCount(row.translation);
                     if (this.mode() === 'instant' && voiceMode !== 'off') spoken.add(row.translation);
                     this.render(row);
                     this.repair(row);
@@ -1755,6 +1872,7 @@
             clear() {
                 for (const row of [...this.rows]) this.remove(row);
                 this.current = null;
+                this.lettersHeard = this.lettersInterpreted = 0;
             },
         };
 
