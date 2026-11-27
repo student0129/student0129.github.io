@@ -279,8 +279,11 @@
         const VOICE_WAIT_MS = 12000;               // a spoken line waits this long for its translation, then is skipped
         const CLOSE_WAIT_MS = 6000;                // Stop: how long the model gets to finish its last words
         const SESSION_REFRESH_MS = 50 * 60000;     // sessions last an hour: renew at a pause before then
-        const STALL_VOICED_MS = 10000;             // this much speech sent with no transcript back...
-        const STALL_QUIET_MS = 20000;              // ...and nothing back for this long: the session is stuck
+        // The speaker's transcript can stop for good while the translation keeps flowing (seen live: the
+        // transcriber falls silent mid-session and never comes back). Every row is built from that transcript.
+        const STALL_VOICED_MS = 6000;              // this much speech sent with no transcript of it...
+        const STALL_QUIET_MS = 8000;               // ...and none for this long: start a fresh session
+        const STALL_MAX_QUIET_MS = 120000;         // the wait doubles while fresh sessions hear nothing either (music)
         const SEND_DELAY_S = 0.3;                  // Speaker mode sends the mic this late, so it can unmute in time
         const AUDIBLE_RMS = 0.003;                 // about -50 dBFS: below this, audio is silence
         const FONT_SCALES = [0.85, 1, 1.2, 1.45, 1.75, 2.1];
@@ -467,12 +470,13 @@
         }
 
         // Starting takes a key from the server, and a sleeping server is slow to give one. A key is
-        // fetched ahead while the page sits idle, so Start usually skips that wait. Keys last 10 minutes
-        // and are only good for one call.
+        // fetched ahead while the page sits idle, so Start usually skips that wait, and kept spare while
+        // live, so a fresh session (a stall, a dropped connection) loses seconds of speech, not ten.
+        // Keys last 10 minutes and are only good for one call.
         const presession = {
             promise: null, key: '', startedAt: 0,
             warm() {
-                if (session.active || document.visibilityState !== 'visible') return;
+                if (document.visibilityState !== 'visible') return;
                 const key = JSON.stringify(sessionSettings());
                 if (this.promise && this.key === key && Date.now() - this.startedAt < 7 * 60000) return;
                 this.key = key;
@@ -531,9 +535,9 @@
         const link = {
             epoch: 0, stage: 'closed',   // closed | secret | call | open | closing
             pc: null, dc: null, sender: null, outputLanguage: null, requestedTarget: null,
-            openedAt: 0, lastEventAt: 0, voicedSinceEvent: 0, lastStallAt: -Infinity,
+            openedAt: 0, lastEventAt: 0, lastInputAt: 0, voicedSinceInput: 0, stallStreak: 0,
             attempts: 0, firstFailureAt: 0, retryTimer: null, openTimer: null, lostTimer: null, onClosed: null,
-            stats: { sessions: 0, failures: 0, events: 0, deltas: 0, lastError: '' },
+            stats: { sessions: 0, failures: 0, stalls: 0, events: 0, deltas: 0, lastError: '' },
 
             async open() {
                 this.teardown();
@@ -586,11 +590,12 @@
                 if (secret.sessionUpdate) this.send(secret.sessionUpdate);
                 this.stage = 'open';
                 this.outputLanguage = secret.outputLanguage;
-                this.openedAt = this.lastEventAt = performance.now();
-                this.voicedSinceEvent = 0;
+                this.openedAt = this.lastEventAt = this.lastInputAt = performance.now();
+                this.voicedSinceInput = 0;
                 this.attempts = 0;
                 this.firstFailureAt = 0;
                 this.stats.sessions++;
+                presession.warm();   // the spare for the next session
                 voice.applyRouting();
                 updateModeHint();
                 if (!session.active) return;
@@ -604,9 +609,12 @@
                 try { evt = JSON.parse(data); } catch { return; }
                 this.stats.events++;
                 this.lastEventAt = performance.now();
-                if (/transcript\.delta$/.test(evt.type)) {
-                    this.voicedSinceEvent = 0;
-                    this.stats.deltas++;
+                if (/transcript\.delta$/.test(evt.type)) this.stats.deltas++;
+                // Only the speaker's own transcript shows the session is still hearing them.
+                if (evt.type === 'session.input_transcript.delta') {
+                    this.lastInputAt = this.lastEventAt;
+                    this.voicedSinceInput = 0;
+                    this.stallStreak = 0;
                 }
                 if (evt.type === 'session.closed') {
                     if (this.onClosed) this.onClosed();
@@ -707,15 +715,19 @@
                 if (now - this.openedAt > SESSION_REFRESH_MS && !transcript.current && capture.silenceMs() > 1500) {
                     return this.reopen(false);
                 }
-                // Speech is going out and nothing comes back: the session is stuck, not quiet.
-                if (this.voicedSinceEvent >= STALL_VOICED_MS && now - this.lastEventAt > STALL_QUIET_MS && now - this.lastStallAt > 120000) {
-                    this.lastStallAt = now;
-                    this.fail(failure('No transcript for a while despite speech; reconnecting.', { retryable: true }));
+                // Speech is going out and no transcript of it comes back: the session has stopped hearing,
+                // even if the translation is still talking. A fresh session hears again.
+                const quietNeeded = Math.min(STALL_QUIET_MS * 2 ** this.stallStreak, STALL_MAX_QUIET_MS);
+                if (this.voicedSinceInput >= STALL_VOICED_MS && now - this.lastInputAt > quietNeeded) {
+                    console.warn('Transltr: no transcript despite speech; starting a fresh session');
+                    this.stallStreak++;
+                    this.stats.stalls++;
+                    this.reopen(false);
                 }
             },
 
             noteVoiced(ms) {
-                if (this.stage === 'open') this.voicedSinceEvent += ms;
+                if (this.stage === 'open') this.voicedSinceInput += ms;
             },
 
             teardown() {
@@ -1844,6 +1856,7 @@
             session.active = true;
             link.attempts = 0;
             link.firstFailureAt = 0;
+            link.stallStreak = 0;
             setPhase('connecting');
             voice.unlock();
             link.open();   // the key and the call are set up while the permission prompt is open
@@ -2236,7 +2249,8 @@
                     stage: link.stage, epoch: link.epoch, outputLanguage: link.outputLanguage,
                     connection: link.pc && link.pc.connectionState, channel: link.dc && link.dc.readyState,
                     lastEventAgoMs: link.lastEventAt ? Math.round(performance.now() - link.lastEventAt) : null,
-                    voicedSinceEvent: link.voicedSinceEvent, retrying: !!link.retryTimer, ...link.stats,
+                    lastInputAgoMs: link.lastInputAt ? Math.round(performance.now() - link.lastInputAt) : null,
+                    voicedSinceInput: link.voicedSinceInput, stallStreak: link.stallStreak, retrying: !!link.retryTimer, ...link.stats,
                 },
                 capture: {
                     context: capture.ctx && capture.ctx.state, track: capture.track && capture.track.readyState,
